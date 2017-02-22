@@ -569,8 +569,8 @@ int Camera::ReadFormats()
 		emit OnCameraMessage_Signal("ReadFormat: index = " + QString("%1").arg(fmt.index) + ".");
 		Logger::LogEx("Camera::ReadFormat type = %d", fmt.type);
 		emit OnCameraMessage_Signal("ReadFormat: type = " + QString("%1").arg(fmt.type) + ".");
-		Logger::LogEx("Camera::ReadFormat pixelformat = %d = %s", fmt.pixelformat, V4l2Helper::ConvertPixelformat2String(fmt.pixelformat).c_str());
-		emit OnCameraMessage_Signal("ReadFormat: pixelformat = " + QString("%1").arg(fmt.pixelformat) + " = " + QString(V4l2Helper::ConvertPixelformat2String(fmt.pixelformat).c_str()) + ".");
+		Logger::LogEx("Camera::ReadFormat pixelformat = %d = %s", fmt.pixelformat, V4l2Helper::ConvertPixelformat2EnumString(fmt.pixelformat).c_str());
+		emit OnCameraMessage_Signal("ReadFormat: pixelformat = " + QString("%1").arg(fmt.pixelformat) + " = " + QString(V4l2Helper::ConvertPixelformat2EnumString(fmt.pixelformat).c_str()) + ".");
 		Logger::LogEx("Camera::ReadFormat description = %s", fmt.description);
 		emit OnCameraMessage_Signal("ReadFormat: description = " + QString(tmp.c_str()) + ".");
 		
@@ -673,7 +673,7 @@ int Camera::ReadPixelformat(uint32_t &pixelformat, QString &pfText)
 	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
 	{                
 		pixelformat = fmt.fmt.pix.pixelformat;
-		pfText = QString(V4l2Helper::ConvertPixelformat2String(fmt.fmt.pix.pixelformat).c_str());
+		pfText = QString(V4l2Helper::ConvertPixelformat2EnumString(fmt.fmt.pix.pixelformat).c_str());
 		
 		result = 0;
 	}

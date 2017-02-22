@@ -16,8 +16,11 @@ namespace Examples {
 
         static std::string	ConvertResult2String(int result);
 		static int xioctl(int fh, int request, void *arg);
-		static std::string ConvertPixelformat2String(int pixelformat);
+		static std::string ConvertPixelformat2EnumString(int pixelformat);
 		static std::string ConvertErrno2String(int errnumber);
+		
+		
+		static std::string ConvertPixelformat2String(int pixelformat);
 
     };
 

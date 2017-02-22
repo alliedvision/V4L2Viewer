@@ -143,6 +143,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(ui.m_chkAutoGain, SIGNAL(clicked()), this, SLOT(OnAutoGain()));
 	connect(ui.m_edExposure, SIGNAL(returnPressed()), this, SLOT(OnExposure()));
 	connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
+	connect(ui.m_liPixelformats, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnPixelformatDBLClick(QListWidgetItem *)));
 
     // Set the splitter stretch factors
 	ui.m_Splitter1->setStretchFactor(0, 25);
@@ -1131,6 +1132,23 @@ void v4l2test::OnAutoExposure()
 	}
 	else
 		ui.m_chkAutoExposure->setEnabled(false);
+}
+
+void v4l2test::OnPixelformatDBLClick(QListWidgetItem *item)
+{
+	std::string tmp = item->text().toStdString();
+	char *s = (char*)tmp.c_str();
+	uint32_t result = 0;
+	
+	if (tmp.size() == 4)
+	{
+		result += *s++;
+		result += *s++ << 8;
+		result += *s++ << 16;
+		result += *s++ << 24;
+	}
+	
+	ui.m_edPixelformat->setText(QString("%1").arg(result));
 }
 
 ////////////////////////////////////////////////////////////////////////

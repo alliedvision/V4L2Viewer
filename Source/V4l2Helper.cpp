@@ -47,6 +47,18 @@ namespace Examples {
 
 	std::string V4l2Helper::ConvertPixelformat2String(int pixelformat)
 	{
+		std::string s;
+		
+		s += pixelformat & 0xff;
+		s += (pixelformat >> 8) & 0xff;
+		s += (pixelformat >> 16) & 0xff;
+		s += (pixelformat >> 24) & 0xff;
+		
+		return s;
+	}
+	
+	std::string V4l2Helper::ConvertPixelformat2EnumString(int pixelformat)
+	{
 		std:: string result;
 		
 		switch(pixelformat)
