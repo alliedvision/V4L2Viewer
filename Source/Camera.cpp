@@ -562,7 +562,7 @@ int Camera::ReadFormats()
 	
 	CLEAR(fmt);
 	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FMT, &fmt) >= 0)
+	while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FMT, &fmt) >= 0 && fmt.index <= 100)
 	{
 		std::string tmp = (char*)fmt.description;
 		Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FMT index = %d", fmt.index);
@@ -580,7 +580,7 @@ int Camera::ReadFormats()
 		fmtsize.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		fmtsize.pixel_format = fmt.pixelformat;
 		fmtsize.index = 0;
-		while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &fmtsize) >= 0 && fmtsize.index < 1000)
+		while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &fmtsize) >= 0 && fmtsize.index <= 100)
 		{              
 			if (fmtsize.type == V4L2_FRMSIZE_TYPE_DISCRETE)
 			{
@@ -628,11 +628,20 @@ int Camera::ReadFormats()
 			fmtsize.index++;
 		}
 		
-		if (fmtsize.index >= 1000)
-			emit OnCameraMessage_Signal("ReadFormats: no VIDIOC_ENUM_FRAMESIZES received although no error.");
+		if (fmtsize.index >= 100)
+        {
+            Logger::LogEx("Camera::ReadFormats no VIDIOC_ENUM_FRAMESIZES never terminated with EINVAL within 100 loops.");
+		    emit OnCameraError_Signal("ReadFormats: no VIDIOC_ENUM_FRAMESIZES never terminated with EINVAL within 100 loops.");
+        }
 		
 		fmt.index++;
 	}
+
+    if (fmt.index >= 100)
+    {
+        Logger::LogEx("Camera::ReadFormats no VIDIOC_ENUM_FMT never terminated with EINVAL within 100 loops.");
+        emit OnCameraError_Signal("ReadFormats: get VIDIOC_ENUM_FMT never terminated with EINVAL within 100 loops.");
+    }
 	
     return result;
 }
