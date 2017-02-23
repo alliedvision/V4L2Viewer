@@ -104,7 +104,7 @@ public:
 
     int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
     int QueueAllUserBuffer();
-    int QueueSingleUserBuffer(const uint64_t frameHandle);
+    int QueueSingleUserBuffer(const int index);
     int DeleteUserBuffer();
     
     // Info
