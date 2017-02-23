@@ -249,14 +249,14 @@ int Camera::DeviceDiscoveryStart()
 			{
 				emit OnCameraListChanged_Signal(UpdateTriggerPluggedIn, 0, device_count, deviceName);
 			
-				device_count++;
-			
 				Logger::LogEx("Camera::DeviceDiscoveryStart close %s OK", deviceName.toAscii().data());
 				emit OnCameraMessage_Signal("DeviceDiscoveryStart: close " + deviceName + " OK");
 			}
 		}
+		
+		device_count++;
 	}
-	while(fileDiscriptor != -1);
+	while(device_count < 10);
 	
     //m_DmaDeviceDiscoveryCallbacks.Start();
 
@@ -565,14 +565,14 @@ int Camera::ReadFormats()
 	while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FMT, &fmt) >= 0)
 	{
 		std::string tmp = (char*)fmt.description;
-		Logger::LogEx("Camera::ReadFormat index = %d", fmt.index);
-		emit OnCameraMessage_Signal("ReadFormat: index = " + QString("%1").arg(fmt.index) + ".");
-		Logger::LogEx("Camera::ReadFormat type = %d", fmt.type);
-		emit OnCameraMessage_Signal("ReadFormat: type = " + QString("%1").arg(fmt.type) + ".");
-		Logger::LogEx("Camera::ReadFormat pixelformat = %d = %s", fmt.pixelformat, V4l2Helper::ConvertPixelformat2EnumString(fmt.pixelformat).c_str());
-		emit OnCameraMessage_Signal("ReadFormat: pixelformat = " + QString("%1").arg(fmt.pixelformat) + " = " + QString(V4l2Helper::ConvertPixelformat2EnumString(fmt.pixelformat).c_str()) + ".");
-		Logger::LogEx("Camera::ReadFormat description = %s", fmt.description);
-		emit OnCameraMessage_Signal("ReadFormat: description = " + QString(tmp.c_str()) + ".");
+		Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FMT index = %d", fmt.index);
+		emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FMT: index = " + QString("%1").arg(fmt.index) + ".");
+		Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FMT type = %d", fmt.type);
+		emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FMT: type = " + QString("%1").arg(fmt.type) + ".");
+		Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FMT pixelformat = %d = %s", fmt.pixelformat, V4l2Helper::ConvertPixelformat2EnumString(fmt.pixelformat).c_str());
+		emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FMT: pixelformat = " + QString("%1").arg(fmt.pixelformat) + " = " + QString(V4l2Helper::ConvertPixelformat2EnumString(fmt.pixelformat).c_str()) + ".");
+		Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FMT description = %s", fmt.description);
+		emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FMT: description = " + QString(tmp.c_str()) + ".");
 		
 		emit OnCameraPixelformat_Signal(QString("%1").arg(QString(V4l2Helper::ConvertPixelformat2String(fmt.pixelformat).c_str())));
 				
@@ -580,16 +580,16 @@ int Camera::ReadFormats()
 		fmtsize.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		fmtsize.pixel_format = fmt.pixelformat;
 		fmtsize.index = 0;
-		while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &fmtsize) >= 0)
+		while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &fmtsize) >= 0 && fmtsize.index < 1000)
 		{              
 			if (fmtsize.type == V4L2_FRMSIZE_TYPE_DISCRETE)
 			{
 				v4l2_frmivalenum fmtival;
 				
-				Logger::LogEx("Camera::ReadFormat size enum discrete width = %d", fmtsize.discrete.width);
-				emit OnCameraMessage_Signal("ReadFormat size enum discrete width = " + QString("%1").arg(fmtsize.discrete.width) + ".");
-				Logger::LogEx("Camera::ReadFormat size enum discrete height = %d", fmtsize.discrete.height);
-				emit OnCameraMessage_Signal("ReadFormat size enum discrete height = " + QString("%1").arg(fmtsize.discrete.height) + ".");
+				Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete width = %d", fmtsize.discrete.width);
+				emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete width = " + QString("%1").arg(fmtsize.discrete.width) + ".");
+				Logger::LogEx("Camera::ReadFormats size VIDIOC_ENUM_FRAMESIZES enum discrete height = %d", fmtsize.discrete.height);
+				emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete height = " + QString("%1").arg(fmtsize.discrete.height) + ".");
 				
 				emit OnCameraFramesize_Signal(QString("disc:%1x%2").arg(fmtsize.discrete.width).arg(fmtsize.discrete.height));
 				
@@ -607,18 +607,18 @@ int Camera::ReadFormats()
 			} 
 			else if (fmtsize.type == V4L2_FRMSIZE_TYPE_STEPWISE)
 			{
-				Logger::LogEx("Camera::ReadFormat size enum stepwise min_width = %d", fmtsize.stepwise.min_width);
-				emit OnCameraMessage_Signal("ReadFormat size enum stepwise min_width = " + QString("%1").arg(fmtsize.stepwise.min_width) + ".");
-				Logger::LogEx("Camera::ReadFormat size enum stepwise min_height = %d", fmtsize.stepwise.min_height);
-				emit OnCameraMessage_Signal("ReadFormat size enum stepwise min_height = " + QString("%1").arg(fmtsize.stepwise.min_height) + ".");
-				Logger::LogEx("Camera::ReadFormat size enum stepwise max_width = %d", fmtsize.stepwise.max_width);
-				emit OnCameraMessage_Signal("ReadFormat size enum stepwise max_width = " + QString("%1").arg(fmtsize.stepwise.max_width) + ".");
-				Logger::LogEx("Camera::ReadFormat size enum stepwise max_height = %d", fmtsize.stepwise.max_height);
-				emit OnCameraMessage_Signal("ReadFormat size enum stepwise max_height = " + QString("%1").arg(fmtsize.stepwise.max_height) + ".");
-				Logger::LogEx("Camera::ReadFormat size enum stepwise step_width = %d", fmtsize.stepwise.step_width);
-				emit OnCameraMessage_Signal("ReadFormat size enum stepwise step_width = " + QString("%1").arg(fmtsize.stepwise.step_width) + ".");
-				Logger::LogEx("Camera::ReadFormat size enum stepwise step_height = %d", fmtsize.stepwise.step_height);
-				emit OnCameraMessage_Signal("ReadFormat size enum stepwise step_height = " + QString("%1").arg(fmtsize.stepwise.step_height) + ".");
+				Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_width = %d", fmtsize.stepwise.min_width);
+				emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_width = " + QString("%1").arg(fmtsize.stepwise.min_width) + ".");
+				Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_height = %d", fmtsize.stepwise.min_height);
+				emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_height = " + QString("%1").arg(fmtsize.stepwise.min_height) + ".");
+				Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise max_width = %d", fmtsize.stepwise.max_width);
+				emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise max_width = " + QString("%1").arg(fmtsize.stepwise.max_width) + ".");
+				Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise max_height = %d", fmtsize.stepwise.max_height);
+				emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise max_height = " + QString("%1").arg(fmtsize.stepwise.max_height) + ".");
+				Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_width = %d", fmtsize.stepwise.step_width);
+				emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_width = " + QString("%1").arg(fmtsize.stepwise.step_width) + ".");
+				Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_height = %d", fmtsize.stepwise.step_height);
+				emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_height = " + QString("%1").arg(fmtsize.stepwise.step_height) + ".");
 				
 				emit OnCameraFramesize_Signal(QString("min:%1x%2,max:%3x%4,step:%5x%6").arg(fmtsize.stepwise.min_width).arg(fmtsize.stepwise.min_height).arg(fmtsize.stepwise.max_width).arg(fmtsize.stepwise.max_height).arg(fmtsize.stepwise.step_width).arg(fmtsize.stepwise.step_height));
 			}
@@ -627,6 +627,9 @@ int Camera::ReadFormats()
 			
 			fmtsize.index++;
 		}
+		
+		if (fmtsize.index >= 1000)
+			emit OnCameraMessage_Signal("ReadFormats: no VIDIOC_ENUM_FRAMESIZES received although no error.");
 		
 		fmt.index++;
 	}
