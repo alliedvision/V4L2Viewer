@@ -825,7 +825,7 @@ int Camera::SetAutoGain(bool autogain)
 
 	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_CTRL, &fmt))
 	{          
-		Logger::LogEx("Camera::SetAutoGain VIDIOC_S_CTRL V4L2_CID_AUTOGAIN to %d OK", ((autogain)?"true":"false"));
+		Logger::LogEx("Camera::SetAutoGain VIDIOC_S_CTRL V4L2_CID_AUTOGAIN to %s OK", ((autogain)?"true":"false"));
         emit OnCameraMessage_Signal(QString("SetAutoGain VIDIOC_S_CTRL: V4L2_CID_AUTOGAIN to %1 OK.").arg((autogain)?"true":"false"));
 		
 		result = 0;
@@ -962,7 +962,7 @@ int Camera::SetAutoExposure(bool autoexposure)
 
 	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_CTRL, &fmt))
 	{                
-		Logger::LogEx("Camera::SetAutoExposure VIDIOC_S_CTRL V4L2_CID_EXPOSURE_AUTO to %d OK", ((autoexposure)?"true":"false"));
+		Logger::LogEx("Camera::SetAutoExposure VIDIOC_S_CTRL V4L2_CID_EXPOSURE_AUTO to %s OK", ((autoexposure)?"true":"false"));
         emit OnCameraMessage_Signal(QString("SetAutoExposure VIDIOC_S_CTRL: V4L2_CID_EXPOSURE_AUTO to %1 OK.").arg(((autoexposure)?"true":"false")));
 		
 		result = 0;
