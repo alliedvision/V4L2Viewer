@@ -270,10 +270,12 @@ int FrameObserver::ReadFrame()
 		m_FrameId++;
 		m_nReceivedFramesCounter++;
 		
-		result = DisplayFrame((uint8_t*)buf.m.userptr, buf.length);
+		if (NULL != buf.m.userptr && 0 != buf.length)
+		{  
+		    result = DisplayFrame((uint8_t*)buf.m.userptr, buf.length);
 		
-		if (m_bRecording && -1 != result)
-		{
+		    if (m_bRecording && -1 != result)
+		    {
 			if (m_FrameRecordQueue.GetSize() < MAX_FRAME_QUEUE_SIZE)
 			{
 				m_FrameRecordQueue.Enqueue((uint8_t*)buf.m.userptr, buf.length, m_nWidth, m_nHeight, m_Pixelformat, m_FrameId, 0, m_FrameId);
@@ -284,10 +286,8 @@ int FrameObserver::ReadFrame()
 				if (m_FrameRecordQueue.GetSize() == MAX_FRAME_QUEUE_SIZE)
 					OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_FRAME_QUEUE_SIZE));
 			}
-		}
+		    }
 		
-		if (0 != buf.m.userptr)
-		{
 		    emit OnFrameDone_Signal((uint64_t)buf.m.userptr);
 		}
 		else
@@ -318,8 +318,8 @@ void FrameObserver::run()
 		FD_SET(m_nFileDescriptor, &fds);
 
 		/* Timeout. */
-		tv.tv_sec = 0;
-		tv.tv_usec = 22;
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
 
 		result = select(m_nFileDescriptor + 1, &fds, NULL, NULL, &tv);
 
