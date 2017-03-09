@@ -105,7 +105,7 @@ private:
 	int OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName);
     int CloseCamera(const uint32_t cardNumber);
 	// called by OnCameraPayloadSizeReady when payloadsize arrieved
-    void StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height);
+    void StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
     
     // Official QT dialog close event callback
     virtual void closeEvent(QCloseEvent *event);

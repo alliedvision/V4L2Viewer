@@ -250,7 +250,7 @@ int Camera::DeviceDiscoveryStart()
 		
 		device_count++;
 	}
-	while(device_count < 10);
+	while(device_count < 20);
 	
     //m_DmaDeviceDiscoveryCallbacks.Start();
 
@@ -271,13 +271,13 @@ int Camera::DeviceDiscoveryStop()
 /********************************************************************************/
 
 
-int Camera::SIStartChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, void *pPrivateData)
+int Camera::SIStartChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine, void *pPrivateData)
 {
     int nResult = 0;
     
     Logger::LogEx("Camera::SIStartChannel pixelformat=%d, payloadsize=%d, width=%d, height=%d.", pixelformat, payloadsize, width, height);
 	
-	m_DmaSICallbacks.SetParameter(m_nFileDescriptor, pixelformat, payloadsize, width, height);
+	m_DmaSICallbacks.SetParameter(m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
 
     m_DmaSICallbacks.ResetIncompletedFramesCount();
 	
@@ -674,7 +674,7 @@ int Camera::SetPixelformat(uint32_t pixelformat, QString pfText)
     return result;
 }
 
-int Camera::ReadPixelformat(uint32_t &pixelformat, QString &pfText)
+int Camera::ReadPixelformat(uint32_t &pixelformat, uint32_t &bytesPerLine, QString &pfText)
 {
     int result = -1;
 	v4l2_format fmt;
@@ -688,6 +688,7 @@ int Camera::ReadPixelformat(uint32_t &pixelformat, QString &pfText)
         emit OnCameraMessage_Signal(QString("ReadPixelformat VIDIOC_G_FMT: OK =%1.").arg(fmt.fmt.pix.pixelformat));
 
 		pixelformat = fmt.fmt.pix.pixelformat;
+		bytesPerLine = fmt.fmt.pix.bytesperline;
 		pfText = QString(V4l2Helper::ConvertPixelformat2EnumString(fmt.fmt.pix.pixelformat).c_str());
 		
 		result = 0;

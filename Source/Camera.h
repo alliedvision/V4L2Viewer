@@ -77,7 +77,7 @@ public:
 
     int DeviceDiscoveryStart();
     int DeviceDiscoveryStop();
-    int SIStartChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, void *pPrivateData);
+    int SIStartChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine, void *pPrivateData);
     int SIStopChannel();
     
     int ReadPayloadsize(uint32_t &payloadsize);
@@ -87,7 +87,7 @@ public:
 	int SetWidth(uint32_t width);
 	int ReadHeight(uint32_t &height);
 	int SetHeight(uint32_t height);
-	int ReadPixelformat(uint32_t &pixelformat, QString &pfText);
+	int ReadPixelformat(uint32_t &pixelformat, uint32_t &bytesPerLine, QString &pfText);
 	int SetPixelformat(uint32_t pixelformat, QString pfText);
 	int ReadFormats();
 	int ReadGain(uint32_t &gain);

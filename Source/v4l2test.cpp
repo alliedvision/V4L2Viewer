@@ -342,6 +342,7 @@ void v4l2test::OnStartButtonClicked()
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t pixelformat = 0;
+    uint32_t bytesPerLine = 0;
     QString pixelformatText;
 	int result = 0;
 
@@ -351,11 +352,11 @@ void v4l2test::OnStartButtonClicked()
 	result = m_Camera.ReadFrameSize(width, height);
 	OnLog(QString("Received Width = %1").arg(width));
 	OnLog(QString("Received Height = %1").arg(height));
-	result = m_Camera.ReadPixelformat(pixelformat, pixelformatText);
+	result = m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
 	OnLog(QString("Received Pixelformat = %1 = 0x%2 = %3").arg(pixelformat).arg(pixelformat, 8, 16, QChar('0')).arg(pixelformatText));
 
     if (result == 0)
-        StartStreaming(pixelformat, payloadsize, width, height);
+        StartStreaming(pixelformat, payloadsize, width, height, bytesPerLine);
 }
 
 void v4l2test::OnToggleButtonClicked()
@@ -455,7 +456,7 @@ void v4l2test::OnCameraFramesize(const QString& size)
 }
 
 
-void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height)
+void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
     int err = 0;
     int nRow = ui.m_CamerasListBox->currentRow();
@@ -465,7 +466,7 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
     ui.m_ToggleButton->setEnabled(false);
 	QApplication::processEvents();
 
-    err = m_Camera.SIStartChannel(pixelformat, payloadsize, width, height, NULL);
+    err = m_Camera.SIStartChannel(pixelformat, payloadsize, width, height, bytesPerLine, NULL);
     if (0 != err)
         OnLog("Start Acquisition failed during SI Start channel.");
     else
@@ -1059,10 +1060,11 @@ void v4l2test::OnPixelformat()
 {
 	if (m_Camera.SetPixelformat(ui.m_edPixelformat->text().toInt(), "") < 0)
 	{
-		uint32_t pixelformat;
-		QString pixelformatText;
+		uint32_t pixelformat = 0;
+		uint32_t bytesPerLine = 0;
+    		QString pixelformatText;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Pixelformat!") );
-		m_Camera.ReadPixelformat(pixelformat, pixelformatText);
+		m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
 		ui.m_edPixelformat->setText(QString("%1").arg(pixelformat));
 		ui.m_edPixelformatText->setText(QString("%1").arg(pixelformatText));
 	}
@@ -1161,7 +1163,8 @@ void v4l2test::GetImageInformation()
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t pixelformat = 0;
-	QString pixelformatText;
+	uint32_t bytesPerLine = 0;
+    	QString pixelformatText;
 	uint32_t gain = 0;
 	bool autogain = false;
 	uint32_t exposure = 0;
@@ -1182,7 +1185,7 @@ void v4l2test::GetImageInformation()
 	ui.m_edWidth->setText(QString("%1").arg(width));
 	ui.m_edHeight->setText(QString("%1").arg(height));
 	
-	result = m_Camera.ReadPixelformat(pixelformat, pixelformatText);
+	result = m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
 	ui.m_edPixelformat->setText(QString("%1").arg(pixelformat));
 	ui.m_edPixelformatText->setText(QString("%1").arg(pixelformatText));
 	
