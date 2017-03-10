@@ -61,7 +61,7 @@ class FrameObserver : public QThread
     //
 	~FrameObserver();
 
-	void SetParameter(int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
+	void SetParameter(bool blockingMode, int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
 	
     // Get the number of frames
 	// This function will clear the counter of received frames
@@ -118,6 +118,7 @@ private:
 	uint8_t *m_pBuffer;
 	
 	bool m_MessageSendFlag;
+        bool m_BlockingMode;
 	
 
 private slots:

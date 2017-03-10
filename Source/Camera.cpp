@@ -54,6 +54,7 @@ Camera::Camera()
     : m_bSIRunning(false)
     , m_UsedBufferCount(0)
     , m_nFileDescriptor(-1)
+    , m_BlockingMode(false)
 {
     connect(&m_DmaDeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &)));
 
@@ -83,13 +84,20 @@ unsigned int Camera::GetIncompletedFramesCount()
     return m_DmaSICallbacks.GetIncompletedFramesCount();
 }
 
-int Camera::OpenDevice(std::string &deviceName)
+int Camera::OpenDevice(std::string &deviceName, bool blockingMode)
 {
 	int result = -1;
 	
+        m_BlockingMode = blockingMode;
+
 	if (-1 == m_nFileDescriptor)
 	{
-		if ((m_nFileDescriptor = open(deviceName.c_str(), O_RDWR | O_NONBLOCK, 0)) == -1) 
+                if (m_BlockingMode)
+                   m_nFileDescriptor = open(deviceName.c_str(), O_RDWR | O_NONBLOCK, 0);
+                else
+                   m_nFileDescriptor = open(deviceName.c_str(), O_RDWR | O_NONBLOCK, 0);
+
+		if (m_nFileDescriptor == -1) 
 		{
 			Logger::LogEx("Camera::OpenDevice open '%s' failed errno=%d=%s", deviceName.c_str(), errno, V4l2Helper::ConvertErrno2String(errno).c_str());
 			emit OnCameraError_Signal("OpenDevice: open '" + QString(deviceName.c_str()) + "' failed errno=" + QString((int)errno) + "=" + QString(V4l2Helper::ConvertErrno2String(errno).c_str()) + ".");
@@ -279,7 +287,7 @@ int Camera::SIStartChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t 
     
     Logger::LogEx("Camera::SIStartChannel pixelformat=%d, payloadsize=%d, width=%d, height=%d.", pixelformat, payloadsize, width, height);
 	
-	m_DmaSICallbacks.SetParameter(m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
+	m_DmaSICallbacks.SetParameter(m_BlockingMode, m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
 
     m_DmaSICallbacks.ResetIncompletedFramesCount();
 	
@@ -1013,7 +1021,7 @@ int Camera::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
 		else 
 		{
 			Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS OK");
-			emit OnCameraError_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS OK.");
+			emit OnCameraMessage_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS OK.");
 		}
 
         // create local buffer container

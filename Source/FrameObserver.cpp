@@ -62,6 +62,7 @@ FrameObserver::FrameObserver()
 	, m_BytesPerLine(0)
 	, m_pBuffer(0)
 	, m_MessageSendFlag(false)
+        , m_BlockingMode(false)
 {
 	start();
 }
@@ -76,8 +77,9 @@ FrameObserver::~FrameObserver()
 		QThread::msleep(10);
 }
 
-void FrameObserver::SetParameter(int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
+void FrameObserver::SetParameter(bool blockingMode, int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
+        m_BlockingMode = blockingMode;
 	m_nFileDescriptor = fileDescriptor;
 	m_nWidth = width;
 	m_nHeight = height;
@@ -270,7 +272,7 @@ int FrameObserver::ReadFrame()
 		m_FrameId++;
 		m_nReceivedFramesCounter++;
 		
-		if (NULL != buf.m.userptr && 0 != buf.length)
+		if (0 != buf.m.userptr && 0 != buf.length)
 		{  
 		    result = DisplayFrame((uint8_t*)buf.m.userptr, buf.length);
 		
@@ -308,6 +310,7 @@ int FrameObserver::ReadFrame()
 // Do the work within this thread
 void FrameObserver::run()
 {
+        OnMessage_Signal(QString("FrameObserver thread started."));
 	while (!m_bAbort)
 	{
 		fd_set fds;
@@ -317,26 +320,34 @@ void FrameObserver::run()
 		FD_ZERO(&fds);
 		FD_SET(m_nFileDescriptor, &fds);
 
-		/* Timeout. */
-		tv.tv_sec = 1;
-		tv.tv_usec = 0;
+                if (!m_BlockingMode)
+                {
+		    /* Timeout. */
+		    tv.tv_sec = 1;
+		    tv.tv_usec = 0;
 
-		result = select(m_nFileDescriptor + 1, &fds, NULL, NULL, &tv);
+		    result = select(m_nFileDescriptor + 1, &fds, NULL, NULL, &tv);
 
-		if (-1 == result) 
-		{
-			// Error
-			continue;
-		} else if (0 == result) 
-		{
-			// Timeout
-			QThread::msleep(0);
-			continue;
-		} else 
-		{
-			ReadFrame();
-		}
+		    if (-1 == result) 
+		    {
+			    // Error
+			    continue;
+		    } else if (0 == result) 
+		    {
+			    // Timeout
+			    QThread::msleep(0);
+			    continue;
+		    } else 
+		    {
+			    ReadFrame();
+		    }
+                 }
+                 else
+                 {
+                     ReadFrame();
+                 }
 	}
+	OnMessage_Signal(QString("FrameObserver thread stopped."));
 }
 
 int FrameObserver::xioctl(int fh, int request, void *arg)

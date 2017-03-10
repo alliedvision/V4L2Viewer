@@ -72,7 +72,7 @@ public:
     Camera();
     virtual ~Camera();
 
-	int OpenDevice(std::string &deviceName);
+	int OpenDevice(std::string &deviceName, bool blockingMode);
     int CloseDevice();
 
     int DeviceDiscoveryStart();
@@ -128,6 +128,7 @@ private:
     bool                                        m_bSIRunning;
     std::string 								m_DeviceName;
 	int 										m_nFileDescriptor;
+    bool m_BlockingMode;
     
     CameraObserver	                            m_DmaDeviceDiscoveryCallbacks;
     FrameObserver                       		m_DmaSICallbacks;

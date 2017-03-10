@@ -35,6 +35,8 @@
 #include "Logger.h"
 #include <ctime>
 
+#define BLOCKING_MODE       false
+
 #define MAX_RANDOM_NUMBER   500
 
 #define NUM_COLORS 3
@@ -297,7 +299,7 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
     std::string tmp;
 
 	deviceName = devName.right(devName.length()-devName.indexOf(':')-2).toStdString();
-	m_Camera.OpenDevice(deviceName);
+	m_Camera.OpenDevice(deviceName, BLOCKING_MODE);
 	
     OnLog("---------------------------------------------");
     OnLog("---- Device Info ");
@@ -491,6 +493,7 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 		{
 			OnLog("Start Stream failed.");
 		}
+
     }
     else
     {
@@ -733,7 +736,7 @@ int v4l2test::OpenAndSetupCamera(const uint32_t cardNumber, const QString &devic
     int err = 0;
 	
 	std::string devName = deviceName.toStdString();
-	err = m_Camera.OpenDevice(devName);
+	err = m_Camera.OpenDevice(devName, BLOCKING_MODE);
 
     if (0 != err)
     	OnLog("Open device failed");
