@@ -93,7 +93,7 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode)
 	if (-1 == m_nFileDescriptor)
 	{
                 if (m_BlockingMode)
-                   m_nFileDescriptor = open(deviceName.c_str(), O_RDWR | O_NONBLOCK, 0);
+                   m_nFileDescriptor = open(deviceName.c_str(), O_RDWR, 0);
                 else
                    m_nFileDescriptor = open(deviceName.c_str(), O_RDWR | O_NONBLOCK, 0);
 

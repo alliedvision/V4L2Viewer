@@ -287,7 +287,7 @@ void v4l2test::OnOpenCloseButtonClicked()
 		UpdateViewerLayout();
     }
 
-	ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
+	ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
 }
 
 // The event handler for get device info
