@@ -37,10 +37,15 @@
 #include <QSharedPointer>
 
 #include <MyFrameQueue.h>
+#include "Helper.h"
+#include "V4l2Helper.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // TYPEDEFS
 ////////////////////////////////////////////////////////////////////////////////
+
+#define MAX_VIEWER_USER_BUFFER_COUNT	50
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // DEFINES
@@ -50,6 +55,22 @@
 namespace AVT {
 namespace Tools {
 namespace Examples {
+
+typedef struct _USER_BUFFER
+{
+    uint8_t         *pBuffer;
+    size_t  		nBufferlength;
+    uint8_t         *pBufferOffset;
+    size_t          iSize;
+    uint32_t        iReceivedLength;
+    uint32_t        iReceivedLengthCounter;
+    uint32_t        iSendLength;
+    int             nBufferState;
+    int             nProtocolState;
+    int             nHandle;
+    void            *pPrivateData;
+} USER_BUFFER, *PUSER_BUFFER, **PPUSER_BUFFER;
+
 
 class FrameObserver : public QThread
 {
@@ -61,7 +82,8 @@ class FrameObserver : public QThread
     //
 	~FrameObserver();
 
-	void SetParameter(bool blockingMode, int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
+	int StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
+	int StopStream();
 	
     // Get the number of frames
 	// This function will clear the counter of received frames
@@ -81,6 +103,12 @@ class FrameObserver : public QThread
     void DisplayStepBack();
     void DisplayStepForw();
     void DeleteRecording();
+    
+    int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize, bool internalBuffer);
+    int QueueAllUserBuffer();
+    int QueueSingleUserBuffer(const int index);
+    int DeleteUserBuffer();
+    void FrameDone(const unsigned long long frameHandle);
 
 protected:
 	// v4l2
@@ -91,6 +119,8 @@ protected:
 	virtual void run();
 	
 	int xioctl(int fh, int request, void *arg);
+	
+	
 	
 private:
     const static int MAX_FRAME_QUEUE_SIZE = 100;
@@ -119,14 +149,14 @@ private:
 	
 	bool m_MessageSendFlag;
         bool m_BlockingMode;
+	bool m_bStreamRunning;
+	bool m_bStreamStopped;
 	
+      	std::vector<PUSER_BUFFER>					m_UserBufferContainerList;
 
-private slots:
-	// The event handler for getting the processed frame to an image
-	void OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId);
-	// Event will be called when the frame processing is done and the frame can be returned to streaming engine
-    void OnFrameDoneFromThread(const unsigned long long frameId);
-	
+	bool m_UseMMAPBuffer;
+	uint32_t                                    m_UsedBufferCount;
+
 signals:
 	// Event will be called when a frame is processed by the internal thread and ready to show
 	void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
@@ -138,6 +168,8 @@ signals:
 	void OnDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &);
     // Event will be called when for text notification
     void OnMessage_Signal(const QString &msg);
+    // Event will be called on error
+    void OnError_Signal(const QString &text);
 };
 
 }}} // namespace AVT::Tools::Examples

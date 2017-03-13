@@ -34,8 +34,6 @@
 #include "CameraObserver.h"
 
 
-#define MAX_VIEWER_USER_BUFFER_COUNT	50
-
 class GenCPRequestPool;
 
 enum FileType
@@ -48,21 +46,6 @@ enum FileType
 namespace AVT {
 namespace Tools {
 namespace Examples {
-
-typedef struct _USER_BUFFER
-{
-    uint8_t         *pBuffer;
-    size_t  		nBufferlength;
-    uint8_t         *pBufferOffset;
-    size_t          iSize;
-    uint32_t        iReceivedLength;
-    uint32_t        iReceivedLengthCounter;
-    uint32_t        iSendLength;
-    int             nBufferState;
-    int             nProtocolState;
-    int             nHandle;
-    void            *pPrivateData;
-} USER_BUFFER, *PUSER_BUFFER, **PPUSER_BUFFER;
 
 class Camera : public QObject
 {
@@ -102,7 +85,7 @@ public:
     int SendAcquisitionStart();
     int SendAcquisitionStop();
 
-    int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
+    int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize, bool internalBuffer);
     int QueueAllUserBuffer();
     int QueueSingleUserBuffer(const int index);
     int DeleteUserBuffer();
@@ -125,7 +108,6 @@ public:
     void DeleteRecording();
 
 private:
-    bool                                        m_bSIRunning;
     std::string 								m_DeviceName;
 	int 										m_nFileDescriptor;
     bool m_BlockingMode;
@@ -135,11 +117,9 @@ private:
 	
     uint64_t    		                        m_SIUserBufferHandles[MAX_VIEWER_USER_BUFFER_COUNT];
     //frame_t				 IO_METHOD_USERPTR                       m_SIUserFrame[MAX_VIEWER_USER_BUFFER_COUNT];
-    uint32_t                                    m_UsedBufferCount;
-
+    
     static uint16_t                             s_DCICmdRequestIDCounter;
 
-	std::vector<PUSER_BUFFER>					m_UserBufferContainerList;
 	// Tools
     
 signals:
@@ -168,15 +148,14 @@ private slots:
 	void OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &);
     // The event handler to show the processed frame
 	void OnFrameReady(const QImage &image, const unsigned long long &frameId);
-	// The event handler to return the frame
-	void OnFrameDone(const unsigned long long);
 	// Event will be called when the a frame is recorded
     void OnRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue);
 	// Event will be called when the a frame is displayed
     void OnDisplayFrame(const unsigned long long &frameID, const unsigned long &width, const unsigned long &height, const unsigned long &pixelformat);
     // Event will be called when for text notification
     void OnMessage(const QString &msg);
-	
+    // Event will be called when for text notification
+    void OnError(const QString &msg);
 };
 
 }}} // namespace AVT::Tools::Examples

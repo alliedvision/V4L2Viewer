@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <string>
 
+#define CLEAR(x) memset(&(x), 0, sizeof(x))
+
 namespace AVT {
 namespace BaseTools {
 

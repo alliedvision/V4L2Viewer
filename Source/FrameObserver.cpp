@@ -32,6 +32,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <sys/mman.h>
 #include <linux/videodev2.h>
 
 #include <FrameObserver.h>
@@ -51,8 +52,8 @@ namespace Examples {
 FrameObserver::FrameObserver() 
 	: m_nReceivedFramesCounter(0)
 	, m_nIncompletedFramesCounter(0)
-    , m_bTerminate(false)
-    , m_bRecording(false)
+	, m_bTerminate(false)
+	, m_bRecording(false)
 	, m_bAbort(false)
 	, m_nFileDescriptor(0)
 	, m_nWidth(0)
@@ -63,6 +64,10 @@ FrameObserver::FrameObserver()
 	, m_pBuffer(0)
 	, m_MessageSendFlag(false)
         , m_BlockingMode(false)
+	, m_UseMMAPBuffer(false)
+        , m_UsedBufferCount(0)
+	, m_bStreamRunning(false)
+	, m_bStreamStopped(false)
 {
 	start();
 }
@@ -77,19 +82,40 @@ FrameObserver::~FrameObserver()
 		QThread::msleep(10);
 }
 
-void FrameObserver::SetParameter(bool blockingMode, int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
+int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
-        m_BlockingMode = blockingMode;
-	m_nFileDescriptor = fileDescriptor;
-	m_nWidth = width;
-	m_nHeight = height;
-	m_FrameId = 0;
-	m_nReceivedFramesCounter = 0;
-	m_PayloadSize = payloadsize;
-	m_Pixelformat = pixelformat;
-	m_BytesPerLine = bytesPerLine;
-	m_pBuffer = new uint8_t[payloadsize];
-	m_MessageSendFlag = false;
+    int nResult = 0;
+    
+    m_BlockingMode = blockingMode;
+    m_nFileDescriptor = fileDescriptor;
+    m_nWidth = width;
+    m_nHeight = height;
+    m_FrameId = 0;
+    m_nReceivedFramesCounter = 0;
+    m_PayloadSize = payloadsize;
+    m_Pixelformat = pixelformat;
+    m_BytesPerLine = bytesPerLine;
+    m_pBuffer = new uint8_t[payloadsize];
+    m_MessageSendFlag = false;
+    
+    m_bStreamStopped = false;
+    m_bStreamRunning = true;
+    
+    m_UserBufferContainerList.resize(0);
+    
+    return nResult;
+}
+
+int FrameObserver::StopStream()
+{
+    int nResult = 0;
+    
+    m_bStreamRunning = false;
+    
+    while (!m_bStreamStopped)
+         QThread::msleep(10);
+
+    return nResult;
 }
 
 void FrameObserver::SetTerminateFlag()// Event will be called when the frame processing is done and the frame can be returned to streaming engine
@@ -260,27 +286,40 @@ int FrameObserver::DisplayFrame(const uint8_t* pBuffer, uint32_t length)
 int FrameObserver::ReadFrame()
 {
     v4l2_buffer buf;
-    unsigned int result = -1;
+    int result = -1;
 
 	memset(&buf, 0, sizeof(buf));
 
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	buf.memory = V4L2_MEMORY_USERPTR;
+	if (m_UseMMAPBuffer)
+	  buf.memory = V4L2_MEMORY_MMAP;
+	else
+	  buf.memory = V4L2_MEMORY_USERPTR;
+	
+	result = xioctl(m_nFileDescriptor, VIDIOC_DQBUF, &buf);
 
-	if (-1 != xioctl(m_nFileDescriptor, VIDIOC_DQBUF, &buf)) 
+	if (result >= 0  && m_bStreamRunning) 
 	{
-		m_FrameId++;
-		m_nReceivedFramesCounter++;
+		uint32_t length = buf.length;
+		uint8_t* buffer = (uint8_t*)buf.m.userptr;
 		
-		if (0 != buf.m.userptr && 0 != buf.length)
+		if (m_UseMMAPBuffer)
+		{
+		    length = m_UserBufferContainerList[buf.index]->nBufferlength;
+		    buffer = m_UserBufferContainerList[buf.index]->pBuffer;
+		}  
+		if (0 != buffer && 0 != length)
 		{  
-		    result = DisplayFrame((uint8_t*)buf.m.userptr, buf.length);
+		    m_FrameId++;
+		    m_nReceivedFramesCounter++;
+		    
+		    result = DisplayFrame(buffer, length);
 		
 		    if (m_bRecording && -1 != result)
 		    {
 			if (m_FrameRecordQueue.GetSize() < MAX_FRAME_QUEUE_SIZE)
 			{
-				m_FrameRecordQueue.Enqueue((uint8_t*)buf.m.userptr, buf.length, m_nWidth, m_nHeight, m_Pixelformat, m_FrameId, 0, m_FrameId);
+				m_FrameRecordQueue.Enqueue(buffer, length, m_nWidth, m_nHeight, m_Pixelformat, m_FrameId, 0, m_FrameId);
 				OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
 			}
 			else
@@ -290,7 +329,10 @@ int FrameObserver::ReadFrame()
 			}
 		    }
 		
-		    emit OnFrameDone_Signal((uint64_t)buf.m.userptr);
+		    
+		
+		    QueueSingleUserBuffer(buf.index);
+		    //FrameDone((uint64_t)buf.m.userptr);
 		}
 		else
 		{
@@ -300,9 +342,12 @@ int FrameObserver::ReadFrame()
 		        OnMessage_Signal(QString("Frame buffer empty !"));
 		    }
 		    
-		    xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf);
+		    if (m_bStreamRunning)
+			xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf);
 		}
 	}
+	if (!m_bStreamRunning)
+	    m_bStreamStopped = true;
 
 	return result;
 }
@@ -323,7 +368,7 @@ void FrameObserver::run()
                 if (!m_BlockingMode)
                 {
 		    /* Timeout. */
-		    tv.tv_sec = 1;
+		    tv.tv_sec = 10;
 		    tv.tv_usec = 0;
 
 		    result = select(m_nFileDescriptor + 1, &fds, NULL, NULL, &tv);
@@ -387,18 +432,6 @@ void FrameObserver::ResetIncompletedFramesCount()
 }
 
 
-// The event handler for getting the processed frame to an image
-void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId)
-{
-	emit OnFrameReady_Signal(image, frameId);
-}
-
-// Event will be called when the frame processing is done and the frame can be returned to streaming engine
-void FrameObserver::OnFrameDoneFromThread(const unsigned long long frameHandle)
-{
-	emit OnFrameDone_Signal(frameHandle);
-}
-
 // Recording
 
 void FrameObserver::SetRecording(bool start)
@@ -441,6 +474,249 @@ void FrameObserver::DisplayStepForw()
 void FrameObserver::DeleteRecording()
 {
     m_FrameRecordQueue.Clear();
+}
+
+
+
+/*********************************************************************************************************/
+// Frame buffer handling
+/*********************************************************************************************************/
+
+int FrameObserver::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize, bool internalBuffer)
+{
+    int result = -1;
+
+    m_UseMMAPBuffer = internalBuffer;
+
+    if (bufferCount <= MAX_VIEWER_USER_BUFFER_COUNT)
+    {
+        v4l2_requestbuffers req;
+
+		// creates user defined buffer
+		CLEAR(req);
+
+        req.count  = bufferCount;
+        req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if (!internalBuffer)
+	{
+	    req.memory = V4L2_MEMORY_USERPTR;
+	} else {
+	    req.memory = V4L2_MEMORY_MMAP;
+	}
+
+		// requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
+		if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req)) 
+		{
+			if (EINVAL == errno) 
+			{
+				Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
+				emit OnError_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS does not support user pointer i/o.");
+			} else {
+				Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS error");
+				emit OnError_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS error.");
+			}
+		}
+		else 
+		{
+			Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS OK");
+			emit OnMessage_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS OK.");
+		
+			// create local buffer container
+			m_UserBufferContainerList.resize(bufferCount);
+        
+			if (m_UserBufferContainerList.size() != bufferCount) 
+		        {
+			    Logger::LogEx("Camera::CreateUserBuffer buffer container error");
+			    emit OnError_Signal("Camera::CreateUserBuffer: buffer container error.");
+			    return -1;
+			}
+
+			if (!internalBuffer)
+			{
+			    // get the length and start address of each of the 4 buffer structs and assign the user buffer addresses
+			    for (int x = 0; x < bufferCount; ++x) 
+			    {
+			        m_UserBufferContainerList[x] = new USER_BUFFER;
+				m_UserBufferContainerList[x]->nBufferlength = bufferSize;
+				m_UserBufferContainerList[x]->pBuffer = new uint8_t[bufferSize];
+
+				if (!m_UserBufferContainerList[x]->pBuffer) 
+				{
+				    Logger::LogEx("Camera::CreateUserBuffer buffer creation error");
+				    emit OnError_Signal("Camera::CreateUserBuffer: buffer creation error.");
+				    return -1;
+				}
+			    }
+			}
+			else
+			{
+			    for (int x = 0; x < bufferCount; ++x)
+			    {
+			    	v4l2_buffer buf;
+			    	CLEAR(buf);
+			    	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			    	buf.memory = V4L2_MEMORY_MMAP;
+			    	buf.index = x;
+
+				if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYBUF, &buf)) 
+				{
+				    Logger::LogEx("Camera::CreateUserBuffer VIDIOC_QUERYBUF error");
+				    emit OnError_Signal("Camera::CreateUserBuffer: VIDIOC_QUERYBUF error.");
+				    return -1;
+				}
+
+				Logger::LogEx("Camera::CreateUserBuffer VIDIOC_QUERYBUF MMAP OK length=%d", buf.length);
+				emit OnError_Signal(QString("Camera::CreateUserBuffer: VIDIOC_QUERYBUF OK length=%1.").arg(buf.length));
+				    
+				m_UserBufferContainerList[x] = new USER_BUFFER;
+				m_UserBufferContainerList[x]->nBufferlength = buf.length;
+				m_UserBufferContainerList[x]->pBuffer = (uint8_t*)mmap(NULL,
+									     buf.length,
+									     PROT_READ | PROT_WRITE,
+									     MAP_SHARED,
+									     m_nFileDescriptor,
+									     buf.m.offset);
+
+				if (MAP_FAILED == m_UserBufferContainerList[x]->pBuffer)
+				    return -1;
+			    }
+			}
+
+			m_UsedBufferCount = bufferCount;
+			result = 0;
+		}
+    }
+
+    return result;
+}
+
+int FrameObserver::QueueAllUserBuffer()
+{
+    int result = -1;
+    
+    // queue the buffer
+    for (uint32_t i=0; i<m_UsedBufferCount; i++)
+    {
+		v4l2_buffer buf;
+
+		CLEAR(buf);
+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buf.index = i;
+		if (!m_UseMMAPBuffer)
+		{  
+		    buf.memory = V4L2_MEMORY_USERPTR;
+		    buf.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
+		    buf.length = m_UserBufferContainerList[i]->nBufferlength;
+		}
+		else
+		{
+		    buf.memory = V4L2_MEMORY_MMAP;
+	        }
+	        
+		if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
+		{
+			Logger::LogEx("Camera::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", i, m_UserBufferContainerList[i]->pBuffer);
+			return result;
+		}
+		else
+		{
+            Logger::LogEx("Camera::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
+			result = 0;
+		}
+    }
+    
+    return result;
+}
+
+int FrameObserver::QueueSingleUserBuffer(const int index)
+{
+	int result = 0;
+	v4l2_buffer buf;
+	
+	CLEAR(buf);
+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	buf.index = index;
+	if (!m_UseMMAPBuffer)
+	{  
+	    buf.memory = V4L2_MEMORY_USERPTR;
+	    buf.m.userptr = (unsigned long)m_UserBufferContainerList[index]->pBuffer;
+	    buf.length = m_UserBufferContainerList[index]->nBufferlength;
+	}
+	else
+	{
+	    buf.memory = V4L2_MEMORY_MMAP;
+	}
+	
+	if (m_bStreamRunning)
+	{  
+	    if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
+	    {
+		Logger::LogEx("Camera::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
+	    }
+	}
+				    
+	return result;
+}
+
+int FrameObserver::DeleteUserBuffer()
+{
+    int result = 0;
+
+    // delete all user buffer
+	for (int x = 0; x < m_UsedBufferCount; x++)
+	{
+	    if (!m_UseMMAPBuffer)
+	    {	
+	    	if (0 != m_UserBufferContainerList[x]->pBuffer)
+		    delete [] m_UserBufferContainerList[x]->pBuffer;
+	    }
+	    else
+	    {
+	        munmap(m_UserBufferContainerList[x]->pBuffer, m_UserBufferContainerList[x]->nBufferlength);
+	    }  
+    	    if (0 != m_UserBufferContainerList[x])
+		delete m_UserBufferContainerList[x];
+	}
+	
+	m_UserBufferContainerList.resize(0);
+	
+	
+	// free all internal buffers
+	v4l2_requestbuffers req;
+	// creates user defined buffer
+	CLEAR(req);
+        req.count  = 0;
+        req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if (!m_UseMMAPBuffer) {
+	    req.memory = V4L2_MEMORY_USERPTR;
+	} else {
+	    req.memory = V4L2_MEMORY_MMAP;
+	}
+
+	// requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
+	V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
+	
+	
+    return result;
+}
+
+// The event handler to return the frame
+void FrameObserver::FrameDone(const unsigned long long frameHandle)
+{
+    if (m_bStreamRunning)
+    {
+		for (int i = 0; i < m_UsedBufferCount; ++i)
+		{
+			if (frameHandle == (uint64_t)m_UserBufferContainerList[i]->pBuffer)
+			{
+                                QueueSingleUserBuffer(i);
+				
+				break;
+			}
+		}
+        		
+        
+    }
 }
 
 }}} // namespace AVT::Tools::Examples

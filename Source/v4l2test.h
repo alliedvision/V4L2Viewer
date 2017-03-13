@@ -54,6 +54,9 @@ private:
     // Graphics scene to show the image
 	std::list<QSharedPointer<v4l2test> > m_pViewer;
     int m_nViewerNumber;
+    
+    bool m_BLOCKING_MODE;
+    bool m_INTERNAL_BUFFER;
 	
     // The currently streaming camera
 	Camera m_Camera;
@@ -120,6 +123,10 @@ private:
 private slots:
 	// The event handler to close the program
 	void OnMenuCloseTriggered();
+	// The event handler to set blocking mode
+	void OnBlockingMode();
+	// The event handler to set MMAP
+	void OnUseMMAP();
     // The event handler to open a next viewer
     void OnMenuOpenNextViewer();
 	// Prints out some logging

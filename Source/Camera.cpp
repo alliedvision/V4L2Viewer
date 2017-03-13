@@ -36,11 +36,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <sys/mman.h>
 #include <linux/videodev2.h>
 
 #include "Helper.h"
-
-#define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 namespace AVT {
 namespace Tools {
@@ -51,18 +50,15 @@ namespace Examples {
 ////////////////////////////////////////////////////////////////////////////    
 
 Camera::Camera()
-    : m_bSIRunning(false)
-    , m_UsedBufferCount(0)
-    , m_nFileDescriptor(-1)
-    , m_BlockingMode(false)
+    : m_nFileDescriptor(-1)
 {
     connect(&m_DmaDeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &)));
 
     connect(&m_DmaSICallbacks, SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
-	connect(&m_DmaSICallbacks, SIGNAL(OnFrameDone_Signal(const unsigned long long)), this, SLOT(OnFrameDone(const unsigned long long)));
-    connect(&m_DmaSICallbacks, SIGNAL(OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnRecordFrame(const unsigned long long &, const unsigned long long &)));
+	connect(&m_DmaSICallbacks, SIGNAL(OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnRecordFrame(const unsigned long long &, const unsigned long long &)));
     connect(&m_DmaSICallbacks, SIGNAL(OnDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)), this, SLOT(OnDisplayFrame(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)));
     connect(&m_DmaSICallbacks, SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
+    connect(&m_DmaSICallbacks, SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
 
 }
 
@@ -156,25 +152,6 @@ void Camera::OnFrameReady(const QImage &image, const unsigned long long &frameId
 	emit OnCameraFrameReady_Signal(image, frameId);
 }
 
-// The event handler to return the frame
-void Camera::OnFrameDone(const unsigned long long frameHandle)
-{
-    if (m_bSIRunning)
-    {
-		for (int i = 0; i < m_UsedBufferCount; ++i)
-		{
-			if (frameHandle == (uint64_t)m_UserBufferContainerList[i]->pBuffer)
-			{
-                                QueueSingleUserBuffer(i);
-				
-				break;
-			}
-		}
-        		
-        
-    }
-}
-
 // Event will be called when the a frame is recorded
 void Camera::OnRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue)
 {
@@ -191,6 +168,12 @@ void Camera::OnDisplayFrame(const unsigned long long &frameID, const unsigned lo
 void Camera::OnMessage(const QString &msg)
 {
     emit OnCameraMessage_Signal(msg);
+}
+
+// Event will be called when for text notification
+void Camera::OnError(const QString &msg)
+{
+    emit OnCameraError_Signal(msg);
 }
 
 // The event handler to set or remove devices 
@@ -287,12 +270,10 @@ int Camera::SIStartChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t 
     
     Logger::LogEx("Camera::SIStartChannel pixelformat=%d, payloadsize=%d, width=%d, height=%d.", pixelformat, payloadsize, width, height);
 	
-	m_DmaSICallbacks.SetParameter(m_BlockingMode, m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
+    m_DmaSICallbacks.StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
 
     m_DmaSICallbacks.ResetIncompletedFramesCount();
 	
-	m_bSIRunning = true;
-
     return nResult;
 }
 
@@ -300,7 +281,7 @@ int Camera::SIStopChannel()
 {
     int nResult = 0;
     
-    m_bSIRunning = false;
+    m_DmaSICallbacks.StopStream();
 
     Logger::LogEx("Camera::SIStopChannel.");
     
@@ -991,135 +972,38 @@ int Camera::SetAutoExposure(bool autoexposure)
 // Frame buffer handling
 /*********************************************************************************************************/
 
-int Camera::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
+int Camera::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize, bool internalBuffer)
 {
     int result = -1;
 
-    if (bufferCount <= MAX_VIEWER_USER_BUFFER_COUNT)
-    {
-        v4l2_requestbuffers req;
-
-		// creates user defined buffer
-		CLEAR(req);
-
-        req.count  = bufferCount;
-        req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        req.memory = V4L2_MEMORY_USERPTR;
-
-		// requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
-		if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req)) 
-		{
-			if (EINVAL == errno) 
-			{
-				Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
-				emit OnCameraError_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS does not support user pointer i/o.");
-			} else {
-				Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS error");
-				emit OnCameraError_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS error.");
-			}
-		}
-		else 
-		{
-			Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS OK");
-			emit OnCameraMessage_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS OK.");
-		}
-
-        // create local buffer container
-        m_UserBufferContainerList.resize(bufferCount);
-        
-        if (m_UserBufferContainerList.size() != bufferCount) 
-		{
-			Logger::LogEx("Camera::CreateUserBuffer buffer container error");
-			emit OnCameraError_Signal("Camera::CreateUserBuffer: buffer container error.");
-			return -1;
-        }
-
-        // get the length and start address of each of the 4 buffer structs and assign the user buffer addresses
-        for (int x = 0; x < bufferCount; ++x) 
-		{
-			m_UserBufferContainerList[x] = new USER_BUFFER;
-            m_UserBufferContainerList[x]->nBufferlength = bufferSize;
-            m_UserBufferContainerList[x]->pBuffer = new uint8_t[bufferSize];
-
-            if (!m_UserBufferContainerList[x]->pBuffer) 
-			{
-				Logger::LogEx("Camera::CreateUserBuffer buffer creation error");
-				emit OnCameraError_Signal("Camera::CreateUserBuffer: buffer creation error.");
-				return -1;
-            }
-        }
-
-        m_UsedBufferCount = bufferCount;
-        result = 0;
-    }
+    result = m_DmaSICallbacks.CreateUserBuffer(bufferCount, bufferSize, internalBuffer);
 
     return result;
 }
 
 int Camera::QueueAllUserBuffer()
 {
-	int result = -1;
+    int result = -1;
 	
-    // queue the buffer
-    for (uint32_t i=0; i<m_UsedBufferCount; i++)
-    {
-		v4l2_buffer buf;
-
-		CLEAR(buf);
-		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory = V4L2_MEMORY_USERPTR;
-		buf.index = i;
-		buf.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
-		buf.length = m_UserBufferContainerList[i]->nBufferlength;
-
-		if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
-		{
-			Logger::LogEx("Camera::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", i, m_UserBufferContainerList[i]->pBuffer);
-			return result;
-		}
-		else
-		{
-            Logger::LogEx("Camera::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
-			result = 0;
-		}
-    }
+    result = m_DmaSICallbacks.QueueAllUserBuffer();
     
     return result;
 }
 
 int Camera::QueueSingleUserBuffer(const int index)
 {
-	int result = 0;
-	v4l2_buffer buf;
+    int result = 0;
 
-	CLEAR(buf);
-	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	buf.memory = V4L2_MEMORY_USERPTR;
-	buf.index = index;
-	buf.m.userptr = (unsigned long)m_UserBufferContainerList[index]->pBuffer;
-	buf.length = m_UserBufferContainerList[index]->nBufferlength;
-
-	if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
-	{
-		Logger::LogEx("Camera::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
-	}
-				
-	return result;
+    result = m_DmaSICallbacks.QueueSingleUserBuffer(index);
+    
+    return result;
 }
 
 int Camera::DeleteUserBuffer()
 {
     int result = 0;
 
-    // delete all user buffer
-	for (int x = 0; x < m_UsedBufferCount; x++)
-	{
-		delete [] m_UserBufferContainerList[x]->pBuffer;
-		
-		delete m_UserBufferContainerList[x];
-	}
-	
-	m_UserBufferContainerList.resize(0);
+    result = m_DmaSICallbacks.DeleteUserBuffer();
 	
     return result;
 }

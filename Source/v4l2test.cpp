@@ -35,8 +35,6 @@
 #include "Logger.h"
 #include <ctime>
 
-#define BLOCKING_MODE       false
-
 #define MAX_RANDOM_NUMBER   500
 
 #define NUM_COLORS 3
@@ -57,6 +55,9 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	, m_dScaleFactor(1.0)
 	, m_DirectAccessData(0)
     , m_saveFileDialog(0)
+    , m_BLOCKING_MODE(false)
+    , m_INTERNAL_BUFFER(false)
+
 {
     srand((unsigned)time(0));
 
@@ -102,6 +103,9 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(OnCameraDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)), this, SLOT(OnCameraDisplayFrame(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)));
 	connect(&m_Camera, SIGNAL(OnCameraPixelformat_Signal(const QString &)), this, SLOT(OnCameraPixelformat(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
+	
+    connect(ui.m_BlockingMode, SIGNAL(triggered()), this, SLOT(OnBlockingMode()));
+    connect(ui.m_UseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
 	
     int err = m_Camera.DeviceDiscoveryStart();
     
@@ -156,7 +160,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
 	// add the number of used frames option to the menu
 	m_NumberOfUsedFramesLineEdit = new QLineEdit(this);
-	m_NumberOfUsedFramesLineEdit->setText("10");
+	m_NumberOfUsedFramesLineEdit->setText("3");
 	m_NumberOfUsedFramesLineEdit->setValidator(new QIntValidator(1, 20, this));
 
 	// prepare the layout
@@ -194,6 +198,18 @@ void v4l2test::OnMenuCloseTriggered()
 	close();
 }
 
+void v4l2test::OnBlockingMode()
+{
+    m_BLOCKING_MODE = !m_BLOCKING_MODE;
+    OnLog(QString("BLOCKING_MODE = %1").arg((m_BLOCKING_MODE)?"TRUE":"FALSE"));
+}
+
+void v4l2test::OnUseMMAP()
+{
+    m_INTERNAL_BUFFER = !m_INTERNAL_BUFFER;
+    OnLog(QString("MMAP = %1").arg((m_INTERNAL_BUFFER)?"TRUE":"FALSE"));
+}
+    
 void v4l2test::RemoteClose()
 {
     if( true == m_bIsOpen )
@@ -299,7 +315,7 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
     std::string tmp;
 
 	deviceName = devName.right(devName.length()-devName.indexOf(':')-2).toStdString();
-	m_Camera.OpenDevice(deviceName, BLOCKING_MODE);
+	m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE);
 	
     OnLog("---------------------------------------------");
     OnLog("---- Device Info ");
@@ -391,15 +407,15 @@ void v4l2test::OnStreamToggleTimeout()
     {
         m_Camera.SendAcquisitionStop();
         
-	    int err = m_Camera.SIStopChannel();
+	int err = m_Camera.SIStopChannel();
         if (0 != err)
             OnLog("Stop Acquisition failed during SI Stop channel.");
     
         m_bIsStreaming = false;
-	    UpdateViewerLayout();
-	    OnLog("Acquisition stopped ...");
+	UpdateViewerLayout();
+	OnLog("Acquisition stopped ...");
 
-	    m_FramesReceivedTimer.stop();
+	m_FramesReceivedTimer.stop();
         m_Camera.DeleteUserBuffer();
     }
     else
@@ -481,7 +497,7 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 	
 	m_FramesReceivedTimer.start(1000);
 
-    if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadsize) == 0)
+    if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadsize, m_INTERNAL_BUFFER) == 0)
     {
         m_Camera.QueueAllUserBuffer();
 
@@ -736,7 +752,7 @@ int v4l2test::OpenAndSetupCamera(const uint32_t cardNumber, const QString &devic
     int err = 0;
 	
 	std::string devName = deviceName.toStdString();
-	err = m_Camera.OpenDevice(devName, BLOCKING_MODE);
+	err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE);
 
     if (0 != err)
     	OnLog("Open device failed");

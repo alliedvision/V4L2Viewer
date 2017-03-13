@@ -428,7 +428,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>796</width>
+              <width>795</width>
               <height>290</height>
              </rect>
             </property>
@@ -1233,6 +1233,8 @@
     <property name="title">
      <string>Options</string>
     </property>
+    <addaction name="m_BlockingMode"/>
+    <addaction name="m_UseMMAP"/>
    </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>
@@ -1245,6 +1247,27 @@
   <action name="m_MenuOpenNextViewer">
    <property name="text">
     <string>Open Next Viewer ...</string>
+   </property>
+  </action>
+  <action name="m_BlockingMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Blocking mode</string>
+   </property>
+  </action>
+  <action name="m_UseMMAP">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>use mmap</string>
+   </property>
+  </action>
+  <action name="actionBuffer_count">
+   <property name="text">
+    <string>Buffer count</string>
    </property>
   </action>
  </widget>
