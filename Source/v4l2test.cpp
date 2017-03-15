@@ -105,7 +105,9 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
 	
     connect(ui.m_chkBlockingMode, SIGNAL(clicked()), this, SLOT(OnBlockingMode()));
+    connect(ui.m_TitleBlockingMode, SIGNAL(triggered()), this, SLOT(OnBlockingMode()));
     connect(ui.m_chkUseMMAP, SIGNAL(clicked()), this, SLOT(OnUseMMAP()));
+    connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
 	
     int err = m_Camera.DeviceDiscoveryStart();
     
@@ -202,12 +204,18 @@ void v4l2test::OnBlockingMode()
 {
     m_BLOCKING_MODE = !m_BLOCKING_MODE;
     OnLog(QString("BLOCKING_MODE = %1").arg((m_BLOCKING_MODE)?"TRUE":"FALSE"));
+    
+    ui.m_chkBlockingMode->setChecked(m_BLOCKING_MODE);
+    ui.m_BlockingMode->setChecked(m_BLOCKING_MODE);
 }
 
 void v4l2test::OnUseMMAP()
 {
     m_MMAP_BUFFER = !m_MMAP_BUFFER;
     OnLog(QString("MMAP = %1").arg((m_MMAP_BUFFER)?"TRUE":"FALSE"));
+    
+    ui.m_chkUseMMAP->setChecked(m_MMAP_BUFFER);
+    ui.m_UseMMAP->setChecked(m_MMAP_BUFFER);
 }
     
 void v4l2test::RemoteClose()

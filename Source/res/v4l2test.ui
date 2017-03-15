@@ -1265,6 +1265,8 @@
     <property name="title">
      <string>Options</string>
     </property>
+    <addaction name="m_TitleUseMMAP"/>
+    <addaction name="m_TitleBlockingMode"/>
    </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>
@@ -1298,6 +1300,22 @@
   <action name="actionBuffer_count">
    <property name="text">
     <string>Buffer count</string>
+   </property>
+  </action>
+  <action name="m_TitleUseMMAP">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use MMAP</string>
+   </property>
+  </action>
+  <action name="m_TitleBlockingMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Blocking Mode</string>
    </property>
   </action>
  </widget>
