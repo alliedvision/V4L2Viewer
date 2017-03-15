@@ -104,8 +104,8 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(&m_Camera, SIGNAL(OnCameraPixelformat_Signal(const QString &)), this, SLOT(OnCameraPixelformat(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
 	
-    connect(ui.m_chkBlockingMode, SIGNAL(triggered()), this, SLOT(OnBlockingMode()));
-    connect(ui.m_chkUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
+    connect(ui.m_chkBlockingMode, SIGNAL(clicked()), this, SLOT(OnBlockingMode()));
+    connect(ui.m_chkUseMMAP, SIGNAL(clicked()), this, SLOT(OnUseMMAP()));
 	
     int err = m_Camera.DeviceDiscoveryStart();
     
