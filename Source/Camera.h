@@ -55,37 +55,37 @@ public:
     Camera();
     virtual ~Camera();
 
-	int OpenDevice(std::string &deviceName, bool blockingMode);
+	int OpenDevice(std::string &deviceName, bool blockingMode, bool internalBuffer);
     int CloseDevice();
 
     int DeviceDiscoveryStart();
     int DeviceDiscoveryStop();
-    int SIStartChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine, void *pPrivateData);
-    int SIStopChannel();
+    int StartStreamChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine, void *pPrivateData);
+    int StopStreamChannel();
     
     int ReadPayloadsize(uint32_t &payloadsize);
-	int ReadFrameSize(uint32_t &width, uint32_t &height);
-	int SetFrameSize(uint32_t width, uint32_t height);
-	int ReadWidth(uint32_t &width);
-	int SetWidth(uint32_t width);
-	int ReadHeight(uint32_t &height);
-	int SetHeight(uint32_t height);
-	int ReadPixelformat(uint32_t &pixelformat, uint32_t &bytesPerLine, QString &pfText);
-	int SetPixelformat(uint32_t pixelformat, QString pfText);
-	int ReadFormats();
-	int ReadGain(uint32_t &gain);
-	int SetGain(uint32_t gain);
-	int ReadAutoGain(bool &autogain);
-	int SetAutoGain(bool autogain);
-	int ReadExposure(uint32_t &exposure);
-	int SetExposure(uint32_t exposure);
-	int ReadAutoExposure(bool &autoexposure);
+    int ReadFrameSize(uint32_t &width, uint32_t &height);
+    int SetFrameSize(uint32_t width, uint32_t height);
+    int ReadWidth(uint32_t &width);
+    int SetWidth(uint32_t width);
+    int ReadHeight(uint32_t &height);
+    int SetHeight(uint32_t height);
+    int ReadPixelformat(uint32_t &pixelformat, uint32_t &bytesPerLine, QString &pfText);
+    int SetPixelformat(uint32_t pixelformat, QString pfText);
+    int ReadFormats();
+    int ReadGain(uint32_t &gain);
+    int SetGain(uint32_t gain);
+    int ReadAutoGain(bool &autogain);
+    int SetAutoGain(bool autogain);
+    int ReadExposure(uint32_t &exposure);
+    int SetExposure(uint32_t exposure);
+    int ReadAutoExposure(bool &autoexposure);
     int SetAutoExposure(bool autoexposure);
 	
-    int SendAcquisitionStart();
-    int SendAcquisitionStop();
+    int StartStreaming();
+    int StopStreaming();
 
-    int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize, bool internalBuffer);
+    int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
     int QueueAllUserBuffer();
     int QueueSingleUserBuffer(const int index);
     int DeleteUserBuffer();
@@ -108,12 +108,12 @@ public:
     void DeleteRecording();
 
 private:
-    std::string 								m_DeviceName;
-	int 										m_nFileDescriptor;
-    bool m_BlockingMode;
-    
-    CameraObserver	                            m_DmaDeviceDiscoveryCallbacks;
-    FrameObserver                       		m_DmaSICallbacks;
+    std::string				m_DeviceName;
+    int 				m_nFileDescriptor;
+    bool 				m_BlockingMode;   
+
+    CameraObserver              	m_DmaDeviceDiscoveryCallbacks;
+    QSharedPointer<FrameObserver>	m_DmaSICallbacks;
 	
     uint64_t    		                        m_SIUserBufferHandles[MAX_VIEWER_USER_BUFFER_COUNT];
     //frame_t				 IO_METHOD_USERPTR                       m_SIUserFrame[MAX_VIEWER_USER_BUFFER_COUNT];

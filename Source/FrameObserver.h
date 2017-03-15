@@ -80,7 +80,7 @@ class FrameObserver : public QThread
     // We pass the camera that will deliver the frames to the constructor
 	FrameObserver();
     //
-	~FrameObserver();
+	virtual ~FrameObserver();
 
 	int StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
 	int StopStream();
@@ -104,25 +104,22 @@ class FrameObserver : public QThread
     void DisplayStepForw();
     void DeleteRecording();
     
-    int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize, bool internalBuffer);
-    int QueueAllUserBuffer();
-    int QueueSingleUserBuffer(const int index);
-    int DeleteUserBuffer();
+    virtual int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
+    virtual int QueueAllUserBuffer();
+    virtual int QueueSingleUserBuffer(const int index);
+    virtual int DeleteUserBuffer();
+    
     void FrameDone(const unsigned long long frameHandle);
 
 protected:
 	// v4l2
-	int DisplayFrame(const uint8_t* pBuffer, uint32_t length);
-	int ReadFrame();
+    int DisplayFrame(const uint8_t* pBuffer, uint32_t length);
+    virtual int ReadFrame();
 	
 	// Do the work within this thread
-	virtual void run();
+    virtual void run();
 	
-	int xioctl(int fh, int request, void *arg);
-	
-	
-	
-private:
+protected:
     const static int MAX_FRAME_QUEUE_SIZE = 100;
     bool m_bRecording;
     MyFrameQueue m_FrameRecordQueue;

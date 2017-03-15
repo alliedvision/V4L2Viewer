@@ -40,6 +40,8 @@
 #include <linux/videodev2.h>
 
 #include "Helper.h"
+#include "FrameObserverMMAP.h"
+#include "FrameObserverUSER.h"
 
 namespace AVT {
 namespace Tools {
@@ -54,37 +56,46 @@ Camera::Camera()
 {
     connect(&m_DmaDeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &)));
 
-    connect(&m_DmaSICallbacks, SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
-	connect(&m_DmaSICallbacks, SIGNAL(OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnRecordFrame(const unsigned long long &, const unsigned long long &)));
-    connect(&m_DmaSICallbacks, SIGNAL(OnDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)), this, SLOT(OnDisplayFrame(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)));
-    connect(&m_DmaSICallbacks, SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
-    connect(&m_DmaSICallbacks, SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
-
 }
 
 Camera::~Camera()
 {
     m_DmaDeviceDiscoveryCallbacks.SetTerminateFlag();
-    m_DmaSICallbacks.SetTerminateFlag();
+    m_DmaSICallbacks->SetTerminateFlag();
 
     CloseDevice();
 }
 
 unsigned int Camera::GetReceivedFramesCount()
 {
-    return m_DmaSICallbacks.GetReceivedFramesCount();
+    return m_DmaSICallbacks->GetReceivedFramesCount();
 }
 
 unsigned int Camera::GetIncompletedFramesCount()
 {
-    return m_DmaSICallbacks.GetIncompletedFramesCount();
+    return m_DmaSICallbacks->GetIncompletedFramesCount();
 }
 
-int Camera::OpenDevice(std::string &deviceName, bool blockingMode)
+int Camera::OpenDevice(std::string &deviceName, bool blockingMode, bool internalBuffer)
 {
 	int result = -1;
 	
         m_BlockingMode = blockingMode;
+
+	if (internalBuffer)
+	{
+	    m_DmaSICallbacks = QSharedPointer<FrameObserverMMAP>(new FrameObserverMMAP());
+	}
+	else
+	{
+	    m_DmaSICallbacks = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER());
+	}
+	connect(m_DmaSICallbacks.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
+	connect(m_DmaSICallbacks.data(), SIGNAL(OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnRecordFrame(const unsigned long long &, const unsigned long long &)));
+    	connect(m_DmaSICallbacks.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)), this, SLOT(OnDisplayFrame(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)));
+    	connect(m_DmaSICallbacks.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
+    	connect(m_DmaSICallbacks.data(), SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
+
 
 	if (-1 == m_nFileDescriptor)
 	{
@@ -264,26 +275,26 @@ int Camera::DeviceDiscoveryStop()
 /********************************************************************************/
 
 
-int Camera::SIStartChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine, void *pPrivateData)
+int Camera::StartStreamChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine, void *pPrivateData)
 {
     int nResult = 0;
     
-    Logger::LogEx("Camera::SIStartChannel pixelformat=%d, payloadsize=%d, width=%d, height=%d.", pixelformat, payloadsize, width, height);
+    Logger::LogEx("Camera::StartStreamChannel pixelformat=%d, payloadsize=%d, width=%d, height=%d.", pixelformat, payloadsize, width, height);
 	
-    m_DmaSICallbacks.StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
+    m_DmaSICallbacks->StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
 
-    m_DmaSICallbacks.ResetIncompletedFramesCount();
+    m_DmaSICallbacks->ResetIncompletedFramesCount();
 	
     return nResult;
 }
 
-int Camera::SIStopChannel()
+int Camera::StopStreamChannel()
 {
     int nResult = 0;
     
-    m_DmaSICallbacks.StopStream();
+    m_DmaSICallbacks->StopStream();
 
-    Logger::LogEx("Camera::SIStopChannel.");
+    Logger::LogEx("Camera::StopStreamChannel.");
     
     return nResult;
 }
@@ -292,7 +303,7 @@ int Camera::SIStopChannel()
 // DCI commands
 /*********************************************************************************************************/
 
-int Camera::SendAcquisitionStart()
+int Camera::StartStreaming()
 {
 	int result = -1;
 	v4l2_buf_type type;
@@ -301,13 +312,13 @@ int Camera::SendAcquisitionStart()
 
 	if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_STREAMON, &type))
 	{
-        Logger::LogEx("Camera::SendAcquisitionStart VIDIOC_STREAMON failed");
-        emit OnCameraError_Signal("SendAcquisitionStart: VIDIOC_STREAMON failed.");
+        Logger::LogEx("Camera::StartStreaming VIDIOC_STREAMON failed");
+        emit OnCameraError_Signal("StartStreaming: VIDIOC_STREAMON failed.");
 	}
 	else
 	{
-        Logger::LogEx("Camera::SendAcquisitionStart VIDIOC_STREAMON OK");
-        emit OnCameraMessage_Signal("SendAcquisitionStart: VIDIOC_STREAMON OK.");
+        Logger::LogEx("Camera::StartStreaming VIDIOC_STREAMON OK");
+        emit OnCameraMessage_Signal("StartStreaming: VIDIOC_STREAMON OK.");
 		
 		result = 0;
 	}
@@ -315,7 +326,7 @@ int Camera::SendAcquisitionStart()
 	return result;
 }
 
-int Camera::SendAcquisitionStop()
+int Camera::StopStreaming()
 {
 	int result = -1;
 	v4l2_buf_type type;
@@ -324,13 +335,13 @@ int Camera::SendAcquisitionStop()
 	
 	if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_STREAMOFF, &type))
 	{
-        Logger::LogEx("Camera::SendAcquisitionStop VIDIOC_STREAMOFF failed");
-        emit OnCameraError_Signal("SendAcquisitionStop: VIDIOC_STREAMOFF failed.");
+        Logger::LogEx("Camera::StopStreaming VIDIOC_STREAMOFF failed");
+        emit OnCameraError_Signal("StopStreaming: VIDIOC_STREAMOFF failed.");
 	}
 	else
 	{
-        Logger::LogEx("Camera::SendAcquisitionStop VIDIOC_STREAMOFF OK");
-        emit OnCameraMessage_Signal("SendAcquisitionStop: VIDIOC_STREAMOFF OK.");
+        Logger::LogEx("Camera::StopStreaming VIDIOC_STREAMOFF OK");
+        emit OnCameraMessage_Signal("StopStreaming: VIDIOC_STREAMOFF OK.");
 		
 		result = 0;
 	}
@@ -972,11 +983,11 @@ int Camera::SetAutoExposure(bool autoexposure)
 // Frame buffer handling
 /*********************************************************************************************************/
 
-int Camera::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize, bool internalBuffer)
+int Camera::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
 {
     int result = -1;
 
-    result = m_DmaSICallbacks.CreateUserBuffer(bufferCount, bufferSize, internalBuffer);
+    result = m_DmaSICallbacks->CreateUserBuffer(bufferCount, bufferSize);
 
     return result;
 }
@@ -985,7 +996,7 @@ int Camera::QueueAllUserBuffer()
 {
     int result = -1;
 	
-    result = m_DmaSICallbacks.QueueAllUserBuffer();
+    result = m_DmaSICallbacks->QueueAllUserBuffer();
     
     return result;
 }
@@ -994,7 +1005,7 @@ int Camera::QueueSingleUserBuffer(const int index)
 {
     int result = 0;
 
-    result = m_DmaSICallbacks.QueueSingleUserBuffer(index);
+    result = m_DmaSICallbacks->QueueSingleUserBuffer(index);
     
     return result;
 }
@@ -1003,7 +1014,7 @@ int Camera::DeleteUserBuffer()
 {
     int result = 0;
 
-    result = m_DmaSICallbacks.DeleteUserBuffer();
+    result = m_DmaSICallbacks->DeleteUserBuffer();
 	
     return result;
 }
@@ -1213,22 +1224,22 @@ int Camera::GetCameraCapabilities(uint32_t index, std::string &strText)
 // Recording
 void Camera::SetRecording(bool start)
 {
-    m_DmaSICallbacks.SetRecording(start);
+    m_DmaSICallbacks->SetRecording(start);
 }
 
 void Camera::DisplayStepBack()
 {
-    m_DmaSICallbacks.DisplayStepBack();
+    m_DmaSICallbacks->DisplayStepBack();
 }
 
 void Camera::DisplayStepForw()
 {
-    m_DmaSICallbacks.DisplayStepForw();
+    m_DmaSICallbacks->DisplayStepForw();
 }
 
 void Camera::DeleteRecording()
 {
-    m_DmaSICallbacks.DeleteRecording();
+    m_DmaSICallbacks->DeleteRecording();
 }
 
 /*********************************************************************************************************/

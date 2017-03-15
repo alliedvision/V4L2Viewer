@@ -258,7 +258,7 @@ void v4l2test::OnOpenCloseButtonClicked()
 
         if(false == m_bIsOpen)
         {
-            // Start acquisition
+            // Start 
             err = OpenAndSetupCamera(m_cameras[nRow], deviceName);
             // Set up Qt image
             if (0 == err)
@@ -276,7 +276,7 @@ void v4l2test::OnOpenCloseButtonClicked()
         else
         {
             m_bIsOpen = false;
-            // Stop acquisition
+            // Stop 
 			if (true == m_bIsStreaming)
 			{
 				OnStopButtonClicked();
@@ -315,7 +315,7 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
     std::string tmp;
 
 	deviceName = devName.right(devName.length()-devName.indexOf(':')-2).toStdString();
-	m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE);
+	m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_INTERNAL_BUFFER);
 	
     OnLog("---------------------------------------------");
     OnLog("---- Device Info ");
@@ -353,7 +353,7 @@ void v4l2test::OnGetStreamStatisticsButtonClicked()
     OnLog("---------------------------------------------");
 }
 
-// The event handler for starting acquisition
+// The event handler for starting 
 void v4l2test::OnStartButtonClicked()
 {
     uint32_t payloadsize = 0;
@@ -405,16 +405,15 @@ void v4l2test::OnStreamToggleTimeout()
 
     if (m_bIsStreaming)
     {
-        m_Camera.SendAcquisitionStop();
+        m_Camera.StopStreaming();
         
-	int err = m_Camera.SIStopChannel();
+	int err = m_Camera.StopStreamChannel();
         if (0 != err)
-            OnLog("Stop Acquisition failed during SI Stop channel.");
+            OnLog("Stop stream channel failed.");
     
         m_bIsStreaming = false;
 	UpdateViewerLayout();
-	OnLog("Acquisition stopped ...");
-
+	
 	m_FramesReceivedTimer.stop();
         m_Camera.DeleteUserBuffer();
     }
@@ -484,7 +483,12 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
     ui.m_ToggleButton->setEnabled(false);
 	QApplication::processEvents();
 
-    err = m_Camera.SIStartChannel(pixelformat, payloadsize, width, height, bytesPerLine, NULL);
+    err = m_Camera.StartStreamChannel(pixelformat, 
+				  payloadsize, 
+				  width, 
+				  height, 
+				  bytesPerLine, 
+				  NULL);
     if (0 != err)
         OnLog("Start Acquisition failed during SI Start channel.");
     else
@@ -497,11 +501,13 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 	
 	m_FramesReceivedTimer.start(1000);
 
-    if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadsize, m_INTERNAL_BUFFER) == 0)
+    if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadsize) == 0)
     {
         m_Camera.QueueAllUserBuffer();
 
-        if (m_Camera.SendAcquisitionStart() == 0)
+	OnLog("Starting Stream...");
+	
+        if (m_Camera.StartStreaming() == 0)
 		{
 			OnLog("Start Stream OK.");
 		}
@@ -521,27 +527,28 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 void v4l2test::OnStopButtonClicked()
 {
     m_StreamToggleTimer.stop();
-
-    if (m_Camera.SendAcquisitionStop() == 0)
-	{
-		OnLog("Stop Stream OK.");
-	}
-	else
-	{
-		OnLog("Stop Stream failed.");
-	}
+    
+    OnLog("Stopping Stream...");
+    if (m_Camera.StopStreaming() == 0)
+    {
+	    OnLog("Stop Stream OK.");
+    }
+    else
+    {
+	    OnLog("Stop Stream failed.");
+    }
     
 	// disable the stop button to show that the stop acquisition is in process
 	ui.m_StopButton->setEnabled(false);
 	QApplication::processEvents();
 
-	int err = m_Camera.SIStopChannel();
+	int err = m_Camera.StopStreamChannel();
     if (0 != err)
-        OnLog("Stop Acquisition failed during SI Stop channel.");
+        OnLog("Stop stream channel failed.");
     
     m_bIsStreaming = false;
 	UpdateViewerLayout();
-	OnLog("Acquisition stopped ...");
+	OnLog("Stream channel stopped ...");
 
 	m_FramesReceivedTimer.stop();
 
@@ -752,7 +759,7 @@ int v4l2test::OpenAndSetupCamera(const uint32_t cardNumber, const QString &devic
     int err = 0;
 	
 	std::string devName = deviceName.toStdString();
-	err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE);
+	err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_INTERNAL_BUFFER);
 
     if (0 != err)
     	OnLog("Open device failed");
