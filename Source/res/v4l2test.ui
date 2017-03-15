@@ -709,6 +709,38 @@
            <string>=</string>
           </property>
          </widget>
+         <widget class="QCheckBox" name="m_chkBlockingMode">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>250</y>
+            <width>131</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Blocking Mode</string>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="m_chkUseMMAP">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>230</y>
+            <width>93</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Use MMAP</string>
+          </property>
+         </widget>
         </widget>
         <widget class="QWidget" name="m_DirectRegisterAccessTab">
          <attribute name="title">
@@ -1233,8 +1265,6 @@
     <property name="title">
      <string>Options</string>
     </property>
-    <addaction name="m_BlockingMode"/>
-    <addaction name="m_UseMMAP"/>
    </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>

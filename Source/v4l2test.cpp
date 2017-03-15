@@ -104,8 +104,8 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(&m_Camera, SIGNAL(OnCameraPixelformat_Signal(const QString &)), this, SLOT(OnCameraPixelformat(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
 	
-    connect(ui.m_BlockingMode, SIGNAL(triggered()), this, SLOT(OnBlockingMode()));
-    connect(ui.m_UseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
+    connect(ui.m_chkBlockingMode, SIGNAL(triggered()), this, SLOT(OnBlockingMode()));
+    connect(ui.m_chkUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
 	
     int err = m_Camera.DeviceDiscoveryStart();
     
@@ -304,6 +304,8 @@ void v4l2test::OnOpenCloseButtonClicked()
     }
 
 	ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
+	ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
+	ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
 }
 
 // The event handler for get device info
@@ -667,6 +669,8 @@ void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, u
     }
 
     ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
+    ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
+    ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
 }
 
 // The event handler to open a camera on double click event
@@ -692,6 +696,8 @@ void v4l2test::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const
 	}
 
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
+    ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
+    ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
 }
 
 // Update the viewer range
