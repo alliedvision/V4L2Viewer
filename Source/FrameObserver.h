@@ -46,7 +46,6 @@
 
 #define MAX_VIEWER_USER_BUFFER_COUNT	50
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // DEFINES
 ////////////////////////////////////////////////////////////////////////////////
@@ -60,15 +59,6 @@ typedef struct _USER_BUFFER
 {
     uint8_t         *pBuffer;
     size_t  		nBufferlength;
-    uint8_t         *pBufferOffset;
-    size_t          iSize;
-    uint32_t        iReceivedLength;
-    uint32_t        iReceivedLengthCounter;
-    uint32_t        iSendLength;
-    int             nBufferState;
-    int             nProtocolState;
-    int             nHandle;
-    void            *pPrivateData;
 } USER_BUFFER, *PUSER_BUFFER, **PPUSER_BUFFER;
 
 
@@ -120,7 +110,7 @@ protected:
     virtual void run();
 	
 protected:
-    const static int MAX_FRAME_QUEUE_SIZE = 100;
+    const static int MAX_RECORD_FRAME_QUEUE_SIZE = 100;
     bool m_bRecording;
     MyFrameQueue m_FrameRecordQueue;
 
@@ -142,7 +132,6 @@ protected:
 	uint32_t m_PayloadSize;
 	uint32_t m_BytesPerLine;
 	uint64_t m_FrameId;
-	uint8_t *m_pBuffer;
 	
 	bool m_MessageSendFlag;
         bool m_BlockingMode;
@@ -151,7 +140,6 @@ protected:
 	
       	std::vector<PUSER_BUFFER>					m_UserBufferContainerList;
 
-	bool m_UseMMAPBuffer;
 	uint32_t                                    m_UsedBufferCount;
 
 signals:

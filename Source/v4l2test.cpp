@@ -56,7 +56,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	, m_DirectAccessData(0)
     , m_saveFileDialog(0)
     , m_BLOCKING_MODE(false)
-    , m_INTERNAL_BUFFER(false)
+    , m_MMAP_BUFFER(false)
 
 {
     srand((unsigned)time(0));
@@ -206,8 +206,8 @@ void v4l2test::OnBlockingMode()
 
 void v4l2test::OnUseMMAP()
 {
-    m_INTERNAL_BUFFER = !m_INTERNAL_BUFFER;
-    OnLog(QString("MMAP = %1").arg((m_INTERNAL_BUFFER)?"TRUE":"FALSE"));
+    m_MMAP_BUFFER = !m_MMAP_BUFFER;
+    OnLog(QString("MMAP = %1").arg((m_MMAP_BUFFER)?"TRUE":"FALSE"));
 }
     
 void v4l2test::RemoteClose()
@@ -315,7 +315,7 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
     std::string tmp;
 
 	deviceName = devName.right(devName.length()-devName.indexOf(':')-2).toStdString();
-	m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_INTERNAL_BUFFER);
+	m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER);
 	
     OnLog("---------------------------------------------");
     OnLog("---- Device Info ");
@@ -759,7 +759,7 @@ int v4l2test::OpenAndSetupCamera(const uint32_t cardNumber, const QString &devic
     int err = 0;
 	
 	std::string devName = deviceName.toStdString();
-	err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_INTERNAL_BUFFER);
+	err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER);
 
     if (0 != err)
     	OnLog("Open device failed");

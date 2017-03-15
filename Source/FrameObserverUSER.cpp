@@ -81,15 +81,15 @@ int FrameObserverUSER::ReadFrame()
 		
 		    if (m_bRecording && -1 != result)
 		    {
-			if (m_FrameRecordQueue.GetSize() < MAX_FRAME_QUEUE_SIZE)
+			if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
 			{
 				m_FrameRecordQueue.Enqueue(buffer, length, m_nWidth, m_nHeight, m_Pixelformat, m_FrameId, 0, m_FrameId);
 				OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
 			}
 			else
 			{
-				if (m_FrameRecordQueue.GetSize() == MAX_FRAME_QUEUE_SIZE)
-					OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_FRAME_QUEUE_SIZE));
+				if (m_FrameRecordQueue.GetSize() == MAX_RECORD_FRAME_QUEUE_SIZE)
+					OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
 			}
 		    }
 		

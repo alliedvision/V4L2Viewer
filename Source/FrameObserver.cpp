@@ -35,8 +35,8 @@
 #include <sys/mman.h>
 #include <linux/videodev2.h>
 
-#include <FrameObserver.h>
-#include <Logger.h>
+#include "FrameObserver.h"
+#include "Logger.h"
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 
@@ -61,7 +61,6 @@ FrameObserver::FrameObserver()
 	, m_FrameId(0)
 	, m_PayloadSize(0)
 	, m_BytesPerLine(0)
-	, m_pBuffer(0)
 	, m_MessageSendFlag(false)
         , m_BlockingMode(false)
         , m_UsedBufferCount(0)
@@ -94,7 +93,6 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_PayloadSize = payloadsize;
     m_Pixelformat = pixelformat;
     m_BytesPerLine = bytesPerLine;
-    m_pBuffer = new uint8_t[payloadsize];
     m_MessageSendFlag = false;
     
     m_bStreamStopped = false;
@@ -274,8 +272,6 @@ int FrameObserver::DisplayFrame(const uint8_t* pBuffer, uint32_t length)
 	{
 		return -1;
 	}
-	
-	//QImage convertedImage((uint8_t*)m_pBuffer, m_nWidth, m_nHeight, QImage::Format_RGB32);
 	
 	emit OnFrameReady_Signal(convertedImage, m_FrameId);
 	

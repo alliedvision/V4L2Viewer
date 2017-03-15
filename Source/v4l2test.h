@@ -56,7 +56,7 @@ private:
     int m_nViewerNumber;
     
     bool m_BLOCKING_MODE;
-    bool m_INTERNAL_BUFFER;
+    bool m_MMAP_BUFFER;
 	
     // The currently streaming camera
 	Camera m_Camera;

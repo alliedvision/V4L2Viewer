@@ -54,47 +54,47 @@ namespace Examples {
 Camera::Camera()
     : m_nFileDescriptor(-1)
 {
-    connect(&m_DmaDeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &)));
+    connect(&m_DeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &)));
 
 }
 
 Camera::~Camera()
 {
-    m_DmaDeviceDiscoveryCallbacks.SetTerminateFlag();
-    m_DmaSICallbacks->SetTerminateFlag();
+    m_DeviceDiscoveryCallbacks.SetTerminateFlag();
+    m_StreamCallbacks->SetTerminateFlag();
 
     CloseDevice();
 }
 
 unsigned int Camera::GetReceivedFramesCount()
 {
-    return m_DmaSICallbacks->GetReceivedFramesCount();
+    return m_StreamCallbacks->GetReceivedFramesCount();
 }
 
 unsigned int Camera::GetIncompletedFramesCount()
 {
-    return m_DmaSICallbacks->GetIncompletedFramesCount();
+    return m_StreamCallbacks->GetIncompletedFramesCount();
 }
 
-int Camera::OpenDevice(std::string &deviceName, bool blockingMode, bool internalBuffer)
+int Camera::OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuffer)
 {
 	int result = -1;
 	
         m_BlockingMode = blockingMode;
 
-	if (internalBuffer)
+	if (mmapBuffer)
 	{
-	    m_DmaSICallbacks = QSharedPointer<FrameObserverMMAP>(new FrameObserverMMAP());
+	    m_StreamCallbacks = QSharedPointer<FrameObserverMMAP>(new FrameObserverMMAP());
 	}
 	else
 	{
-	    m_DmaSICallbacks = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER());
+	    m_StreamCallbacks = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER());
 	}
-	connect(m_DmaSICallbacks.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
-	connect(m_DmaSICallbacks.data(), SIGNAL(OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnRecordFrame(const unsigned long long &, const unsigned long long &)));
-    	connect(m_DmaSICallbacks.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)), this, SLOT(OnDisplayFrame(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)));
-    	connect(m_DmaSICallbacks.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
-    	connect(m_DmaSICallbacks.data(), SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
+	connect(m_StreamCallbacks.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
+	connect(m_StreamCallbacks.data(), SIGNAL(OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnRecordFrame(const unsigned long long &, const unsigned long long &)));
+    	connect(m_StreamCallbacks.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)), this, SLOT(OnDisplayFrame(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)));
+    	connect(m_StreamCallbacks.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
+    	connect(m_StreamCallbacks.data(), SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
 
 
 	if (-1 == m_nFileDescriptor)
@@ -256,7 +256,7 @@ int Camera::DeviceDiscoveryStart()
 	}
 	while(device_count < 20);
 	
-    //m_DmaDeviceDiscoveryCallbacks.Start();
+    //m_DeviceDiscoveryCallbacks.Start();
 
     return 0;
 }
@@ -265,7 +265,7 @@ int Camera::DeviceDiscoveryStop()
 {
     Logger::LogEx("Device Discovery stopped.");
 
-    //m_DmaDeviceDiscoveryCallbacks.Stop();
+    //m_DeviceDiscoveryCallbacks.Stop();
 
     return 0;
 }
@@ -281,9 +281,9 @@ int Camera::StartStreamChannel(uint32_t pixelformat, uint32_t payloadsize, uint3
     
     Logger::LogEx("Camera::StartStreamChannel pixelformat=%d, payloadsize=%d, width=%d, height=%d.", pixelformat, payloadsize, width, height);
 	
-    m_DmaSICallbacks->StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
+    m_StreamCallbacks->StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
 
-    m_DmaSICallbacks->ResetIncompletedFramesCount();
+    m_StreamCallbacks->ResetIncompletedFramesCount();
 	
     return nResult;
 }
@@ -292,7 +292,7 @@ int Camera::StopStreamChannel()
 {
     int nResult = 0;
     
-    m_DmaSICallbacks->StopStream();
+    m_StreamCallbacks->StopStream();
 
     Logger::LogEx("Camera::StopStreamChannel.");
     
@@ -987,7 +987,7 @@ int Camera::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
 {
     int result = -1;
 
-    result = m_DmaSICallbacks->CreateUserBuffer(bufferCount, bufferSize);
+    result = m_StreamCallbacks->CreateUserBuffer(bufferCount, bufferSize);
 
     return result;
 }
@@ -996,7 +996,7 @@ int Camera::QueueAllUserBuffer()
 {
     int result = -1;
 	
-    result = m_DmaSICallbacks->QueueAllUserBuffer();
+    result = m_StreamCallbacks->QueueAllUserBuffer();
     
     return result;
 }
@@ -1005,7 +1005,7 @@ int Camera::QueueSingleUserBuffer(const int index)
 {
     int result = 0;
 
-    result = m_DmaSICallbacks->QueueSingleUserBuffer(index);
+    result = m_StreamCallbacks->QueueSingleUserBuffer(index);
     
     return result;
 }
@@ -1014,7 +1014,7 @@ int Camera::DeleteUserBuffer()
 {
     int result = 0;
 
-    result = m_DmaSICallbacks->DeleteUserBuffer();
+    result = m_StreamCallbacks->DeleteUserBuffer();
 	
     return result;
 }
@@ -1224,22 +1224,22 @@ int Camera::GetCameraCapabilities(uint32_t index, std::string &strText)
 // Recording
 void Camera::SetRecording(bool start)
 {
-    m_DmaSICallbacks->SetRecording(start);
+    m_StreamCallbacks->SetRecording(start);
 }
 
 void Camera::DisplayStepBack()
 {
-    m_DmaSICallbacks->DisplayStepBack();
+    m_StreamCallbacks->DisplayStepBack();
 }
 
 void Camera::DisplayStepForw()
 {
-    m_DmaSICallbacks->DisplayStepForw();
+    m_StreamCallbacks->DisplayStepForw();
 }
 
 void Camera::DeleteRecording()
 {
-    m_DmaSICallbacks->DeleteRecording();
+    m_StreamCallbacks->DeleteRecording();
 }
 
 /*********************************************************************************************************/

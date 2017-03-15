@@ -34,15 +34,6 @@
 #include "CameraObserver.h"
 
 
-class GenCPRequestPool;
-
-enum FileType
-{
-    FileType_Uncompressed   = 0x00,
-    FileType_ZIP            = 0x01
-};
-    
-
 namespace AVT {
 namespace Tools {
 namespace Examples {
@@ -55,7 +46,7 @@ public:
     Camera();
     virtual ~Camera();
 
-	int OpenDevice(std::string &deviceName, bool blockingMode, bool internalBuffer);
+    int OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuffer);
     int CloseDevice();
 
     int DeviceDiscoveryStart();
@@ -99,7 +90,7 @@ public:
     
     // Statistics
     unsigned int GetReceivedFramesCount();
-	unsigned int GetIncompletedFramesCount();
+    unsigned int GetIncompletedFramesCount();
 
     // Recording
     void SetRecording(bool start);
@@ -112,16 +103,9 @@ private:
     int 				m_nFileDescriptor;
     bool 				m_BlockingMode;   
 
-    CameraObserver              	m_DmaDeviceDiscoveryCallbacks;
-    QSharedPointer<FrameObserver>	m_DmaSICallbacks;
+    CameraObserver              	m_DeviceDiscoveryCallbacks;
+    QSharedPointer<FrameObserver>	m_StreamCallbacks;
 	
-    uint64_t    		                        m_SIUserBufferHandles[MAX_VIEWER_USER_BUFFER_COUNT];
-    //frame_t				 IO_METHOD_USERPTR                       m_SIUserFrame[MAX_VIEWER_USER_BUFFER_COUNT];
-    
-    static uint16_t                             s_DCICmdRequestIDCounter;
-
-	// Tools
-    
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
     void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &);
