@@ -58,7 +58,7 @@ protected:
 	virtual void run();
 
 private:
-    const static int MAX_QUEUE_SIZE = 4;
+    const static int MAX_QUEUE_SIZE = 1;
 	
 	// Frame queue
 	MyFrameQueue m_FrameQueue;

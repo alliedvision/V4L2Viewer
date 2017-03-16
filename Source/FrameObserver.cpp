@@ -269,12 +269,14 @@ int FrameObserver::DisplayFrame(const uint8_t* pBuffer, uint32_t length,
 	else if (m_Pixelformat == V4L2_PIX_FMT_RGB24 ||
 			 m_Pixelformat == V4L2_PIX_FMT_BGR24)
 	{	
-		convertedImage = QImage(pBuffer, m_nWidth, m_nHeight, QImage::Format_RGB888);
+		convertedImage = QImage(m_nWidth, m_nHeight, QImage::Format_RGB888);
+	        memcpy(convertedImage.bits(), pBuffer, m_PayloadSize);
 	}
 	else if (m_Pixelformat == V4L2_PIX_FMT_RGB32 ||
 			 m_Pixelformat == V4L2_PIX_FMT_BGR32)
 	{
-		convertedImage = QImage(pBuffer, m_nWidth, m_nHeight, QImage::Format_RGB32);
+		convertedImage = QImage(m_nWidth, m_nHeight, QImage::Format_RGB32);
+	        memcpy(convertedImage.bits(), pBuffer, m_PayloadSize);
 	}
 	else
 	{
@@ -328,6 +330,7 @@ void FrameObserver::run()
                  }
                  else
                  {
+                     QThread::msleep(1);
                      ReadFrame();
                  }
 	}
