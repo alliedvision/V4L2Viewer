@@ -6,7 +6,7 @@
 
 -------------------------------------------------------------------------------
 
-  File:        MyFrame.cpp
+  File:        ImageProcessingThread.h
 
   Description: 
 
@@ -25,37 +25,52 @@
 
 =============================================================================*/
 
-#include <string.h>
-#include "MyFrame.h"
+#ifndef IMAGEPORCESSINGTHREAD_H
+#define IMAGEPORCESSINGTHREAD_H
 
+#include <QObject>
+#include <QThread>
+#include <QImage>
+#include <QSharedPointer>
 
-MyFrame::MyFrame(QImage &image, unsigned long long &frameID) 
-	: m_FrameId(0)
+#include <MyFrame.h>
+#include <MyFrameQueue.h>
+
+class ImageProcessingThread : public QThread
 {
-	m_FrameId = frameID;
-	m_Image = image;
-}
+	Q_OBJECT
 
-MyFrame::MyFrame(const MyFrame *pFrame) 
-	: m_FrameId(0)
-{
-    m_FrameId = pFrame->m_FrameId;
-    m_Image = pFrame->m_Image;
-}
+public:
+	ImageProcessingThread();
+	~ImageProcessingThread(void);
 
-MyFrame::~MyFrame(void)
-{
-}
+	// Queue the frame for the thread to work with
+	void QueueFrame(QImage &image, uint64_t &frameID);
 
-// Get the frame buffer
-QImage &MyFrame::GetImage()
-{
-	return m_Image;
-}
+	// Queue the frame for the thread to work with
+	void QueueFrame(QSharedPointer<MyFrame> pFrame);
 
-// get the id of the frame
-unsigned long long MyFrame::GetFrameId()
-{
-	return m_FrameId;
-}
+    // stop the internal processing thread and wait until the thread is really stopped
+	void StopThread();
+
+protected:
+	// Do the work within this thread
+	virtual void run();
+
+private:
+    const static int MAX_QUEUE_SIZE = 4;
+	
+	// Frame queue
+	MyFrameQueue m_FrameQueue;
+
+	// Variable to abort the running thread
+	bool m_bAbort;
+
+signals:
+	// Event will be called when an image is processed by the thread
+	void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
+
+};
+
+#endif // IMAGEPORCESSINGTHREAD_H
 

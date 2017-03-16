@@ -28,54 +28,25 @@
 #ifndef MYFRAME_H
 #define MYFRAME_H
 
-#include <vector>
 #include <stdint.h>
-#include <iterator>
-#include <algorithm>
+#include <QImage>
 
 class MyFrame
 {
 public:
 	// Copy the of the given frame
     MyFrame(const MyFrame *pFrame);
-	MyFrame(const uint8_t *buffer, uint32_t length, uint32_t width, uint32_t height, uint32_t pixelformat, unsigned long long frameID, uint32_t extChunkPayloadSize);
+	MyFrame(QImage &image, unsigned long long &frameID);
 	~MyFrame(void);
 
 	// Get the frame buffer
-	uint8_t* GetFrameBuffer();
-    uint32_t GetFrameBufferLength();
-
-	// Get the chunk data buffer
-	uint8_t* GetChunkDataBuffer();
-    uint32_t GetChunkDataBufferLength();
-
-	// Get the pixel format of the frame
-	uint32_t		        GetFormat();
-
+	QImage &GetImage();
 	// get the id of the frame
 	unsigned long long		GetFrameId();
 
-	// Get the width of the frame
-	uint32_t				GetWidth();
-
-	// Get the height of the frame
-	uint32_t				GetHeight();
-
-    // set the frame count
-    void SetFrameCount(unsigned long long frameCount);
-
-    // get the frame count
-    unsigned long long GetFrameCount();
-
 private:
-	std::vector<uint8_t>    m_FrameBuffer;
-	std::vector<uint8_t>    m_ChunkDataBuffer;
-	uint32_t		        m_Format;
-	unsigned long long		m_FrameId;
-	uint32_t				m_Width;
-	uint32_t				m_Height;
-    uint32_t				m_ExtChunkPayloadSize;
-    unsigned long long      m_FrameCount;
+	QImage		        m_Image;
+	unsigned long long		m_FrameId;	
 };
 
 #endif // MYFRAME_H

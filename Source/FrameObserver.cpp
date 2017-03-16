@@ -68,10 +68,18 @@ FrameObserver::FrameObserver()
 	, m_bStreamStopped(false)
 {
 	start();
+
+	m_pImageProcessingThread = QSharedPointer<ImageProcessingThread>(new ImageProcessingThread());
+
+	connect(m_pImageProcessingThread.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReadyFromThread(const QImage &, const unsigned long long &)));
+
+	m_pImageProcessingThread->start();
 }
 
 FrameObserver::~FrameObserver()
 {
+	m_pImageProcessingThread->StopThread();
+
 	// stop the internal processing thread and wait until the thread is really stopped
 	m_bAbort = true;
 
@@ -228,10 +236,10 @@ void v4lconvert_yuv420_to_rgb24(const unsigned char *src, unsigned char *dest,
 	}
 }
 
-int FrameObserver::DisplayFrame(const uint8_t* pBuffer, uint32_t length)
+int FrameObserver::DisplayFrame(const uint8_t* pBuffer, uint32_t length,
+                                QImage &convertedImage)
 {
 	int result = 0;
-	QImage convertedImage;
 	
 	if (NULL == pBuffer || 0 == length)
 	    return -1;
@@ -272,8 +280,6 @@ int FrameObserver::DisplayFrame(const uint8_t* pBuffer, uint32_t length)
 	{
 		return -1;
 	}
-	
-	emit OnFrameReady_Signal(convertedImage, m_FrameId);
 	
 	return result;
 }
@@ -351,6 +357,10 @@ void FrameObserver::ResetIncompletedFramesCount()
 	m_nIncompletedFramesCounter = 0;
 }
 
+void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId)
+{
+    emit OnFrameReady_Signal(image, frameId);
+}
 
 // Recording
 
@@ -366,12 +376,9 @@ void FrameObserver::DisplayStepBack()
     if (NULL != pFrame)
     {
         uint64_t frameID = pFrame->GetFrameId();
-        uint32_t width = pFrame->GetWidth();
-        uint32_t height = pFrame->GetHeight();
-        uint32_t pixelformat = pFrame->GetFormat();
-        OnDisplayFrame_Signal(frameID, width, height, pixelformat);
+        OnDisplayFrame_Signal(frameID);
 
-		DisplayFrame(pFrame->GetFrameBuffer(), pFrame->GetFrameBufferLength());
+	emit OnFrameReady_Signal(pFrame->GetImage(), frameID);
     }
 }
 
@@ -382,12 +389,9 @@ void FrameObserver::DisplayStepForw()
     if (NULL != pFrame)
     {
         uint64_t frameID = pFrame->GetFrameId();
-        uint32_t width = pFrame->GetWidth();
-        uint32_t height = pFrame->GetHeight();
-        uint32_t pixelformat = pFrame->GetFormat();
-        OnDisplayFrame_Signal(frameID, width, height, pixelformat);
+        OnDisplayFrame_Signal(frameID);
 		
-		DisplayFrame(pFrame->GetFrameBuffer(), pFrame->GetFrameBufferLength());
+	emit OnFrameReady_Signal(pFrame->GetImage(), frameID);
     }
 }
 

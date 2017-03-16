@@ -40,6 +40,7 @@ OBJ_FILES               = $(OBJ_DIR)/BaseLogger.o \
                           $(OBJ_DIR)/FrameObserver.o \
 			  $(OBJ_DIR)/FrameObserverMMAP.o \
 			  $(OBJ_DIR)/FrameObserverUSER.o \
+			  $(OBJ_DIR)/ImageProcessingThread.o \
 			  $(OBJ_DIR)/V4l2Helper.o \
 			  $(OBJ_DIR)/Helper.o \
 			  $(OBJ_DIR)/v4l2test.o \
@@ -47,10 +48,11 @@ OBJ_FILES               = $(OBJ_DIR)/BaseLogger.o \
                           $(OBJ_DIR)/main.o \
                           $(OBJ_DIR)/MyFrame.o \
                           $(OBJ_DIR)/MyFrameQueue.o \
-			  $(OBJ_DIR)/Thread.o \
+                          $(OBJ_DIR)/Thread.o \
 			  $(OBJ_DIR)/moc_Camera.o \
 			  $(OBJ_DIR)/moc_CameraObserver.o \
                           $(OBJ_DIR)/moc_FrameObserver.o \
+			  $(OBJ_DIR)/moc_ImageProcessingThread.o \
                           $(OBJ_DIR)/moc_v4l2test.o \
                           $(OBJ_DIR)/qrc_v4l2test.o
                           

@@ -122,7 +122,7 @@ signals:
     // Event will be called when the a frame is recorded
 	void OnCameraRecordFrame_Signal(const unsigned long long &, const unsigned long long &);
     // Event will be called when the a frame is displayed
-	void OnCameraDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &);
+	void OnCameraDisplayFrame_Signal(const unsigned long long &);
 	
 	void OnCameraPixelformat_Signal(const QString &);
 	void OnCameraFramesize_Signal(const QString &);
@@ -135,7 +135,7 @@ private slots:
 	// Event will be called when the a frame is recorded
     void OnRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue);
 	// Event will be called when the a frame is displayed
-    void OnDisplayFrame(const unsigned long long &frameID, const unsigned long &width, const unsigned long &height, const unsigned long &pixelformat);
+    void OnDisplayFrame(const unsigned long long &frameID);
     // Event will be called when for text notification
     void OnMessage(const QString &msg);
     // Event will be called when for text notification

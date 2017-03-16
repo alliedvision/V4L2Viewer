@@ -100,7 +100,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(OnCameraError_Signal(const QString &)), this, SLOT(OnCameraError(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraMessage_Signal(const QString &)), this, SLOT(OnCameraMessage(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnCameraRecordFrame(const unsigned long long &, const unsigned long long &)));
-    connect(&m_Camera, SIGNAL(OnCameraDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)), this, SLOT(OnCameraDisplayFrame(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)));
+    connect(&m_Camera, SIGNAL(OnCameraDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnCameraDisplayFrame(const unsigned long long &)));
 	connect(&m_Camera, SIGNAL(OnCameraPixelformat_Signal(const QString &)), this, SLOT(OnCameraPixelformat(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
 	
@@ -464,12 +464,9 @@ void v4l2test::OnCameraRecordFrame(const unsigned long long &frameID, const unsi
 }
 
 // Event will be called when the a frame is displayed
-void v4l2test::OnCameraDisplayFrame(const unsigned long long &frameID, const unsigned long &width, const unsigned long &height, const unsigned long &pixelformat)
+void v4l2test::OnCameraDisplayFrame(const unsigned long long &frameID)
 {
     ui.m_DisplayFrameID->setText(QString("Displaying FrameID: %1").arg(frameID));
-    ui.m_DisplayFrameWidth->setText(QString("Displaying Frame width: %1").arg(width));
-    ui.m_DisplayFrameHeight->setText(QString("Displaying Frame height: %1").arg(height));
-    ui.m_DisplayFramePixelformat->setText(QString("Displaying Frame pixelformat: 0x%1").arg(pixelformat, 8, 16, QChar('0')));
 }
 
 void v4l2test::OnCameraPixelformat(const QString& format)

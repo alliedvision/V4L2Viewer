@@ -171,7 +171,7 @@ private slots:
     // Event will be called when the a frame is recorded
     void OnCameraRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue);
 	// Event will be called when the a frame is displayed
-    void OnCameraDisplayFrame(const unsigned long long &frameID, const unsigned long &width, const unsigned long &height, const unsigned long &pixelformat);
+    void OnCameraDisplayFrame(const unsigned long long &frameID);
     // The event handler to open a camera on double click event
 	void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
 	// The event handler to read a register per direct access

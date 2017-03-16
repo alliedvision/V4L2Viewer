@@ -74,16 +74,20 @@ int FrameObserverUSER::ReadFrame()
 		
 		if (0 != buffer && 0 != length)
 		{  
+		    QImage convertedImage;
+
 		    m_FrameId++;
 		    m_nReceivedFramesCounter++;
 		    
-		    result = DisplayFrame(buffer, length);
+		    result = DisplayFrame(buffer, length, convertedImage);
+
+		    m_pImageProcessingThread->QueueFrame(convertedImage, m_FrameId);
 		
 		    if (m_bRecording && -1 != result)
 		    {
 			if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
 			{
-				m_FrameRecordQueue.Enqueue(buffer, length, m_nWidth, m_nHeight, m_Pixelformat, m_FrameId, 0, m_FrameId);
+				m_FrameRecordQueue.Enqueue(convertedImage, m_FrameId);
 				OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
 			}
 			else

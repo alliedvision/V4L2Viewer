@@ -62,21 +62,14 @@ void MyFrameQueue::Clear()
 }
 
 // Add a new frame
-void MyFrameQueue::Enqueue( uint8_t *buffer, 
-                            uint32_t length, 
-                            uint32_t frameWidth, 
-                            uint32_t frameHeight, 
-                            uint32_t framePixelFormat, 
-                            uint64_t frameID, 
-                            uint32_t extChunkPayloadSize, 
-                            unsigned long long frameCount)
+void MyFrameQueue::Enqueue( QImage &image, 
+                            uint64_t frameID)
 {
 	m_FrameQueueMutex.lock();
 
-	QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(buffer, length, frameWidth, frameHeight, framePixelFormat, frameID, extChunkPayloadSize));
+	QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(image, frameID));
 		
-    newFrame->SetFrameCount(frameCount);
-    m_FrameQueue.enqueue(newFrame);
+        m_FrameQueue.enqueue(newFrame);
 	
 	m_FrameQueueMutex.unlock();
 }

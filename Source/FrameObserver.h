@@ -36,7 +36,8 @@
 #include <QImage>
 #include <QSharedPointer>
 
-#include <MyFrameQueue.h>
+#include "MyFrameQueue.h"
+#include "ImageProcessingThread.h"
 #include "Helper.h"
 #include "V4l2Helper.h"
 
@@ -103,7 +104,8 @@ class FrameObserver : public QThread
 
 protected:
 	// v4l2
-    int DisplayFrame(const uint8_t* pBuffer, uint32_t length);
+    int DisplayFrame(const uint8_t* pBuffer, uint32_t length,
+                     QImage &convertedImage);
     virtual int ReadFrame();
 	
 	// Do the work within this thread
@@ -141,7 +143,14 @@ protected:
       	std::vector<PUSER_BUFFER>					m_UserBufferContainerList;
 
 	uint32_t                                    m_UsedBufferCount;
+	
+	// Shared pointer to a worker thread for the image processing
+	QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
 
+private slots:
+	//Event handler for getting the processed frame to an image
+	void OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId);
+	
 signals:
 	// Event will be called when a frame is processed by the internal thread and ready to show
 	void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
@@ -150,7 +159,7 @@ signals:
     // Event will be called when the a frame is recorded
 	void OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &);
     // Event will be called when the a frame is displayed
-	void OnDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &);
+	void OnDisplayFrame_Signal(const unsigned long long &);
     // Event will be called when for text notification
     void OnMessage_Signal(const QString &msg);
     // Event will be called on error

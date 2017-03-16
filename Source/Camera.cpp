@@ -92,7 +92,7 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuff
 	}
 	connect(m_StreamCallbacks.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
 	connect(m_StreamCallbacks.data(), SIGNAL(OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnRecordFrame(const unsigned long long &, const unsigned long long &)));
-    	connect(m_StreamCallbacks.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)), this, SLOT(OnDisplayFrame(const unsigned long long &, const unsigned long &, const unsigned long &, const unsigned long &)));
+    	connect(m_StreamCallbacks.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
     	connect(m_StreamCallbacks.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
     	connect(m_StreamCallbacks.data(), SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
 
@@ -170,9 +170,9 @@ void Camera::OnRecordFrame(const unsigned long long &frameID, const unsigned lon
 }
 
 // Event will be called when the a frame is displayed
-void Camera::OnDisplayFrame(const unsigned long long &frameID, const unsigned long &width, const unsigned long &height, const unsigned long &pixelformat)
+void Camera::OnDisplayFrame(const unsigned long long &frameID)
 {
-    emit OnCameraDisplayFrame_Signal(frameID, width, height, pixelformat);
+    emit OnCameraDisplayFrame_Signal(frameID);
 }
 
 // Event will be called when for text notification
