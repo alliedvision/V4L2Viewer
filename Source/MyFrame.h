@@ -36,7 +36,7 @@ class MyFrame
 public:
 	// Copy the of the given frame
     MyFrame(const MyFrame *pFrame);
-	MyFrame(QImage &image, unsigned long long &frameID);
+	MyFrame(QImage &image, unsigned long long frameID);
 	~MyFrame(void);
 
 	// Get the frame buffer

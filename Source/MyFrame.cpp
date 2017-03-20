@@ -29,7 +29,7 @@
 #include "MyFrame.h"
 
 
-MyFrame::MyFrame(QImage &image, unsigned long long &frameID) 
+MyFrame::MyFrame(QImage &image, unsigned long long frameID) 
 	: m_FrameId(0)
 {
 	m_FrameId = frameID;
