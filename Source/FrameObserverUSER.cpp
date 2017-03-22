@@ -88,12 +88,12 @@ int FrameObserverUSER::ReadFrame()
 			if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
 			{
 				m_FrameRecordQueue.Enqueue(convertedImage, m_FrameId);
-				OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
+				emit OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
 			}
 			else
 			{
 				if (m_FrameRecordQueue.GetSize() == MAX_RECORD_FRAME_QUEUE_SIZE)
-					OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
+					emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
 			}
 		    }
 		
@@ -106,7 +106,7 @@ int FrameObserverUSER::ReadFrame()
 		    if (!m_MessageSendFlag)
 		    {
 		        m_MessageSendFlag = true;
-		        OnMessage_Signal(QString("Frame buffer empty !"));
+		        emit OnMessage_Signal(QString("Frame buffer empty !"));
 		    }
 		    
 		    if (m_bStreamRunning)

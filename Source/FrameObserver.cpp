@@ -458,18 +458,6 @@ void FrameObserver::FrameDone(const unsigned long long frameHandle)
         		
         
     }
-    else
-       m_bStreamStopped = true;
-}
-
-void FrameObserver::SendMessageSignal(const QString &msg)
-{
-    //OnMessage_Signal(msg);
-}
-
-void FrameObserver::SendErrorSignal(const QString &text)
-{
-    //OnError_Signal(text);
 }
 
 }}} // namespace AVT::Tools::Examples

@@ -147,9 +147,6 @@ protected:
 	// Shared pointer to a worker thread for the image processing
 	QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
 
-        void SendMessageSignal(const QString &msg);
-    	void SendErrorSignal(const QString &text); 
-
 private slots:
 	//Event handler for getting the processed frame to an image
 	void OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId);

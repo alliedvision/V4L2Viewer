@@ -89,12 +89,12 @@ int FrameObserverMMAP::ReadFrame()
 				if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
 				{
 					m_FrameRecordQueue.Enqueue(convertedImage, m_FrameId);
-					OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
+					emit OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
 				}
 				else
 				{
 					if (m_FrameRecordQueue.GetSize() == MAX_RECORD_FRAME_QUEUE_SIZE)
-						SendMessageSignal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
+						emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
 				}
 		    }
 		
@@ -105,15 +105,13 @@ int FrameObserverMMAP::ReadFrame()
 		    if (!m_MessageSendFlag)
 		    {
 		        m_MessageSendFlag = true;
-		        SendMessageSignal(QString("Frame buffer empty !"));
+		        emit OnMessage_Signal(QString("Frame buffer empty !"));
 		    }
 		    
 		    if (m_bStreamRunning)
 			V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf);
 		}
 	}
-
-	SendMessageSignal(QString("m_bStreamRunning=%1.").arg(m_bStreamRunning));
 
 	if (!m_bStreamRunning)
 	    m_bStreamStopped = true;
@@ -147,16 +145,16 @@ int FrameObserverMMAP::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSiz
 			if (EINVAL == errno) 
 			{
 				Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
-				emit SendErrorSignal("Camera::CreateUserBuffer: VIDIOC_REQBUFS does not support user pointer i/o.");
+				emit OnError_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS does not support user pointer i/o.");
 			} else {
 				Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS error");
-				emit SendErrorSignal("Camera::CreateUserBuffer: VIDIOC_REQBUFS error.");
+				emit OnError_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS error.");
 			}
 		}
 		else 
 		{
 			Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS OK");
-			emit SendMessageSignal("Camera::CreateUserBuffer: VIDIOC_REQBUFS OK.");
+			emit OnMessage_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS OK.");
 		
 			// create local buffer container
 			m_UserBufferContainerList.resize(bufferCount);
@@ -164,7 +162,7 @@ int FrameObserverMMAP::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSiz
 			if (m_UserBufferContainerList.size() != bufferCount) 
 		    {
 			    Logger::LogEx("Camera::CreateUserBuffer buffer container error");
-			    emit SendErrorSignal("Camera::CreateUserBuffer: buffer container error.");
+			    emit OnError_Signal("Camera::CreateUserBuffer: buffer container error.");
 			    return -1;
 			}
 
@@ -179,12 +177,12 @@ int FrameObserverMMAP::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSiz
 				if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYBUF, &buf)) 
 				{
 				    Logger::LogEx("Camera::CreateUserBuffer VIDIOC_QUERYBUF error");
-				    emit SendErrorSignal("Camera::CreateUserBuffer: VIDIOC_QUERYBUF error.");
+				    emit OnError_Signal("Camera::CreateUserBuffer: VIDIOC_QUERYBUF error.");
 				    return -1;
 				}
 	
 				Logger::LogEx("Camera::CreateUserBuffer VIDIOC_QUERYBUF MMAP OK length=%d", buf.length);
-				emit SendErrorSignal(QString("Camera::CreateUserBuffer: VIDIOC_QUERYBUF OK length=%1.").arg(buf.length));
+				emit OnError_Signal(QString("Camera::CreateUserBuffer: VIDIOC_QUERYBUF OK length=%1.").arg(buf.length));
 				    
 				m_UserBufferContainerList[x] = new USER_BUFFER;
 				m_UserBufferContainerList[x]->nBufferlength = buf.length;
