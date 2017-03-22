@@ -300,7 +300,7 @@ int FrameObserver::ReadFrame()
 // Do the work within this thread
 void FrameObserver::run()
 {
-        OnMessage_Signal(QString("FrameObserver thread started."));
+        emit OnMessage_Signal(QString("FrameObserver thread started."));
 	while (!m_bAbort)
 	{
 		fd_set fds;
@@ -338,7 +338,7 @@ void FrameObserver::run()
                      ReadFrame();
                  }
 	}
-	OnMessage_Signal(QString("FrameObserver thread stopped."));
+	emit OnMessage_Signal(QString("FrameObserver thread stopped."));
 }
 
 // Get the number of frames
@@ -383,7 +383,7 @@ void FrameObserver::DisplayStepBack()
     if (NULL != pFrame)
     {
         uint64_t frameID = pFrame->GetFrameId();
-        OnDisplayFrame_Signal(frameID);
+        emit OnDisplayFrame_Signal(frameID);
 
 	emit OnFrameReady_Signal(pFrame->GetImage(), frameID);
     }
@@ -396,7 +396,7 @@ void FrameObserver::DisplayStepForw()
     if (NULL != pFrame)
     {
         uint64_t frameID = pFrame->GetFrameId();
-        OnDisplayFrame_Signal(frameID);
+        emit OnDisplayFrame_Signal(frameID);
 		
 	emit OnFrameReady_Signal(pFrame->GetImage(), frameID);
     }
