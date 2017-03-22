@@ -292,10 +292,21 @@ int Camera::StopStreamChannel()
 {
     int nResult = 0;
     
-    m_StreamCallbacks->StopStream();
-
-    Logger::LogEx("Camera::StopStreamChannel.");
+    Logger::LogEx("Camera::StopStreamChannel started.");
     
+    nResult = m_StreamCallbacks->StopStream();
+
+    if (nResult == 0)
+    {
+       Logger::LogEx("Camera::StopStreamChannel OK.");
+       emit OnCameraError_Signal("Camera::StopStreamChannel OK.");
+    } 
+    else
+    {
+       Logger::LogEx("Camera::StopStreamChannel failed.");
+       emit OnCameraError_Signal("Camera::StopStreamChannel failed.");
+    }
+
     return nResult;
 }
 

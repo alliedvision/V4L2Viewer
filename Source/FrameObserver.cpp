@@ -114,11 +114,15 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
 int FrameObserver::StopStream()
 {
     int nResult = 0;
+    int count = 1000;
     
     m_bStreamRunning = false;
     
-    while (!m_bStreamStopped)
+    while (!m_bStreamStopped && count-- > 0)
          QThread::msleep(10);
+
+    if (count <= 0)
+       nResult = -1;
 
     return nResult;
 }
@@ -454,6 +458,18 @@ void FrameObserver::FrameDone(const unsigned long long frameHandle)
         		
         
     }
+    else
+       m_bStreamStopped = true;
+}
+
+void FrameObserver::SendMessageSignal(const QString &msg)
+{
+    //OnMessage_Signal(msg);
+}
+
+void FrameObserver::SendErrorSignal(const QString &text)
+{
+    //OnError_Signal(text);
 }
 
 }}} // namespace AVT::Tools::Examples
