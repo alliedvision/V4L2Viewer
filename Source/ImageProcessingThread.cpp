@@ -93,7 +93,7 @@ void ImageProcessingThread::run()
 			emit OnFrameReady_Signal(image, frameID);
 		}
 
-		QThread::msleep(10);
+		QThread::msleep(1);
 	}
 }
 
