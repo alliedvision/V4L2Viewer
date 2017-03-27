@@ -61,6 +61,8 @@ private:
     // The currently streaming camera
 	Camera m_Camera;
     
+    uint32_t m_nDroppedFrames;
+    
 	// The Qt GUI
     Ui::v4l2testTestClass ui;
 	// The menu widget to setup the number of used frames

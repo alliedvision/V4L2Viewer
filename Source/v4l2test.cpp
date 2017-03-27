@@ -57,7 +57,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_saveFileDialog(0)
     , m_BLOCKING_MODE(false)
     , m_MMAP_BUFFER(false)
-
+    , m_nDroppedFrames(0)
 {
     srand((unsigned)time(0));
 
@@ -490,6 +490,8 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
     ui.m_ToggleButton->setEnabled(false);
 	QApplication::processEvents();
 
+    m_nDroppedFrames = 0;
+        
     err = m_Camera.StartStreamChannel(pixelformat, 
 				  payloadsize, 
 				  width, 
@@ -627,6 +629,8 @@ void v4l2test::OnFrameReady(const QImage &image, const unsigned long long &frame
 
 		ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
 	}
+    else
+        m_nDroppedFrames++;
 }
 
 // The event handler to show the event data
@@ -793,7 +797,7 @@ int v4l2test::CloseCamera(const uint32_t cardNumber)
 void v4l2test::OnUpdateFramesReceived()
 {
 	unsigned int fpsReceived = m_Camera.GetReceivedFramesCount();
-	unsigned int uncompletedFrames = m_Camera.GetDroppedFramesCount();
+	unsigned int uncompletedFrames = m_Camera.GetDroppedFramesCount() + m_nDroppedFrames;
 
 	ui.m_FramesPerSecondLabel->setText(QString("%1 fps [drops %2]").arg(fpsReceived).arg(uncompletedFrames));
 }
