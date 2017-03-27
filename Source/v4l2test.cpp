@@ -1067,30 +1067,42 @@ void v4l2test::OnWidth()
 {
 	if (m_Camera.SetFrameSize(ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt()) < 0)
 	{
-		uint32_t width;
-		uint32_t height;
+		uint32_t width = 0;
+		uint32_t height = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framesize!") );
 		m_Camera.ReadFrameSize(width, height);
 		ui.m_edWidth->setText(QString("%1").arg(width));
 		ui.m_edHeight->setText(QString("%1").arg(height));
 	}
 	else
+	{
+		uint32_t payloadsize = 0;
 		OnLog(QString("Framesize set to %1x%2").arg(ui.m_edWidth->text().toInt()).arg(ui.m_edHeight->text().toInt()));
+		
+		m_Camera.ReadPayloadsize(payloadsize);
+		ui.m_edPayloadsize->setText(QString("%1").arg(payloadsize));
+	}
 }
 
 void v4l2test::OnHeight()
 {
 	if (m_Camera.SetFrameSize(ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt()) < 0)
 	{
-		uint32_t width;
-		uint32_t height;
+		uint32_t width = 0;
+		uint32_t height = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framesize!") );
 		m_Camera.ReadFrameSize(width, height);
 		ui.m_edWidth->setText(QString("%1").arg(width));
 		ui.m_edHeight->setText(QString("%1").arg(height));
 	}
 	else
+	{
+		uint32_t payloadsize = 0;
 		OnLog(QString("Framesize set to %1x%2").arg(ui.m_edWidth->text().toInt()).arg(ui.m_edHeight->text().toInt()));
+
+		m_Camera.ReadPayloadsize(payloadsize);
+		ui.m_edPayloadsize->setText(QString("%1").arg(payloadsize));
+	}	
 }
 
 void v4l2test::OnPixelformat()
