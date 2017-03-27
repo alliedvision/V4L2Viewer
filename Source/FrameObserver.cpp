@@ -274,13 +274,13 @@ int FrameObserver::DisplayFrame(const uint8_t* pBuffer, uint32_t length,
 			 m_Pixelformat == V4L2_PIX_FMT_BGR24)
 	{	
 		convertedImage = QImage(m_nWidth, m_nHeight, QImage::Format_RGB888);
-	        memcpy(convertedImage.bits(), pBuffer, m_PayloadSize);
+	        memcpy(convertedImage.bits(), pBuffer, m_nWidth*m_nHeight*3);
 	}
 	else if (m_Pixelformat == V4L2_PIX_FMT_RGB32 ||
 			 m_Pixelformat == V4L2_PIX_FMT_BGR32)
 	{
 		convertedImage = QImage(m_nWidth, m_nHeight, QImage::Format_RGB32);
-	        memcpy(convertedImage.bits(), pBuffer, m_PayloadSize);
+	        memcpy(convertedImage.bits(), pBuffer, m_nWidth*m_nHeight*4);
 	}
 	else
 	{
@@ -316,8 +316,12 @@ void FrameObserver::run()
 		    tv.tv_sec = 1;
 		    tv.tv_usec = 0;
 
+		    //if (m_bStreamRunning == false)
+		    //    emit OnMessage_Signal(QString("select before"));
 		    result = select(m_nFileDescriptor + 1, &fds, NULL, NULL, &tv);
-
+		    //if (m_bStreamRunning == false)
+		    //    emit OnMessage_Signal(QString("select after"));
+		    
 		    if (-1 == result) 
 		    {
 			    // Error
@@ -329,7 +333,12 @@ void FrameObserver::run()
 			    continue;
 		    } else 
 		    {
-			    ReadFrame();
+//if (m_bStreamRunning == false)
+//emit OnMessage_Signal(QString("ReadFrame after"));
+		       ReadFrame();
+//if (m_bStreamRunning == false)
+//emit OnMessage_Signal(QString("ReadFrame after"));
+		    
 		    }
                  }
                  else
