@@ -82,7 +82,8 @@ int FrameObserverMMAP::ReadFrame()
 		    
 		    result = DisplayFrame(buffer, length, convertedImage);
 		
-		    m_pImageProcessingThread->QueueFrame(convertedImage, m_FrameId);
+		    if (m_pImageProcessingThread->QueueFrame(convertedImage, m_FrameId))
+		        m_nDroppedFramesCounter++;
 
 		    if (m_bRecording && -1 != result)
 		    {

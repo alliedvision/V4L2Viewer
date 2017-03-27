@@ -90,7 +90,7 @@ public:
     
     // Statistics
     unsigned int GetReceivedFramesCount();
-    unsigned int GetIncompletedFramesCount();
+    unsigned int GetDroppedFramesCount();
 
     // Recording
     void SetRecording(bool start);

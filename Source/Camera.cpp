@@ -71,9 +71,9 @@ unsigned int Camera::GetReceivedFramesCount()
     return m_StreamCallbacks->GetReceivedFramesCount();
 }
 
-unsigned int Camera::GetIncompletedFramesCount()
+unsigned int Camera::GetDroppedFramesCount()
 {
-    return m_StreamCallbacks->GetIncompletedFramesCount();
+    return m_StreamCallbacks->GetDroppedFramesCount();
 }
 
 int Camera::OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuffer)
@@ -283,7 +283,7 @@ int Camera::StartStreamChannel(uint32_t pixelformat, uint32_t payloadsize, uint3
 	
     m_StreamCallbacks->StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
 
-    m_StreamCallbacks->ResetIncompletedFramesCount();
+    m_StreamCallbacks->ResetDroppedFramesCount();
 	
     return nResult;
 }

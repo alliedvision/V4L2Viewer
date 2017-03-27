@@ -81,10 +81,10 @@ class FrameObserver : public QThread
 	unsigned int GetReceivedFramesCount();
 
 	// Get the number of uncompleted frames
-	unsigned int GetIncompletedFramesCount();
+	unsigned int GetDroppedFramesCount();
 
 	// Set the number of uncompleted frames
-	void ResetIncompletedFramesCount();
+	void ResetDroppedFramesCount();
 
     // switch to stop callbacks immediately
     void SetTerminateFlag();
@@ -120,7 +120,7 @@ protected:
 	uint32_t m_nReceivedFramesCounter;
 
 	// Counter to count the received uncompleted images
-	unsigned int m_nIncompletedFramesCounter;
+	unsigned int m_nDroppedFramesCounter;
 
     // switch to stop callbacks immediately
     bool m_bTerminate;

@@ -38,21 +38,35 @@ ImageProcessingThread::~ImageProcessingThread(void)
 }
 
 // Set the data for the thread to work with
-void ImageProcessingThread::QueueFrame(QImage &image, uint64_t &frameID)
+int ImageProcessingThread::QueueFrame(QImage &image, uint64_t &frameID)
 {
+    int result = -1;
+    
     // make sure Viewer is never working in the past
     // if viewer is too slow we drop the frames.
     if (m_FrameQueue.GetSize() < MAX_QUEUE_SIZE)
-	    m_FrameQueue.Enqueue(image, frameID);
+    {
+	m_FrameQueue.Enqueue(image, frameID);
+	result = 0;
+    }
+    
+    return result;
 }
 
 // Set the data for the thread to work with
-void ImageProcessingThread::QueueFrame(QSharedPointer<MyFrame> pFrame)
+int ImageProcessingThread::QueueFrame(QSharedPointer<MyFrame> pFrame)
 {
+    int result = -1;
+    
     // make sure Viewer is never working in the past
     // if viewer is too slow we drop the frames.
     if (m_FrameQueue.GetSize() < MAX_QUEUE_SIZE)
-	    m_FrameQueue.Enqueue(pFrame);
+    {
+	m_FrameQueue.Enqueue(pFrame);
+	result = 0;
+    }
+    
+    return result;
 }
 
 // stop the internal processing thread and wait until the thread is really stopped

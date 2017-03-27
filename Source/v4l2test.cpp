@@ -793,7 +793,7 @@ int v4l2test::CloseCamera(const uint32_t cardNumber)
 void v4l2test::OnUpdateFramesReceived()
 {
 	unsigned int fpsReceived = m_Camera.GetReceivedFramesCount();
-	unsigned int uncompletedFrames = m_Camera.GetIncompletedFramesCount();
+	unsigned int uncompletedFrames = m_Camera.GetDroppedFramesCount();
 
 	ui.m_FramesPerSecondLabel->setText(QString("%1 fps [drops %2]").arg(fpsReceived).arg(uncompletedFrames));
 }

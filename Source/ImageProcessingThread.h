@@ -45,10 +45,10 @@ public:
 	~ImageProcessingThread(void);
 
 	// Queue the frame for the thread to work with
-	void QueueFrame(QImage &image, uint64_t &frameID);
+	int QueueFrame(QImage &image, uint64_t &frameID);
 
 	// Queue the frame for the thread to work with
-	void QueueFrame(QSharedPointer<MyFrame> pFrame);
+	int QueueFrame(QSharedPointer<MyFrame> pFrame);
 
     // stop the internal processing thread and wait until the thread is really stopped
 	void StopThread();

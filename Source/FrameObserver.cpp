@@ -51,7 +51,7 @@ namespace Examples {
 
 FrameObserver::FrameObserver() 
 	: m_nReceivedFramesCounter(0)
-	, m_nIncompletedFramesCounter(0)
+	, m_nDroppedFramesCounter(0)
 	, m_bTerminate(false)
 	, m_bRecording(false)
 	, m_bAbort(false)
@@ -362,15 +362,15 @@ unsigned int FrameObserver::GetReceivedFramesCount()
 }
 
 // Get the number of uncompleted frames
-unsigned int FrameObserver::GetIncompletedFramesCount()
+unsigned int FrameObserver::GetDroppedFramesCount()
 {
-	return 0;
+	return m_nDroppedFramesCounter;
 }
 
 // Set the number of uncompleted frames
-void FrameObserver::ResetIncompletedFramesCount()
+void FrameObserver::ResetDroppedFramesCount()
 {
-	m_nIncompletedFramesCounter = 0;
+	m_nDroppedFramesCounter = 0;
 }
 
 void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId)
