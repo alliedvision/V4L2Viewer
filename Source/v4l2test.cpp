@@ -57,6 +57,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_saveFileDialog(0)
     , m_BLOCKING_MODE(false)
     , m_MMAP_BUFFER(false)
+    , m_ShowFrames(true)
     , m_nDroppedFrames(0)
 {
     srand((unsigned)time(0));
@@ -108,6 +109,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_TitleBlockingMode, SIGNAL(triggered()), this, SLOT(OnBlockingMode()));
     connect(ui.m_chkUseMMAP, SIGNAL(clicked()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
+    connect(ui.m_TitleShowFrames, SIGNAL(triggered()), this, SLOT(OnShowFrames()));
 	
     int err = m_Camera.DeviceDiscoveryStart();
     
@@ -217,7 +219,13 @@ void v4l2test::OnUseMMAP()
     ui.m_chkUseMMAP->setChecked(m_MMAP_BUFFER);
     ui.m_UseMMAP->setChecked(m_MMAP_BUFFER);
 }
-    
+ 
+void v4l2test::OnShowFrames()
+{
+    m_ShowFrames = !m_ShowFrames;
+    OnLog(QString("Show Frames = %1").arg((m_ShowFrames)?"TRUE":"FALSE"));
+}
+   
 void v4l2test::RemoteClose()
 {
     if( true == m_bIsOpen )
@@ -606,6 +614,8 @@ void v4l2test::OnZoomOutButtonClicked()
 // The event handler to show the processed frame
 void v4l2test::OnFrameReady(const QImage &image, const unsigned long long &frameId)
 {
+    if (m_ShowFrames)
+    {
     if (!image.isNull())
 	{
 		if (m_dFitToScreen)
@@ -631,6 +641,9 @@ void v4l2test::OnFrameReady(const QImage &image, const unsigned long long &frame
 	}
     else
         m_nDroppedFrames++;
+    }
+    else
+       ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
 }
 
 // The event handler to show the event data

@@ -1267,6 +1267,7 @@
     </property>
     <addaction name="m_TitleUseMMAP"/>
     <addaction name="m_TitleBlockingMode"/>
+    <addaction name="m_TitleShowFrames"/>
    </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>
@@ -1306,6 +1307,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Use MMAP</string>
    </property>
@@ -1316,6 +1320,17 @@
    </property>
    <property name="text">
     <string>Blocking Mode</string>
+   </property>
+  </action>
+  <action name="m_TitleShowFrames">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Frames</string>
    </property>
   </action>
  </widget>

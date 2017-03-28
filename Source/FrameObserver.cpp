@@ -114,7 +114,7 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
 int FrameObserver::StopStream()
 {
     int nResult = 0;
-    int count = 1000;
+    int count = 300;
     
     m_bStreamRunning = false;
     
@@ -343,7 +343,7 @@ void FrameObserver::run()
                  }
                  else
                  {
-                     QThread::msleep(1);
+                     //QThread::msleep(1);
                      ReadFrame();
                  }
 	}

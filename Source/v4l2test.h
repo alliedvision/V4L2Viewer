@@ -57,6 +57,7 @@ private:
     
     bool m_BLOCKING_MODE;
     bool m_MMAP_BUFFER;
+    bool m_ShowFrames;
 	
     // The currently streaming camera
 	Camera m_Camera;
@@ -123,6 +124,7 @@ private:
 	void SetTitleText(QString additionalText);
 
 private slots:
+      void OnShowFrames();
 	// The event handler to close the program
 	void OnMenuCloseTriggered();
 	// The event handler to set blocking mode
