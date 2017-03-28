@@ -91,6 +91,7 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuff
 	    m_StreamCallbacks = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER());
 	}
 	connect(m_StreamCallbacks.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
+	connect(m_StreamCallbacks.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
 	connect(m_StreamCallbacks.data(), SIGNAL(OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnRecordFrame(const unsigned long long &, const unsigned long long &)));
     	connect(m_StreamCallbacks.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
     	connect(m_StreamCallbacks.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
@@ -161,6 +162,12 @@ int Camera::CloseDevice()
 void Camera::OnFrameReady(const QImage &image, const unsigned long long &frameId)
 {
 	emit OnCameraFrameReady_Signal(image, frameId);
+}
+
+// The event handler to show the processed frame ID
+void Camera::OnFrameID(const unsigned long long &frameId)
+{
+	emit OnCameraFrameID_Signal(frameId);
 }
 
 // Event will be called when the a frame is recorded
@@ -1256,6 +1263,11 @@ void Camera::DeleteRecording()
 /*********************************************************************************************************/
 // Commands
 /*********************************************************************************************************/
+
+void Camera::SwitchFrameTransfer2GUI(bool showFrames)
+{
+    m_StreamCallbacks->SwitchFrameTransfer2GUI(showFrames);
+}
 
 /*********************************************************************************************************/
 // Tools

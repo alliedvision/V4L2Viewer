@@ -98,6 +98,9 @@ public:
     void DisplayStepForw();
     void DeleteRecording();
 
+    // Misc
+    void SwitchFrameTransfer2GUI(bool showFrames);
+
 private:
     std::string				m_DeviceName;
     int 				m_nFileDescriptor;
@@ -111,6 +114,8 @@ signals:
     void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &);
     // Event will be called when a frame is processed by the internal thread and ready to show
 	void OnCameraFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
+	// Event will be called when a frame ID is processed by the internal thread and ready to show
+	void OnCameraFrameID_Signal(const unsigned long long &frameId);
 	// Event will be called when the event data are processed by the internal thread and ready to show
 	void OnCameraEventReady_Signal(const QString &eventText);
     // Event will be called when the any other data arrieved
@@ -132,6 +137,8 @@ private slots:
 	void OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &);
     // The event handler to show the processed frame
 	void OnFrameReady(const QImage &image, const unsigned long long &frameId);
+	// The event handler to show the processed frame ID
+	void OnFrameID(const unsigned long long &frameId);
 	// Event will be called when the a frame is recorded
     void OnRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue);
 	// Event will be called when the a frame is displayed

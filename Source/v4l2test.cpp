@@ -96,6 +96,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     // Start Camera
     connect(&m_Camera, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
+	connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
 	connect(&m_Camera, SIGNAL(OnCameraEventReady_Signal(const QString &)), this, SLOT(OnCameraEventReady(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraRegisterValueReady_Signal(unsigned long long)), this, SLOT(OnCameraRegisterValueReady(unsigned long long)));
     connect(&m_Camera, SIGNAL(OnCameraError_Signal(const QString &)), this, SLOT(OnCameraError(const QString &)));
@@ -224,6 +225,8 @@ void v4l2test::OnShowFrames()
 {
     m_ShowFrames = !m_ShowFrames;
     OnLog(QString("Show Frames = %1").arg((m_ShowFrames)?"TRUE":"FALSE"));
+
+    m_Camera.SwitchFrameTransfer2GUI(m_ShowFrames);
 }
    
 void v4l2test::RemoteClose()
@@ -644,6 +647,12 @@ void v4l2test::OnFrameReady(const QImage &image, const unsigned long long &frame
     }
     else
        ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
+}
+
+// The event handler to show the processed frame
+void v4l2test::OnFrameID(const unsigned long long &frameId)
+{
+	ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
 }
 
 // The event handler to show the event data

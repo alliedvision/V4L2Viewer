@@ -102,6 +102,8 @@ class FrameObserver : public QThread
     
     void FrameDone(const unsigned long long frameHandle);
 
+    void SwitchFrameTransfer2GUI(bool showFrames);
+
 protected:
 	// v4l2
     int DisplayFrame(const uint8_t* pBuffer, uint32_t length,
@@ -139,6 +141,8 @@ protected:
         bool m_BlockingMode;
 	bool m_bStreamRunning;
 	bool m_bStreamStopped;
+
+        bool m_ShowFrames;
 	
       	std::vector<PUSER_BUFFER>					m_UserBufferContainerList;
 
@@ -154,6 +158,8 @@ private slots:
 signals:
 	// Event will be called when a frame is processed by the internal thread and ready to show
 	void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
+	// Event will be called when a frame is processed by the internal thread and ready to show
+	void OnFrameID_Signal(const unsigned long long &frameId);
 	// Event will be called when the frame processing is done and the frame can be returned to streaming engine
     void OnFrameDone_Signal(const unsigned long long frameHandle);
     // Event will be called when the a frame is recorded

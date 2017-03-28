@@ -162,6 +162,8 @@ private slots:
     void OnStreamToggleTimeout();
 	// The event handler to show the processed frame
 	void OnFrameReady(const QImage &image, const unsigned long long &frameId);
+	// The event handler to show the processed frame ID
+	void OnFrameID(const unsigned long long &frameId);
 	// The event handler to show the event data
 	void OnCameraEventReady(const QString &eventText);
     // The event handler to clear the event list

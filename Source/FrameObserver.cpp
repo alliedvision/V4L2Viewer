@@ -66,6 +66,7 @@ FrameObserver::FrameObserver()
         , m_UsedBufferCount(0)
 	, m_bStreamRunning(false)
 	, m_bStreamStopped(false)
+        , m_ShowFrames(true)
 {
 	start();
 
@@ -467,6 +468,11 @@ void FrameObserver::FrameDone(const unsigned long long frameHandle)
         		
         
     }
+}
+
+void FrameObserver::SwitchFrameTransfer2GUI(bool showFrames)
+{
+    m_ShowFrames = showFrames;
 }
 
 }}} // namespace AVT::Tools::Examples

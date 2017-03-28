@@ -75,30 +75,35 @@ int FrameObserverMMAP::ReadFrame()
 		
 		if (0 != buffer && 0 != length)
 		{  
-		    QImage convertedImage;
-                    
 		    m_FrameId++;
-		    m_nReceivedFramesCounter++;
-		    
-		    result = DisplayFrame(buffer, length, convertedImage);
-		
-		    if (m_pImageProcessingThread->QueueFrame(convertedImage, m_FrameId))
-		        m_nDroppedFramesCounter++;
-
-		    if (m_bRecording && -1 != result)
+			m_nReceivedFramesCounter++;
+					
+			if (m_ShowFrames)
 		    {
-				if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
+				QImage convertedImage;
+						
+				result = DisplayFrame(buffer, length, convertedImage);
+			
+				if (m_pImageProcessingThread->QueueFrame(convertedImage, m_FrameId))
+					m_nDroppedFramesCounter++;
+
+				if (m_bRecording && -1 != result)
 				{
-					m_FrameRecordQueue.Enqueue(convertedImage, m_FrameId);
-					emit OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
+					if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
+					{
+					    m_FrameRecordQueue.Enqueue(convertedImage, m_FrameId);
+					    emit OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
+					}
+					else
+					{
+					    if (m_FrameRecordQueue.GetSize() == MAX_RECORD_FRAME_QUEUE_SIZE)
+					        emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
+					}
 				}
-				else
-				{
-					if (m_FrameRecordQueue.GetSize() == MAX_RECORD_FRAME_QUEUE_SIZE)
-						emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
-				}
-		    }
-		
+			}
+			else
+				emit OnFrameID_Signal(m_FrameId);
+                    		
 		    QueueSingleUserBuffer(buf.index);
 		}
 		else
