@@ -47,7 +47,8 @@ namespace Examples {
 // Implementation
 ////////////////////////////////////////////////////////////////////////////    
 
-FrameObserverMMAP::FrameObserverMMAP() 
+FrameObserverMMAP::FrameObserverMMAP(bool showFrames) 
+	: FrameObserver(showFrames)
 {
 }
 

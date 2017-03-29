@@ -53,6 +53,8 @@ namespace Examples {
 
 Camera::Camera()
     : m_nFileDescriptor(-1)
+    , m_BlockingMode(false)
+    , m_ShowFrames(true)
 {
     connect(&m_DeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &)));
 
@@ -84,11 +86,11 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuff
 
 	if (mmapBuffer)
 	{
-	    m_StreamCallbacks = QSharedPointer<FrameObserverMMAP>(new FrameObserverMMAP());
+	    m_StreamCallbacks = QSharedPointer<FrameObserverMMAP>(new FrameObserverMMAP(m_ShowFrames));
 	}
 	else
 	{
-	    m_StreamCallbacks = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER());
+	    m_StreamCallbacks = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER(m_ShowFrames));
 	}
 	connect(m_StreamCallbacks.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
 	connect(m_StreamCallbacks.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
@@ -1266,7 +1268,10 @@ void Camera::DeleteRecording()
 
 void Camera::SwitchFrameTransfer2GUI(bool showFrames)
 {
-    m_StreamCallbacks->SwitchFrameTransfer2GUI(showFrames);
+    if (m_StreamCallbacks != 0)
+        m_StreamCallbacks->SwitchFrameTransfer2GUI(showFrames);
+
+    m_ShowFrames = showFrames;
 }
 
 /*********************************************************************************************************/

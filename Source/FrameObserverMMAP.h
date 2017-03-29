@@ -52,7 +52,7 @@ class FrameObserverMMAP : public FrameObserver
 {
   public:
     // We pass the camera that will deliver the frames to the constructor
-    FrameObserverMMAP();
+    FrameObserverMMAP(bool showFrames);
     //
     virtual ~FrameObserverMMAP();
 

@@ -51,7 +51,7 @@ class FrameObserverUSER : public FrameObserver
 {
   public:
     // We pass the camera that will deliver the frames to the constructor
-    FrameObserverUSER();
+    FrameObserverUSER(bool showFrames);
     //
     virtual ~FrameObserverUSER();
 

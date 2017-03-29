@@ -69,7 +69,7 @@ class FrameObserver : public QThread
 
   public:
     // We pass the camera that will deliver the frames to the constructor
-	FrameObserver();
+	FrameObserver(bool showFrames);
     //
 	virtual ~FrameObserver();
 

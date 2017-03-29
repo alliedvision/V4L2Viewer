@@ -47,7 +47,8 @@ namespace Examples {
 // Implementation
 ////////////////////////////////////////////////////////////////////////////    
 
-FrameObserverUSER::FrameObserverUSER() 
+FrameObserverUSER::FrameObserverUSER(bool showFrames)
+	: FrameObserver(showFrames) 
 {
 }
 

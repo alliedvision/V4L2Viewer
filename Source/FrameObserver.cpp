@@ -49,7 +49,7 @@ namespace Examples {
 // Implementation
 ////////////////////////////////////////////////////////////////////////////    
 
-FrameObserver::FrameObserver() 
+FrameObserver::FrameObserver(bool showFrames) 
 	: m_nReceivedFramesCounter(0)
 	, m_nDroppedFramesCounter(0)
 	, m_bTerminate(false)
@@ -66,7 +66,7 @@ FrameObserver::FrameObserver()
         , m_UsedBufferCount(0)
 	, m_bStreamRunning(false)
 	, m_bStreamStopped(false)
-        , m_ShowFrames(true)
+        , m_ShowFrames(showFrames)
 {
 	start();
 

@@ -105,6 +105,7 @@ private:
     std::string				m_DeviceName;
     int 				m_nFileDescriptor;
     bool 				m_BlockingMode;   
+    bool 				m_ShowFrames;
 
     CameraObserver              	m_DeviceDiscoveryCallbacks;
     QSharedPointer<FrameObserver>	m_StreamCallbacks;
