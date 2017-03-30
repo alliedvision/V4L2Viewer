@@ -433,11 +433,21 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
 	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
 	{                
 		Logger::LogEx("Camera::SetFrameSize VIDIOC_G_FMT OK");
-		emit OnCameraError_Signal(QString("SetFrameSize VIDIOC_G_FMT: OK."));
+		emit OnCameraMessage_Signal(QString("SetFrameSize VIDIOC_G_FMT: OK."));
 
 		fmt.fmt.pix.width = width;
 		fmt.fmt.pix.height = height;
-	
+		fmt.fmt.pix.field = V4L2_FIELD_ANY;
+		fmt.fmt.pix.bytesperline = 0;
+
+		if (0 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
+		{       
+		    Logger::LogEx("Camera::SetFrameSize VIDIOC_TRY_FMT failed");
+		    emit OnCameraMessage_Signal("SetFrameSize VIDIOC_TRY_FMT: failed.");   
+		    return -1;
+		}
+		emit OnCameraMessage_Signal("SetFrameSize VIDIOC_TRY_FMT: OK.");
+
 		if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_FMT, &fmt))
 		{                
 			Logger::LogEx("Camera::SetFrameSize VIDIOC_S_FMT OK =%dx%d", width, height);
@@ -466,9 +476,19 @@ int Camera::SetWidth(uint32_t width)
 	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
 	{       
 		Logger::LogEx("Camera::SetWidth VIDIOC_G_FMT OK");
-		emit OnCameraError_Signal(QString("SetWidth VIDIOC_G_FMT: OK."));
+		emit OnCameraMessage_Signal(QString("SetWidth VIDIOC_G_FMT: OK."));
 		
 		fmt.fmt.pix.width = width;
+		fmt.fmt.pix.field = V4L2_FIELD_ANY;
+		fmt.fmt.pix.bytesperline = 0;
+
+		if (0 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
+		{       
+		    Logger::LogEx("Camera::SetWidth VIDIOC_TRY_FMT failed");
+		    emit OnCameraMessage_Signal("SetWidth VIDIOC_TRY_FMT: failed.");   
+		    return -1;
+		}
+		emit OnCameraMessage_Signal("SetWidth VIDIOC_TRY_FMT: OK.");
 	
 		if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_FMT, &fmt))
 		{             
@@ -524,10 +544,20 @@ int Camera::SetHeight(uint32_t height)
 	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
 	{                
 		Logger::LogEx("Camera::SetHeight VIDIOC_G_FMT OK");
-		emit OnCameraError_Signal(QString("SetHeight VIDIOC_G_FMT: OK."));
+		emit OnCameraMessage_Signal(QString("SetHeight VIDIOC_G_FMT: OK."));
 
 		fmt.fmt.pix.height = height;
+		fmt.fmt.pix.field = V4L2_FIELD_ANY;
+		fmt.fmt.pix.bytesperline = 0;
 
+		if (0 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
+		{       
+		    Logger::LogEx("Camera::SetHeight VIDIOC_TRY_FMT failed");
+		    emit OnCameraMessage_Signal("SetHeight VIDIOC_TRY_FMT: failed.");   
+		    return -1;
+		}
+		emit OnCameraMessage_Signal("SetHeight VIDIOC_TRY_FMT: OK.");
+	
 		if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_FMT, &fmt))
 		{
             Logger::LogEx("Camera::SetHeight VIDIOC_S_FMT OK =%d", height);
