@@ -26,6 +26,7 @@
 =============================================================================*/
 
 #include "ImageProcessingThread.h"
+#include "ImageTransf.h"
 
 
 ImageProcessingThread::ImageProcessingThread()
@@ -37,6 +38,23 @@ ImageProcessingThread::~ImageProcessingThread(void)
 {
 }
 
+int ImageProcessingThread::QueueFrame(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length, 
+									  uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+									  uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+{
+	int result = -1;
+    
+    // make sure Viewer is never working in the past
+    // if viewer is too slow we drop the frames.
+    if (m_FrameQueue.GetSize() < MAX_QUEUE_SIZE)
+    {
+		m_FrameQueue.Enqueue(buf, buffer, length, width, height, pixelformat, payloadSize, bytesPerLine, frameID);
+		result = 0;
+    }
+    
+    return result;
+}
+
 // Set the data for the thread to work with
 int ImageProcessingThread::QueueFrame(QImage &image, uint64_t &frameID)
 {
@@ -46,8 +64,8 @@ int ImageProcessingThread::QueueFrame(QImage &image, uint64_t &frameID)
     // if viewer is too slow we drop the frames.
     if (m_FrameQueue.GetSize() < MAX_QUEUE_SIZE)
     {
-	m_FrameQueue.Enqueue(image, frameID);
-	result = 0;
+		m_FrameQueue.Enqueue(image, frameID);
+		result = 0;
     }
     
     return result;
@@ -62,8 +80,8 @@ int ImageProcessingThread::QueueFrame(QSharedPointer<MyFrame> pFrame)
     // if viewer is too slow we drop the frames.
     if (m_FrameQueue.GetSize() < MAX_QUEUE_SIZE)
     {
-	m_FrameQueue.Enqueue(pFrame);
-	result = 0;
+		m_FrameQueue.Enqueue(pFrame);
+		result = 0;
     }
     
     return result;
@@ -88,9 +106,20 @@ void ImageProcessingThread::run()
 		{
 			QSharedPointer<MyFrame> pFrame = m_FrameQueue.Dequeue();
 			uint64_t frameID = pFrame->GetFrameId();
-			QImage image = pFrame->GetImage();
+			v4l2_buffer buf = pFrame->GetV4l2Image();
+			const uint8_t* pBuffer = pFrame->GetBuffer();
+			uint32_t length = pFrame->GetBufferlength();
+			uint32_t width = pFrame->GetWidth();
+			uint32_t height = pFrame->GetHeight();
+			uint32_t pixelformat = pFrame->GetPixelformat();
+			uint32_t payloadSize = pFrame->GetPayloadSize();
+			uint32_t bytesPerLine = pFrame->GetBytesPerLine();
+			QImage convertedImage;
+			AVT::Tools::ImageTransf::ConvertFrame(pBuffer, length, 
+												  width, height, pixelformat, 
+												  payloadSize, bytesPerLine, convertedImage);
 
-			emit OnFrameReady_Signal(image, frameID);
+			emit OnFrameReady_Signal(convertedImage, frameID, buf.index);
 		}
 
 		QThread::msleep(1);

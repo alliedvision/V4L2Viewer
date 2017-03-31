@@ -68,11 +68,9 @@ FrameObserver::FrameObserver(bool showFrames)
 	, m_bStreamStopped(false)
         , m_ShowFrames(showFrames)
 {
-	start();
-
 	m_pImageProcessingThread = QSharedPointer<ImageProcessingThread>(new ImageProcessingThread());
 
-	connect(m_pImageProcessingThread.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReadyFromThread(const QImage &, const unsigned long long &)));
+	connect(m_pImageProcessingThread.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &, const int &)), this, SLOT(OnFrameReadyFromThread(const QImage &, const unsigned long long &, const int &)));
 
 	m_pImageProcessingThread->start();
 }
@@ -107,6 +105,8 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_bStreamStopped = false;
     m_bStreamRunning = true;
     
+	start();
+
     m_UserBufferContainerList.resize(0);
     
     return nResult;
@@ -133,176 +133,58 @@ void FrameObserver::SetTerminateFlag()// Event will be called when the frame pro
     m_bTerminate = true;
 }
 
-void v4lconvert_uyvy_to_rgb24(const unsigned char *src, unsigned char *dest,
-		int width, int height, int stride)
-{
-	int j;
-
-	while (--height >= 0) {
-		for (j = 0; j + 1 < width; j += 2) {
-			int u = src[0];
-			int v = src[2];
-			int u1 = (((u - 128) << 7) +  (u - 128)) >> 6;
-			int rg = (((u - 128) << 1) +  (u - 128) +
-					((v - 128) << 2) + ((v - 128) << 1)) >> 3;
-			int v1 = (((v - 128) << 1) +  (v - 128)) >> 1;
-
-			*dest++ = CLIP(src[1] + v1);
-			*dest++ = CLIP(src[1] - rg);
-			*dest++ = CLIP(src[1] + u1);
-
-			*dest++ = CLIP(src[3] + v1);
-			*dest++ = CLIP(src[3] - rg);
-			*dest++ = CLIP(src[3] + u1);
-			src += 4;
-		}
-		src += stride - width * 2;
-	}
-}
-
-void v4lconvert_yuyv_to_rgb24(const unsigned char *src, unsigned char *dest,
-		int width, int height, int stride)
-{
-	int j;
-
-	while (--height >= 0) {
-		for (j = 0; j + 1 < width; j += 2) {
-			int u = src[1];
-			int v = src[3];
-			int u1 = (((u - 128) << 7) +  (u - 128)) >> 6;
-			int rg = (((u - 128) << 1) +  (u - 128) +
-					((v - 128) << 2) + ((v - 128) << 1)) >> 3;
-			int v1 = (((v - 128) << 1) +  (v - 128)) >> 1;
-
-			*dest++ = CLIP(src[0] + v1);
-			*dest++ = CLIP(src[0] - rg);
-			*dest++ = CLIP(src[0] + u1);
-
-			*dest++ = CLIP(src[2] + v1);
-			*dest++ = CLIP(src[2] - rg);
-			*dest++ = CLIP(src[2] + u1);
-			src += 4;
-		}
-		src += stride - (width * 2);
-	}
-}
-
-void v4lconvert_yuv420_to_rgb24(const unsigned char *src, unsigned char *dest,
-		int width, int height, int yvu)
-{
-	int i, j;
-
-	const unsigned char *ysrc = src;
-	const unsigned char *usrc, *vsrc;
-
-	if (yvu) {
-		vsrc = src + width * height;
-		usrc = vsrc + (width * height) / 4;
-	} else {
-		usrc = src + width * height;
-		vsrc = usrc + (width * height) / 4;
-	}
-
-	for (i = 0; i < height; i++) {
-		for (j = 0; j < width; j += 2) {
-#if 1 /* fast slightly less accurate multiplication free code */
-			int u1 = (((*usrc - 128) << 7) +  (*usrc - 128)) >> 6;
-			int rg = (((*usrc - 128) << 1) +  (*usrc - 128) +
-					((*vsrc - 128) << 2) + ((*vsrc - 128) << 1)) >> 3;
-			int v1 = (((*vsrc - 128) << 1) +  (*vsrc - 128)) >> 1;
-
-			*dest++ = CLIP(*ysrc + v1);
-			*dest++ = CLIP(*ysrc - rg);
-			*dest++ = CLIP(*ysrc + u1);
-			ysrc++;
-
-			*dest++ = CLIP(*ysrc + v1);
-			*dest++ = CLIP(*ysrc - rg);
-			*dest++ = CLIP(*ysrc + u1);
-#else
-			*dest++ = YUV2R(*ysrc, *usrc, *vsrc);
-			*dest++ = YUV2G(*ysrc, *usrc, *vsrc);
-			*dest++ = YUV2B(*ysrc, *usrc, *vsrc);
-			ysrc++;
-
-			*dest++ = YUV2R(*ysrc, *usrc, *vsrc);
-			*dest++ = YUV2G(*ysrc, *usrc, *vsrc);
-			*dest++ = YUV2B(*ysrc, *usrc, *vsrc);
-#endif
-			ysrc++;
-			usrc++;
-			vsrc++;
-		}
-		/* Rewind u and v for next line */
-		if (!(i&1)) {
-			usrc -= width / 2;
-			vsrc -= width / 2;
-		}
-	}
-}
-
-int FrameObserver::DisplayFrame(const uint8_t* pBuffer, uint32_t length,
-                                QImage &convertedImage)
-{
-	int result = 0;
-	
-	if (NULL == pBuffer || 0 == length)
-	    return -1;
-	
-	if (m_Pixelformat == V4L2_PIX_FMT_JPEG ||
-		m_Pixelformat == V4L2_PIX_FMT_MJPEG)
-	{	
-		QPixmap pix;
-		pix.loadFromData(pBuffer, m_PayloadSize, "JPG");
-		convertedImage = pix.toImage();
-	}
-	else if (m_Pixelformat == V4L2_PIX_FMT_UYVY)
-	{	
-		convertedImage = QImage(m_nWidth, m_nHeight, QImage::Format_RGB888);
-		v4lconvert_uyvy_to_rgb24(pBuffer, convertedImage.bits(), m_nWidth, m_nHeight, m_BytesPerLine);
-	}
-	else if (m_Pixelformat == V4L2_PIX_FMT_YUYV)
-	{	
-		convertedImage = QImage(m_nWidth, m_nHeight, QImage::Format_RGB888);
-		v4lconvert_yuyv_to_rgb24(pBuffer, convertedImage.bits(), m_nWidth, m_nHeight, m_BytesPerLine);
-	}
-	else if (m_Pixelformat == V4L2_PIX_FMT_YUV420)
-	{	
-		convertedImage = QImage(m_nWidth, m_nHeight, QImage::Format_RGB888);
-	        v4lconvert_yuv420_to_rgb24(pBuffer, convertedImage.bits(), m_nWidth, m_nHeight, 1);
-	}	
-	else if (m_Pixelformat == V4L2_PIX_FMT_RGB24 ||
-			 m_Pixelformat == V4L2_PIX_FMT_BGR24)
-	{	
-		convertedImage = QImage(m_nWidth, m_nHeight, QImage::Format_RGB888);
-	        memcpy(convertedImage.bits(), pBuffer, m_nWidth*m_nHeight*3);
-	}
-	else if (m_Pixelformat == V4L2_PIX_FMT_RGB32 ||
-			 m_Pixelformat == V4L2_PIX_FMT_BGR32)
-	{
-		convertedImage = QImage(m_nWidth, m_nHeight, QImage::Format_RGB32);
-	        memcpy(convertedImage.bits(), pBuffer, m_nWidth*m_nHeight*4);
-	}
-	else
-	{
-		return -1;
-	}
-	
-	return result;
-}
-
-int FrameObserver::ReadFrame()
+int FrameObserver::ReadFrame(v4l2_buffer &buf)
 {
     int result = -1;
 
     return result;
 }
 
+int FrameObserver::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length)
+{
+    int result = -1;
+
+    return result;
+}
+
+void FrameObserver::DequeueAndProcessFrame()
+{
+	v4l2_buffer buf;
+				
+	if (0 == ReadFrame(buf))
+	{
+		m_FrameId++;
+		m_nReceivedFramesCounter++;
+		
+		if (m_ShowFrames)
+		{
+			uint8_t *buffer = 0;
+			uint32_t length = 0;
+			
+			if (0 == GetFrameData(buf, buffer, length))
+			{
+				if (m_pImageProcessingThread->QueueFrame(buf, buffer, length, 
+										m_nWidth, m_nHeight, m_Pixelformat, 
+										m_PayloadSize, m_BytesPerLine, m_FrameId))
+					m_nDroppedFramesCounter++;
+			}
+		}
+		else
+		{
+			emit OnFrameID_Signal(m_FrameId);
+			QueueSingleUserBuffer(buf.index);
+		}
+	}
+}
+
 // Do the work within this thread
 void FrameObserver::run()
 {
-        emit OnMessage_Signal(QString("FrameObserver thread started."));
-	while (!m_bAbort)
+    emit OnMessage_Signal(QString("FrameObserver thread started."));
+	
+	m_bStreamRunning = true;
+	
+	while (m_bStreamRunning)
 	{
 		fd_set fds;
 		struct timeval tv;
@@ -311,17 +193,13 @@ void FrameObserver::run()
 		FD_ZERO(&fds);
 		FD_SET(m_nFileDescriptor, &fds);
 
-                if (!m_BlockingMode)
-                {
+        if (!m_BlockingMode)
+        {
 		    /* Timeout. */
 		    tv.tv_sec = 1;
 		    tv.tv_usec = 0;
 
-		    //if (m_bStreamRunning == false)
-		    //    emit OnMessage_Signal(QString("select before"));
 		    result = select(m_nFileDescriptor + 1, &fds, NULL, NULL, &tv);
-		    //if (m_bStreamRunning == false)
-		    //    emit OnMessage_Signal(QString("select after"));
 		    
 		    if (-1 == result) 
 		    {
@@ -332,22 +210,18 @@ void FrameObserver::run()
 			    // Timeout
 			    QThread::msleep(0);
 			    continue;
-		    } else 
-		    {
-//if (m_bStreamRunning == false)
-//emit OnMessage_Signal(QString("ReadFrame after"));
-		       ReadFrame();
-//if (m_bStreamRunning == false)
-//emit OnMessage_Signal(QString("ReadFrame after"));
-		    
+		    } else {
+				DequeueAndProcessFrame();
 		    }
-                 }
-                 else
-                 {
-                     //QThread::msleep(1);
-                     ReadFrame();
-                 }
+		}
+		else
+		{
+			DequeueAndProcessFrame();
+		}
 	}
+
+	m_bStreamStopped = true;
+	
 	emit OnMessage_Signal(QString("FrameObserver thread stopped."));
 }
 
@@ -374,9 +248,11 @@ void FrameObserver::ResetDroppedFramesCount()
 	m_nDroppedFramesCounter = 0;
 }
 
-void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId)
+void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex)
 {
     emit OnFrameReady_Signal(image, frameId);
+	
+	QueueSingleUserBuffer(bufIndex);
 }
 
 // Recording
@@ -460,13 +336,11 @@ void FrameObserver::FrameDone(const unsigned long long frameHandle)
 		{
 			if (frameHandle == (uint64_t)m_UserBufferContainerList[i]->pBuffer)
 			{
-                                QueueSingleUserBuffer(i);
+                QueueSingleUserBuffer(i);
 				
 				break;
 			}
 		}
-        		
-        
     }
 }
 

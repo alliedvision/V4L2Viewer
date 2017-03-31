@@ -56,76 +56,38 @@ FrameObserverMMAP::~FrameObserverMMAP()
 {
 }
 
-int FrameObserverMMAP::ReadFrame()
+int FrameObserverMMAP::ReadFrame(v4l2_buffer &buf)
 {
-    v4l2_buffer buf;
     int result = -1;
 
 	memset(&buf, 0, sizeof(buf));
 
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory = V4L2_MEMORY_MMAP;
+    buf.memory = V4L2_MEMORY_MMAP;
 	
-        if (m_bStreamRunning)
-	    result = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_DQBUF, &buf);
-
-	if (result >= 0  && m_bStreamRunning) 
-	{
-		uint32_t length = m_UserBufferContainerList[buf.index]->nBufferlength;
-		uint8_t* buffer = m_UserBufferContainerList[buf.index]->pBuffer;
-		
-		if (0 != buffer && 0 != length)
-		{  
-		    m_FrameId++;
-			m_nReceivedFramesCounter++;
-					
-			if (m_ShowFrames)
-		    {
-				QImage convertedImage;
-						
-				result = DisplayFrame(buffer, length, convertedImage);
-			
-				if (m_pImageProcessingThread->QueueFrame(convertedImage, m_FrameId))
-					m_nDroppedFramesCounter++;
-
-				if (m_bRecording && -1 != result)
-				{
-					if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
-					{
-					    m_FrameRecordQueue.Enqueue(convertedImage, m_FrameId);
-					    emit OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
-					}
-					else
-					{
-					    if (m_FrameRecordQueue.GetSize() == MAX_RECORD_FRAME_QUEUE_SIZE)
-					        emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
-					}
-				}
-			}
-			else
-				emit OnFrameID_Signal(m_FrameId);
-                    		
-		    QueueSingleUserBuffer(buf.index);
-		}
-		else
-		{
-		    if (!m_MessageSendFlag)
-		    {
-		        m_MessageSendFlag = true;
-		        emit OnMessage_Signal(QString("Frame buffer empty !"));
-		    }
-		    
-		    if (m_bStreamRunning)
-			V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf);
-		}
-	}
-
-	if (!m_bStreamRunning)
-	    m_bStreamStopped = true;
-
+    if (m_bStreamRunning)
+		result = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_DQBUF, &buf);
+	
 	return result;
 }
 
+int FrameObserverMMAP::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length)
+{
+    int result = -1;
+
+	if (m_bStreamRunning) 
+	{
+		length = m_UserBufferContainerList[buf.index]->nBufferlength;
+		buffer = m_UserBufferContainerList[buf.index]->pBuffer;
+		
+		if (0 != buffer && 0 != length)
+		{  
+			result = 0;
+		}
+	}
+	
+	return result;
+}
 
 /*********************************************************************************************************/
 // Frame buffer handling

@@ -41,6 +41,7 @@ OBJ_FILES               = $(OBJ_DIR)/BaseLogger.o \
 			  $(OBJ_DIR)/FrameObserverMMAP.o \
 			  $(OBJ_DIR)/FrameObserverUSER.o \
 			  $(OBJ_DIR)/ImageProcessingThread.o \
+			  $(OBJ_DIR)/ImageTransf.o \
 			  $(OBJ_DIR)/V4l2Helper.o \
 			  $(OBJ_DIR)/Helper.o \
 			  $(OBJ_DIR)/v4l2test.o \

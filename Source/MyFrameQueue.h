@@ -48,8 +48,12 @@ public:
     void Clear();
 
 	// Add a new frame
-	void Enqueue(   QImage &image, 
-                        uint64_t frameID);
+	void Enqueue(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length, 
+				 uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+			     uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
+	
+	// Add a new frame
+	void Enqueue(QImage &image, uint64_t frameID);
 
 	// Add a new frame
 	void Enqueue(QSharedPointer<MyFrame> pFrame);

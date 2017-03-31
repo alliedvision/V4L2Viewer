@@ -63,7 +63,8 @@ class FrameObserverMMAP : public FrameObserver
     
 protected:
     // v4l2
-    virtual int ReadFrame();
+    virtual int ReadFrame(v4l2_buffer &buf);
+	virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
 	
 private:
 

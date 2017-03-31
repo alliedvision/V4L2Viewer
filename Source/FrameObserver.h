@@ -39,6 +39,13 @@
 #include "MyFrameQueue.h"
 #include "ImageProcessingThread.h"
 #include "Helper.h"
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <linux/videodev2.h>
+
 #include "V4l2Helper.h"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,10 +113,11 @@ class FrameObserver : public QThread
 
 protected:
 	// v4l2
-    int DisplayFrame(const uint8_t* pBuffer, uint32_t length,
-                     QImage &convertedImage);
-    virtual int ReadFrame();
-	
+    virtual int ReadFrame(v4l2_buffer &buf);
+	virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
+	int ProcessFrame(v4l2_buffer &buf);
+	void DequeueAndProcessFrame();
+		
 	// Do the work within this thread
     virtual void run();
 	
@@ -138,13 +146,13 @@ protected:
 	uint64_t m_FrameId;
 	
 	bool m_MessageSendFlag;
-        bool m_BlockingMode;
+    bool m_BlockingMode;
 	bool m_bStreamRunning;
 	bool m_bStreamStopped;
 
-        bool m_ShowFrames;
+    bool m_ShowFrames;
 	
-      	std::vector<PUSER_BUFFER>					m_UserBufferContainerList;
+    std::vector<PUSER_BUFFER>					m_UserBufferContainerList;
 
 	uint32_t                                    m_UsedBufferCount;
 	
@@ -153,7 +161,7 @@ protected:
 
 private slots:
 	//Event handler for getting the processed frame to an image
-	void OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId);
+	void OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex);
 	
 signals:
 	// Event will be called when a frame is processed by the internal thread and ready to show

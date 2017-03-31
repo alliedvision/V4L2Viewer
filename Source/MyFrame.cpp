@@ -28,6 +28,21 @@
 #include <string.h>
 #include "MyFrame.h"
 
+MyFrame::MyFrame(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length, 
+				 uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+				 uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+	: m_FrameId(0)
+{
+	m_FrameId = frameID;
+	m_v4l2buffer = buf;
+	m_buffer = buffer;
+	m_bufferlength = length; 
+	m_Width = width;
+	m_Height = height;
+	m_Pixelformat = pixelformat;
+	m_PayloadSize = payloadSize;
+	m_BytesPerLine = bytesPerLine;
+}
 
 MyFrame::MyFrame(QImage &image, unsigned long long frameID) 
 	: m_FrameId(0)
@@ -51,6 +66,47 @@ MyFrame::~MyFrame(void)
 QImage &MyFrame::GetImage()
 {
 	return m_Image;
+}
+
+// Get the frame buffer
+v4l2_buffer &MyFrame::GetV4l2Image()
+{
+	return m_v4l2buffer;
+}
+
+uint8_t *MyFrame::GetBuffer()
+{
+	return m_buffer;
+}
+
+uint32_t MyFrame::GetBufferlength() 
+{
+	return m_bufferlength;
+}
+
+uint32_t MyFrame::GetWidth()
+{
+	return m_Width;
+}
+
+uint32_t MyFrame::GetHeight()
+{
+	return m_Height;
+}
+
+uint32_t MyFrame::GetPixelformat()
+{
+	return m_Pixelformat;
+}
+
+uint32_t MyFrame::GetPayloadSize()
+{
+	return m_PayloadSize;
+}
+
+uint32_t MyFrame::GetBytesPerLine()
+{
+	return m_BytesPerLine;
 }
 
 // get the id of the frame

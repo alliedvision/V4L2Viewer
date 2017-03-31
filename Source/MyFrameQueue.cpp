@@ -61,6 +61,19 @@ void MyFrameQueue::Clear()
 	m_FrameQueueMutex.unlock();
 }
 
+void MyFrameQueue::Enqueue(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length, 
+						   uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+						   uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+{
+	m_FrameQueueMutex.lock();
+
+	QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(buf, buffer, length, width, height, pixelformat, payloadSize, bytesPerLine, frameID));
+		
+    m_FrameQueue.enqueue(newFrame);
+	
+	m_FrameQueueMutex.unlock();
+}
+
 // Add a new frame
 void MyFrameQueue::Enqueue( QImage &image, 
                             uint64_t frameID)
@@ -69,7 +82,7 @@ void MyFrameQueue::Enqueue( QImage &image,
 
 	QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(image, frameID));
 		
-        m_FrameQueue.enqueue(newFrame);
+    m_FrameQueue.enqueue(newFrame);
 	
 	m_FrameQueueMutex.unlock();
 }
