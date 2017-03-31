@@ -136,7 +136,6 @@ protected:
     bool m_bTerminate;
 
     // Variable to abort the running thread
-	bool m_bAbort;
 	int m_nFileDescriptor;
 	uint32_t m_Pixelformat;
 	uint32_t m_nWidth;

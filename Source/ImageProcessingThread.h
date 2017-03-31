@@ -55,7 +55,9 @@ public:
 	// Queue the frame for the thread to work with
 	int QueueFrame(QSharedPointer<MyFrame> pFrame);
 
-    // stop the internal processing thread and wait until the thread is really stopped
+	// start thread
+	void StartThread();
+	// stop the internal processing thread and wait until the thread is really stopped
 	void StopThread();
 
 protected:

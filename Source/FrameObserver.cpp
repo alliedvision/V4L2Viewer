@@ -54,7 +54,6 @@ FrameObserver::FrameObserver(bool showFrames)
 	, m_nDroppedFramesCounter(0)
 	, m_bTerminate(false)
 	, m_bRecording(false)
-	, m_bAbort(false)
 	, m_nFileDescriptor(0)
 	, m_nWidth(0)
 	, m_nHeight(0)
@@ -71,20 +70,17 @@ FrameObserver::FrameObserver(bool showFrames)
 	m_pImageProcessingThread = QSharedPointer<ImageProcessingThread>(new ImageProcessingThread());
 
 	connect(m_pImageProcessingThread.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &, const int &)), this, SLOT(OnFrameReadyFromThread(const QImage &, const unsigned long long &, const int &)));
-
-	m_pImageProcessingThread->start();
 }
 
 FrameObserver::~FrameObserver()
 {
-	m_pImageProcessingThread->StopThread();
+    StopStream();
 
-	// stop the internal processing thread and wait until the thread is really stopped
-	m_bAbort = true;
+    m_pImageProcessingThread->StopThread();
 
-	// wait until the thread is stopped
-	while (isRunning())
-		QThread::msleep(10);
+    // wait until the thread is stopped
+    while (isRunning())
+	QThread::msleep(10);
 }
 
 int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
@@ -105,7 +101,9 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_bStreamStopped = false;
     m_bStreamRunning = true;
     
-	start();
+    m_pImageProcessingThread->StartThread();
+    
+    start();
 
     m_UserBufferContainerList.resize(0);
     
@@ -116,6 +114,8 @@ int FrameObserver::StopStream()
 {
     int nResult = 0;
     int count = 300;
+    
+    m_pImageProcessingThread->StopThread();
     
     m_bStreamRunning = false;
     

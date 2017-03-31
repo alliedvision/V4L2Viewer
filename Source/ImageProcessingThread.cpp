@@ -88,6 +88,15 @@ int ImageProcessingThread::QueueFrame(QSharedPointer<MyFrame> pFrame)
 }
 
 // stop the internal processing thread and wait until the thread is really stopped
+void ImageProcessingThread::StartThread()
+{
+	m_bAbort = false;
+  
+	start();
+	
+}
+
+// stop the internal processing thread and wait until the thread is really stopped
 void ImageProcessingThread::StopThread()
 {
 	m_bAbort = true;
@@ -95,6 +104,8 @@ void ImageProcessingThread::StopThread()
 	// wait until the thread is stopped
 	while (isRunning())
 		QThread::msleep(10);
+	
+	
 }
 
 // Do the work within this thread
