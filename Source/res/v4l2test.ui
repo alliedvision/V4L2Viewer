@@ -443,7 +443,7 @@
               <number>2</number>
              </property>
              <item>
-              <widget class="QLabel" name="m_ImageView"/>
+              <widget class="QGraphicsView" name="m_ImageView"/>
              </item>
             </layout>
            </widget>

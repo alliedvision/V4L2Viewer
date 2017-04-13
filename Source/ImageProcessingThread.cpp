@@ -111,6 +111,8 @@ void ImageProcessingThread::StopThread()
 // Do the work within this thread
 void ImageProcessingThread::run()
 {
+	int result = 0;
+	
 	while (!m_bAbort)
 	{
 		if(0 < m_FrameQueue.GetSize())
@@ -126,11 +128,13 @@ void ImageProcessingThread::run()
 			uint32_t payloadSize = pFrame->GetPayloadSize();
 			uint32_t bytesPerLine = pFrame->GetBytesPerLine();
 			QImage convertedImage;
-			AVT::Tools::ImageTransf::ConvertFrame(pBuffer, length, 
+			
+			result = AVT::Tools::ImageTransf::ConvertFrame(pBuffer, length, 
 												  width, height, pixelformat, 
 												  payloadSize, bytesPerLine, convertedImage);
-
-			emit OnFrameReady_Signal(convertedImage, frameID, buf.index);
+			
+			if (result == 0)
+				emit OnFrameReady_Signal(convertedImage, frameID, buf.index);
 		}
 
 		QThread::msleep(1);

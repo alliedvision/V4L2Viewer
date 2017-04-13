@@ -37,6 +37,7 @@
 
 #include "FrameObserver.h"
 #include "Logger.h"
+#include "ImageTransf.h"
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 
@@ -167,7 +168,32 @@ void FrameObserver::DequeueAndProcessFrame()
 										m_nWidth, m_nHeight, m_Pixelformat, 
 										m_PayloadSize, m_BytesPerLine, m_FrameId))
 					m_nDroppedFramesCounter++;
+				
+				if (m_bRecording)
+				{
+					if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
+					{
+						QImage convertedImage;
+			
+						if (AVT::Tools::ImageTransf::ConvertFrame(buffer, length, 
+												  m_nWidth, m_nHeight, m_Pixelformat, 
+												  m_PayloadSize, m_BytesPerLine, convertedImage) == 0)
+						{
+							m_FrameRecordQueue.Enqueue(convertedImage, m_FrameId);
+							emit OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
+						}
+						else
+							emit OnError_Signal("Frame buffer not converted. Possible missing conversion.");
+					}
+					else
+					{
+						if (m_FrameRecordQueue.GetSize() == MAX_RECORD_FRAME_QUEUE_SIZE)
+							emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
+					}
+				}
 			}
+			else
+				emit OnError_Signal("Missing buffer data.");
 		}
 		else
 		{

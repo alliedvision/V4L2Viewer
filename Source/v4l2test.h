@@ -115,6 +115,7 @@ private:
     
     // Official QT dialog close event callback
     virtual void closeEvent(QCloseEvent *event);
+	virtual void mousePressEvent(QMouseEvent *event);
 
     // called by master viewer window
     void RemoteClose();

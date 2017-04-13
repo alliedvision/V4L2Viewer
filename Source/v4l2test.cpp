@@ -40,9 +40,9 @@
 #define NUM_COLORS 3
 #define BIT_DEPTH 8
 
-#define MAX_ZOOM_IN  (2.95)
-#define MAX_ZOOM_OUT (0.05)
-#define ZOOM_INCREMENT (0.05)
+#define MAX_ZOOM_IN  (16.0)
+#define MAX_ZOOM_OUT (1/8.0)
+#define ZOOM_INCREMENT (2.0)
 
 #define MANUF_NAME_AV "Allied Vision"
 
@@ -163,9 +163,19 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	ui.m_Splitter3->setStretchFactor(0, 75);
 	ui.m_Splitter3->setStretchFactor(1, 25);
 
+	// Set the viewer scene
+
+	m_pScene = QSharedPointer<QGraphicsScene>(new QGraphicsScene());
+
+	m_PixmapItem = new QGraphicsPixmapItem();
+
+	ui.m_ImageView->setScene(m_pScene.data());
+
+	m_pScene->addItem(m_PixmapItem);
+	
 	// add the number of used frames option to the menu
 	m_NumberOfUsedFramesLineEdit = new QLineEdit(this);
-	m_NumberOfUsedFramesLineEdit->setText("3");
+	m_NumberOfUsedFramesLineEdit->setText("5");
 	m_NumberOfUsedFramesLineEdit->setValidator(new QIntValidator(1, 20, this));
 
 	// prepare the layout
@@ -258,6 +268,34 @@ void v4l2test::closeEvent(QCloseEvent *event)
     }
     
     event->accept();
+}
+
+void v4l2test::mousePressEvent(QMouseEvent *event)
+{
+    // Detect if the click is in the view.
+    QPoint imageViewPoint = ui.m_ImageView->mapFrom( this, event->pos() );
+    if (ui.m_ImageView->rect().contains(imageViewPoint))
+    {
+        QTransform transformation = ui.m_ImageView->transform();
+
+        if (m_dScaleFactor >= 1)
+        {
+			QImage image = m_PixmapItem->pixmap().toImage();
+            int offsetX = 0;
+			int offsetY = 0;
+			
+			if (ui.m_ImageView->horizontalScrollBar()->width() > image.width())
+				offsetX = (ui.m_ImageView->horizontalScrollBar()->width() - image.width()) / 2;
+			if (ui.m_ImageView->verticalScrollBar()->height() > image.height())
+				offsetY = (ui.m_ImageView->verticalScrollBar()->width() - image.height()) / 2;
+			
+            QPoint scalePoint = QPoint((imageViewPoint.x()-offsetX+ui.m_ImageView->horizontalScrollBar()->value())/m_dScaleFactor, 
+									   (imageViewPoint.y()-offsetY+ui.m_ImageView->verticalScrollBar()->value())/m_dScaleFactor);
+            QColor myPixel = image.pixel(scalePoint);
+
+            QToolTip::showText(ui.m_ImageView->mapToGlobal(imageViewPoint), QString("x:%1, y:%2, r:%3/g:%4/b:%5").arg(scalePoint.x()).arg(scalePoint.y()).arg(myPixel.red()).arg(myPixel.green()).arg(myPixel.blue()));
+        }
+    }
 }
 
 // The event handler for open / close camera
@@ -578,21 +616,15 @@ void v4l2test::OnStopButtonClicked()
 // The event handler to resize the image to fit to window
 void v4l2test::OnZoomFitButtonClicked()
 {
-	static QSizePolicy policy;
-
 	if (ui.m_ZoomFitButton->isChecked())
 	{
-		policy = ui.m_ImageView->sizePolicy();
-    
-        ui.m_ImageView->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
-        
-		m_dFitToScreen = true;
+		ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
 	}
 	else
 	{
-		ui.m_ImageView->setSizePolicy( policy );
-    
-        m_dFitToScreen = false;
+		QTransform transformation;
+		transformation.scale(m_dScaleFactor, m_dScaleFactor);
+		ui.m_ImageView->setTransform(transformation);
 	}
 
 	UpdateZoomButtons();
@@ -601,7 +633,11 @@ void v4l2test::OnZoomFitButtonClicked()
 // The event handler for resize the image
 void v4l2test::OnZoomInButtonClicked()
 {
-	m_dScaleFactor += ZOOM_INCREMENT;
+	m_dScaleFactor *= ZOOM_INCREMENT;
+
+	QTransform transformation;
+	transformation.scale(m_dScaleFactor, m_dScaleFactor);
+	ui.m_ImageView->setTransform(transformation);
 
 	UpdateZoomButtons();
 }
@@ -609,7 +645,11 @@ void v4l2test::OnZoomInButtonClicked()
 // The event handler for resize the image
 void v4l2test::OnZoomOutButtonClicked()
 {
-	m_dScaleFactor -= ZOOM_INCREMENT;
+	m_dScaleFactor *= (1/ZOOM_INCREMENT);
+
+	QTransform transformation;
+	transformation.scale(m_dScaleFactor, m_dScaleFactor);
+	ui.m_ImageView->setTransform(transformation);
 
 	UpdateZoomButtons();
 }
@@ -621,26 +661,12 @@ void v4l2test::OnFrameReady(const QImage &image, const unsigned long long &frame
     {
     if (!image.isNull())
 	{
-		if (m_dFitToScreen)
-        {
-            int width = ui.m_ImageView->width();
-            int height = ui.m_ImageView->height();
+		m_pScene->setSceneRect(0, 0, image.width(), image.height());
+		m_PixmapItem->setPixmap(QPixmap::fromImage(image));
+		ui.m_ImageView->show();
 
-            QImage imageTmp = image.scaled(width, height, Qt::KeepAspectRatio );
-
-            ui.m_ImageView->setPixmap( QPixmap::fromImage( imageTmp ) );
-        }
-        else
-        {
-            int width = image.width();
-            int height = image.height();
-
-            QImage imageTmp = image.scaled(width*m_dScaleFactor, height*m_dScaleFactor, Qt::KeepAspectRatio );
-
-	        ui.m_ImageView->setPixmap( QPixmap::fromImage( imageTmp ) );
-        }
-
-		ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
+		ui.m_FrameIdLabel->setText(QString("Frame ID: %1, W: %2, H: %3").arg(frameId).arg(image.width()).arg(image.height()));
+		//ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
 	}
     else
         m_nDroppedFrames++;
@@ -739,9 +765,11 @@ void v4l2test::UpdateViewerLayout()
 	if (!m_bIsOpen)
 	{
 		QPixmap pix(":/v4l2test/Viewer.png");
-		ui.m_ImageView->setAlignment(Qt::AlignCenter);
-        ui.m_ImageView->setPixmap( pix.scaled(pix.width(), pix.height(), Qt::KeepAspectRatio ) );
-
+		
+		m_pScene->setSceneRect(0, 0, pix.width(), pix.height());
+		m_PixmapItem->setPixmap(pix);
+		ui.m_ImageView->show();
+			
 		m_bIsStreaming = false;
 	}
 
@@ -1042,16 +1070,19 @@ void v4l2test::OnDeleteRecording()
 void v4l2test::OnSaveFrame()
 {
     QString fileExtension;
-
+	QPixmap imageShot = m_PixmapItem->pixmap();
+			
     /* Get all inputformats */
     unsigned int nFilterSize = QImageReader::supportedImageFormats().count();
     for (int i = nFilterSize-1; i >= 0; i--) 
     {
-        fileExtension += "."; /* Insert wildcard */
-        fileExtension += QString(QImageReader::supportedImageFormats().at(i)).toLower(); /* Insert the format */
-        if(0 != i)
-            fileExtension += ";;"; /* Insert a space */
-    }
+		QString format = (QImageReader::supportedImageFormats().at(i)).toLower();
+		
+		fileExtension += "."; /* Insert wildcard */
+		fileExtension += QString(QImageReader::supportedImageFormats().at(i)).toLower(); /* Insert the format */
+		if(0 != i)
+			fileExtension += ";;"; /* Insert a space */
+   }
 
      if( NULL != m_saveFileDialog )
      {
@@ -1071,19 +1102,18 @@ void v4l2test::OnSaveFrame()
 
         if (!files.isEmpty())
         {
-            QPixmap image = m_PixmapItem->pixmap();
             QString fileName = files.at(0);
            
-            if(!fileName.endsWith(m_SelectedExtension))
+			if(!fileName.endsWith(m_SelectedExtension))
                 fileName.append(m_SelectedExtension);
-           
-            if (image.save(fileName))
+			
+            if (imageShot.save(fileName))
             {
-                QMessageBox::warning( this, tr("High Speed Viewer"), tr("Saving image: ") + fileName + tr(" is DONE!") );
+                QMessageBox::warning( this, tr("V4L2 Test"), tr("Saving image: ") + fileName + tr(" is DONE!") );
             }
             else
             {
-                QMessageBox::warning( this, tr("High Speed Viewer"), tr("FAILED TO SAVE IMAGE!") );
+                QMessageBox::warning( this, tr("V4L2 Test"), tr("FAILED TO SAVE IMAGE! \nCheck access rights."), tr("") );
             }   
         }    
     }
