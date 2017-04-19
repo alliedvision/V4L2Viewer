@@ -1,3 +1,4 @@
+
 /*=============================================================================
   Copyright (C) 2015 Allied Vision Technologies.  All Rights Reserved.
 
@@ -56,7 +57,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	, m_DirectAccessData(0)
     , m_saveFileDialog(0)
     , m_BLOCKING_MODE(false)
-    , m_MMAP_BUFFER(false)
+    , m_MMAP_BUFFER(true) // use mmap by default
     , m_ShowFrames(true)
     , m_nDroppedFrames(0)
 {
@@ -195,6 +196,11 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
 	UpdateViewerLayout();
 	UpdateZoomButtons();
+	
+    // set check boxes state for mmap according to variable m_MMAP_BUFFER
+    ui.m_chkUseMMAP->setChecked(m_MMAP_BUFFER);
+    ui.m_UseMMAP->setChecked(m_MMAP_BUFFER);
+    ui.m_TitleUseMMAP->setChecked((m_MMAP_BUFFER));
 }
 
 v4l2test::~v4l2test()
@@ -229,6 +235,7 @@ void v4l2test::OnUseMMAP()
     
     ui.m_chkUseMMAP->setChecked(m_MMAP_BUFFER);
     ui.m_UseMMAP->setChecked(m_MMAP_BUFFER);
+    ui.m_TitleUseMMAP->setChecked((m_MMAP_BUFFER));
 }
  
 void v4l2test::OnShowFrames()
