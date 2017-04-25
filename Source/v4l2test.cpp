@@ -47,6 +47,9 @@
 
 #define MANUF_NAME_AV "Allied Vision"
 
+#define PROGRAM_NAME    "Video4Linux2 Testtool"
+#define PROGRAM_VERSION "v1.0"
+
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     : QMainWindow(parent, flags)
     , m_nViewerNumber(viewerNumber)
@@ -605,11 +608,12 @@ void v4l2test::OnStopButtonClicked()
     
 	// disable the stop button to show that the stop acquisition is in process
 	ui.m_StopButton->setEnabled(false);
-	QApplication::processEvents();
-
+	
 	int err = m_Camera.StopStreamChannel();
     if (0 != err)
         OnLog("Stop stream channel failed.");
+    
+    QApplication::processEvents();
     
     m_bIsStreaming = false;
 	UpdateViewerLayout();
@@ -1338,8 +1342,8 @@ void v4l2test::GetImageInformation()
 void v4l2test::SetTitleText(QString additionalText)
 {
 	if (VIEWER_MASTER == m_nViewerNumber)
-		setWindowTitle(QString("Video4Linux2 Testtool - master view  %1").arg(additionalText));
+		setWindowTitle(QString("%1 %2 - master view  %3").arg(PROGRAM_NAME, PROGRAM_VERSION, additionalText));
 	else
-		setWindowTitle(QString("Video4Linux2 Testtool - %1. view  %2").arg(m_nViewerNumber).arg(additionalText));
+		setWindowTitle(QString("%1 %2 - %3. view  %4").arg(PROGRAM_NAME, PROGRAM_VERSION).arg(m_nViewerNumber).arg(additionalText));
 }
 
