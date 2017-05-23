@@ -51,6 +51,21 @@ ImageTransf::~ImageTransf()
 {
 }
 
+void v4lconvert_swap_rgb(const unsigned char *src, unsigned char *dst, 
+        int width, int height)
+{
+	int i;
+
+	for (i = 0; i < (width * height); i++) {
+		unsigned char tmp0, tmp1;
+		tmp0 = *src++;
+		tmp1 = *src++;
+		*dst++ = *src++;
+		*dst++ = tmp1;
+		*dst++ = tmp0;
+	}
+}
+
 void v4lconvert_uyvy_to_rgb24(const unsigned char *src, unsigned char *dest,
 		int width, int height, int stride)
 {
@@ -159,6 +174,25 @@ void v4lconvert_yuv420_to_rgb24(const unsigned char *src, unsigned char *dest,
 	}
 }
 
+void v4lconvert_rgb565_to_rgb24(const unsigned char *src, unsigned char *dest,
+		int width, int height)
+{
+	int j;
+	while (--height >= 0) {
+		for (j = 0; j < width; j++) {
+			unsigned short tmp = *(unsigned short *)src;
+
+			/* Original format: rrrrrggg gggbbbbb */
+			*dest++ = 0xf8 & (tmp >> 8);
+			*dest++ = 0xfc & (tmp >> 3);
+			*dest++ = 0xf8 & (tmp << 3);
+
+			src += 2;
+		}
+	}
+}
+
+
 int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length, 
 							  uint32_t width, uint32_t height, uint32_t pixelformat,
 							  uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage)
@@ -175,6 +209,16 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
 		pix.loadFromData(pBuffer, payloadSize, "JPG");
 		convertedImage = pix.toImage();
 	}
+    else if (pixelformat == V4L2_PIX_FMT_RGB565)
+    {
+        convertedImage = QImage(width, height, QImage::Format_RGB888);
+        v4lconvert_rgb565_to_rgb24(pBuffer, convertedImage.bits(), width, height);
+    }
+    else if (pixelformat == V4L2_PIX_FMT_BGR24)
+    {
+        convertedImage = QImage(width, height, QImage::Format_RGB888);
+        v4lconvert_swap_rgb(pBuffer, convertedImage.bits(), width, height);
+    }
 	else if (pixelformat == V4L2_PIX_FMT_UYVY)
 	{	
 		convertedImage = QImage(width, height, QImage::Format_RGB888);
