@@ -437,16 +437,16 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
 
 		fmt.fmt.pix.width = width;
 		fmt.fmt.pix.height = height;
-		fmt.fmt.pix.field = V4L2_FIELD_ANY;
-		fmt.fmt.pix.bytesperline = 0;
+		//fmt.fmt.pix.field = V4L2_FIELD_ANY;
+		//fmt.fmt.pix.bytesperline = 0;
 
-		if (0 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
-		{       
-		    Logger::LogEx("Camera::SetFrameSize VIDIOC_TRY_FMT failed");
-		    emit OnCameraMessage_Signal("SetFrameSize VIDIOC_TRY_FMT: failed.");   
-		    return -1;
-		}
-		emit OnCameraMessage_Signal("SetFrameSize VIDIOC_TRY_FMT: OK.");
+		//if (0 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
+		//{       
+		//    Logger::LogEx("Camera::SetFrameSize VIDIOC_TRY_FMT failed");
+		//    emit OnCameraMessage_Signal("SetFrameSize VIDIOC_TRY_FMT: failed.");   
+		//    return -1;
+		//}
+		//emit OnCameraMessage_Signal("SetFrameSize VIDIOC_TRY_FMT: OK.");
 
 		if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_FMT, &fmt))
 		{                
@@ -479,16 +479,16 @@ int Camera::SetWidth(uint32_t width)
 		emit OnCameraMessage_Signal(QString("SetWidth VIDIOC_G_FMT: OK."));
 		
 		fmt.fmt.pix.width = width;
-		fmt.fmt.pix.field = V4L2_FIELD_ANY;
-		fmt.fmt.pix.bytesperline = 0;
+		//fmt.fmt.pix.field = V4L2_FIELD_ANY;
+		//fmt.fmt.pix.bytesperline = 0;
 
-		if (0 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
-		{       
-		    Logger::LogEx("Camera::SetWidth VIDIOC_TRY_FMT failed");
-		    emit OnCameraMessage_Signal("SetWidth VIDIOC_TRY_FMT: failed.");   
-		    return -1;
-		}
-		emit OnCameraMessage_Signal("SetWidth VIDIOC_TRY_FMT: OK.");
+		//if (0 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
+		//{       
+		//    Logger::LogEx("Camera::SetWidth VIDIOC_TRY_FMT failed");
+		//    emit OnCameraMessage_Signal("SetWidth VIDIOC_TRY_FMT: failed.");   
+		//    return -1;
+		//}
+		//emit OnCameraMessage_Signal("SetWidth VIDIOC_TRY_FMT: OK.");
 	
 		if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_FMT, &fmt))
 		{             
@@ -547,16 +547,16 @@ int Camera::SetHeight(uint32_t height)
 		emit OnCameraMessage_Signal(QString("SetHeight VIDIOC_G_FMT: OK."));
 
 		fmt.fmt.pix.height = height;
-		fmt.fmt.pix.field = V4L2_FIELD_ANY;
-		fmt.fmt.pix.bytesperline = 0;
+		//fmt.fmt.pix.field = V4L2_FIELD_ANY;
+		//fmt.fmt.pix.bytesperline = 0;
 
-		if (0 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
-		{       
-		    Logger::LogEx("Camera::SetHeight VIDIOC_TRY_FMT failed");
-		    emit OnCameraMessage_Signal("SetHeight VIDIOC_TRY_FMT: failed.");   
-		    return -1;
-		}
-		emit OnCameraMessage_Signal("SetHeight VIDIOC_TRY_FMT: OK.");
+		//if (0 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
+		//{       
+		//    Logger::LogEx("Camera::SetHeight VIDIOC_TRY_FMT failed");
+		//    emit OnCameraMessage_Signal("SetHeight VIDIOC_TRY_FMT: failed.");   
+		//    return -1;
+		//}
+		//emit OnCameraMessage_Signal("SetHeight VIDIOC_TRY_FMT: OK.");
 	
 		if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_FMT, &fmt))
 		{
@@ -705,7 +705,7 @@ int Camera::SetPixelformat(uint32_t pixelformat, QString pfText)
 	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
 	{                
 		Logger::LogEx("Camera::SetPixelformat VIDIOC_G_FMT OK");
-		emit OnCameraError_Signal(QString("SetPixelformat VIDIOC_G_FMT: OK."));
+		emit OnCameraMessage_Signal(QString("SetPixelformat VIDIOC_G_FMT: OK."));
 
 		fmt.fmt.pix.pixelformat = pixelformat;
 		
@@ -716,11 +716,16 @@ int Camera::SetPixelformat(uint32_t pixelformat, QString pfText)
 
 			result = 0;
 		}
+                else
+                {
+                        Logger::LogEx("Camera::SetPixelformat VIDIOC_S_FMT failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+                        emit OnCameraError_Signal(QString("SetPixelformat VIDIOC_S_FMT: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+                }
 	}
 	else
 	{
 		Logger::LogEx("Camera::SetPixelformat VIDIOC_G_FMT failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("SetPixelformat VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+                emit OnCameraError_Signal(QString("SetPixelformat VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
 	}
 	
     return result;
