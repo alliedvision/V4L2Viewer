@@ -32,6 +32,7 @@
 #include <QtCore>
 
 #include "v4l2test.h"
+#include "V4l2Helper.h"
 
 #include "Logger.h"
 #include <ctime>
@@ -159,6 +160,19 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(ui.m_edExposure, SIGNAL(returnPressed()), this, SLOT(OnExposure()));
 	connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
 	connect(ui.m_liPixelformats, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnPixelformatDBLClick(QListWidgetItem *)));
+	connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
+	connect(ui.m_edReverseX, SIGNAL(returnPressed()), this, SLOT(OnReverseX()));
+	connect(ui.m_edReverseY, SIGNAL(returnPressed()), this, SLOT(OnReverseY()));
+	connect(ui.m_edSharpness, SIGNAL(returnPressed()), this, SLOT(OnSharpness()));
+	connect(ui.m_edBrightness, SIGNAL(returnPressed()), this, SLOT(OnBrightness()));
+	connect(ui.m_edContrast, SIGNAL(returnPressed()), this, SLOT(OnContrast()));
+	connect(ui.m_edSaturation, SIGNAL(returnPressed()), this, SLOT(OnSaturation()));
+	connect(ui.m_edHue, SIGNAL(returnPressed()), this, SLOT(OnHue()));
+	connect(ui.m_chkContWhiteBalance, SIGNAL(clicked()), this, SLOT(OnContinousWhiteBalance()));
+	connect(ui.m_butWhiteBalanceOnce, SIGNAL(clicked()), this, SLOT(OnWhiteBalanceOnce()));
+	connect(ui.m_edRedBalance, SIGNAL(returnPressed()), this, SLOT(OnRedBalance()));
+	connect(ui.m_edBlueBalance, SIGNAL(returnPressed()), this, SLOT(OnBlueBalance()));
+	connect(ui.m_edFramerate, SIGNAL(returnPressed()), this, SLOT(OnFramerate()));
 
     // Set the splitter stretch factors
 	ui.m_Splitter1->setStretchFactor(0, 25);
@@ -1267,6 +1281,226 @@ void v4l2test::OnPixelformatDBLClick(QListWidgetItem *item)
 	}
 	
 	ui.m_edPixelformat->setText(QString("%1").arg(result));
+	ui.m_edPixelformatText->setText(QString("%1").arg(V4l2Helper::ConvertPixelformat2EnumString(result).c_str()));
+}
+
+void v4l2test::OnGamma()
+{
+	if (m_Camera.SetGamma(ui.m_edGamma->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Gamma!") );
+		m_Camera.ReadGamma(tmp);
+		ui.m_edGamma->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("Gamma set to %1").arg(ui.m_edGamma->text().toInt()));
+		
+		m_Camera.ReadGamma(tmp);
+		ui.m_edGamma->setText(QString("%1").arg(tmp));
+	}
+}
+
+void v4l2test::OnReverseX()
+{
+	if (m_Camera.SetReverseX(ui.m_edReverseX->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ReverseX!") );
+		m_Camera.ReadReverseX(tmp);
+		ui.m_edReverseX->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("ReverseX set to %1").arg(ui.m_edReverseX->text().toInt()));
+		
+		m_Camera.ReadReverseX(tmp);
+		ui.m_edReverseX->setText(QString("%1").arg(tmp));
+	}
+}
+
+void v4l2test::OnReverseY()
+{
+	if (m_Camera.SetReverseY(ui.m_edReverseY->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ReverseY!") );
+		m_Camera.ReadReverseY(tmp);
+		ui.m_edReverseY->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("ReverseY set to %1").arg(ui.m_edReverseY->text().toInt()));
+		
+		m_Camera.ReadReverseY(tmp);
+		ui.m_edReverseY->setText(QString("%1").arg(tmp));
+	}
+}
+
+void v4l2test::OnSharpness()
+{
+	if (m_Camera.SetSharpness(ui.m_edSharpness->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Sharpness!") );
+		m_Camera.ReadSharpness(tmp);
+		ui.m_edSharpness->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("Sharpness set to %1").arg(ui.m_edSharpness->text().toInt()));
+		
+		m_Camera.ReadSharpness(tmp);
+		ui.m_edSharpness->setText(QString("%1").arg(tmp));
+	}
+}
+
+void v4l2test::OnBrightness()
+{
+	if (m_Camera.SetBrightness(ui.m_edBrightness->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Brightness!") );
+		m_Camera.ReadBrightness(tmp);
+		ui.m_edBrightness->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("Brightness set to %1").arg(ui.m_edBrightness->text().toInt()));
+		
+		m_Camera.ReadBrightness(tmp);
+		ui.m_edBrightness->setText(QString("%1").arg(tmp));
+	}
+}
+
+void v4l2test::OnContrast()
+{
+	if (m_Camera.SetContrast(ui.m_edContrast->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Contrast!") );
+		m_Camera.ReadContrast(tmp);
+		ui.m_edContrast->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("Contrast set to %1").arg(ui.m_edContrast->text().toInt()));
+		
+		m_Camera.ReadContrast(tmp);
+		ui.m_edContrast->setText(QString("%1").arg(tmp));
+	}
+}
+
+void v4l2test::OnSaturation()
+{
+	if (m_Camera.SetSaturation(ui.m_edSaturation->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Saturation!") );
+		m_Camera.ReadSaturation(tmp);
+		ui.m_edSaturation->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("Saturation set to %1").arg(ui.m_edSaturation->text().toInt()));
+		
+		m_Camera.ReadSaturation(tmp);
+		ui.m_edSaturation->setText(QString("%1").arg(tmp));
+	}
+}
+
+void v4l2test::OnHue()
+{
+	if (m_Camera.SetHue(ui.m_edHue->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Hue!") );
+		m_Camera.ReadHue(tmp);
+		ui.m_edHue->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("Hue set to %1").arg(ui.m_edHue->text().toInt()));
+		
+		m_Camera.ReadHue(tmp);
+		ui.m_edHue->setText(QString("%1").arg(tmp));
+	}
+}
+
+void v4l2test::OnContinousWhiteBalance()
+{
+	m_Camera.SetContinousWhiteBalance(ui.m_chkContWhiteBalance->isChecked());
+}
+
+void v4l2test::OnWhiteBalanceOnce()
+{
+	m_Camera.DoWhiteBalanceOnce();
+}
+
+void v4l2test::OnRedBalance()
+{
+	if (m_Camera.SetRedBalance(ui.m_edRedBalance->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE RedBalance!") );
+		m_Camera.ReadRedBalance(tmp);
+		ui.m_edRedBalance->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("RedBalance set to %1").arg(ui.m_edRedBalance->text().toInt()));
+		
+		m_Camera.ReadRedBalance(tmp);
+		ui.m_edRedBalance->setText(QString("%1").arg(tmp));
+	}
+}
+
+void v4l2test::OnBlueBalance()
+{
+	if (m_Camera.SetBlueBalance(ui.m_edBlueBalance->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE BlueBalance!") );
+		m_Camera.ReadBlueBalance(tmp);
+		ui.m_edBlueBalance->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("BlueBalance set to %1").arg(ui.m_edBlueBalance->text().toInt()));
+		
+		m_Camera.ReadBlueBalance(tmp);
+		ui.m_edBlueBalance->setText(QString("%1").arg(tmp));
+	}
+}
+
+void v4l2test::OnFramerate()
+{
+	if (m_Camera.SetFramerate(ui.m_edFramerate->text().toInt()) < 0)
+	{
+		uint32_t tmp = 0;
+		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framerate!") );
+		m_Camera.ReadFramerate(tmp);
+		ui.m_edFramerate->setText(QString("%1").arg(tmp));
+	}
+	else
+	{
+		uint32_t tmp = 0;
+		OnLog(QString("Framerate set to %1").arg(ui.m_edFramerate->text().toInt()));
+		
+		m_Camera.ReadFramerate(tmp);
+		ui.m_edFramerate->setText(QString("%1").arg(tmp));
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1286,6 +1520,7 @@ void v4l2test::GetImageInformation()
 	uint32_t exposure = 0;
 	bool autoexposure = false;
     int result = 0;
+    uint32_t tmp;
 
 	ui.m_liPixelformats->clear();
 	ui.m_liFramesizes->clear();
@@ -1336,6 +1571,85 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_chkAutoExposure->setEnabled(false);
+	
+	if (m_Camera.ReadGamma(tmp) != -2)
+	{
+		ui.m_edGamma->setEnabled(true);
+		ui.m_edGamma->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edGamma->setEnabled(false);
+	if (m_Camera.ReadReverseX(tmp) != -2)
+	{
+		ui.m_edReverseX->setEnabled(true);
+		ui.m_edReverseX->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edReverseX->setEnabled(false);
+	if (m_Camera.ReadReverseY(tmp) != -2)
+	{
+		ui.m_edReverseY->setEnabled(true);
+		ui.m_edReverseY->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edReverseY->setEnabled(false);
+	if (m_Camera.ReadSharpness(tmp) != -2)
+	{
+		ui.m_edSharpness->setEnabled(true);
+		ui.m_edSharpness->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edSharpness->setEnabled(false);
+	if (m_Camera.ReadBrightness(tmp) != -2)
+	{
+		ui.m_edBrightness->setEnabled(true);
+		ui.m_edBrightness->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edBrightness->setEnabled(false);
+	if (m_Camera.ReadContrast(tmp) != -2)
+	{
+		ui.m_edContrast->setEnabled(true);
+		ui.m_edContrast->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edContrast->setEnabled(false);
+	if (m_Camera.ReadSaturation(tmp) != -2)
+	{
+		ui.m_edSaturation->setEnabled(true);
+		ui.m_edSaturation->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edSaturation->setEnabled(false);
+	if (m_Camera.ReadHue(tmp) != -2)
+	{
+		ui.m_edHue->setEnabled(true);
+		ui.m_edHue->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edHue->setEnabled(false);
+	if (m_Camera.ReadRedBalance(tmp) != -2)
+	{
+		ui.m_edRedBalance->setEnabled(true);
+		ui.m_edRedBalance->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edRedBalance->setEnabled(false);
+	if (m_Camera.ReadBlueBalance(tmp) != -2)
+	{
+		ui.m_edBlueBalance->setEnabled(true);
+		ui.m_edBlueBalance->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edBlueBalance->setEnabled(false);
+	if (m_Camera.ReadFramerate(tmp) != -2)
+	{
+		ui.m_edFramerate->setEnabled(true);
+		ui.m_edFramerate->setText(QString("%1").arg(tmp));
+	}
+	else
+		ui.m_edFramerate->setEnabled(false);
+      
 	
 }
 

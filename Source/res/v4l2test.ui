@@ -496,20 +496,20 @@
          <widget class="QLineEdit" name="m_edWidth">
           <property name="geometry">
            <rect>
-            <x>110</x>
+            <x>90</x>
             <y>20</y>
-            <width>113</width>
-            <height>27</height>
+            <width>71</width>
+            <height>16</height>
            </rect>
           </property>
          </widget>
          <widget class="QLineEdit" name="m_edHeight">
           <property name="geometry">
            <rect>
-            <x>110</x>
-            <y>50</y>
-            <width>113</width>
-            <height>27</height>
+            <x>90</x>
+            <y>40</y>
+            <width>71</width>
+            <height>16</height>
            </rect>
           </property>
          </widget>
@@ -517,7 +517,7 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>30</y>
+            <y>20</y>
             <width>66</width>
             <height>17</height>
            </rect>
@@ -530,7 +530,7 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>60</y>
+            <y>40</y>
             <width>66</width>
             <height>17</height>
            </rect>
@@ -543,8 +543,8 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>90</y>
-            <width>91</width>
+            <y>60</y>
+            <width>81</width>
             <height>17</height>
            </rect>
           </property>
@@ -558,10 +558,10 @@
           </property>
           <property name="geometry">
            <rect>
-            <x>110</x>
-            <y>80</y>
-            <width>113</width>
-            <height>27</height>
+            <x>90</x>
+            <y>60</y>
+            <width>71</width>
+            <height>16</height>
            </rect>
           </property>
           <property name="readOnly">
@@ -571,10 +571,10 @@
          <widget class="QLineEdit" name="m_edPixelformat">
           <property name="geometry">
            <rect>
-            <x>110</x>
-            <y>110</y>
+            <x>90</x>
+            <y>240</y>
             <width>111</width>
-            <height>27</height>
+            <height>16</height>
            </rect>
           </property>
          </widget>
@@ -582,8 +582,8 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>120</y>
-            <width>91</width>
+            <y>240</y>
+            <width>81</width>
             <height>17</height>
            </rect>
           </property>
@@ -594,17 +594,17 @@
          <widget class="QLineEdit" name="m_edGain">
           <property name="geometry">
            <rect>
-            <x>110</x>
-            <y>140</y>
-            <width>113</width>
-            <height>27</height>
+            <x>90</x>
+            <y>80</y>
+            <width>71</width>
+            <height>16</height>
            </rect>
           </property>
          </widget>
          <widget class="QListWidget" name="m_liFramesizes">
           <property name="geometry">
            <rect>
-            <x>420</x>
+            <x>540</x>
             <y>10</y>
             <width>231</width>
             <height>91</height>
@@ -614,7 +614,7 @@
          <widget class="QListWidget" name="m_liPixelformats">
           <property name="geometry">
            <rect>
-            <x>420</x>
+            <x>540</x>
             <y>110</y>
             <width>231</width>
             <height>81</height>
@@ -625,7 +625,7 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>150</y>
+            <y>80</y>
             <width>91</width>
             <height>17</height>
            </rect>
@@ -637,10 +637,10 @@
          <widget class="QCheckBox" name="m_chkAutoGain">
           <property name="geometry">
            <rect>
-            <x>260</x>
-            <y>140</y>
+            <x>10</x>
+            <y>100</y>
             <width>97</width>
-            <height>22</height>
+            <height>16</height>
            </rect>
           </property>
           <property name="text">
@@ -650,10 +650,10 @@
          <widget class="QCheckBox" name="m_chkAutoExposure">
           <property name="geometry">
            <rect>
-            <x>260</x>
-            <y>170</y>
-            <width>131</width>
-            <height>22</height>
+            <x>10</x>
+            <y>140</y>
+            <width>121</width>
+            <height>16</height>
            </rect>
           </property>
           <property name="text">
@@ -663,10 +663,10 @@
          <widget class="QLineEdit" name="m_edExposure">
           <property name="geometry">
            <rect>
-            <x>110</x>
-            <y>170</y>
-            <width>113</width>
-            <height>27</height>
+            <x>90</x>
+            <y>120</y>
+            <width>71</width>
+            <height>16</height>
            </rect>
           </property>
          </widget>
@@ -674,8 +674,8 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>180</y>
-            <width>91</width>
+            <y>120</y>
+            <width>71</width>
             <height>17</height>
            </rect>
           </property>
@@ -686,10 +686,10 @@
          <widget class="QLineEdit" name="m_edPixelformatText">
           <property name="geometry">
            <rect>
-            <x>250</x>
-            <y>110</y>
-            <width>151</width>
-            <height>27</height>
+            <x>210</x>
+            <y>240</y>
+            <width>141</width>
+            <height>16</height>
            </rect>
           </property>
           <property name="readOnly">
@@ -699,8 +699,8 @@
          <widget class="QLabel" name="label_9">
           <property name="geometry">
            <rect>
-            <x>230</x>
-            <y>120</y>
+            <x>200</x>
+            <y>240</y>
             <width>16</width>
             <height>17</height>
            </rect>
@@ -715,8 +715,8 @@
           </property>
           <property name="geometry">
            <rect>
-            <x>10</x>
-            <y>250</y>
+            <x>130</x>
+            <y>260</y>
             <width>131</width>
             <height>22</height>
            </rect>
@@ -732,13 +732,292 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>230</y>
+            <y>260</y>
             <width>93</width>
             <height>22</height>
            </rect>
           </property>
           <property name="text">
            <string>Use MMAP</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edBrightness">
+          <property name="geometry">
+           <rect>
+            <x>280</x>
+            <y>20</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_10">
+          <property name="geometry">
+           <rect>
+            <x>200</x>
+            <y>20</y>
+            <width>81</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Brightness:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_11">
+          <property name="geometry">
+           <rect>
+            <x>200</x>
+            <y>40</y>
+            <width>81</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Contrast:</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edContrast">
+          <property name="geometry">
+           <rect>
+            <x>280</x>
+            <y>40</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_12">
+          <property name="geometry">
+           <rect>
+            <x>200</x>
+            <y>60</y>
+            <width>81</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Saturation:</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edSaturation">
+          <property name="geometry">
+           <rect>
+            <x>280</x>
+            <y>60</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edHue">
+          <property name="geometry">
+           <rect>
+            <x>280</x>
+            <y>80</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_13">
+          <property name="geometry">
+           <rect>
+            <x>200</x>
+            <y>80</y>
+            <width>81</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Hue:</string>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="m_chkContWhiteBalance">
+          <property name="geometry">
+           <rect>
+            <x>200</x>
+            <y>100</y>
+            <width>151</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Cont-WhiteBalance</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_15">
+          <property name="geometry">
+           <rect>
+            <x>200</x>
+            <y>140</y>
+            <width>81</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>RedBalance:</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edRedBalance">
+          <property name="geometry">
+           <rect>
+            <x>280</x>
+            <y>140</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edBlueBalance">
+          <property name="geometry">
+           <rect>
+            <x>280</x>
+            <y>160</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_16">
+          <property name="geometry">
+           <rect>
+            <x>200</x>
+            <y>160</y>
+            <width>81</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>BlueBalance:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_14">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>160</y>
+            <width>71</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Gamma:</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edGamma">
+          <property name="geometry">
+           <rect>
+            <x>90</x>
+            <y>160</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edReverseX">
+          <property name="geometry">
+           <rect>
+            <x>90</x>
+            <y>180</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_17">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>180</y>
+            <width>71</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>ReverseX:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_18">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>200</y>
+            <width>71</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>ReverseY:</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edReverseY">
+          <property name="geometry">
+           <rect>
+            <x>90</x>
+            <y>200</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_19">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>220</y>
+            <width>71</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Sharpness:</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edSharpness">
+          <property name="geometry">
+           <rect>
+            <x>90</x>
+            <y>220</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_20">
+          <property name="geometry">
+           <rect>
+            <x>200</x>
+            <y>180</y>
+            <width>81</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Framerate:</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edFramerate">
+          <property name="geometry">
+           <rect>
+            <x>280</x>
+            <y>180</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="m_butWhiteBalanceOnce">
+          <property name="geometry">
+           <rect>
+            <x>200</x>
+            <y>120</y>
+            <width>151</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>WhiteBalance Once</string>
           </property>
          </widget>
         </widget>

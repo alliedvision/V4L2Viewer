@@ -203,6 +203,20 @@ private slots:
 	void OnExposure();
 	void OnAutoExposure();
 	void OnPixelformatDBLClick(QListWidgetItem *);
+	void OnGamma();
+	void OnReverseX();
+	void OnReverseY();
+	void OnSharpness();
+	void OnBrightness();
+	void OnContrast();
+	void OnSaturation();
+	void OnHue();
+	void OnContinousWhiteBalance();
+	void OnWhiteBalanceOnce();
+	void OnRedBalance();
+	void OnBlueBalance();
+	void OnFramerate();
+
 	
 	void OnCameraPixelformat(const QString &);
 	void OnCameraFramesize(const QString &);

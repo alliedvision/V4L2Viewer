@@ -607,6 +607,9 @@ int Camera::ReadFormats()
 	v4l2_fmtdesc fmt;
 	v4l2_frmsizeenum fmtsize;
 	
+	int x=V4L2_PIX_FMT_RGB565;
+	int z=V4L2_PIX_FMT_UYVY;
+	
 	CLEAR(fmt);
 	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FMT, &fmt) >= 0 && fmt.index <= 100)
@@ -1032,6 +1035,197 @@ int Camera::SetAutoExposure(bool autoexposure)
 	}
 	
     return result;
+}
+
+int Camera::ReadControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName)
+{
+    int result = -1;
+    v4l2_queryctrl ctrl;
+	
+    CLEAR(ctrl);
+    ctrl.id = controlID;
+	
+    if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
+    {
+	v4l2_control fmt;
+	
+	Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK", functionName, controlName);
+	emit OnCameraMessage_Signal(QString("%1 VIDIOC_QUERYCTRL: %2 OK.").arg(functionName).arg(controlName));
+
+	CLEAR(fmt);
+	fmt.id = controlID;
+
+	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_CTRL, &fmt))
+	{                
+	    Logger::LogEx("Camera::%s VIDIOC_G_CTRL %s OK =%d", functionName, controlName, fmt.value);
+	    emit OnCameraMessage_Signal(QString("%1 VIDIOC_G_CTRL: %2 OK =%3.").arg(functionName).arg(controlName).arg(fmt.value));
+
+	    value = fmt.value;
+			
+	    result = 0;
+	}
+	else
+	{
+	    Logger::LogEx("Camera::%s VIDIOC_G_CTRL %s failed errno=%d=%s", functionName, controlName, errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+	    emit OnCameraError_Signal(QString("%1 VIDIOC_G_CTRL: %2 failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+	}
+    }
+    else
+    {
+	Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL Enum %s failed errno=%d=%s", functionName, controlName, errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+	emit OnCameraMessage_Signal(QString("%1 VIDIOC_QUERYCTRL Enum %2: failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+		
+	result = -2;
+    }
+	
+    return result;
+}
+
+int Camera::SetControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName)
+{
+    int result = -1;
+    v4l2_control fmt;
+	
+    CLEAR(fmt);
+    fmt.id = controlID;
+    fmt.value = value;
+
+    if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_CTRL, &fmt))
+    {                
+	Logger::LogEx("Camera::%s VIDIOC_S_CTRL %s to %d OK", functionName, controlName, value);
+        emit OnCameraMessage_Signal(QString("%1 VIDIOC_S_CTRL: %2 to %3 OK.").arg(functionName).arg(controlName).arg(value));
+	result = 0;
+    }
+    else
+    {
+	Logger::LogEx("Camera::%s VIDIOC_S_CTRL %s failed errno=%d=%s", functionName, controlName, errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+        emit OnCameraError_Signal(QString("%1 VIDIOC_S_CTRL: %2 failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+    }
+	
+    return result;
+}
+
+int Camera::ReadGamma(uint32_t &value)
+{
+    return ReadControl(value, V4L2_CID_GAMMA, "ReadGamma", "V4L2_CID_GAMMA");
+}
+
+int Camera::SetGamma(uint32_t value)
+{
+    return SetControl(value, V4L2_CID_GAMMA, "SetGamma", "V4L2_CID_GAMMA");
+}
+
+int Camera::ReadReverseX(uint32_t &value)
+{
+    return ReadControl(value, V4L2_CID_HFLIP, "ReadReverseX", "V4L2_CID_HFLIP");
+}
+
+int Camera::SetReverseX(uint32_t value)
+{
+    return SetControl(value, V4L2_CID_HFLIP, "SetReverseX", "V4L2_CID_HFLIP");
+}
+
+int Camera::ReadReverseY(uint32_t &value)
+{
+    return ReadControl(value, V4L2_CID_VFLIP, "ReadReverseY", "V4L2_CID_VFLIP");
+}
+
+int Camera::SetReverseY(uint32_t value)
+{
+    return SetControl(value, V4L2_CID_VFLIP, "SetReverseY", "V4L2_CID_VFLIP");
+}
+
+int Camera::ReadSharpness(uint32_t &value)
+{
+    return ReadControl(value, V4L2_CID_SHARPNESS, "ReadSharpness", "V4L2_CID_SHARPNESS");
+}
+
+int Camera::SetSharpness(uint32_t value)
+{
+    return SetControl(value, V4L2_CID_SHARPNESS, "SetSharpness", "V4L2_CID_SHARPNESS");
+}
+
+int Camera::ReadBrightness(uint32_t &value)
+{
+    return ReadControl(value, V4L2_CID_BRIGHTNESS, "ReadBrightness", "V4L2_CID_BRIGHTNESS");
+}
+
+int Camera::SetBrightness(uint32_t value)
+{
+    return SetControl(value, V4L2_CID_BRIGHTNESS, "SetBrightness", "V4L2_CID_BRIGHTNESS");
+}
+
+int Camera::ReadContrast(uint32_t &value)
+{
+    return ReadControl(value, V4L2_CID_CONTRAST, "ReadContrast", "V4L2_CID_CONTRAST");
+}
+
+int Camera::SetContrast(uint32_t value)
+{
+    return SetControl(value, V4L2_CID_CONTRAST, "SetContrast", "V4L2_CID_CONTRAST");
+}
+
+int Camera::ReadSaturation(uint32_t &value)
+{
+    return ReadControl(value, V4L2_CID_SATURATION, "ReadSaturation", "V4L2_CID_SATURATION");
+}
+
+int Camera::SetSaturation(uint32_t value)
+{
+    return SetControl(value, V4L2_CID_SATURATION, "SetSaturation", "V4L2_CID_SATURATION");
+}
+
+int Camera::ReadHue(uint32_t &value)
+{
+    return ReadControl(value, V4L2_CID_HUE, "ReadHue", "V4L2_CID_HUE");
+}
+
+int Camera::SetHue(uint32_t value)
+{
+    return SetControl(value, V4L2_CID_HUE, "SetHue", "V4L2_CID_HUE");
+}
+
+int Camera::SetContinousWhiteBalance(bool flag)
+{
+    if (flag)
+	return SetControl(0, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance on", "V4L2_CID_AUTO_WHITE_BALANCE");
+    else
+        return SetControl(0, V4L2_CID_DO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_DO_WHITE_BALANCE");
+}
+
+int Camera::DoWhiteBalanceOnce()
+{
+    return SetControl(0, V4L2_CID_DO_WHITE_BALANCE, "DoWhiteBalanceOnce", "V4L2_CID_DO_WHITE_BALANCE");
+}
+
+int Camera::ReadRedBalance(uint32_t &value)
+{
+    return ReadControl(value, V4L2_CID_RED_BALANCE, "ReadRedBalance", "V4L2_CID_RED_BALANCE");
+}
+
+int Camera::SetRedBalance(uint32_t value)
+{
+    return SetControl(value, V4L2_CID_RED_BALANCE, "SetRedBalance", "V4L2_CID_RED_BALANCE");
+}
+
+int Camera::ReadBlueBalance(uint32_t &value)
+{
+    return ReadControl(value, V4L2_CID_BLUE_BALANCE, "ReadBlueBalance", "V4L2_CID_BLUE_BALANCE");
+}
+
+int Camera::SetBlueBalance(uint32_t value)
+{
+    return SetControl(value, V4L2_CID_BLUE_BALANCE, "SetBlueBalance", "V4L2_CID_BLUE_BALANCE");
+}
+
+int Camera::ReadFramerate(uint32_t &value)
+{
+    return -1; //ReadControl(value, V4L2_CID_, "ReadBlueBalance", "V4L2_CID_BLUE_BALANCE");
+}
+
+int Camera::SetFramerate(uint32_t value)
+{
+    return -1;
 }
 
 /*********************************************************************************************************/
