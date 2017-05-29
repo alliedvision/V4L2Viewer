@@ -684,17 +684,34 @@ void v4l2test::OnFrameReady(const QImage &image, const unsigned long long &frame
 {
     if (m_ShowFrames)
     {
-    if (!image.isNull())
+	if (!image.isNull())
 	{
-		m_pScene->setSceneRect(0, 0, image.width(), image.height());
-		m_PixmapItem->setPixmap(QPixmap::fromImage(image));
-		ui.m_ImageView->show();
+		if (ui.m_TitleFlipHorizontal->isChecked() || ui.m_TitleFlipVertical->isChecked())
+		{  
+		    QImage tmpImage;
+		    if (ui.m_TitleFlipHorizontal->isChecked())
+			tmpImage = image.mirrored(false, true);
+		    else
+		        tmpImage = image;
+		    if (ui.m_TitleFlipVertical->isChecked())
+			tmpImage = tmpImage.mirrored(true, false);
+		    m_pScene->setSceneRect(0, 0, tmpImage.width(), tmpImage.height());
+		    m_PixmapItem->setPixmap(QPixmap::fromImage(tmpImage));
+		    ui.m_ImageView->show();
 
-		ui.m_FrameIdLabel->setText(QString("Frame ID: %1, W: %2, H: %3").arg(frameId).arg(image.width()).arg(image.height()));
-		//ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
+		    ui.m_FrameIdLabel->setText(QString("Frame ID: %1, W: %2, H: %3").arg(frameId).arg(tmpImage.width()).arg(tmpImage.height()));
+		}
+		else
+		{
+		    m_pScene->setSceneRect(0, 0, image.width(), image.height());
+		    m_PixmapItem->setPixmap(QPixmap::fromImage(image));
+		    ui.m_ImageView->show();
+
+		    ui.m_FrameIdLabel->setText(QString("Frame ID: %1, W: %2, H: %3").arg(frameId).arg(image.width()).arg(image.height()));
+		}
 	}
-    else
-        m_nDroppedFrames++;
+	else
+		m_nDroppedFrames++;
     }
     else
        ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));

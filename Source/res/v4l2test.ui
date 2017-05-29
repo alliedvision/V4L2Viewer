@@ -722,7 +722,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>Blocking Mode</string>
+           <string>Use USER_PTR</string>
           </property>
          </widget>
          <widget class="QCheckBox" name="m_chkUseMMAP">
@@ -1547,6 +1547,8 @@
     <addaction name="m_TitleUseMMAP"/>
     <addaction name="m_TitleBlockingMode"/>
     <addaction name="m_TitleShowFrames"/>
+    <addaction name="m_TitleFlipHorizontal"/>
+    <addaction name="m_TitleFlipVertical"/>
    </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>
@@ -1598,7 +1600,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Blocking Mode</string>
+    <string>Use USER_PTR</string>
    </property>
   </action>
   <action name="m_TitleShowFrames">
@@ -1610,6 +1612,22 @@
    </property>
    <property name="text">
     <string>Show Frames</string>
+   </property>
+  </action>
+  <action name="m_TitleFlipHorizontal">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Flip Horizontal</string>
+   </property>
+  </action>
+  <action name="m_TitleFlipVertical">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Flip Vertical</string>
    </property>
   </action>
  </widget>

@@ -1188,9 +1188,9 @@ int Camera::SetHue(uint32_t value)
 int Camera::SetContinousWhiteBalance(bool flag)
 {
     if (flag)
-	return SetControl(0, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance on", "V4L2_CID_AUTO_WHITE_BALANCE");
+	return SetControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance on", "V4L2_CID_AUTO_WHITE_BALANCE");
     else
-        return SetControl(0, V4L2_CID_DO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_DO_WHITE_BALANCE");
+        return SetControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_AUTO_WHITE_BALANCE");
 }
 
 int Camera::DoWhiteBalanceOnce()
