@@ -49,7 +49,12 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.0"
+#define PROGRAM_VERSION "v1.1"
+
+/*
+ * 1.0: base version
+ * 1.1: Horizontal and vertical image flip
+ */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     : QMainWindow(parent, flags)
