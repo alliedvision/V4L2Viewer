@@ -141,6 +141,7 @@ protected:
 	uint32_t m_nWidth;
 	uint32_t m_nHeight;
 	uint32_t m_PayloadSize;
+	uint32_t m_RealPayloadsize;
 	uint32_t m_BytesPerLine;
 	uint64_t m_FrameId;
 	

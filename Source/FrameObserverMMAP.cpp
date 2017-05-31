@@ -155,6 +155,7 @@ int FrameObserverMMAP::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSiz
 				    
 				m_UserBufferContainerList[x] = new USER_BUFFER;
 				m_UserBufferContainerList[x]->nBufferlength = buf.length;
+				m_RealPayloadsize = m_UserBufferContainerList[x]->nBufferlength;
 				m_UserBufferContainerList[x]->pBuffer = (uint8_t*)mmap(NULL,
 									     buf.length,
 									     PROT_READ | PROT_WRITE,

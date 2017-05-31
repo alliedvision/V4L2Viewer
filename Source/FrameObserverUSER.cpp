@@ -140,6 +140,7 @@ int FrameObserverUSER::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSiz
 		        {
 		            m_UserBufferContainerList[x] = new USER_BUFFER;
 			    m_UserBufferContainerList[x]->nBufferlength = bufferSize;
+			    m_RealPayloadsize = m_UserBufferContainerList[x]->nBufferlength;
 			    m_UserBufferContainerList[x]->pBuffer = new uint8_t[bufferSize];
 
 			    if (!m_UserBufferContainerList[x]->pBuffer) 

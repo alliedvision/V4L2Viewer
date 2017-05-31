@@ -1286,14 +1286,83 @@ int Camera::SetBlueBalance(uint32_t value)
     return SetControl(value, V4L2_CID_BLUE_BALANCE, "SetBlueBalance", "V4L2_CID_BLUE_BALANCE");
 }
 
-int Camera::ReadFramerate(uint32_t &value)
+int Camera::ReadFramerate(uint32_t &value, uint32_t width, uint32_t height, uint32_t pixelformat)
 {
-    return -1; //ReadControl(value, V4L2_CID_, "ReadBlueBalance", "V4L2_CID_BLUE_BALANCE");
+    int result = -1;
+    v4l2_streamparm parm;
+	
+    CLEAR(parm);
+    parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	
+    if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_PARM, &parm) >= 0 &&
+        parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME)
+    {
+        v4l2_frmivalenum frmival;
+	CLEAR(frmival);
+	
+	frmival.index = 0;
+	frmival.pixel_format = pixelformat;
+	frmival.width = width;
+	frmival.height = height;
+        while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) >= 0)
+	{
+	    frmival.index++;
+	    Logger::LogEx("Camera::ReadFramerate type=%d", frmival.type);
+	    emit OnCameraMessage_Signal(QString("ReadFramerate type=%1").arg(frmival.type));
+	}
+	if (frmival.index == 0)
+	{
+	    Logger::LogEx("Camera::ReadFramerate VIDIOC_ENUM_FRAMEINTERVALS failed");
+	    emit OnCameraMessage_Signal(QString("ReadFramerate VIDIOC_ENUM_FRAMEINTERVALS failed"));
+	}
+	
+	v4l2_streamparm parm;
+	CLEAR(parm);
+	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    
+	if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
+	{
+	    value = parm.parm.capture.timeperframe.numerator;
+	    Logger::LogEx("Camera::ReadFramerate OK");
+	    emit OnCameraMessage_Signal("ReadFramerate OK");
+	}
+    }
+    else
+    {
+	Logger::LogEx("Camera::ReadFramerate VIDIOC_G_PARM V4L2_CAP_TIMEPERFRAME failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+	emit OnCameraMessage_Signal(QString("ReadFramerate VIDIOC_G_PARM V4L2_CAP_TIMEPERFRAME: failed errno=%3=%4.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+		
+	result = -2;
+    }
+	
+    return result;
 }
 
 int Camera::SetFramerate(uint32_t value)
 {
-    return -1;
+    int result = -1;
+    v4l2_streamparm parm;
+	
+    CLEAR(parm);
+    parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    
+    if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
+    {
+	parm.parm.capture.timeperframe.numerator = value;
+	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_PARM, &parm))
+	{                
+	    Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM to %d OK", value);
+	    emit OnCameraMessage_Signal(QString("SetFramerate VIDIOC_S_PARM: %3 OK.").arg(value));
+	    result = 0;
+	}
+	else
+	{
+	    Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+	    emit OnCameraError_Signal(QString("SetFramerate VIDIOC_S_PARM: failed errno=%3=%4.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+	}
+    }
+    
+    return result;
 }
 
 /*********************************************************************************************************/

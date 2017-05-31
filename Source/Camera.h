@@ -96,7 +96,7 @@ public:
     int SetRedBalance(uint32_t value);
     int ReadBlueBalance(uint32_t &value);
     int SetBlueBalance(uint32_t value);
-    int ReadFramerate(uint32_t &value);
+    int ReadFramerate(uint32_t &value, uint32_t width, uint32_t height, uint32_t pixelformat);
     int SetFramerate(uint32_t value);
     int SetControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName);
     int ReadControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName);

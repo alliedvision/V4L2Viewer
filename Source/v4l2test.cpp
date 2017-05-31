@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.1"
+#define PROGRAM_VERSION "v1.2"
 
 /*
  * 1.0: base version
@@ -1541,11 +1541,20 @@ void v4l2test::OnBlueBalance()
 
 void v4l2test::OnFramerate()
 {
+	uint32_t width = 0;
+	uint32_t height = 0;
+	uint32_t pixelformat = 0;
+	uint32_t bytesPerLine = 0;
+    	QString pixelformatText;
+	
+	m_Camera.ReadFrameSize(width, height);
+	m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
+	
 	if (m_Camera.SetFramerate(ui.m_edFramerate->text().toInt()) < 0)
 	{
 		uint32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framerate!") );
-		m_Camera.ReadFramerate(tmp);
+		m_Camera.ReadFramerate(tmp, width, height, pixelformat);
 		ui.m_edFramerate->setText(QString("%1").arg(tmp));
 	}
 	else
@@ -1553,7 +1562,7 @@ void v4l2test::OnFramerate()
 		uint32_t tmp = 0;
 		OnLog(QString("Framerate set to %1").arg(ui.m_edFramerate->text().toInt()));
 		
-		m_Camera.ReadFramerate(tmp);
+		m_Camera.ReadFramerate(tmp, width, height, pixelformat);
 		ui.m_edFramerate->setText(QString("%1").arg(tmp));
 	}
 }
@@ -1635,6 +1644,7 @@ void v4l2test::GetImageInformation()
 	else
 		ui.m_chkAutoExposure->setEnabled(false);
 	
+	tmp = 0;
 	if (m_Camera.ReadGamma(tmp) != -2)
 	{
 		ui.m_edGamma->setEnabled(true);
@@ -1642,6 +1652,7 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edGamma->setEnabled(false);
+	tmp = 0;
 	if (m_Camera.ReadReverseX(tmp) != -2)
 	{
 		ui.m_edReverseX->setEnabled(true);
@@ -1649,6 +1660,7 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edReverseX->setEnabled(false);
+	tmp = 0;
 	if (m_Camera.ReadReverseY(tmp) != -2)
 	{
 		ui.m_edReverseY->setEnabled(true);
@@ -1656,6 +1668,7 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edReverseY->setEnabled(false);
+	tmp = 0;
 	if (m_Camera.ReadSharpness(tmp) != -2)
 	{
 		ui.m_edSharpness->setEnabled(true);
@@ -1663,6 +1676,7 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edSharpness->setEnabled(false);
+	tmp = 0;
 	if (m_Camera.ReadBrightness(tmp) != -2)
 	{
 		ui.m_edBrightness->setEnabled(true);
@@ -1670,6 +1684,7 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edBrightness->setEnabled(false);
+	tmp = 0;
 	if (m_Camera.ReadContrast(tmp) != -2)
 	{
 		ui.m_edContrast->setEnabled(true);
@@ -1677,6 +1692,7 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edContrast->setEnabled(false);
+	tmp = 0;
 	if (m_Camera.ReadSaturation(tmp) != -2)
 	{
 		ui.m_edSaturation->setEnabled(true);
@@ -1684,6 +1700,7 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edSaturation->setEnabled(false);
+	tmp = 0;
 	if (m_Camera.ReadHue(tmp) != -2)
 	{
 		ui.m_edHue->setEnabled(true);
@@ -1691,6 +1708,7 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edHue->setEnabled(false);
+	tmp = 0;
 	if (m_Camera.ReadRedBalance(tmp) != -2)
 	{
 		ui.m_edRedBalance->setEnabled(true);
@@ -1698,6 +1716,7 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edRedBalance->setEnabled(false);
+	tmp = 0;
 	if (m_Camera.ReadBlueBalance(tmp) != -2)
 	{
 		ui.m_edBlueBalance->setEnabled(true);
@@ -1705,7 +1724,8 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edBlueBalance->setEnabled(false);
-	if (m_Camera.ReadFramerate(tmp) != -2)
+	tmp = 0;
+	if (m_Camera.ReadFramerate(tmp, width, height, pixelformat) != -2)
 	{
 		ui.m_edFramerate->setEnabled(true);
 		ui.m_edFramerate->setText(QString("%1").arg(tmp));

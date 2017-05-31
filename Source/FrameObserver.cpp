@@ -67,6 +67,7 @@ FrameObserver::FrameObserver(bool showFrames)
 	, m_bStreamRunning(false)
 	, m_bStreamStopped(false)
         , m_ShowFrames(showFrames)
+	, m_RealPayloadsize(0)
 {
 	m_pImageProcessingThread = QSharedPointer<ImageProcessingThread>(new ImageProcessingThread());
 
@@ -164,6 +165,8 @@ void FrameObserver::DequeueAndProcessFrame()
 			
 			if (0 == GetFrameData(buf, buffer, length))
 			{
+			    if (length <= m_RealPayloadsize)
+			    {
 				if (m_pImageProcessingThread->QueueFrame(buf, buffer, length, 
 										m_nWidth, m_nHeight, m_Pixelformat, 
 										m_PayloadSize, m_BytesPerLine, m_FrameId))
@@ -191,6 +194,9 @@ void FrameObserver::DequeueAndProcessFrame()
 							emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
 					}
 				}
+			    }
+			    else
+				emit OnError_Signal(QString("Received data length is higher than announced payload size. lenght=%1, payloadsize=%2").arg(length).arg(m_PayloadSize));
 			}
 			else
 				emit OnError_Signal("Missing buffer data.");
