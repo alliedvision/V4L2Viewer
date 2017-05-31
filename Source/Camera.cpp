@@ -944,6 +944,50 @@ int Camera::ReadExposure(uint32_t &exposure)
     return result;
 }
 
+int Camera::ReadExposureAbs(uint32_t &exposure)
+{
+    int result = -1;
+    v4l2_queryctrl ctrl;
+    
+    CLEAR(ctrl);
+    ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
+    
+    if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
+    {
+        v4l2_control fmt;
+
+        Logger::LogEx("Camera::ReadExposureAbs VIDIOC_QUERYCTRL Enum V4L2_CID_EXPOSURE_ABSOLUTE OK");
+        emit OnCameraMessage_Signal(QString("ReadExposureAbs VIDIOC_QUERYCTRL Enum V4L2_CID_EXPOSURE_ABSOLUTE: OK."));
+        
+        CLEAR(fmt);
+        fmt.id = V4L2_CID_EXPOSURE_ABSOLUTE;
+
+        if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_CTRL, &fmt))
+        {                
+            Logger::LogEx("Camera::ReadExposureAbs VIDIOC_G_CTRL V4L2_CID_EXPOSURE_ABSOLUTE OK =%d", fmt.value);
+            emit OnCameraMessage_Signal(QString("ReadExposureAbs VIDIOC_G_CTRL: V4L2_CID_EXPOSURE_ABSOLUTE OK =%1.").arg(fmt.value));
+
+            exposure = fmt.value;
+            
+            result = 0;
+        }
+        else
+        {
+            Logger::LogEx("Camera::ReadExposureAbs VIDIOC_G_CTRL V4L2_CID_EXPOSURE_ABSOLUTE failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+            emit OnCameraError_Signal(QString("ReadExposureAbs VIDIOC_G_CTRL: V4L2_CID_EXPOSURE_ABSOLUTE failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+        }
+    }
+    else
+    {
+        Logger::LogEx("Camera::ReadExposureAbs VIDIOC_QUERYCTRL Enum V4L2_CID_EXPOSURE_ABSOLUTE failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+        emit OnCameraMessage_Signal(QString("ReadExposureAbs VIDIOC_QUERYCTRL Enum V4L2_CID_EXPOSURE_ABSOLUTE: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+        
+        result = -2;
+    }
+    
+    return result;
+}
+
 int Camera::SetExposure(uint32_t exposure)
 {
     int result = -1;
@@ -965,6 +1009,30 @@ int Camera::SetExposure(uint32_t exposure)
         emit OnCameraError_Signal(QString("SetExposure VIDIOC_S_CTRL: V4L2_CID_EXPOSURE failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
 	}
 	
+    return result;
+}
+
+int Camera::SetExposureAbs(uint32_t exposure)
+{
+    int result = -1;
+    v4l2_control fmt;
+    
+    CLEAR(fmt);
+    fmt.id = V4L2_CID_EXPOSURE_ABSOLUTE;
+    fmt.value = exposure;
+
+    if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_CTRL, &fmt))
+    {                
+        Logger::LogEx("Camera::SetExposureAbs VIDIOC_S_CTRL V4L2_CID_EXPOSURE_ABSOLUTE to %d OK", exposure);
+        emit OnCameraMessage_Signal(QString("SetExposureAbs VIDIOC_S_CTRL: V4L2_CID_EXPOSURE_ABSOLUTE to %1 OK.").arg(exposure));
+        result = 0;
+    }
+    else
+    {
+        Logger::LogEx("Camera::SetExposureAbs VIDIOC_S_CTRL V4L2_CID_EXPOSURE_ABSOLUTE failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+        emit OnCameraError_Signal(QString("SetExposureAbs VIDIOC_S_CTRL: V4L2_CID_EXPOSURE_ABSOLUTE failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+    }
+    
     return result;
 }
 

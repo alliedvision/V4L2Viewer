@@ -69,7 +69,9 @@ public:
     int ReadAutoGain(bool &autogain);
     int SetAutoGain(bool autogain);
     int ReadExposure(uint32_t &exposure);
+    int ReadExposureAbs(uint32_t &exposure);
     int SetExposure(uint32_t exposure);
+    int SetExposureAbs(uint32_t exposure);
     int ReadAutoExposure(bool &autoexposure);
     int SetAutoExposure(bool autoexposure);
     int ReadGamma(uint32_t &value);

@@ -202,6 +202,7 @@ private slots:
 	void OnAutoGain();
 	void OnExposure();
 	void OnAutoExposure();
+    void OnExposureAbs();
 	void OnPixelformatDBLClick(QListWidgetItem *);
 	void OnGamma();
 	void OnReverseX();

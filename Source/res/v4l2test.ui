@@ -428,8 +428,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>795</width>
-              <height>290</height>
+              <width>787</width>
+              <height>300</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1020,6 +1020,29 @@
            <string>WhiteBalance Once</string>
           </property>
          </widget>
+         <widget class="QLabel" name="label_21">
+          <property name="geometry">
+           <rect>
+            <x>190</x>
+            <y>200</y>
+            <width>81</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>ExposureAbs:</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_edExposureAbs">
+          <property name="geometry">
+           <rect>
+            <x>280</x>
+            <y>200</y>
+            <width>71</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
         </widget>
         <widget class="QWidget" name="m_DirectRegisterAccessTab">
          <attribute name="title">
@@ -1529,7 +1552,7 @@
      <x>0</x>
      <y>0</y>
      <width>1224</width>
-     <height>25</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="m_MenuFile">

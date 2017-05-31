@@ -163,6 +163,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(ui.m_edGain, SIGNAL(returnPressed()), this, SLOT(OnGain()));
 	connect(ui.m_chkAutoGain, SIGNAL(clicked()), this, SLOT(OnAutoGain()));
 	connect(ui.m_edExposure, SIGNAL(returnPressed()), this, SLOT(OnExposure()));
+    connect(ui.m_edExposureAbs, SIGNAL(returnPressed()), this, SLOT(OnExposureAbs()));
 	connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
 	connect(ui.m_liPixelformats, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnPixelformatDBLClick(QListWidgetItem *)));
 	connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
@@ -1259,6 +1260,7 @@ void v4l2test::OnAutoGain()
 void v4l2test::OnExposure()
 {
 	uint32_t exposure = 0;
+    uint32_t exposureAbs = 0;
 	bool autoexposure = false;
 
 	m_Camera.SetExposure(ui.m_edExposure->text().toInt());
@@ -1270,6 +1272,37 @@ void v4l2test::OnExposure()
 	}
 	else
 		ui.m_edExposure->setEnabled(false);
+    if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
+    {
+        ui.m_edExposureAbs->setEnabled(true);
+        ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
+    }
+    else
+        ui.m_edExposureAbs->setEnabled(false);
+}
+
+void v4l2test::OnExposureAbs()
+{
+    uint32_t exposure = 0;
+    uint32_t exposureAbs = 0;
+    bool autoexposure = false;
+
+    m_Camera.SetExposureAbs(ui.m_edExposureAbs->text().toInt());
+    
+    if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
+    {
+        ui.m_edExposureAbs->setEnabled(true);
+        ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
+    }
+    else
+        ui.m_edExposureAbs->setEnabled(false);
+    if (m_Camera.ReadExposure(exposure) != -2)
+    {
+        ui.m_edExposure->setEnabled(true);
+        ui.m_edExposure->setText(QString("%1").arg(exposure));
+    }
+    else
+        ui.m_edExposure->setEnabled(false);
 }
 
 void v4l2test::OnAutoExposure()
@@ -1540,6 +1573,7 @@ void v4l2test::GetImageInformation()
 	uint32_t gain = 0;
 	bool autogain = false;
 	uint32_t exposure = 0;
+    uint32_t exposureAbs = 0;
 	bool autoexposure = false;
     int result = 0;
     uint32_t tmp;
@@ -1586,6 +1620,13 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edExposure->setEnabled(false);
+    if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
+    {
+        ui.m_edExposureAbs->setEnabled(true);
+        ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
+    }
+    else
+        ui.m_edExposureAbs->setEnabled(false);
 	if (m_Camera.ReadAutoExposure(autoexposure) != -2)
 	{
 		ui.m_chkAutoExposure->setEnabled(true);
