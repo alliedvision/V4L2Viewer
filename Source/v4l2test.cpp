@@ -49,11 +49,13 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.2"
+#define PROGRAM_VERSION "v1.3"
 
 /*
  * 1.0: base version
  * 1.1: Horizontal and vertical image flip
+ * 1.2: Framerate implementation
+ * 1.3: Frameinterval implementation instead of Framerate
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -1546,24 +1548,37 @@ void v4l2test::OnFramerate()
 	uint32_t pixelformat = 0;
 	uint32_t bytesPerLine = 0;
     	QString pixelformatText;
+	QString framerate = ui.m_edFramerate->text();
+	QStringList framerateList = framerate.split('/');
+	
+	if (framerateList.size() < 2)
+	{
+	    QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1/100!") );
+	    return;
+	}
+	
+	uint32_t numerator = framerateList.at(0).toInt();
+	uint32_t denominator = framerateList.at(1).toInt();
 	
 	m_Camera.ReadFrameSize(width, height);
 	m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
 	
-	if (m_Camera.SetFramerate(ui.m_edFramerate->text().toInt()) < 0)
+	if (m_Camera.SetFramerate(numerator, denominator) < 0)
 	{
-		uint32_t tmp = 0;
+		uint32_t denominator = 0;
+		uint32_t numerator = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framerate!") );
-		m_Camera.ReadFramerate(tmp, width, height, pixelformat);
-		ui.m_edFramerate->setText(QString("%1").arg(tmp));
+		m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat);
+		ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
 	}
 	else
 	{
-		uint32_t tmp = 0;
+		uint32_t denominator = 0;
+		uint32_t numerator = 0;
 		OnLog(QString("Framerate set to %1").arg(ui.m_edFramerate->text().toInt()));
 		
-		m_Camera.ReadFramerate(tmp, width, height, pixelformat);
-		ui.m_edFramerate->setText(QString("%1").arg(tmp));
+		m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat);
+		ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
 	}
 }
 
@@ -1586,6 +1601,8 @@ void v4l2test::GetImageInformation()
 	bool autoexposure = false;
     int result = 0;
     uint32_t tmp;
+    uint32_t numerator = 0;
+    uint32_t denominator = 0;
 
 	ui.m_liPixelformats->clear();
 	ui.m_liFramesizes->clear();
@@ -1725,10 +1742,10 @@ void v4l2test::GetImageInformation()
 	else
 		ui.m_edBlueBalance->setEnabled(false);
 	tmp = 0;
-	if (m_Camera.ReadFramerate(tmp, width, height, pixelformat) != -2)
+	if (m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat) != -2)
 	{
 		ui.m_edFramerate->setEnabled(true);
-		ui.m_edFramerate->setText(QString("%1").arg(tmp));
+		ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
 	}
 	else
 		ui.m_edFramerate->setEnabled(false);

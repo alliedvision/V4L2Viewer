@@ -1286,7 +1286,7 @@ int Camera::SetBlueBalance(uint32_t value)
     return SetControl(value, V4L2_CID_BLUE_BALANCE, "SetBlueBalance", "V4L2_CID_BLUE_BALANCE");
 }
 
-int Camera::ReadFramerate(uint32_t &value, uint32_t width, uint32_t height, uint32_t pixelformat)
+int Camera::ReadFramerate(uint32_t &numerator, uint32_t &denominator, uint32_t width, uint32_t height, uint32_t pixelformat)
 {
     int result = -1;
     v4l2_streamparm parm;
@@ -1322,9 +1322,10 @@ int Camera::ReadFramerate(uint32_t &value, uint32_t width, uint32_t height, uint
     
 	if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
 	{
-	    value = parm.parm.capture.timeperframe.numerator;
-	    Logger::LogEx("Camera::ReadFramerate OK");
-	    emit OnCameraMessage_Signal("ReadFramerate OK");
+	    numerator = parm.parm.capture.timeperframe.numerator;
+	    denominator = parm.parm.capture.timeperframe.denominator;
+	    Logger::LogEx("Camera::ReadFramerate %d/%dOK", numerator, denominator);
+	    emit OnCameraMessage_Signal(QString("ReadFramerate OK").arg(numerator).arg(denominator));
 	}
     }
     else
@@ -1338,7 +1339,7 @@ int Camera::ReadFramerate(uint32_t &value, uint32_t width, uint32_t height, uint
     return result;
 }
 
-int Camera::SetFramerate(uint32_t value)
+int Camera::SetFramerate(uint32_t numerator, uint32_t denominator)
 {
     int result = -1;
     v4l2_streamparm parm;
@@ -1348,17 +1349,18 @@ int Camera::SetFramerate(uint32_t value)
     
     if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
     {
-	parm.parm.capture.timeperframe.numerator = value;
+	parm.parm.capture.timeperframe.numerator = numerator;
+	parm.parm.capture.timeperframe.denominator = denominator;
 	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_PARM, &parm))
 	{                
-	    Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM to %d OK", value);
-	    emit OnCameraMessage_Signal(QString("SetFramerate VIDIOC_S_PARM: %3 OK.").arg(value));
+	    Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM to %d/%d OK", numerator, denominator);
+	    emit OnCameraMessage_Signal(QString("SetFramerate VIDIOC_S_PARM: %1/%2 OK.").arg(numerator).arg(denominator));
 	    result = 0;
 	}
 	else
 	{
 	    Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
-	    emit OnCameraError_Signal(QString("SetFramerate VIDIOC_S_PARM: failed errno=%3=%4.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+	    emit OnCameraError_Signal(QString("SetFramerate VIDIOC_S_PARM: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
 	}
     }
     

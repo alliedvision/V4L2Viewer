@@ -965,7 +965,7 @@
           <property name="geometry">
            <rect>
             <x>210</x>
-            <y>220</y>
+            <y>200</y>
             <width>71</width>
             <height>17</height>
            </rect>
@@ -978,7 +978,7 @@
           <property name="geometry">
            <rect>
             <x>290</x>
-            <y>220</y>
+            <y>200</y>
             <width>71</width>
             <height>16</height>
            </rect>
@@ -994,7 +994,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>Framerate:</string>
+           <string>Frameinterv:</string>
           </property>
          </widget>
          <widget class="QLineEdit" name="m_edFramerate">
