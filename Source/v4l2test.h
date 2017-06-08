@@ -125,6 +125,7 @@ private:
 	void SetTitleText(QString additionalText);
 
 private slots:
+      void OnClearOutputListbox();
       void OnShowFrames();
 	// The event handler to close the program
 	void OnMenuCloseTriggered();

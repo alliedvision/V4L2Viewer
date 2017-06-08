@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.4"
+#define PROGRAM_VERSION "v1.5"
 
 /*
  * 1.0: base version
@@ -57,6 +57,8 @@
  * 1.2: Framerate implementation
  * 1.3: Frameinterval implementation instead of Framerate
  * 1.4: Fix for select MMAP, USERPTR
+ * 1.5: revert Fix and rename the GUI controls to make handling more clear.
+        FrameObserver issue didn't queue all frames
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -124,6 +126,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_chkUseMMAP, SIGNAL(clicked()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleShowFrames, SIGNAL(triggered()), this, SLOT(OnShowFrames()));
+    connect(ui.m_TitleClearOutputListbox, SIGNAL(triggered()), this, SLOT(OnClearOutputListbox()));
 	
     int err = m_Camera.DeviceDiscoveryStart();
     
@@ -253,13 +256,6 @@ void v4l2test::OnBlockingMode()
     ui.m_chkBlockingMode->setChecked(m_BLOCKING_MODE);
     ui.m_BlockingMode->setChecked(m_BLOCKING_MODE);
     ui.m_TitleBlockingMode->setChecked(m_BLOCKING_MODE);
-    
-    m_MMAP_BUFFER = !m_MMAP_BUFFER;
-    OnLog(QString("BLOCKING_MODE: MMAP = %1").arg((m_MMAP_BUFFER)?"TRUE":"FALSE"));
-    
-    ui.m_chkUseMMAP->setChecked(m_MMAP_BUFFER);
-    ui.m_UseMMAP->setChecked(m_MMAP_BUFFER);
-    ui.m_TitleUseMMAP->setChecked(m_MMAP_BUFFER);
 }
 
 void v4l2test::OnUseMMAP()
@@ -270,13 +266,6 @@ void v4l2test::OnUseMMAP()
     ui.m_chkUseMMAP->setChecked(m_MMAP_BUFFER);
     ui.m_UseMMAP->setChecked(m_MMAP_BUFFER);
     ui.m_TitleUseMMAP->setChecked(m_MMAP_BUFFER);
-    
-    m_BLOCKING_MODE = !m_BLOCKING_MODE;
-    OnLog(QString("MMAP: BLOCKING_MODE = %1").arg((m_BLOCKING_MODE)?"TRUE":"FALSE"));
-    
-    ui.m_chkBlockingMode->setChecked(m_BLOCKING_MODE);
-    ui.m_BlockingMode->setChecked(m_BLOCKING_MODE);
-    ui.m_TitleBlockingMode->setChecked(m_BLOCKING_MODE);
 }
  
 void v4l2test::OnShowFrames()
@@ -287,6 +276,11 @@ void v4l2test::OnShowFrames()
     m_Camera.SwitchFrameTransfer2GUI(m_ShowFrames);
 }
    
+void v4l2test::OnClearOutputListbox()
+{
+    ui.m_LogTextEdit->clear();
+}
+
 void v4l2test::RemoteClose()
 {
     if( true == m_bIsOpen )

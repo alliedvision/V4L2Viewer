@@ -217,29 +217,27 @@ int FrameObserverUSER::DeleteUserBuffer()
 {
     int result = 0;
 
+    // free all internal buffers
+    v4l2_requestbuffers req;
+    // creates user defined buffer
+    CLEAR(req);
+    req.count  = 0;
+    req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    req.memory = V4L2_MEMORY_USERPTR;
+    
+    // requests 0 video capture buffer. Driver is going to configure all parameter and frees them.
+    V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
+	
     // delete all user buffer
-	for (int x = 0; x < m_UsedBufferCount; x++)
-	{
-    	    if (0 != m_UserBufferContainerList[x]->pBuffer)
-	        delete [] m_UserBufferContainerList[x]->pBuffer;
-	    if (0 != m_UserBufferContainerList[x])
-	        delete m_UserBufferContainerList[x];
-	}
-	
-	m_UserBufferContainerList.resize(0);
-	
-	
-	// free all internal buffers
-	v4l2_requestbuffers req;
-	// creates user defined buffer
-	CLEAR(req);
-        req.count  = 0;
-        req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	req.memory = V4L2_MEMORY_USERPTR;
-	
-	// requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
-	V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
-	
+    for (int x = 0; x < m_UsedBufferCount; x++)
+    {
+	if (0 != m_UserBufferContainerList[x]->pBuffer)
+	    delete [] m_UserBufferContainerList[x]->pBuffer;
+	if (0 != m_UserBufferContainerList[x])
+	    delete m_UserBufferContainerList[x];
+    }
+    
+    m_UserBufferContainerList.resize(0);
 	
     return result;
 }

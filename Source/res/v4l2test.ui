@@ -715,14 +715,14 @@
           </property>
           <property name="geometry">
            <rect>
-            <x>130</x>
+            <x>150</x>
             <y>260</y>
-            <width>131</width>
+            <width>211</width>
             <height>22</height>
            </rect>
           </property>
           <property name="text">
-           <string>Use USER_PTR</string>
+           <string>Blocking/Nonblocking Mode</string>
           </property>
          </widget>
          <widget class="QCheckBox" name="m_chkUseMMAP">
@@ -733,12 +733,12 @@
            <rect>
             <x>10</x>
             <y>260</y>
-            <width>93</width>
+            <width>131</width>
             <height>22</height>
            </rect>
           </property>
           <property name="text">
-           <string>Use MMAP</string>
+           <string>MMAP/USERPTR</string>
           </property>
          </widget>
          <widget class="QLineEdit" name="m_edBrightness">
@@ -1572,6 +1572,7 @@
     <addaction name="m_TitleShowFrames"/>
     <addaction name="m_TitleFlipHorizontal"/>
     <addaction name="m_TitleFlipVertical"/>
+    <addaction name="m_TitleClearOutputListbox"/>
    </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>
@@ -1615,7 +1616,13 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Use MMAP</string>
+    <string>MMAP/USERPTR</string>
+   </property>
+   <property name="iconText">
+    <string>MMAP/USERPTR</string>
+   </property>
+   <property name="toolTip">
+    <string>MMAP/USERPTR</string>
    </property>
   </action>
   <action name="m_TitleBlockingMode">
@@ -1623,7 +1630,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Use USER_PTR</string>
+    <string>Blocking/Nonblocking</string>
    </property>
   </action>
   <action name="m_TitleShowFrames">
@@ -1651,6 +1658,11 @@
    </property>
    <property name="text">
     <string>Flip Vertical</string>
+   </property>
+  </action>
+  <action name="m_TitleClearOutputListbox">
+   <property name="text">
+    <string>Clear Output Listbox</string>
    </property>
   </action>
  </widget>

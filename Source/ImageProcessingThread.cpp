@@ -105,7 +105,7 @@ void ImageProcessingThread::StopThread()
 	while (isRunning())
 		QThread::msleep(10);
 	
-	
+	m_FrameQueue.Clear();
 }
 
 // Do the work within this thread
