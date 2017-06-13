@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.5"
+#define PROGRAM_VERSION "v1.6"
 
 /*
  * 1.0: base version
@@ -59,6 +59,7 @@
  * 1.4: Fix for select MMAP, USERPTR
  * 1.5: revert Fix and rename the GUI controls to make handling more clear.
         FrameObserver issue didn't queue all frames
+ * 1.6: VIDIOC_TRY_FMT set formats first again
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -1240,7 +1241,17 @@ void v4l2test::OnPixelformat()
 		ui.m_edPixelformatText->setText(QString("%1").arg(pixelformatText));
 	}
 	else
+	{
+		uint32_t pixelformat = 0;
+		uint32_t bytesPerLine = 0;
+    		QString pixelformatText;
+		// Readback to verify
+		m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
+		ui.m_edPixelformat->setText(QString("%1").arg(pixelformat));
+		ui.m_edPixelformatText->setText(QString("%1").arg(pixelformatText));
+
 		OnLog(QString("Pixelformat set to %1").arg(ui.m_edPixelformat->text().toInt()));
+	}
 }
 	
 void v4l2test::OnGain()
