@@ -54,7 +54,7 @@ private:
 	
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
-    void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &);
+    void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);
 	// Event will be called on error
 	void OnCameraError_Signal(const QString &text);
     // Event will be called on message

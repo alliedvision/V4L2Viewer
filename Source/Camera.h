@@ -140,7 +140,7 @@ private:
 	
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
-    void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &);
+    void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);
     // Event will be called when a frame is processed by the internal thread and ready to show
 	void OnCameraFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
 	// Event will be called when a frame ID is processed by the internal thread and ready to show
@@ -163,7 +163,7 @@ signals:
     
 private slots:
     // The event handler to set or remove devices 
-	void OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &);
+	void OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &);
     // The event handler to show the processed frame
 	void OnFrameReady(const QImage &image, const unsigned long long &frameId);
 	// The event handler to show the processed frame ID

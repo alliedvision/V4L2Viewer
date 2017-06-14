@@ -102,7 +102,7 @@ private:
     QString m_SaveImageName;
 
     // Queries and lists all known cameras
-    void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName);
+    void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
 	// Update the viewer range
 	void UpdateViewerLayout();
 	// Update the zoom buttons
@@ -144,7 +144,7 @@ private slots:
     // The event handler for stream statistics
     void OnGetStreamStatisticsButtonClicked();
     // The event handler for the camera list changed event
-    void OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName);
+    void OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info);
 	// The event handler for starting acquisition
 	void OnStartButtonClicked();
     // The event handler for toggeling acquisition

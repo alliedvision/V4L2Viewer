@@ -56,7 +56,7 @@ Camera::Camera()
     , m_BlockingMode(false)
     , m_ShowFrames(true)
 {
-    connect(&m_DeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &)));
+    connect(&m_DeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
 
 }
 
@@ -197,9 +197,9 @@ void Camera::OnError(const QString &msg)
 }
 
 // The event handler to set or remove devices 
-void Camera::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName)
+void Camera::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info)
 {
-    emit OnCameraListChanged_Signal(reason, cardNumber, deviceID, deviceName);
+    emit OnCameraListChanged_Signal(reason, cardNumber, deviceID, deviceName, info);
 }
 
 /********************************************************************************/
@@ -244,7 +244,7 @@ int Camera::DeviceDiscoveryStart()
 				}
 				else
 				{
-				    emit OnCameraListChanged_Signal(UpdateTriggerPluggedIn, 0, device_count, deviceName);
+				    emit OnCameraListChanged_Signal(UpdateTriggerPluggedIn, 0, device_count, deviceName, (const char*)cap.card);
 				}
 			}
 			
@@ -293,6 +293,10 @@ int Camera::StartStreamChannel(uint32_t pixelformat, uint32_t payloadsize, uint3
     m_StreamCallbacks->StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
 
     m_StreamCallbacks->ResetDroppedFramesCount();
+
+    // start stream returns always success
+    Logger::LogEx("Camera::StartStreamChannel OK.");
+    emit OnCameraMessage_Signal("Camera::StartStreamChannel OK.");
 	
     return nResult;
 }
@@ -308,7 +312,7 @@ int Camera::StopStreamChannel()
     if (nResult == 0)
     {
        Logger::LogEx("Camera::StopStreamChannel OK.");
-       emit OnCameraError_Signal("Camera::StopStreamChannel OK.");
+       emit OnCameraMessage_Signal("Camera::StopStreamChannel OK.");
     } 
     else
     {

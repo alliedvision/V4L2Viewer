@@ -149,7 +149,7 @@ int CameraObserver::CheckDevices()
 					break;
 			}
 			m_DeviceList[ii] = deviceList[i].c_str();
-			emit OnCameraListChanged_Signal(UpdateTriggerPluggedIn, 0, ii, m_DeviceList[ii].c_str());
+			emit OnCameraListChanged_Signal(UpdateTriggerPluggedIn, 0, ii, m_DeviceList[ii].c_str(), "");
 		}
 	}
 	
@@ -169,7 +169,7 @@ int CameraObserver::CheckDevices()
 		if (!found)
 		{
 			m_DeviceList.erase(i);
-			emit OnCameraListChanged_Signal(UpdateTriggerPluggedOut, 0, i, m_DeviceList[i].c_str());
+			emit OnCameraListChanged_Signal(UpdateTriggerPluggedOut, 0, i, m_DeviceList[i].c_str(), "");
 		}
 	}
 	
@@ -182,7 +182,7 @@ void CameraObserver::OnDeviceReady(uint32_t cardNumber, uint64_t deviceID, const
 {
     if (!m_bTerminate)
     {
-        emit OnCameraListChanged_Signal(UpdateTriggerPluggedIn, cardNumber, deviceID, "");
+        emit OnCameraListChanged_Signal(UpdateTriggerPluggedIn, cardNumber, deviceID, "", "");
     }
     
 }
@@ -191,7 +191,7 @@ void CameraObserver::OnDeviceRemoved(uint32_t cardNumber, uint64_t deviceID, con
 {
     if (!m_bTerminate)
     {
-        emit OnCameraListChanged_Signal(UpdateTriggerPluggedOut, cardNumber, deviceID, "");
+        emit OnCameraListChanged_Signal(UpdateTriggerPluggedOut, cardNumber, deviceID, "", "");
     }
 }
 	

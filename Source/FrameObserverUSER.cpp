@@ -113,25 +113,25 @@ int FrameObserverUSER::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSiz
 		{
 			if (EINVAL == errno) 
 			{
-				Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
-				emit OnError_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS does not support user pointer i/o.");
+				Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
+				emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS does not support user pointer i/o.");
 			} else {
-				Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS error");
-				emit OnError_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS error.");
+				Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS error");
+				emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS error.");
 			}
 		}
 		else 
 		{
-			Logger::LogEx("Camera::CreateUserBuffer VIDIOC_REQBUFS OK");
-			emit OnMessage_Signal("Camera::CreateUserBuffer: VIDIOC_REQBUFS OK.");
+			Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS OK");
+			emit OnMessage_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS OK.");
 		
 			// create local buffer container
 			m_UserBufferContainerList.resize(bufferCount);
         
 			if (m_UserBufferContainerList.size() != bufferCount) 
 		        {
-			    Logger::LogEx("Camera::CreateUserBuffer buffer container error");
-			    emit OnError_Signal("Camera::CreateUserBuffer: buffer container error.");
+			    Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer container error");
+			    emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: buffer container error.");
 			    return -1;
 			}
 
@@ -145,8 +145,8 @@ int FrameObserverUSER::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSiz
 
 			    if (!m_UserBufferContainerList[x]->pBuffer) 
 			    {
-			        Logger::LogEx("Camera::CreateUserBuffer buffer creation error");
-			        emit OnError_Signal("Camera::CreateUserBuffer: buffer creation error.");
+			        Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer creation error");
+			        emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: buffer creation error.");
 			        return -1;
 			    }
 		        }
@@ -182,7 +182,7 @@ int FrameObserverUSER::QueueAllUserBuffer()
 		}
 		else
 		{
-                    Logger::LogEx("Camera::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
+                    Logger::LogEx("FrameObserverUSER::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
 		    result = 0;
 		}
     }
@@ -206,7 +206,7 @@ int FrameObserverUSER::QueueSingleUserBuffer(const int index)
 	{  
 	    if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
 	    {
-		Logger::LogEx("Camera::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
+		Logger::LogEx("FrameObserverUSER::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
 	    }
 	}
 				    

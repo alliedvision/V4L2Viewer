@@ -203,6 +203,9 @@ void FrameObserver::DequeueAndProcessFrame()
 			        m_nDroppedFramesCounter++;
 				    
 				emit OnError_Signal(QString("Received data length is higher than announced payload size. lenght=%1, payloadsize=%2").arg(length).arg(m_PayloadSize));
+
+				emit OnFrameID_Signal(m_FrameId);
+			        QueueSingleUserBuffer(buf.index);
 			    }
 			}
 			else
@@ -210,6 +213,9 @@ void FrameObserver::DequeueAndProcessFrame()
 			    m_nDroppedFramesCounter++;
 				    
 			    emit OnError_Signal("Missing buffer data.");
+
+			    emit OnFrameID_Signal(m_FrameId);
+			    QueueSingleUserBuffer(buf.index);
 			}
 		}
 		else

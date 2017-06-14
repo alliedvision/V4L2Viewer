@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.6"
+#define PROGRAM_VERSION "v1.7"
 
 /*
  * 1.0: base version
@@ -60,6 +60,8 @@
  * 1.5: revert Fix and rename the GUI controls to make handling more clear.
         FrameObserver issue didn't queue all frames
  * 1.6: VIDIOC_TRY_FMT set formats first again
+ * 1.7: Queue buffer even though buffer has errors
+        put card name into camera list to destinguish the cameras
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -110,7 +112,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	SetTitleText("");
     
     // Start Camera
-    connect(&m_Camera, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &)));
+    connect(&m_Camera, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
 	connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
 	connect(&m_Camera, SIGNAL(OnCameraEventReady_Signal(const QString &)), this, SLOT(OnCameraEventReady(const QString &)));
@@ -353,8 +355,10 @@ void v4l2test::OnOpenCloseButtonClicked()
 	
     if(-1 < nRow)
     {
-		QString devName = ui.m_CamerasListBox->item(nRow)->text();
-		QString deviceName = devName.right(devName.length()-devName.indexOf(':')-2);
+	QString devName = ui.m_CamerasListBox->item(nRow)->text();
+	QString deviceName = devName.right(devName.length()-devName.indexOf(':')-2);
+
+	deviceName = deviceName.left(deviceName.indexOf('(')-1);
 
         if(false == m_bIsOpen)
         {
@@ -418,7 +422,9 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
 	std::string deviceName;
     std::string tmp;
 
-	deviceName = devName.right(devName.length()-devName.indexOf(':')-2).toStdString();
+	devName = devName.right(devName.length()-devName.indexOf(':')-2);
+	deviceName = devName.left(devName.indexOf('(')-1).toStdString();
+	
 	m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER);
 	
     OnLog("---------------------------------------------");
@@ -760,7 +766,7 @@ void v4l2test::OnClearEventLogButtonClicked()
 }
 
 // This event handler is triggered through a Qt signal posted by the camera observer
-void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName)
+void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info)
 {
     bool bUpdateList = false;
 
@@ -785,7 +791,7 @@ void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, u
     
     if( true == bUpdateList )
     {
-        UpdateCameraListBox(cardNumber, deviceID, deviceName);
+        UpdateCameraListBox(cardNumber, deviceID, deviceName, info);
     }
 
     ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
@@ -802,13 +808,13 @@ void v4l2test::OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item)
 }
 
 // Queries and lists all known camera
-void v4l2test::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName)
+void v4l2test::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info)
 {
     std::string strCameraName;
     
     strCameraName = "Camera#";
     
-    ui.m_CamerasListBox->addItem(QString::fromStdString(strCameraName + ": ") + deviceName);
+    ui.m_CamerasListBox->addItem(QString::fromStdString(strCameraName + ": ") + deviceName + QString(" (") + info + QString(")"));
     m_cameras.push_back(cardNumber);
     
 	// select the first camera if there is no camera selected
