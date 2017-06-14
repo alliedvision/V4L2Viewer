@@ -51,6 +51,20 @@ ImageTransf::~ImageTransf()
 {
 }
 
+void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
+		int width, int height)
+{
+	int j;
+	while (--height >= 0) {
+		for (j = 0; j < width; j++) {
+			*dest++ = *src;
+			*dest++ = *src;
+			*dest++ = *src;
+			src++;
+		}
+	}
+}
+
 void v4lconvert_swap_rgb(const unsigned char *src, unsigned char *dst, 
         int width, int height)
 {
@@ -246,6 +260,11 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
 		convertedImage = QImage(width, height, QImage::Format_RGB32);
 	        memcpy(convertedImage.bits(), pBuffer, width*height*4);
 	}
+    else if (pixelformat == V4L2_PIX_FMT_GREY)
+    {
+        convertedImage = QImage(width, height, QImage::Format_RGB888);
+	        v4lconvert_grey_to_rgb24(pBuffer, convertedImage.bits(), width, height);
+    }
 	else
 	{
 		return -1;

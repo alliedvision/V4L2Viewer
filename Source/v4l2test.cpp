@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.7"
+#define PROGRAM_VERSION "v1.8"
 
 /*
  * 1.0: base version
@@ -62,6 +62,7 @@
  * 1.6: VIDIOC_TRY_FMT set formats first again
  * 1.7: Queue buffer even though buffer has errors
         put card name into camera list to destinguish the cameras
+ * 1.8: V4L2_PIX_FMT_GREY conversion added.
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
