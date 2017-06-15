@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.8"
+#define PROGRAM_VERSION "v1.9"
 
 /*
  * 1.0: base version
@@ -63,6 +63,7 @@
  * 1.7: Queue buffer even though buffer has errors
         put card name into camera list to destinguish the cameras
  * 1.8: V4L2_PIX_FMT_GREY conversion added.
+ * 1.9: Cropping added
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -189,6 +190,10 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(ui.m_edRedBalance, SIGNAL(returnPressed()), this, SLOT(OnRedBalance()));
 	connect(ui.m_edBlueBalance, SIGNAL(returnPressed()), this, SLOT(OnBlueBalance()));
 	connect(ui.m_edFramerate, SIGNAL(returnPressed()), this, SLOT(OnFramerate()));
+	connect(ui.m_edCropXOffset, SIGNAL(returnPressed()), this, SLOT(OnCropXOffset()));
+	connect(ui.m_edCropYOffset, SIGNAL(returnPressed()), this, SLOT(OnCropYOffset()));
+	connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
+	connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
 
     // Set the splitter stretch factors
 	ui.m_Splitter1->setStretchFactor(0, 25);
@@ -314,6 +319,20 @@ void v4l2test::closeEvent(QCloseEvent *event)
     }
     
     event->accept();
+}
+
+void v4l2test::wheelEvent(QWheelEvent *event)
+{
+    if (event->modifiers().testFlag(Qt::ControlModifier))
+    {
+	event->accept();
+        if (event->delta() > 0)
+	    OnZoomOutButtonClicked();
+	else
+	    OnZoomInButtonClicked();
+    }
+    else
+	event->ignore();
 }
 
 void v4l2test::mousePressEvent(QMouseEvent *event)
@@ -1616,6 +1635,126 @@ void v4l2test::OnFramerate()
 	}
 }
 
+void v4l2test::OnCropXOffset()
+{
+    uint32_t xOffset;
+    uint32_t yOffset;
+    uint32_t width;
+    uint32_t height;
+    uint32_t tmp;
+    
+    OnLog("Read org cropping values");
+    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
+    {
+	xOffset = ui.m_edCropXOffset->text().toInt();
+	tmp = xOffset;
+        if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
+	{
+	    // readback to show it was set correct
+	    OnLog("Verifing new cropping values");
+	    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
+	    {
+		ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
+		ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
+		ui.m_edCropWidth->setText(QString("%1").arg(width));
+		ui.m_edCropHeight->setText(QString("%1").arg(height));
+		if (tmp != xOffset)
+		    OnLog("Error: value not set !!!");
+	    }
+	}
+    }
+}
+
+void v4l2test::OnCropYOffset()
+{
+    uint32_t xOffset;
+    uint32_t yOffset;
+    uint32_t width;
+    uint32_t height;
+    uint32_t tmp;
+    
+    OnLog("Read org cropping values");
+    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
+    {
+	yOffset = ui.m_edCropYOffset->text().toInt();
+        tmp = yOffset;
+        if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
+	{
+	    // readback to show it was set correct
+	    OnLog("Verifing new cropping values");
+	    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
+	    {
+		ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
+		ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
+		ui.m_edCropWidth->setText(QString("%1").arg(width));
+		ui.m_edCropHeight->setText(QString("%1").arg(height));
+		if (tmp != yOffset)
+		    OnLog("Error: value not set !!!");
+	    }
+	}
+    }
+}
+
+void v4l2test::OnCropWidth()
+{
+    uint32_t xOffset;
+    uint32_t yOffset;
+    uint32_t width;
+    uint32_t height;
+    uint32_t tmp;
+    
+    OnLog("Read org cropping values");
+    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
+    {
+	width = ui.m_edCropWidth->text().toInt();
+        tmp = width;
+        if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
+	{
+	    // readback to show it was set correct
+	    OnLog("Verifing new cropping values");
+	    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
+	    {
+		ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
+		ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
+		ui.m_edCropWidth->setText(QString("%1").arg(width));
+		ui.m_edCropHeight->setText(QString("%1").arg(height));
+		if (tmp != width)
+		    OnLog("Error: value not set !!!");
+	    }
+	}
+    }
+}
+
+void v4l2test::OnCropHeight()
+{
+    uint32_t xOffset;
+    uint32_t yOffset;
+    uint32_t width;
+    uint32_t height;
+    uint32_t tmp;
+    
+    OnLog("Read org cropping values");
+    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
+    {
+	height = ui.m_edCropHeight->text().toInt();
+        tmp = height;
+        if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
+	{
+	    // readback to show it was set correct
+	    OnLog("Verifing new cropping values");
+	    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
+	    {
+		ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
+		ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
+		ui.m_edCropWidth->setText(QString("%1").arg(width));
+		ui.m_edCropHeight->setText(QString("%1").arg(height));
+		if (tmp != height)
+		    OnLog("Error: value not set !!!");
+	    }
+	}
+    }
+}
+	
 ////////////////////////////////////////////////////////////////////////
 // Tools
 ////////////////////////////////////////////////////////////////////////
@@ -1625,6 +1764,8 @@ void v4l2test::GetImageInformation()
 	uint32_t payloadsize = 0;
     uint32_t width = 0;
     uint32_t height = 0;
+    uint32_t xOffset = 0;
+    uint32_t yOffset = 0;
     uint32_t pixelformat = 0;
 	uint32_t bytesPerLine = 0;
     	QString pixelformatText;
@@ -1783,8 +1924,25 @@ void v4l2test::GetImageInformation()
 	}
 	else
 		ui.m_edFramerate->setEnabled(false);
-      
-	
+        tmp = 0;
+	if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
+	{
+		ui.m_edCropXOffset->setEnabled(true);
+		ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
+		ui.m_edCropYOffset->setEnabled(true);
+		ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
+		ui.m_edCropWidth->setEnabled(true);
+		ui.m_edCropWidth->setText(QString("%1").arg(width));
+		ui.m_edCropHeight->setEnabled(true);
+		ui.m_edCropHeight->setText(QString("%1").arg(height));
+	}
+	else
+	{
+		ui.m_edCropXOffset->setEnabled(false);
+		ui.m_edCropYOffset->setEnabled(false);
+		ui.m_edCropWidth->setEnabled(false);
+		ui.m_edCropHeight->setEnabled(false);
+	}
 }
 
 void v4l2test::SetTitleText(QString additionalText)

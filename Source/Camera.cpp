@@ -1379,6 +1379,64 @@ int Camera::SetFramerate(uint32_t numerator, uint32_t denominator)
     return result;
 }
 
+int Camera::ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint32_t &height)
+{
+    int result = -1;
+    v4l2_cropcap cropcap;
+	
+    CLEAR(cropcap);
+    cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	
+    if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_CROPCAP, &cropcap) >= 0)
+    {
+        xOffset = cropcap.defrect.left;
+	yOffset = cropcap.defrect.top;
+	width = cropcap.defrect.width;
+	height = cropcap.defrect.height;
+	Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP x=%d, y=%d, w=%d, h=%d OK", xOffset, yOffset, width, height);
+	emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_CROPCAP OK %1,%2, %3, %4").arg(xOffset).arg(yOffset).arg(width).arg(height));	
+	
+	result = 0;
+    }
+    else
+    {
+	Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+	emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_CROPCAP: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+		
+	result = -2;
+    }
+	
+    return result;
+}
+
+int Camera::SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t height)
+{
+    int result = -1;
+    v4l2_crop crop;
+    
+    CLEAR(crop);
+    crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    crop.c.left = xOffset;
+    crop.c.top = yOffset;
+    crop.c.width = width;
+    crop.c.height = height;
+	
+    if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_CROP, &crop) >= 0)
+    {
+	Logger::LogEx("Camera::SetCrop VIDIOC_S_CROP %d, %d, %d, %d OK", xOffset, yOffset, width, height);
+	emit OnCameraMessage_Signal(QString("SetCrop VIDIOC_S_CROP %1, %2, %3, %4 OK ").arg(xOffset).arg(yOffset).arg(width).arg(height));	
+	
+	result = 0;
+    }
+    else
+    {
+	Logger::LogEx("Camera::SetCrop VIDIOC_S_CROP failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+	emit OnCameraMessage_Signal(QString("SetCrop VIDIOC_S_CROP: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+    }
+  	
+    return result;
+}
+
 /*********************************************************************************************************/
 // Frame buffer handling
 /*********************************************************************************************************/

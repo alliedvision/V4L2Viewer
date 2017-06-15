@@ -100,6 +100,8 @@ public:
     int SetFramerate(uint32_t numerator, uint32_t denominator);
     int SetControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName);
     int ReadControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
+    int ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint32_t &height);
+    int SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t height);
 	
     int StartStreaming();
     int StopStreaming();

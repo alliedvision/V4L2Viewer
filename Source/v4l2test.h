@@ -116,6 +116,7 @@ private:
     // Official QT dialog close event callback
     virtual void closeEvent(QCloseEvent *event);
 	virtual void mousePressEvent(QMouseEvent *event);
+	virtual void wheelEvent(QWheelEvent *event);
 
     // called by master viewer window
     void RemoteClose();
@@ -188,6 +189,12 @@ private slots:
 	void OnDirectRegisterAccessWriteButtonClicked();
 	// The event handler to update the direct register access value
 	void OnDirectRegisterAccessUpdateData();
+
+	void OnCropXOffset();
+	void OnCropYOffset();
+	void OnCropWidth();
+	void OnCropHeight();
+
     
     void OnStartRecording();
     void OnStopRecording();
