@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.9"
+#define PROGRAM_VERSION "v1.10"
 
 /*
  * 1.0: base version
@@ -64,6 +64,9 @@
         put card name into camera list to destinguish the cameras
  * 1.8: V4L2_PIX_FMT_GREY conversion added.
  * 1.9: Cropping added
+ * 1.10: Update camera formats after set cropping
+         bayer8 to rgb24
+         VIDIOC_TRY_FMT return value wrong check
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -1660,6 +1663,8 @@ void v4l2test::OnCropXOffset()
 		ui.m_edCropHeight->setText(QString("%1").arg(height));
 		if (tmp != xOffset)
 		    OnLog("Error: value not set !!!");
+		
+		UpdateCameraFormat();
 	    }
 	}
     }
@@ -1761,66 +1766,51 @@ void v4l2test::OnCropHeight()
 
 void v4l2test::GetImageInformation()
 {
-	uint32_t payloadsize = 0;
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t xOffset = 0;
     uint32_t yOffset = 0;
-    uint32_t pixelformat = 0;
-	uint32_t bytesPerLine = 0;
-    	QString pixelformatText;
-	uint32_t gain = 0;
-	bool autogain = false;
-	uint32_t exposure = 0;
+    uint32_t gain = 0;
+    bool autogain = false;
+    uint32_t exposure = 0;
     uint32_t exposureAbs = 0;
-	bool autoexposure = false;
+    bool autoexposure = false;
     int result = 0;
     uint32_t tmp;
     uint32_t numerator = 0;
     uint32_t denominator = 0;
-
-	ui.m_liPixelformats->clear();
-	ui.m_liFramesizes->clear();
+    uint32_t pixelformat = 0;
+    QString pixelformatText;
+    uint32_t bytesPerLine = 0;
+    
 	
-	ui.m_chkAutoGain->setChecked(false);
-	ui.m_chkAutoExposure->setChecked(false);
-	
-    // Get the payloadsize first to setup the streaming channel
-    result = m_Camera.ReadPayloadsize(payloadsize);
-    ui.m_edPayloadsize->setText(QString("%1").arg(payloadsize));
-	
-	result = m_Camera.ReadFrameSize(width, height);
-	ui.m_edWidth->setText(QString("%1").arg(width));
-	ui.m_edHeight->setText(QString("%1").arg(height));
-	
-	result = m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
-	ui.m_edPixelformat->setText(QString("%1").arg(pixelformat));
-	ui.m_edPixelformatText->setText(QString("%1").arg(pixelformatText));
-	
-	result = m_Camera.ReadFormats();
-	
-	if (m_Camera.ReadGain(gain) != -2)
-	{
-		ui.m_edGain->setEnabled(true);
-		ui.m_edGain->setText(QString("%1").arg(gain));
-	}
-	else
-		ui.m_edGain->setEnabled(false);
-	if (m_Camera.ReadAutoGain(autogain) != -2)
-	{
-		ui.m_chkAutoGain->setEnabled(true);
-		ui.m_chkAutoGain->setChecked(autogain);
-	}
-	else
-		ui.m_chkAutoGain->setEnabled(false);
-	
-	if (m_Camera.ReadExposure(exposure) != -2)
-	{
-		ui.m_edExposure->setEnabled(true);
-		ui.m_edExposure->setText(QString("%1").arg(exposure));
-	}
-	else
-		ui.m_edExposure->setEnabled(false);
+    ui.m_chkAutoGain->setChecked(false);
+    ui.m_chkAutoExposure->setChecked(false);
+    
+    UpdateCameraFormat();
+    
+    if (m_Camera.ReadGain(gain) != -2)
+    {
+	    ui.m_edGain->setEnabled(true);
+	    ui.m_edGain->setText(QString("%1").arg(gain));
+    }
+    else
+	    ui.m_edGain->setEnabled(false);
+    if (m_Camera.ReadAutoGain(autogain) != -2)
+    {
+	    ui.m_chkAutoGain->setEnabled(true);
+	    ui.m_chkAutoGain->setChecked(autogain);
+    }
+    else
+	    ui.m_chkAutoGain->setEnabled(false);
+    
+    if (m_Camera.ReadExposure(exposure) != -2)
+    {
+	    ui.m_edExposure->setEnabled(true);
+	    ui.m_edExposure->setText(QString("%1").arg(exposure));
+    }
+    else
+	    ui.m_edExposure->setEnabled(false);
     if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
     {
         ui.m_edExposureAbs->setEnabled(true);
@@ -1828,121 +1818,151 @@ void v4l2test::GetImageInformation()
     }
     else
         ui.m_edExposureAbs->setEnabled(false);
-	if (m_Camera.ReadAutoExposure(autoexposure) != -2)
-	{
-		ui.m_chkAutoExposure->setEnabled(true);
-		ui.m_chkAutoExposure->setChecked(autoexposure);
-	}
-	else
-		ui.m_chkAutoExposure->setEnabled(false);
-	
-	tmp = 0;
-	if (m_Camera.ReadGamma(tmp) != -2)
-	{
-		ui.m_edGamma->setEnabled(true);
-		ui.m_edGamma->setText(QString("%1").arg(tmp));
-	}
-	else
-		ui.m_edGamma->setEnabled(false);
-	tmp = 0;
-	if (m_Camera.ReadReverseX(tmp) != -2)
-	{
-		ui.m_edReverseX->setEnabled(true);
-		ui.m_edReverseX->setText(QString("%1").arg(tmp));
-	}
-	else
-		ui.m_edReverseX->setEnabled(false);
-	tmp = 0;
-	if (m_Camera.ReadReverseY(tmp) != -2)
-	{
-		ui.m_edReverseY->setEnabled(true);
-		ui.m_edReverseY->setText(QString("%1").arg(tmp));
-	}
-	else
-		ui.m_edReverseY->setEnabled(false);
-	tmp = 0;
-	if (m_Camera.ReadSharpness(tmp) != -2)
-	{
-		ui.m_edSharpness->setEnabled(true);
-		ui.m_edSharpness->setText(QString("%1").arg(tmp));
-	}
-	else
-		ui.m_edSharpness->setEnabled(false);
-	tmp = 0;
-	if (m_Camera.ReadBrightness(tmp) != -2)
-	{
-		ui.m_edBrightness->setEnabled(true);
-		ui.m_edBrightness->setText(QString("%1").arg(tmp));
-	}
-	else
-		ui.m_edBrightness->setEnabled(false);
-	tmp = 0;
-	if (m_Camera.ReadContrast(tmp) != -2)
-	{
-		ui.m_edContrast->setEnabled(true);
-		ui.m_edContrast->setText(QString("%1").arg(tmp));
-	}
-	else
-		ui.m_edContrast->setEnabled(false);
-	tmp = 0;
-	if (m_Camera.ReadSaturation(tmp) != -2)
-	{
-		ui.m_edSaturation->setEnabled(true);
-		ui.m_edSaturation->setText(QString("%1").arg(tmp));
-	}
-	else
-		ui.m_edSaturation->setEnabled(false);
-	tmp = 0;
-	if (m_Camera.ReadHue(tmp) != -2)
-	{
-		ui.m_edHue->setEnabled(true);
-		ui.m_edHue->setText(QString("%1").arg(tmp));
-	}
-	else
-		ui.m_edHue->setEnabled(false);
-	tmp = 0;
-	if (m_Camera.ReadRedBalance(tmp) != -2)
-	{
-		ui.m_edRedBalance->setEnabled(true);
-		ui.m_edRedBalance->setText(QString("%1").arg(tmp));
-	}
-	else
-		ui.m_edRedBalance->setEnabled(false);
-	tmp = 0;
-	if (m_Camera.ReadBlueBalance(tmp) != -2)
-	{
-		ui.m_edBlueBalance->setEnabled(true);
-		ui.m_edBlueBalance->setText(QString("%1").arg(tmp));
-	}
-	else
-		ui.m_edBlueBalance->setEnabled(false);
-	tmp = 0;
-	if (m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat) != -2)
-	{
-		ui.m_edFramerate->setEnabled(true);
-		ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
-	}
-	else
-		ui.m_edFramerate->setEnabled(false);
-        tmp = 0;
-	if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
-	{
-		ui.m_edCropXOffset->setEnabled(true);
-		ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
-		ui.m_edCropYOffset->setEnabled(true);
-		ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
-		ui.m_edCropWidth->setEnabled(true);
-		ui.m_edCropWidth->setText(QString("%1").arg(width));
-		ui.m_edCropHeight->setEnabled(true);
-		ui.m_edCropHeight->setText(QString("%1").arg(height));
-	}
-	else
-	{
-		ui.m_edCropXOffset->setEnabled(false);
-		ui.m_edCropYOffset->setEnabled(false);
-		ui.m_edCropWidth->setEnabled(false);
-		ui.m_edCropHeight->setEnabled(false);
-	}
+    if (m_Camera.ReadAutoExposure(autoexposure) != -2)
+    {
+	    ui.m_chkAutoExposure->setEnabled(true);
+	    ui.m_chkAutoExposure->setChecked(autoexposure);
+    }
+    else
+	    ui.m_chkAutoExposure->setEnabled(false);
+    
+    tmp = 0;
+    if (m_Camera.ReadGamma(tmp) != -2)
+    {
+	    ui.m_edGamma->setEnabled(true);
+	    ui.m_edGamma->setText(QString("%1").arg(tmp));
+    }
+    else
+	    ui.m_edGamma->setEnabled(false);
+    tmp = 0;
+    if (m_Camera.ReadReverseX(tmp) != -2)
+    {
+	    ui.m_edReverseX->setEnabled(true);
+	    ui.m_edReverseX->setText(QString("%1").arg(tmp));
+    }
+    else
+	    ui.m_edReverseX->setEnabled(false);
+    tmp = 0;
+    if (m_Camera.ReadReverseY(tmp) != -2)
+    {
+	    ui.m_edReverseY->setEnabled(true);
+	    ui.m_edReverseY->setText(QString("%1").arg(tmp));
+    }
+    else
+	    ui.m_edReverseY->setEnabled(false);
+    tmp = 0;
+    if (m_Camera.ReadSharpness(tmp) != -2)
+    {
+	    ui.m_edSharpness->setEnabled(true);
+	    ui.m_edSharpness->setText(QString("%1").arg(tmp));
+    }
+    else
+	    ui.m_edSharpness->setEnabled(false);
+    tmp = 0;
+    if (m_Camera.ReadBrightness(tmp) != -2)
+    {
+	    ui.m_edBrightness->setEnabled(true);
+	    ui.m_edBrightness->setText(QString("%1").arg(tmp));
+    }
+    else
+	    ui.m_edBrightness->setEnabled(false);
+    tmp = 0;
+    if (m_Camera.ReadContrast(tmp) != -2)
+    {
+	    ui.m_edContrast->setEnabled(true);
+	    ui.m_edContrast->setText(QString("%1").arg(tmp));
+    }
+    else
+	    ui.m_edContrast->setEnabled(false);
+    tmp = 0;
+    if (m_Camera.ReadSaturation(tmp) != -2)
+    {
+	    ui.m_edSaturation->setEnabled(true);
+	    ui.m_edSaturation->setText(QString("%1").arg(tmp));
+    }
+    else
+	    ui.m_edSaturation->setEnabled(false);
+    tmp = 0;
+    if (m_Camera.ReadHue(tmp) != -2)
+    {
+	    ui.m_edHue->setEnabled(true);
+	    ui.m_edHue->setText(QString("%1").arg(tmp));
+    }
+    else
+	    ui.m_edHue->setEnabled(false);
+    tmp = 0;
+    if (m_Camera.ReadRedBalance(tmp) != -2)
+    {
+	    ui.m_edRedBalance->setEnabled(true);
+	    ui.m_edRedBalance->setText(QString("%1").arg(tmp));
+    }
+    else
+	    ui.m_edRedBalance->setEnabled(false);
+    tmp = 0;
+    if (m_Camera.ReadBlueBalance(tmp) != -2)
+    {
+	    ui.m_edBlueBalance->setEnabled(true);
+	    ui.m_edBlueBalance->setText(QString("%1").arg(tmp));
+    }
+    else
+	    ui.m_edBlueBalance->setEnabled(false);
+    tmp = 0;
+    m_Camera.ReadFrameSize(width, height);
+    m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
+    if (m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat) != -2)
+    {
+	    ui.m_edFramerate->setEnabled(true);
+	    ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
+    }
+    else
+	    ui.m_edFramerate->setEnabled(false);
+    tmp = 0;
+    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
+    {
+	    ui.m_edCropXOffset->setEnabled(true);
+	    ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
+	    ui.m_edCropYOffset->setEnabled(true);
+	    ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
+	    ui.m_edCropWidth->setEnabled(true);
+	    ui.m_edCropWidth->setText(QString("%1").arg(width));
+	    ui.m_edCropHeight->setEnabled(true);
+	    ui.m_edCropHeight->setText(QString("%1").arg(height));
+    }
+    else
+    {
+	    ui.m_edCropXOffset->setEnabled(false);
+	    ui.m_edCropYOffset->setEnabled(false);
+	    ui.m_edCropWidth->setEnabled(false);
+	    ui.m_edCropHeight->setEnabled(false);
+    }
+}
+
+void v4l2test::UpdateCameraFormat()
+{
+    int result = -1;
+    uint32_t payloadsize = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t pixelformat = 0;
+    QString pixelformatText;
+    uint32_t bytesPerLine = 0;
+    	
+    ui.m_liPixelformats->clear();
+    ui.m_liFramesizes->clear();
+    
+    // Get the payloadsize first to setup the streaming channel
+    result = m_Camera.ReadPayloadsize(payloadsize);
+    ui.m_edPayloadsize->setText(QString("%1").arg(payloadsize));
+    
+    result = m_Camera.ReadFrameSize(width, height);
+    ui.m_edWidth->setText(QString("%1").arg(width));
+    ui.m_edHeight->setText(QString("%1").arg(height));
+    
+    result = m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
+    ui.m_edPixelformat->setText(QString("%1").arg(pixelformat));
+    ui.m_edPixelformatText->setText(QString("%1").arg(pixelformatText));
+    
+    result = m_Camera.ReadFormats();
 }
 
 void v4l2test::SetTitleText(QString additionalText)

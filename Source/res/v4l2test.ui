@@ -573,7 +573,7 @@
            <rect>
             <x>100</x>
             <y>240</y>
-            <width>111</width>
+            <width>101</width>
             <height>16</height>
            </rect>
           </property>
@@ -686,10 +686,10 @@
          <widget class="QLineEdit" name="m_edPixelformatText">
           <property name="geometry">
            <rect>
-            <x>220</x>
+            <x>210</x>
             <y>240</y>
-            <width>141</width>
-            <height>16</height>
+            <width>151</width>
+            <height>20</height>
            </rect>
           </property>
           <property name="readOnly">
@@ -699,7 +699,7 @@
          <widget class="QLabel" name="label_9">
           <property name="geometry">
            <rect>
-            <x>210</x>
+            <x>200</x>
             <y>240</y>
             <width>16</width>
             <height>17</height>

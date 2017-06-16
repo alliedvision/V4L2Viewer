@@ -124,6 +124,8 @@ private:
 	void GetImageInformation();
 	
 	void SetTitleText(QString additionalText);
+	
+	void UpdateCameraFormat();
 
 private slots:
       void OnClearOutputListbox();
