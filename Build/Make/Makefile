@@ -22,7 +22,7 @@ INCLUDE_DIRS            = $(SOURCE_DIR) \
                           $(SOURCE_DIR)/QHexEdit \
                           $(PROJECT_ROOT_DIR) \
                           $(TINYXML_DIR) \
-                          $(AVTIMAGETRANSFORM_DIR)/include \
+                          $(AVTIMAGETRANSFORM_DIR)/Include \
                           $(OBJ_DIR)
 
 LIBS                    = pthread \

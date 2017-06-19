@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.10"
+#define PROGRAM_VERSION "v1.11"
 
 /*
  * 1.0: base version
@@ -67,6 +67,7 @@
  * 1.10: Update camera formats after set cropping
          bayer8 to rgb24
          VIDIOC_TRY_FMT return value wrong check
+ * 1.11: AVTImageTransform added
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
