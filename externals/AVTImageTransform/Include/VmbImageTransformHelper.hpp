@@ -123,7 +123,7 @@ namespace AVT
             name = "Mono8_REC601";
             break;
         case 24:
-            name = "BGR24";
+            name = "RGB24";
             break;
         case 32:
             name = "BGRA32";

@@ -127,8 +127,8 @@ int ImageProcessingThread::ConvertPixelformat(uint32_t pixelformat, uint32_t &re
         case V4L2_PIX_FMT_SGBRG12: resPixelformat = VmbPixelFormatBayerRG12; break;
         case V4L2_PIX_FMT_SGRBG12: resPixelformat = VmbPixelFormatBayerBG12; break;
         case V4L2_PIX_FMT_SRGGB12: resPixelformat = VmbPixelFormatBayerGB12; break;
-	// self made is faster case V4L2_PIX_FMT_RGB24: resPixelformat = VmbPixelFormatRgb8; break;
-	case V4L2_PIX_FMT_BGR24: resPixelformat = VmbPixelFormatBgr8; break;
+        case V4L2_PIX_FMT_RGB24: resPixelformat = VmbPixelFormatRgb8; break;
+	    case V4L2_PIX_FMT_BGR24: resPixelformat = VmbPixelFormatBgr8; break;
         default:
             result = -1;
             break;
