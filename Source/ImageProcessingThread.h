@@ -55,6 +55,8 @@ public:
 	// Queue the frame for the thread to work with
 	int QueueFrame(QSharedPointer<MyFrame> pFrame);
 
+    int ConvertPixelformat(uint32_t pixelformat, uint32_t &resPixelformat);
+    
 	// start thread
 	void StartThread();
 	// stop the internal processing thread and wait until the thread is really stopped

@@ -25,6 +25,7 @@
 
 =============================================================================*/
 
+#include "VmbImageTransformHelper.hpp"
 #include "ImageProcessingThread.h"
 #include "ImageTransf.h"
 
@@ -108,6 +109,32 @@ void ImageProcessingThread::StopThread()
 	m_FrameQueue.Clear();
 }
 
+int ImageProcessingThread::ConvertPixelformat(uint32_t pixelformat, uint32_t &resPixelformat)
+{
+    int result = 0;
+    
+    switch (pixelformat)
+    {
+        case V4L2_PIX_FMT_SBGGR8: resPixelformat = VmbPixelFormatBayerGR8; break;
+        case V4L2_PIX_FMT_SGBRG8: resPixelformat = VmbPixelFormatBayerRG8; break;
+        case V4L2_PIX_FMT_SGRBG8: resPixelformat = VmbPixelFormatBayerBG8; break;
+        case V4L2_PIX_FMT_SRGGB8: resPixelformat = VmbPixelFormatBayerGB8; break;
+        case V4L2_PIX_FMT_SBGGR10: resPixelformat = VmbPixelFormatBayerGR10; break;
+        case V4L2_PIX_FMT_SGBRG10: resPixelformat = VmbPixelFormatBayerRG10; break;
+        case V4L2_PIX_FMT_SGRBG10: resPixelformat = VmbPixelFormatBayerBG10; break;
+        case V4L2_PIX_FMT_SRGGB10: resPixelformat = VmbPixelFormatBayerGB10; break;
+        case V4L2_PIX_FMT_SBGGR12: resPixelformat = VmbPixelFormatBayerGR12; break;
+        case V4L2_PIX_FMT_SGBRG12: resPixelformat = VmbPixelFormatBayerRG12; break;
+        case V4L2_PIX_FMT_SGRBG12: resPixelformat = VmbPixelFormatBayerBG12; break;
+        case V4L2_PIX_FMT_SRGGB12: resPixelformat = VmbPixelFormatBayerGB12; break;
+        default:
+            result = -1;
+            break;
+    }
+    
+    return result;
+}
+
 // Do the work within this thread
 void ImageProcessingThread::run()
 {
@@ -128,12 +155,21 @@ void ImageProcessingThread::run()
 			uint32_t payloadSize = pFrame->GetPayloadSize();
 			uint32_t bytesPerLine = pFrame->GetBytesPerLine();
 			QImage convertedImage;
+            VmbPixelFormat_t resPixelformat;
+            
+            if (0 == ConvertPixelformat(pixelformat, resPixelformat))
+            {
+                QImage convertedImage(width, height, QImage::Format_RGB888);
+                result = AVT::VmbImageTransform( convertedImage, pBuffer, width, height, resPixelformat);
+            }
+			else
+            {
+                result = AVT::Tools::ImageTransf::ConvertFrame(pBuffer, length, 
+                                                               width, height, pixelformat, 
+                                                               payloadSize, bytesPerLine, convertedImage);
+			}
 			
-			result = AVT::Tools::ImageTransf::ConvertFrame(pBuffer, length, 
-												  width, height, pixelformat, 
-												  payloadSize, bytesPerLine, convertedImage);
-			
-			if (result == 0)
+            if (result == 0)
 				emit OnFrameReady_Signal(convertedImage, frameID, buf.index);
 		}
 

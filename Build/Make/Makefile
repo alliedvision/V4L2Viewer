@@ -15,18 +15,22 @@ BIN_FILE                = $($(call MACRO_TOUPPER,$(OUTPUT))_PREFIX)$(PROJECT_NAM
 BIN_DIR                 = $(OUTPUT)/$(PROJECT_DIR)
 OBJ_DIR                 = object/$(PROJECT_DIR)
 BIN_PATH                = $(BIN_DIR)/$(BIN_FILE)
+AVTIMAGETRANSFORM_DIR   = $(PROJECT_ROOT_DIR)/externals/AVTImageTransform
 
 SOURCE_DIR              = $(PROJECT_ROOT_DIR)/Source
 INCLUDE_DIRS            = $(SOURCE_DIR) \
                           $(SOURCE_DIR)/QHexEdit \
                           $(PROJECT_ROOT_DIR) \
-			  $(TINYXML_DIR) \
+                          $(TINYXML_DIR) \
+                          $(AVTIMAGETRANSFORM_DIR)/include \
                           $(OBJ_DIR)
 
 LIBS                    = pthread \
+                          VimbaImageTransform \
                           $(SHO_LIB)
 
-LIB_DIRS                = $(BIN_DIR) \
+LIB_DIRS                = $(AVTIMAGETRANSFORM_DIR)/DynamicLib/arm_32bit \
+                          $(BIN_DIR) \
 			  
 DEFINES                 = TIXML_USE_STL
 
