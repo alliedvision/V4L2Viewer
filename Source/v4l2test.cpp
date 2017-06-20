@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.11"
+#define PROGRAM_VERSION "v1.12"
 
 /*
  * 1.0: base version
@@ -68,6 +68,7 @@
          bayer8 to rgb24
          VIDIOC_TRY_FMT return value wrong check
  * 1.11: AVTImageTransform added
+ * 1.12: ImageTransform use bug fix
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
