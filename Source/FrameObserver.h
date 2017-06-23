@@ -144,6 +144,7 @@ protected:
 	uint32_t m_RealPayloadsize;
 	uint32_t m_BytesPerLine;
 	uint64_t m_FrameId;
+	uint32_t m_DQBUF_last_errno;
 	
 	bool m_MessageSendFlag;
     bool m_BlockingMode;

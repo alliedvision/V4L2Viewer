@@ -68,6 +68,7 @@ FrameObserver::FrameObserver(bool showFrames)
 	, m_bStreamStopped(false)
         , m_ShowFrames(showFrames)
 	, m_RealPayloadsize(0)
+	, m_DQBUF_last_errno(0)
 {
 	m_pImageProcessingThread = QSharedPointer<ImageProcessingThread>(new ImageProcessingThread());
 
@@ -152,8 +153,10 @@ int FrameObserver::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &le
 void FrameObserver::DequeueAndProcessFrame()
 {
 	v4l2_buffer buf;
-				
-	if (0 == ReadFrame(buf))
+	int result = 0;
+			
+	result = ReadFrame(buf);
+	if (0 == result)
 	{
 		m_FrameId++;
 		m_nReceivedFramesCounter++;
@@ -225,6 +228,16 @@ void FrameObserver::DequeueAndProcessFrame()
 			emit OnFrameID_Signal(m_FrameId);
 			QueueSingleUserBuffer(buf.index);
 		}
+	}
+	else
+	{
+	    static int i=0;
+	    i++;
+	    if (i%10000 == 0 || m_DQBUF_last_errno != errno)
+	    {
+		m_DQBUF_last_errno = errno;
+		emit OnError_Signal(QString("DQBUF error %1 times, error=%2").arg(i).arg(errno));
+	    }
 	}
 }
 
