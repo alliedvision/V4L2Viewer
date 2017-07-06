@@ -29,8 +29,27 @@ LIBS                    = pthread \
                           VimbaImageTransform \
                           $(SHO_LIB)
 
+ifeq ($(ARCH),arm)
+ifeq ($(WORDSIZE),32)
 LIB_DIRS                = $(AVTIMAGETRANSFORM_DIR)/DynamicLib/arm_32bit \
-                          $(BIN_DIR) \
+                          $(BIN_DIR) 
+endif
+ifeq ($(WORDSIZE),64)
+LIB_DIRS                = $(AVTIMAGETRANSFORM_DIR)/DynamicLib/arm_64bit \
+                          $(BIN_DIR) 
+endif
+endif
+
+ifeq ($(ARCH),x86)
+ifeq ($(WORDSIZE),32)
+LIB_DIRS                = $(AVTIMAGETRANSFORM_DIR)/DynamicLib/linux_pc_32bit \
+                          $(BIN_DIR) 
+endif
+ifeq ($(WORDSIZE),64)
+LIB_DIRS                = $(AVTIMAGETRANSFORM_DIR)/DynamicLib/linux_pc_64bit \
+                          $(BIN_DIR) 
+endif
+endif
 			  
 DEFINES                 = TIXML_USE_STL
 
