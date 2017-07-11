@@ -1175,6 +1175,9 @@
              <height>16</height>
             </rect>
            </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
           </widget>
           <widget class="QLabel" name="label_34">
            <property name="geometry">
@@ -1211,6 +1214,9 @@
              <height>16</height>
             </rect>
            </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
           </widget>
           <widget class="QLineEdit" name="m_edBoundsY">
            <property name="geometry">
@@ -1220,6 +1226,9 @@
              <width>51</width>
              <height>16</height>
             </rect>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
            </property>
           </widget>
           <widget class="QLabel" name="label_36">
@@ -1257,6 +1266,9 @@
              <height>16</height>
             </rect>
            </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
           </widget>
          </widget>
          <widget class="QGroupBox" name="groupBox_5">
@@ -1279,6 +1291,9 @@
              <width>51</width>
              <height>16</height>
             </rect>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
            </property>
           </widget>
           <widget class="QLabel" name="label_29">
@@ -1316,6 +1331,9 @@
              <height>16</height>
             </rect>
            </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
           </widget>
           <widget class="QLineEdit" name="m_edDefrectY">
            <property name="geometry">
@@ -1325,6 +1343,9 @@
              <width>51</width>
              <height>16</height>
             </rect>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
            </property>
           </widget>
           <widget class="QLabel" name="label_28">
@@ -1362,6 +1383,9 @@
              <height>16</height>
             </rect>
            </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
           </widget>
          </widget>
          <widget class="QPushButton" name="m_butCropCapabilities">
@@ -1397,6 +1421,9 @@
              <width>51</width>
              <height>20</height>
             </rect>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
            </property>
           </widget>
           <widget class="QLabel" name="label_38">
