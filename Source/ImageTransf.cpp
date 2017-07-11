@@ -52,7 +52,7 @@ ImageTransf::~ImageTransf()
 }
 
 /* inspired by OpenCV's Bayer decoding */
-static void v4lconvert_border_bayer_line_to_bgr24(
+static void v4lconvert_border_bayer8_line_to_bgr24(
 		const unsigned char *bayer, const unsigned char *adjacent_bayer,
 		unsigned char *bgr, int width, const int start_with_green, const int blue_line)
 {
@@ -173,12 +173,12 @@ static void v4lconvert_border_bayer_line_to_bgr24(
 }
 
 /* From libdc1394, which on turn was based on OpenCV's Bayer decoding */
-static void bayer_to_rgbbgr24(const unsigned char *bayer,
+static void bayer8_to_rgbbgr24(const unsigned char *bayer,
 		unsigned char *bgr, int width, int height, const unsigned int stride, unsigned int pixfmt,
 		int start_with_green, int blue_line)
 {
 	/* render the first line */
-	v4lconvert_border_bayer_line_to_bgr24(bayer, bayer + stride, bgr, width,
+	v4lconvert_border_bayer8_line_to_bgr24(bayer, bayer + stride, bgr, width,
 			start_with_green, blue_line);
 	bgr += width * 3;
 
@@ -316,14 +316,14 @@ static void bayer_to_rgbbgr24(const unsigned char *bayer,
 	}
 
 	/* render the last line */
-	v4lconvert_border_bayer_line_to_bgr24(bayer + stride, bayer, bgr, width,
+	v4lconvert_border_bayer8_line_to_bgr24(bayer + stride, bayer, bgr, width,
 			!start_with_green, !blue_line);
 }
 
-void v4lconvert_bayer_to_rgb24(const unsigned char *bayer,
+void v4lconvert_bayer8_to_rgb24(const unsigned char *bayer,
 		unsigned char *bgr, int width, int height, const unsigned int stride, unsigned int pixfmt)
 {
-	bayer_to_rgbbgr24(bayer, bgr, width, height, stride, pixfmt,
+	bayer8_to_rgbbgr24(bayer, bgr, width, height, stride, pixfmt,
 			pixfmt == V4L2_PIX_FMT_SGBRG8		/* start with green */
 			|| pixfmt == V4L2_PIX_FMT_SGRBG8,
 			pixfmt != V4L2_PIX_FMT_SBGGR8		/* blue line */
@@ -560,7 +560,7 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
 	case V4L2_PIX_FMT_SRGGB8:
         {
             convertedImage = QImage(width, height, QImage::Format_RGB888);
-            v4lconvert_bayer_to_rgb24(pBuffer, convertedImage.bits(), width, height, bytesPerLine, pixelformat);
+            v4lconvert_bayer8_to_rgb24(pBuffer, convertedImage.bits(), width, height, bytesPerLine, pixelformat);
         }
 		break;
     case V4L2_PIX_FMT_SBGGR10:
@@ -575,6 +575,24 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
     case V4L2_PIX_FMT_SRGGB12:
         return -1;
         break;
+
+    /* L&T */
+    /* 10bit raw bayer packed, 5 bytes for every 4 pixels */
+    /*case V4L2_PIX_FMT_SBGGR10P:
+    case V4L2_PIX_FMT_SGBRG10P:
+    case V4L2_PIX_FMT_SGRBG10P:
+    case V4L2_PIX_FMT_SRGGB10P:
+        return -1;
+        break;
+*/
+    /* 12bit raw bayer packed, 6 bytes for every 4 pixels */
+    /*case V4L2_PIX_FMT_SBGGR12P:
+    case V4L2_PIX_FMT_SGBRG12P:
+    case V4L2_PIX_FMT_SGRBG12P:
+    case V4L2_PIX_FMT_SRGGB12P:
+        return -1;
+        break;
+*/
     default:
         return -1;
     }

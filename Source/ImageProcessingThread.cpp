@@ -115,20 +115,29 @@ int ImageProcessingThread::ConvertPixelformat(uint32_t pixelformat, uint32_t &re
     
     switch (pixelformat)
     {
-        case V4L2_PIX_FMT_SBGGR8: resPixelformat = VmbPixelFormatBayerGR8; break;
-        case V4L2_PIX_FMT_SGBRG8: resPixelformat = VmbPixelFormatBayerRG8; break;
-        case V4L2_PIX_FMT_SGRBG8: resPixelformat = VmbPixelFormatBayerBG8; break;
-        case V4L2_PIX_FMT_SRGGB8: resPixelformat = VmbPixelFormatBayerGB8; break;
-        case V4L2_PIX_FMT_SBGGR10: resPixelformat = VmbPixelFormatBayerGR10; break;
-        case V4L2_PIX_FMT_SGBRG10: resPixelformat = VmbPixelFormatBayerRG10; break;
-        case V4L2_PIX_FMT_SGRBG10: resPixelformat = VmbPixelFormatBayerBG10; break;
-        case V4L2_PIX_FMT_SRGGB10: resPixelformat = VmbPixelFormatBayerGB10; break;
-        case V4L2_PIX_FMT_SBGGR12: resPixelformat = VmbPixelFormatBayerGR12; break;
-        case V4L2_PIX_FMT_SGBRG12: resPixelformat = VmbPixelFormatBayerRG12; break;
-        case V4L2_PIX_FMT_SGRBG12: resPixelformat = VmbPixelFormatBayerBG12; break;
-        case V4L2_PIX_FMT_SRGGB12: resPixelformat = VmbPixelFormatBayerGB12; break;
-        case V4L2_PIX_FMT_RGB24: resPixelformat = VmbPixelFormatRgb8; break;
-	    case V4L2_PIX_FMT_BGR24: resPixelformat = VmbPixelFormatBgr8; break;
+        //case V4L2_PIX_FMT_GREY:    resPixelformat = VmbPixelFormatMono8;     break;
+        case V4L2_PIX_FMT_SBGGR8:  resPixelformat = VmbPixelFormatBayerGR8;  break;
+        case V4L2_PIX_FMT_SGBRG8:  resPixelformat = VmbPixelFormatBayerRG8;  break;
+        case V4L2_PIX_FMT_SGRBG8:  resPixelformat = VmbPixelFormatBayerBG8;  break;
+        case V4L2_PIX_FMT_SRGGB8:  resPixelformat = VmbPixelFormatBayerGB8;  break;
+        
+        //case V4L2_PIX_FMT_GREY10:  resPixelformat = VmbPixelFormatMono10;    break;
+        //case V4L2_PIX_FMT_SBGGR10: resPixelformat = VmbPixelFormatBayerGR10; break;
+        //case V4L2_PIX_FMT_SGBRG10: resPixelformat = VmbPixelFormatBayerRG10; break;
+        //case V4L2_PIX_FMT_SGRBG10: resPixelformat = VmbPixelFormatBayerBG10; break;
+        //case V4L2_PIX_FMT_SRGGB10: resPixelformat = VmbPixelFormatBayerGB10; break;
+        
+        //case V4L2_PIX_FMT_GREY12:  resPixelformat = VmbPixelFormatMono12;    break;
+        //case V4L2_PIX_FMT_SBGGR12: resPixelformat = VmbPixelFormatBayerGR12; break;
+        //case V4L2_PIX_FMT_SGBRG12: resPixelformat = VmbPixelFormatBayerRG12; break;
+        //case V4L2_PIX_FMT_SGRBG12: resPixelformat = VmbPixelFormatBayerBG12; break;
+        //case V4L2_PIX_FMT_SRGGB12: resPixelformat = VmbPixelFormatBayerGB12; break;
+        
+        case V4L2_PIX_FMT_RGB24:   resPixelformat = VmbPixelFormatRgb8;      break;
+	case V4L2_PIX_FMT_BGR24:   resPixelformat = VmbPixelFormatBgr8;      break;
+        //case V4L2_PIX_FMT_UYVY:    resPixelformat = VmbPixelFormatYuv422;    break;
+        //case V4L2_PIX_FMT_RGB565 is done in ImageTransf.cpp
+        //case V4L2_PIX_FMT_JPEG is done in ImageTransf.cpp
         default:
             result = -1;
             break;

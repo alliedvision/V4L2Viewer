@@ -1049,7 +1049,7 @@
             <x>370</x>
             <y>10</y>
             <width>161</width>
-            <height>121</height>
+            <height>101</height>
            </rect>
           </property>
           <property name="autoFillBackground">
@@ -1066,12 +1066,12 @@
             <rect>
              <x>10</x>
              <y>20</y>
-             <width>61</width>
+             <width>51</width>
              <height>17</height>
             </rect>
            </property>
            <property name="text">
-            <string>x-offset:</string>
+            <string>left:</string>
            </property>
           </widget>
           <widget class="QLineEdit" name="m_edCropXOffset">
@@ -1089,12 +1089,12 @@
             <rect>
              <x>10</x>
              <y>40</y>
-             <width>61</width>
+             <width>51</width>
              <height>17</height>
             </rect>
            </property>
            <property name="text">
-            <string>y-offset:</string>
+            <string>top:</string>
            </property>
           </widget>
           <widget class="QLineEdit" name="m_edCropYOffset">
@@ -1112,7 +1112,7 @@
             <rect>
              <x>10</x>
              <y>60</y>
-             <width>61</width>
+             <width>51</width>
              <height>17</height>
             </rect>
            </property>
@@ -1135,7 +1135,7 @@
             <rect>
              <x>10</x>
              <y>80</y>
-             <width>61</width>
+             <width>51</width>
              <height>17</height>
             </rect>
            </property>
@@ -1151,6 +1151,265 @@
              <width>81</width>
              <height>16</height>
             </rect>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QGroupBox" name="groupBox_6">
+          <property name="geometry">
+           <rect>
+            <x>520</x>
+            <y>190</y>
+            <width>121</width>
+            <height>101</height>
+           </rect>
+          </property>
+          <property name="title">
+           <string>CropCap bounds</string>
+          </property>
+          <widget class="QLineEdit" name="m_edBoundsH">
+           <property name="geometry">
+            <rect>
+             <x>60</x>
+             <y>80</y>
+             <width>51</width>
+             <height>16</height>
+            </rect>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_34">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>80</y>
+             <width>51</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>height:</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_35">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>40</y>
+             <width>51</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>top:</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="m_edBoundsW">
+           <property name="geometry">
+            <rect>
+             <x>60</x>
+             <y>60</y>
+             <width>51</width>
+             <height>16</height>
+            </rect>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="m_edBoundsY">
+           <property name="geometry">
+            <rect>
+             <x>60</x>
+             <y>40</y>
+             <width>51</width>
+             <height>16</height>
+            </rect>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_36">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>51</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>left:</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_37">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>60</y>
+             <width>51</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>width:</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="m_edBoundsX">
+           <property name="geometry">
+            <rect>
+             <x>60</x>
+             <y>20</y>
+             <width>51</width>
+             <height>16</height>
+            </rect>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QGroupBox" name="groupBox_5">
+          <property name="geometry">
+           <rect>
+            <x>650</x>
+            <y>190</y>
+            <width>121</width>
+            <height>101</height>
+           </rect>
+          </property>
+          <property name="title">
+           <string>CropCap defrect</string>
+          </property>
+          <widget class="QLineEdit" name="m_edDefrectH">
+           <property name="geometry">
+            <rect>
+             <x>60</x>
+             <y>80</y>
+             <width>51</width>
+             <height>16</height>
+            </rect>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_29">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>80</y>
+             <width>51</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>height:</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_26">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>40</y>
+             <width>51</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>top:</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="m_edDefrectW">
+           <property name="geometry">
+            <rect>
+             <x>60</x>
+             <y>60</y>
+             <width>51</width>
+             <height>16</height>
+            </rect>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="m_edDefrectY">
+           <property name="geometry">
+            <rect>
+             <x>60</x>
+             <y>40</y>
+             <width>51</width>
+             <height>16</height>
+            </rect>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_28">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>51</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>left:</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_27">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>60</y>
+             <width>51</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>width:</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="m_edDefrectX">
+           <property name="geometry">
+            <rect>
+             <x>60</x>
+             <y>20</y>
+             <width>51</width>
+             <height>16</height>
+            </rect>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QPushButton" name="m_butCropCapabilities">
+          <property name="geometry">
+           <rect>
+            <x>380</x>
+            <y>190</y>
+            <width>121</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Crop Capabilities</string>
+          </property>
+         </widget>
+         <widget class="QGroupBox" name="groupBox_7">
+          <property name="geometry">
+           <rect>
+            <x>380</x>
+            <y>230</y>
+            <width>131</width>
+            <height>61</height>
+           </rect>
+          </property>
+          <property name="title">
+           <string>CropCap aspect</string>
+          </property>
+          <widget class="QLineEdit" name="m_edAspect">
+           <property name="geometry">
+            <rect>
+             <x>70</x>
+             <y>30</y>
+             <width>51</width>
+             <height>20</height>
+            </rect>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_38">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>30</y>
+             <width>61</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>fraction:</string>
            </property>
           </widget>
          </widget>

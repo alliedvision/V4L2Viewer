@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.13"
+#define PROGRAM_VERSION "v1.14"
 
 /*
  * 1.0: base version
@@ -70,6 +70,7 @@
  * 1.11: AVTImageTransform added
  * 1.12: ImageTransform use bug in VmbImageTransformHelper fix
  * 1.13: FrameObserver ReadFrame DQBUF return value watch added
+ * 1.14: Crop set get and capabilities improved
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -200,6 +201,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(ui.m_edCropYOffset, SIGNAL(returnPressed()), this, SLOT(OnCropYOffset()));
 	connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
 	connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
+	connect(ui.m_butCropCapabilities, SIGNAL(clicked()), this, SLOT(OnCropCapabilities()));
 
     // Set the splitter stretch factors
 	ui.m_Splitter1->setStretchFactor(0, 25);
@@ -604,7 +606,6 @@ void v4l2test::OnCameraFramesize(const QString& size)
 {
 	ui.m_liFramesizes->addItem(size);
 }
-
 
 void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
@@ -1763,6 +1764,57 @@ void v4l2test::OnCropHeight()
     }
 }
 	
+void v4l2test::OnCropCapabilities()
+{
+    uint32_t boundsx;
+    uint32_t boundsy;
+    uint32_t boundsw;
+    uint32_t boundsh;
+    uint32_t defrectx;
+    uint32_t defrecty;
+    uint32_t defrectw;
+    uint32_t defrecth;
+    uint32_t aspectnum;
+    uint32_t aspectdenum;
+    
+    OnLog("Read cropping capabilities");
+    if (m_Camera.ReadCropCapabilities(boundsx, boundsy, boundsw, boundsh,
+				 defrectx, defrecty, defrectw, defrecth,
+				 aspectnum, aspectdenum) == 0)
+    {
+        ui.m_edBoundsX->setEnabled(true);
+	ui.m_edBoundsX->setText(QString("%1").arg(boundsx));
+	ui.m_edBoundsY->setEnabled(true);
+	ui.m_edBoundsY->setText(QString("%1").arg(boundsy));
+	ui.m_edBoundsW->setEnabled(true);
+	ui.m_edBoundsW->setText(QString("%1").arg(boundsw));
+	ui.m_edBoundsH->setEnabled(true);
+	ui.m_edBoundsH->setText(QString("%1").arg(boundsh));
+	ui.m_edDefrectX->setEnabled(true);
+	ui.m_edDefrectX->setText(QString("%1").arg(defrectx));
+	ui.m_edDefrectY->setEnabled(true);
+	ui.m_edDefrectY->setText(QString("%1").arg(defrecty));
+	ui.m_edDefrectW->setEnabled(true);
+	ui.m_edDefrectW->setText(QString("%1").arg(defrectw));
+	ui.m_edDefrectH->setEnabled(true);
+	ui.m_edDefrectH->setText(QString("%1").arg(defrecth));
+	ui.m_edAspect->setEnabled(true);
+	ui.m_edAspect->setText(QString("%1/%2").arg(aspectnum).arg(aspectdenum));
+    }
+    else
+    {
+	ui.m_edBoundsX->setEnabled(false);
+	ui.m_edBoundsY->setEnabled(false);
+	ui.m_edBoundsW->setEnabled(false);
+	ui.m_edBoundsH->setEnabled(false);
+	ui.m_edDefrectX->setEnabled(false);
+	ui.m_edDefrectY->setEnabled(false);
+	ui.m_edDefrectW->setEnabled(false);
+	ui.m_edDefrectH->setEnabled(false);
+	ui.m_edAspect->setEnabled(false);
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Tools
 ////////////////////////////////////////////////////////////////////////
@@ -1938,6 +1990,7 @@ void v4l2test::GetImageInformation()
 	    ui.m_edCropWidth->setEnabled(false);
 	    ui.m_edCropHeight->setEnabled(false);
     }
+    OnCropCapabilities();
 }
 
 void v4l2test::UpdateCameraFormat()

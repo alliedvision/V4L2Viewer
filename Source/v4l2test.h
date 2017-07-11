@@ -227,6 +227,7 @@ private slots:
 	void OnRedBalance();
 	void OnBlueBalance();
 	void OnFramerate();
+	void OnCropCapabilities();
 
 	
 	void OnCameraPixelformat(const QString &);
