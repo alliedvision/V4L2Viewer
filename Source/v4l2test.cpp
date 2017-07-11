@@ -30,6 +30,7 @@
 
 #include <QtGlobal>
 #include <QtCore>
+#include <QStringList>
 
 #include "v4l2test.h"
 #include "V4l2Helper.h"
@@ -185,6 +186,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edExposureAbs, SIGNAL(returnPressed()), this, SLOT(OnExposureAbs()));
 	connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
 	connect(ui.m_liPixelformats, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnPixelformatDBLClick(QListWidgetItem *)));
+	connect(ui.m_liFramesizes, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnFramesizesDBLClick(QListWidgetItem *)));
 	connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
 	connect(ui.m_edReverseX, SIGNAL(returnPressed()), this, SLOT(OnReverseX()));
 	connect(ui.m_edReverseY, SIGNAL(returnPressed()), this, SLOT(OnReverseY()));
@@ -1401,6 +1403,16 @@ void v4l2test::OnPixelformatDBLClick(QListWidgetItem *item)
 	
 	ui.m_edPixelformat->setText(QString("%1").arg(result));
 	ui.m_edPixelformatText->setText(QString("%1").arg(V4l2Helper::ConvertPixelformat2EnumString(result).c_str()));
+}
+
+void v4l2test::OnFramesizesDBLClick(QListWidgetItem *item)
+{
+	QString tmp = item->text();
+	QStringList list1 = tmp.split('x').first().split(':');
+	QStringList list2 = tmp.split('x');
+		
+	ui.m_edWidth->setText(QString("%1").arg(list1.at(1)));
+	ui.m_edHeight->setText(QString("%1").arg(list2.at(1)));
 }
 
 void v4l2test::OnGamma()
