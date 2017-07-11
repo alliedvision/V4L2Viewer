@@ -49,7 +49,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.14"
+#define PROGRAM_VERSION "v1.15"
 
 /*
  * 1.0: base version
@@ -71,6 +71,7 @@
  * 1.12: ImageTransform use bug in VmbImageTransformHelper fix
  * 1.13: FrameObserver ReadFrame DQBUF return value watch added
  * 1.14: Crop set get and capabilities improved
+ * 1.15: Read all Values button added to update the shown values
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -202,6 +203,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
 	connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
 	connect(ui.m_butCropCapabilities, SIGNAL(clicked()), this, SLOT(OnCropCapabilities()));
+	connect(ui.m_butReadValues, SIGNAL(clicked()), this, SLOT(OnReadAllValues()));
 
     // Set the splitter stretch factors
 	ui.m_Splitter1->setStretchFactor(0, 25);
@@ -1813,6 +1815,12 @@ void v4l2test::OnCropCapabilities()
 	ui.m_edDefrectH->setEnabled(false);
 	ui.m_edAspect->setEnabled(false);
     }
+}
+
+void v4l2test::OnReadAllValues()
+{
+    GetImageInformation();
+    UpdateCameraFormat();
 }
 
 ////////////////////////////////////////////////////////////////////////

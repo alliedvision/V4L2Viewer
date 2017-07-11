@@ -1047,7 +1047,7 @@
           <property name="geometry">
            <rect>
             <x>370</x>
-            <y>10</y>
+            <y>90</y>
             <width>161</width>
             <height>101</height>
            </rect>
@@ -1368,7 +1368,7 @@
           <property name="geometry">
            <rect>
             <x>380</x>
-            <y>190</y>
+            <y>200</y>
             <width>121</width>
             <height>20</height>
            </rect>
@@ -1412,6 +1412,19 @@
             <string>fraction:</string>
            </property>
           </widget>
+         </widget>
+         <widget class="QPushButton" name="m_butReadValues">
+          <property name="geometry">
+           <rect>
+            <x>380</x>
+            <y>10</y>
+            <width>121</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Read all values</string>
+          </property>
          </widget>
         </widget>
         <widget class="QWidget" name="m_DirectRegisterAccessTab">
