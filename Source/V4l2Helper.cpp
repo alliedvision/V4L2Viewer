@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <linux/videodev2.h>
+#include "videodev2_av.h"
 
 #include "V4l2Helper.h"
 
@@ -204,6 +204,23 @@ namespace Examples {
 			case V4L2_PIX_FMT_JPGL: result = "V4L2_PIX_FMT_JPGL"; break;
 			case V4L2_PIX_FMT_SE401: result = "V4L2_PIX_FMT_SE401"; break;
 			case V4L2_PIX_FMT_S5C_UYVY_JPG: result = "V4L2_PIX_FMT_S5C_UYVY_JPG"; break;
+
+                        /* 10bit and 12bit greyscale packed */
+			case V4L2_PIX_FMT_Y10P: result = "V4L2_PIX_FMT_Y10P"; break;
+			case V4L2_PIX_FMT_Y12P: result = "V4L2_PIX_FMT_Y12P"; break;
+
+			/* 10bit raw bayer packed, 5 bytes for every 4 pixels */
+			case V4L2_PIX_FMT_SBGGR10P: result = "V4L2_PIX_FMT_SBGGR10P"; break;
+			case V4L2_PIX_FMT_SGBRG10P: result = "V4L2_PIX_FMT_SGBRG10P"; break;
+			case V4L2_PIX_FMT_SGRBG10P: result = "V4L2_PIX_FMT_SGRBG10P"; break;
+			case V4L2_PIX_FMT_SRGGB10P: result = "V4L2_PIX_FMT_SRGGB10P"; break;
+
+			/* 12bit raw bayer packed, 6 bytes for every 4 pixels */
+			case V4L2_PIX_FMT_SBGGR12P: result = "V4L2_PIX_FMT_SBGGR12P"; break;
+			case V4L2_PIX_FMT_SGBRG12P: result = "V4L2_PIX_FMT_SGBRG12P"; break;
+			case V4L2_PIX_FMT_SGRBG12P: result = "V4L2_PIX_FMT_SGRBG12P"; break;
+			case V4L2_PIX_FMT_SRGGB12P: result = "V4L2_PIX_FMT_SRGGB12P"; break;
+
 			default: result = "<unknown>"; break;
 		}
 		

@@ -232,7 +232,7 @@ void ImageProcessingThread::run()
 			uint32_t bytesPerLine = pFrame->GetBytesPerLine();
 			QImage convertedImage;
             VmbPixelFormat_t resPixelformat;
-	    cv::Mat destMat(height, width, CV_8UC3); 
+	    cv::Mat destMat(height, width, CV_16UC3); //8UC3); 
             
 	    if (0 == Try2ConvertV4l2Pixelformat2OpenCV(pixelformat, width, height, pBuffer, destMat))
 	    {

@@ -37,7 +37,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <linux/videodev2.h>
+#include "videodev2_av.h"
 
 #include "Helper.h"
 #include "FrameObserverMMAP.h"
@@ -444,8 +444,8 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
 		fmt.fmt.pix.field = V4L2_FIELD_ANY;
 		fmt.fmt.pix.bytesperline = 0;
 
-		if (0 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
-		{       
+		//if (0 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_FMT, &fmt))
+		//{       
 		    if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_FMT, &fmt))
 		    {                
                 Logger::LogEx("Camera::SetFrameSize VIDIOC_S_FMT OK =%dx%d", width, height);
@@ -453,12 +453,12 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
 
                 result = 0;
 		    }
-        }
+        /*}
         else
         {
             Logger::LogEx("Camera::SetFrameSize VIDIOC_TRY_FMT failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
             emit OnCameraError_Signal(QString("SetFrameSize VIDIOC_TRY_FMT: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
-        }
+        }*/
 	}
 	else
 	{
