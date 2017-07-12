@@ -55,7 +55,8 @@ DEFINES                 = TIXML_USE_STL
 
 PACKAGES                = QtCore \
 			  QtSvg \
-                          QtGui
+                          QtGui \
+			  opencv
 
 OBJ_FILES               = $(OBJ_DIR)/BaseLogger.o \
 			  $(OBJ_DIR)/Camera.o \

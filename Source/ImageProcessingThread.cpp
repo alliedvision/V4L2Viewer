@@ -29,6 +29,7 @@
 #include "ImageTransf.h"
 #include "VmbImageTransformHelper.hpp"
 
+#include "videodev2_av.h"
 
 ImageProcessingThread::ImageProcessingThread()
 	: m_bAbort(false)
@@ -109,7 +110,7 @@ void ImageProcessingThread::StopThread()
 	m_FrameQueue.Clear();
 }
 
-int ImageProcessingThread::ConvertPixelformat(uint32_t pixelformat, uint32_t &resPixelformat)
+int ImageProcessingThread::Try2ConvertV4l2Pixelformat2Vimba(uint32_t pixelformat, uint32_t &resPixelformat)
 {
     int result = 0;
     
@@ -146,6 +147,70 @@ int ImageProcessingThread::ConvertPixelformat(uint32_t pixelformat, uint32_t &re
     return result;
 }
 
+int ImageProcessingThread::Try2ConvertV4l2Pixelformat2OpenCV(uint32_t pixelformat, uint32_t width, uint32_t height, const void *pBuffer, cv::Mat &destMat)
+{
+    int result = 0;
+    
+    //emit OnMessage_Signal("converting buffer to RGB888");
+	  
+    switch (pixelformat)
+    {
+	case V4L2_PIX_FMT_RGB24: 
+	case V4L2_PIX_FMT_BGR24: 
+	{
+	  cv::Mat frame(cv::Size(width, height), CV_8UC3 , (void*)pBuffer);
+	  cv::cvtColor(frame, destMat, CV_BGR2RGB);
+	  break; 
+	}
+	
+	case V4L2_PIX_FMT_Y10P:
+	case V4L2_PIX_FMT_Y12P:
+	{
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1 , (void*)pBuffer);
+	  cv::cvtColor(frame, destMat, CV_BayerRG2RGB);
+	  break;
+	}
+        case V4L2_PIX_FMT_SBGGR10P: 
+	case V4L2_PIX_FMT_SBGGR12P:
+	{
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1 , (void*)pBuffer);
+	  //cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC3);
+	  cv::cvtColor(frame, destMat, CV_BayerBG2RGB);
+	  break;
+	}
+        case V4L2_PIX_FMT_SGBRG10P:
+	case V4L2_PIX_FMT_SGBRG12P:
+	{
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1 , (void*)pBuffer);
+	  //cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC3);
+	  cv::cvtColor(frame, destMat, CV_BayerGB2RGB);
+	  break;
+	}
+        case V4L2_PIX_FMT_SGRBG10P:
+	case V4L2_PIX_FMT_SGRBG12P: 
+	{
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1 , (void*)pBuffer);
+	  //cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC3);
+	  cv::cvtColor(frame, destMat, CV_BayerGR2RGB);
+	  break;
+	}
+        case V4L2_PIX_FMT_SRGGB10P:
+	case V4L2_PIX_FMT_SRGGB12P: 
+	{
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1 , (void*)pBuffer);
+	  //cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC3);
+	  cv::cvtColor(frame, destMat, CV_BayerRG2RGB);
+	  break;
+	}
+        
+        default:
+            result = -1;
+            break;
+    }
+    
+    return result;
+}
+
 // Do the work within this thread
 void ImageProcessingThread::run()
 {
@@ -167,13 +232,20 @@ void ImageProcessingThread::run()
 			uint32_t bytesPerLine = pFrame->GetBytesPerLine();
 			QImage convertedImage;
             VmbPixelFormat_t resPixelformat;
+	    cv::Mat destMat(height, width, CV_8UC3); 
             
-            if (0 == ConvertPixelformat(pixelformat, resPixelformat))
+	    if (0 == Try2ConvertV4l2Pixelformat2OpenCV(pixelformat, width, height, pBuffer, destMat))
+	    {
+	        convertedImage = QImage((const uchar *) destMat.data, destMat.cols, destMat.rows, destMat.step, QImage::Format_RGB888);
+		convertedImage.bits(); //enforce deep copy
+	  	result = 0;
+	    }
+            else if (0 == Try2ConvertV4l2Pixelformat2Vimba(pixelformat, resPixelformat))
             {
                 convertedImage = QImage(width, height, QImage::Format_RGB888);
                 result = AVT::VmbImageTransform( convertedImage, (void*)pBuffer, width, height, resPixelformat);
             }
-			else
+	    else
             {
                 result = AVT::Tools::ImageTransf::ConvertFrame(pBuffer, length, 
                                                                width, height, pixelformat, 
@@ -181,10 +253,10 @@ void ImageProcessingThread::run()
 			}
 			
             if (result == 0)
-				emit OnFrameReady_Signal(convertedImage, frameID, buf.index);
-		}
+		emit OnFrameReady_Signal(convertedImage, frameID, buf.index);
+	    }
 
-		QThread::msleep(1);
+	    QThread::msleep(1);
 	}
 }
 

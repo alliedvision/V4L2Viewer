@@ -36,6 +36,8 @@
 #include <MyFrame.h>
 #include <MyFrameQueue.h>
 
+#include <opencv2/opencv.hpp>
+
 class ImageProcessingThread : public QThread
 {
 	Q_OBJECT
@@ -55,8 +57,9 @@ public:
 	// Queue the frame for the thread to work with
 	int QueueFrame(QSharedPointer<MyFrame> pFrame);
 
-    int ConvertPixelformat(uint32_t pixelformat, uint32_t &resPixelformat);
-    
+	int Try2ConvertV4l2Pixelformat2Vimba(uint32_t pixelformat, uint32_t &resPixelformat);
+	int Try2ConvertV4l2Pixelformat2OpenCV(uint32_t pixelformat, uint32_t width, uint32_t height, const void *pBuffer, cv::Mat &destMat);
+	
 	// start thread
 	void StartThread();
 	// stop the internal processing thread and wait until the thread is really stopped
@@ -78,6 +81,8 @@ private:
 signals:
 	// Event will be called when an image is processed by the thread
 	void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId, const int &bufIndex);
+	// Event will be called when message should be displayed
+	void OnMessage_Signal(const QString &msg);
 
 };
 

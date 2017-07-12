@@ -31,7 +31,7 @@
 #include "ImageTransf.h"
 #include "Logger.h"
 #include <QPixmap>
-#include <linux/videodev2.h>
+#include "videodev2_av.h"
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 

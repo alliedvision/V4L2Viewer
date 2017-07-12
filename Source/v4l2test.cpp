@@ -50,7 +50,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.15"
+#define PROGRAM_VERSION "v1.16"
 
 /*
  * 1.0: base version
@@ -73,6 +73,7 @@
  * 1.13: FrameObserver ReadFrame DQBUF return value watch added
  * 1.14: Crop set get and capabilities improved
  * 1.15: Read all Values button added to update the shown values
+ * 1.16: Additional pixelformat conversions via OpenCV
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)

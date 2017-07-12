@@ -73,6 +73,7 @@ FrameObserver::FrameObserver(bool showFrames)
 	m_pImageProcessingThread = QSharedPointer<ImageProcessingThread>(new ImageProcessingThread());
 
 	connect(m_pImageProcessingThread.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &, const int &)), this, SLOT(OnFrameReadyFromThread(const QImage &, const unsigned long long &, const int &)));
+	connect(m_pImageProcessingThread.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessageFromThread(const QString &)));
 }
 
 FrameObserver::~FrameObserver()
@@ -317,6 +318,11 @@ void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned l
     emit OnFrameReady_Signal(image, frameId);
 	
 	QueueSingleUserBuffer(bufIndex);
+}
+
+void FrameObserver::OnMessageFromThread(const QString &msg)
+{
+    emit OnMessage_Signal(msg);
 }
 
 // Recording

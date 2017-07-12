@@ -163,6 +163,8 @@ protected:
 private slots:
 	//Event handler for getting the processed frame to an image
 	void OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex);
+	//Event handler for sending messages to GUI
+	void OnMessageFromThread(const QString &msg);
 	
 signals:
 	// Event will be called when a frame is processed by the internal thread and ready to show
