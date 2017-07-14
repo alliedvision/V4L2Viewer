@@ -51,7 +51,9 @@ public:
 
     int DeviceDiscoveryStart();
     int DeviceDiscoveryStop();
-    int StartStreamChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine, void *pPrivateData);
+    int StartStreamChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, 
+			   uint32_t bytesPerLine, void *pPrivateData,
+			   uint32_t enableLogging, uint32_t dumpFrameStart, uint32_t dumpFrameEnd);
     int StopStreamChannel();
     
     int ReadPayloadsize(uint32_t &payloadsize);

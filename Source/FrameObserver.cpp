@@ -41,10 +41,15 @@
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 
+////////////////////////////////////////////////////////////////////////////
+// Global data
+////////////////////////////////////////////////////////////////////////////    
+
+uint8_t *g_ConversionBuffer = 0;
+
 namespace AVT {
 namespace Tools {
 namespace Examples {
-
 
 ////////////////////////////////////////////////////////////////////////////
 // Implementation
@@ -87,7 +92,9 @@ FrameObserver::~FrameObserver()
 	QThread::msleep(10);
 }
 
-int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
+int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, 
+			       uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
+			       uint32_t enableLogging, uint32_t dumpFrameStart, uint32_t dumpFrameEnd)
 {
     int nResult = 0;
     
@@ -104,6 +111,14 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     
     m_bStreamStopped = false;
     m_bStreamRunning = true;
+    
+    m_EnableLogging = enableLogging;
+    m_DumpFrameStart = dumpFrameStart;
+    m_DumpFrameEnd = dumpFrameEnd;
+    m_DumpFrameCount = 0;
+    
+    if (0 == g_ConversionBuffer)
+        g_ConversionBuffer = (uint8_t*)malloc(m_nWidth*m_nHeight*4);
     
     m_pImageProcessingThread->StartThread();
     
@@ -129,6 +144,10 @@ int FrameObserver::StopStream()
     if (count <= 0)
        nResult = -1;
 
+    if (0 != g_ConversionBuffer)
+        free(g_ConversionBuffer);
+    g_ConversionBuffer = 0;
+    
     return nResult;
 }
 
@@ -171,9 +190,15 @@ void FrameObserver::DequeueAndProcessFrame()
 			{
 			    if (length <= m_RealPayloadsize)
 			    {
+			        if (m_DumpFrameCount >= m_DumpFrameStart && m_DumpFrameCount <  m_DumpFrameEnd)
+    				{
+        				Logger::LogDump("Received buffer:", (uint8_t*)buffer, (uint32_t)m_PayloadSize);
+				}
+				m_DumpFrameCount++;
+				
 				if (m_bRecording)
 				{
-					if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
+    					if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
 					{
 						QImage convertedImage;
 			

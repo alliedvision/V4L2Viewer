@@ -26,7 +26,7 @@ INCLUDE_DIRS            = $(SOURCE_DIR) \
                           $(OBJ_DIR)
 
 LIBS                    = pthread \
-                          VimbaImageTransform \
+#                          VimbaImageTransform \
                           $(SHO_LIB)
 
 ifeq ($(ARCH),arm)
@@ -55,8 +55,8 @@ DEFINES                 = TIXML_USE_STL
 
 PACKAGES                = QtCore \
 			  QtSvg \
-                          QtGui \
-			  opencv
+#			  opencv \
+                          QtGui
 
 OBJ_FILES               = $(OBJ_DIR)/BaseLogger.o \
 			  $(OBJ_DIR)/Camera.o \

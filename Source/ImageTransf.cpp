@@ -35,9 +35,10 @@
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 
+extern uint8_t *g_ConversionBuffer;
+
 namespace AVT {
 namespace Tools {
-
 
 ////////////////////////////////////////////////////////////////////////////
 // Implementation
@@ -49,6 +50,46 @@ ImageTransf::ImageTransf()
 
 ImageTransf::~ImageTransf()
 {
+}
+
+void  ConvertRAW12gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t height, const void *destBuffer)
+{
+    unsigned char *destdata = (unsigned char *)destBuffer;
+    unsigned char *srcdata = (unsigned char *)sourceBuffer;
+    uint32_t count = 0;
+    uint32_t bytesPerLine = width * 1.5;
+    
+    for (int i= 0; i<height; i++)
+    {
+       for (int ii= 0; ii<bytesPerLine; ii++)
+       {
+           if (((count+1)%3) != 0)
+                *destdata++ = *srcdata++;
+	   count++;
+       }
+    }
+    
+    //printf("counter= %d", count);
+}
+
+void  ConvertRAW10gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t height, const void *destBuffer)
+{
+    unsigned char *destdata = (unsigned char *)destBuffer;
+    unsigned char *srcdata = (unsigned char *)sourceBuffer;
+    uint32_t count = 0;
+    uint32_t bytesPerLine = width * 1.25;
+    
+    for (int i= 0; i<height; i++)
+    {
+       for (int ii= 0; ii<bytesPerLine; ii++)
+       {
+           if (((count+1)%5) != 0)
+                *destdata++ = *srcdata++;
+	   count++;
+       }
+    }
+    
+    //printf("counter= %d", count);
 }
 
 /* inspired by OpenCV's Bayer decoding */
@@ -555,44 +596,98 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
         }
         break;
     case V4L2_PIX_FMT_SBGGR8:
-	case V4L2_PIX_FMT_SGBRG8:
-	case V4L2_PIX_FMT_SGRBG8:
-	case V4L2_PIX_FMT_SRGGB8:
-        {
-            convertedImage = QImage(width, height, QImage::Format_RGB888);
-            v4lconvert_bayer8_to_rgb24(pBuffer, convertedImage.bits(), width, height, bytesPerLine, pixelformat);
-        }
-		break;
-    case V4L2_PIX_FMT_SBGGR10:
-    case V4L2_PIX_FMT_SGBRG10:
-    case V4L2_PIX_FMT_SGRBG10:
-    case V4L2_PIX_FMT_SRGGB10:
-        return -1;
-        break;
-    case V4L2_PIX_FMT_SBGGR12:
-    case V4L2_PIX_FMT_SGBRG12:
-    case V4L2_PIX_FMT_SGRBG12:
-    case V4L2_PIX_FMT_SRGGB12:
-        return -1;
-        break;
-
+    case V4L2_PIX_FMT_SGBRG8:
+    case V4L2_PIX_FMT_SGRBG8:
+    case V4L2_PIX_FMT_SRGGB8:
+    {
+        convertedImage = QImage(width, height, QImage::Format_RGB888);
+        v4lconvert_bayer8_to_rgb24(pBuffer, convertedImage.bits(), width, height, bytesPerLine, pixelformat);
+    }
+    break;
+    
     /* L&T */
     /* 10bit raw bayer packed, 5 bytes for every 4 pixels */
-    /*case V4L2_PIX_FMT_SBGGR10P:
+    case V4L2_PIX_FMT_Y10P:
+    {
+	ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_grey_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height);
+	break;
+    }
+    case V4L2_PIX_FMT_SBGGR10P:
+    {
+	ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+				   width/*bytesPerLine*/, V4L2_PIX_FMT_SBGGR8);
+	break;
+    }
     case V4L2_PIX_FMT_SGBRG10P:
+    {
+	ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+				   width/*bytesPerLine*/, V4L2_PIX_FMT_SGBRG8);
+	break;
+    }
     case V4L2_PIX_FMT_SGRBG10P:
+    {
+	ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+				   width/*bytesPerLine*/, V4L2_PIX_FMT_SGRBG8);
+	break;
+    }
     case V4L2_PIX_FMT_SRGGB10P:
-        return -1;
-        break;
-*/
+    {
+	ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+				   width/*bytesPerLine*/, V4L2_PIX_FMT_SRGGB8);
+	break;
+    }
+
     /* 12bit raw bayer packed, 6 bytes for every 4 pixels */
-    /*case V4L2_PIX_FMT_SBGGR12P:
+    case V4L2_PIX_FMT_Y12P:
+    {
+	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_grey_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height);
+	break;
+    }
+    case V4L2_PIX_FMT_SBGGR12P:
+    {
+	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+				   width/*bytesPerLine*/, V4L2_PIX_FMT_SBGGR8);
+	break;
+    }
     case V4L2_PIX_FMT_SGBRG12P:
-    case V4L2_PIX_FMT_SGRBG12P:
+    {
+	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+				   width/*bytesPerLine*/, V4L2_PIX_FMT_SGBRG8);
+	break;
+    }
+    case V4L2_PIX_FMT_SGRBG12P: 
+    {
+	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+				   width/*bytesPerLine*/, V4L2_PIX_FMT_SGRBG8);
+	break;
+    }
     case V4L2_PIX_FMT_SRGGB12P:
-        return -1;
-        break;
-*/
+    {
+	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+				   width/*bytesPerLine*/, V4L2_PIX_FMT_SRGGB8);
+	break;
+    }
+
     default:
         return -1;
     }

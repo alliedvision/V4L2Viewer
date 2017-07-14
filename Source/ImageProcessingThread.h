@@ -36,7 +36,7 @@
 #include <MyFrame.h>
 #include <MyFrameQueue.h>
 
-#include <opencv2/opencv.hpp>
+//#include <opencv2/opencv.hpp>
 
 class ImageProcessingThread : public QThread
 {
@@ -57,8 +57,8 @@ public:
 	// Queue the frame for the thread to work with
 	int QueueFrame(QSharedPointer<MyFrame> pFrame);
 
-	int Try2ConvertV4l2Pixelformat2Vimba(uint32_t pixelformat, uint32_t &resPixelformat);
-	int Try2ConvertV4l2Pixelformat2OpenCV(uint32_t pixelformat, uint32_t width, uint32_t height, const void *pBuffer, cv::Mat &destMat);
+	//int Try2ConvertV4l2Pixelformat2Vimba(uint32_t pixelformat, uint32_t &resPixelformat);
+	//int Try2ConvertV4l2Pixelformat2OpenCV(uint32_t pixelformat, uint32_t width, uint32_t height, const void *pBuffer, cv::Mat &destMat);
 	
 	// start thread
 	void StartThread();

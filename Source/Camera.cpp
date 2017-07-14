@@ -284,13 +284,17 @@ int Camera::DeviceDiscoveryStop()
 /********************************************************************************/
 
 
-int Camera::StartStreamChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine, void *pPrivateData)
+int Camera::StartStreamChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, 
+			       uint32_t bytesPerLine, void *pPrivateData,
+			       uint32_t enableLogging, uint32_t dumpFrameStart, uint32_t dumpFrameEnd)
 {
     int nResult = 0;
     
     Logger::LogEx("Camera::StartStreamChannel pixelformat=%d, payloadsize=%d, width=%d, height=%d.", pixelformat, payloadsize, width, height);
 	
-    m_StreamCallbacks->StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, payloadsize, width, height, bytesPerLine);
+    m_StreamCallbacks->StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, 
+				   payloadsize, width, height, bytesPerLine,
+				   enableLogging, dumpFrameStart, dumpFrameEnd);
 
     m_StreamCallbacks->ResetDroppedFramesCount();
 

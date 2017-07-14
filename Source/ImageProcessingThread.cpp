@@ -27,9 +27,10 @@
 
 #include "ImageProcessingThread.h"
 #include "ImageTransf.h"
-#include "VmbImageTransformHelper.hpp"
+//#include "VmbImageTransformHelper.hpp"
 
 #include "videodev2_av.h"
+#include "Logger.h"
 
 ImageProcessingThread::ImageProcessingThread()
 	: m_bAbort(false)
@@ -109,7 +110,7 @@ void ImageProcessingThread::StopThread()
 	
 	m_FrameQueue.Clear();
 }
-
+/*
 int ImageProcessingThread::Try2ConvertV4l2Pixelformat2Vimba(uint32_t pixelformat, uint32_t &resPixelformat)
 {
     int result = 0;
@@ -117,10 +118,10 @@ int ImageProcessingThread::Try2ConvertV4l2Pixelformat2Vimba(uint32_t pixelformat
     switch (pixelformat)
     {
         //case V4L2_PIX_FMT_GREY:    resPixelformat = VmbPixelFormatMono8;     break;
-        case V4L2_PIX_FMT_SBGGR8:  resPixelformat = VmbPixelFormatBayerGR8;  break;
-        case V4L2_PIX_FMT_SGBRG8:  resPixelformat = VmbPixelFormatBayerRG8;  break;
-        case V4L2_PIX_FMT_SGRBG8:  resPixelformat = VmbPixelFormatBayerBG8;  break;
-        case V4L2_PIX_FMT_SRGGB8:  resPixelformat = VmbPixelFormatBayerGB8;  break;
+        //case V4L2_PIX_FMT_SBGGR8:  resPixelformat = VmbPixelFormatBayerBG8;  break;
+        //case V4L2_PIX_FMT_SGBRG8:  resPixelformat = VmbPixelFormatBayerGB8;  break;
+        //case V4L2_PIX_FMT_SGRBG8:  resPixelformat = VmbPixelFormatBayerGR8;  break;
+        //case V4L2_PIX_FMT_SRGGB8:  resPixelformat = VmbPixelFormatBayerRG8;  break;
         
         //case V4L2_PIX_FMT_GREY10:  resPixelformat = VmbPixelFormatMono10;    break;
         //case V4L2_PIX_FMT_SBGGR10: resPixelformat = VmbPixelFormatBayerGR10; break;
@@ -147,6 +148,40 @@ int ImageProcessingThread::Try2ConvertV4l2Pixelformat2Vimba(uint32_t pixelformat
     return result;
 }
 
+void  ConvertRAW12ToRAW8(const void *buffer, uint32_t width, uint32_t height, cv::Mat &destMat)
+{
+    unsigned char *destdata = destMat.data;
+    unsigned char *srcdata = (unsigned char *)buffer;
+    uint32_t count = 0;
+    
+    for (int i= 0; i<width*1.5; i++)
+    {
+       for (int ii= 0; ii<height; ii++)
+       {
+           if (((count+1)^3) != 0)
+                *destdata++ = *srcdata++;
+	   count++;
+       }
+    }
+}
+
+void  ConvertRAW10ToRAW8(const void *buffer, uint32_t width, uint32_t height, cv::Mat &destMat)
+{
+    unsigned char *destdata = destMat.data;
+    unsigned char *srcdata = (unsigned char *)buffer;
+    uint32_t count = 0;
+    
+    for (int i= 0; i<width*1.25; i++)
+    {
+       for (int ii= 0; ii<height; ii++)
+       {
+           if (((count+1)^5) != 0)
+                *destdata++ = *srcdata++;
+	   count++;
+       }
+    }
+}
+
 int ImageProcessingThread::Try2ConvertV4l2Pixelformat2OpenCV(uint32_t pixelformat, uint32_t width, uint32_t height, const void *pBuffer, cv::Mat &destMat)
 {
     int result = 0;
@@ -164,42 +199,133 @@ int ImageProcessingThread::Try2ConvertV4l2Pixelformat2OpenCV(uint32_t pixelforma
 	}
 	
 	case V4L2_PIX_FMT_Y10P:
-	case V4L2_PIX_FMT_Y12P:
 	{
-	  cv::Mat frame(cv::Size(width, height), CV_16UC1 , (void*)pBuffer);
-	  cv::cvtColor(frame, destMat, CV_BayerRG2RGB);
+	  //cv::namedWindow("capture", CV_WINDOW_NORMAL);
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1);
+	  cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC1);
+	  ConvertRAW10ToRAW8(pBuffer, width, height, frame);
+	  cv::cvtColor(frame, rgb16bitMat, CV_BayerRG2RGB);
+	  rgb16bitMat.convertTo(destMat, CV_8UC3, 1/255.0);
+	  //cv::imshow("capture", destMat);
+	  //if (cv::waitKey(10) >= 0)
+	  //  break;
+	  break;
+	}
+        case V4L2_PIX_FMT_Y12P:
+	{
+	  //cv::namedWindow("capture", CV_WINDOW_NORMAL);
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1);
+	  cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC1);
+	  ConvertRAW12ToRAW8(pBuffer, width, height, frame);
+	  cv::cvtColor(frame, rgb16bitMat, CV_BayerRG2RGB);
+	  rgb16bitMat.convertTo(destMat, CV_8UC3, 1/255.0);
+	  //cv::imshow("capture", destMat);
+	  //if (cv::waitKey(10) >= 0)
+	  //  break;
 	  break;
 	}
         case V4L2_PIX_FMT_SBGGR10P: 
-	case V4L2_PIX_FMT_SBGGR12P:
 	{
-	  cv::Mat frame(cv::Size(width, height), CV_16UC1 , (void*)pBuffer);
-	  //cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC3);
-	  cv::cvtColor(frame, destMat, CV_BayerBG2RGB);
+	  //cv::namedWindow("capture", CV_WINDOW_NORMAL);
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1);
+	  cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC1);
+	  ConvertRAW10ToRAW8(pBuffer, width, height, frame);
+	  cv::cvtColor(frame, rgb16bitMat, CV_BayerBG2RGB);
+	  rgb16bitMat.convertTo(destMat, CV_8UC3, 1/255.0);
+	  //cv::imshow("capture", destMat);
+	  //if (cv::waitKey(10) >= 0)
+	  //  break;
+	  break;
+	}
+        case V4L2_PIX_FMT_SBGGR12P:
+	{
+	  //cv::namedWindow("capture", CV_WINDOW_NORMAL);
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1);
+	  cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC1);
+	  ConvertRAW12ToRAW8(pBuffer, width, height, frame);
+	  cv::cvtColor(frame, rgb16bitMat, CV_BayerBG2RGB);
+	  rgb16bitMat.convertTo(destMat, CV_8UC3, 1/255.0);
+	  //cv::imshow("capture", destMat);
+	  //if (cv::waitKey(10) >= 0)
+	  //  break;
 	  break;
 	}
         case V4L2_PIX_FMT_SGBRG10P:
-	case V4L2_PIX_FMT_SGBRG12P:
 	{
-	  cv::Mat frame(cv::Size(width, height), CV_16UC1 , (void*)pBuffer);
-	  //cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC3);
-	  cv::cvtColor(frame, destMat, CV_BayerGB2RGB);
+	  //cv::namedWindow("capture", CV_WINDOW_NORMAL);
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1);
+	  cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC1);
+	  ConvertRAW10ToRAW8(pBuffer, width, height, frame);
+	  cv::cvtColor(frame, rgb16bitMat, CV_BayerGB2RGB);
+	  rgb16bitMat.convertTo(destMat, CV_8UC3, 1/255.0);
+	  //cv::imshow("capture", destMat);
+	  //if (cv::waitKey(10) >= 0)
+	  //  break;
+	  break;
+	}
+        case V4L2_PIX_FMT_SGBRG12P:
+	{
+	  //cv::namedWindow("capture", CV_WINDOW_NORMAL);
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1);
+	  cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC1);
+	  ConvertRAW12ToRAW8(pBuffer, width, height, frame);
+	  cv::cvtColor(frame, rgb16bitMat, CV_BayerGB2RGB);
+	  rgb16bitMat.convertTo(destMat, CV_8UC3, 1/255.0);
+	  //cv::imshow("capture", destMat);
+	  //if (cv::waitKey(10) >= 0)
+	  //  break;
 	  break;
 	}
         case V4L2_PIX_FMT_SGRBG10P:
-	case V4L2_PIX_FMT_SGRBG12P: 
 	{
-	  cv::Mat frame(cv::Size(width, height), CV_16UC1 , (void*)pBuffer);
-	  //cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC3);
-	  cv::cvtColor(frame, destMat, CV_BayerGR2RGB);
+	  //cv::namedWindow("capture", CV_WINDOW_NORMAL);
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1);
+	  cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC1);
+	  ConvertRAW10ToRAW8(pBuffer, width, height, frame);
+	  cv::cvtColor(frame, rgb16bitMat, CV_BayerGR2RGB);
+	  rgb16bitMat.convertTo(destMat, CV_8UC3, 1/255.0);
+	  //cv::imshow("capture", destMat);
+	  //if (cv::waitKey(10) >= 0)
+	  //  break;
+	  break;
+	}
+        case V4L2_PIX_FMT_SGRBG12P: 
+	{
+	  //cv::namedWindow("capture", CV_WINDOW_NORMAL);
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1);
+	  cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC1);
+	  ConvertRAW12ToRAW8(pBuffer, width, height, frame);
+	  cv::cvtColor(frame, rgb16bitMat, CV_BayerGR2RGB);
+	  rgb16bitMat.convertTo(destMat, CV_8UC3, 1/255.0);
+	  //cv::imshow("capture", destMat);
+	  //if (cv::waitKey(10) >= 0)
+	  //  break;
 	  break;
 	}
         case V4L2_PIX_FMT_SRGGB10P:
-	case V4L2_PIX_FMT_SRGGB12P: 
 	{
-	  cv::Mat frame(cv::Size(width, height), CV_16UC1 , (void*)pBuffer);
-	  //cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC3);
-	  cv::cvtColor(frame, destMat, CV_BayerRG2RGB);
+	  //cv::namedWindow("capture", CV_WINDOW_NORMAL);
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1);
+	  cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC1);
+	  ConvertRAW10ToRAW8(pBuffer, width, height, frame);
+	  cv::cvtColor(frame, rgb16bitMat, CV_BayerRG2RGB);
+	  rgb16bitMat.convertTo(destMat, CV_8UC3, 1/255.0);
+	  //cv::imshow("capture", destMat);
+	  //if (cv::waitKey(10) >= 0)
+	  //  break;
+	  break;
+	}
+        case V4L2_PIX_FMT_SRGGB12P: 
+	{
+	  //cv::namedWindow("capture", CV_WINDOW_NORMAL);
+	  cv::Mat frame(cv::Size(width, height), CV_16UC1);
+	  cv::Mat rgb16bitMat(cv::Size(width, height), CV_16UC1);
+	  ConvertRAW12ToRAW8(pBuffer, width, height, frame);
+	  cv::cvtColor(frame, rgb16bitMat, CV_BayerRG2RGB);
+	  rgb16bitMat.convertTo(destMat, CV_8UC3, 1/255.0);
+	  //cv::imshow("capture", destMat);
+	  //if (cv::waitKey(10) >= 0)
+	  //  break;
 	  break;
 	}
         
@@ -210,7 +336,7 @@ int ImageProcessingThread::Try2ConvertV4l2Pixelformat2OpenCV(uint32_t pixelforma
     
     return result;
 }
-
+*/
 // Do the work within this thread
 void ImageProcessingThread::run()
 {
@@ -231,10 +357,10 @@ void ImageProcessingThread::run()
 			uint32_t payloadSize = pFrame->GetPayloadSize();
 			uint32_t bytesPerLine = pFrame->GetBytesPerLine();
 			QImage convertedImage;
-            VmbPixelFormat_t resPixelformat;
-	    cv::Mat destMat(height, width, CV_16UC3); //8UC3); 
-            
-	    if (0 == Try2ConvertV4l2Pixelformat2OpenCV(pixelformat, width, height, pBuffer, destMat))
+            //VmbPixelFormat_t resPixelformat;
+	    //cv::Mat destMat(cv::Size(width, height), CV_8UC3); 
+	    
+	    /*if (0 == Try2ConvertV4l2Pixelformat2OpenCV(pixelformat, width, height, pBuffer, destMat))
 	    {
 	        convertedImage = QImage((const uchar *) destMat.data, destMat.cols, destMat.rows, destMat.step, QImage::Format_RGB888);
 		convertedImage.bits(); //enforce deep copy
@@ -245,7 +371,7 @@ void ImageProcessingThread::run()
                 convertedImage = QImage(width, height, QImage::Format_RGB888);
                 result = AVT::VmbImageTransform( convertedImage, (void*)pBuffer, width, height, resPixelformat);
             }
-	    else
+	    else*/
             {
                 result = AVT::Tools::ImageTransf::ConvertFrame(pBuffer, length, 
                                                                width, height, pixelformat, 

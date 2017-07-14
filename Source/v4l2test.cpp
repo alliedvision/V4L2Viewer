@@ -73,7 +73,7 @@
  * 1.13: FrameObserver ReadFrame DQBUF return value watch added
  * 1.14: Crop set get and capabilities improved
  * 1.15: Read all Values button added to update the shown values
- * 1.16: Additional pixelformat conversions via OpenCV
+ * 1.16: Additional pixelformat conversions 
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -629,7 +629,10 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 				  width, 
 				  height, 
 				  bytesPerLine, 
-				  NULL);
+				  NULL,
+				  true,
+				  0,
+				  1);
     if (0 != err)
         OnLog("Start Acquisition failed during SI Start channel.");
     else
