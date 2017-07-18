@@ -6,6 +6,7 @@
 #include "Logger.h"
 
 QSharedPointer<AVT::BaseTools::Logger> Logger::m_pLogger;
+bool Logger::m_LogSwitch = false;
 
 Logger::Logger(void)
 {
@@ -25,12 +26,14 @@ void Logger::SetPCIeLogger(const std::string &rLogFileName)
     if (NULL == m_pLogger)
     {
         m_pLogger = QSharedPointer<AVT::BaseTools::Logger>(new AVT::BaseTools::Logger(rLogFileName));
+	m_LogSwitch = true;
     }
 }
 
 void Logger::Log(const std::string &rMessage)
 {
-    m_pLogger->Log(rMessage);
+    if (m_LogSwitch)
+	m_pLogger->Log(rMessage);
 }
 
 void Logger::LogEx(const char *text, ...)
@@ -70,13 +73,25 @@ void Logger::LogEx(const char *text, ...)
     }
             
     if (m_pLogger == NULL)
-        Logger::SetPCIeLogger("LibCSITestLog.log");
+    {
+	m_LogSwitch = true;
+        Logger::SetPCIeLogger("Noname.log");
+    }
 
-    m_pLogger->Log(output);
+    if (m_LogSwitch)
+	m_pLogger->Log(output);
 }
     
 void Logger::LogDump(const std::string &rMessage, uint8_t *buffer, uint32_t length)
 {
-    m_pLogger->LogDump(rMessage, buffer, length);
+    if (m_LogSwitch)
+	m_pLogger->LogDump(rMessage, buffer, length);
+}
+
+void Logger::LogSwitch(bool flag)
+{
+    LogEx("Logger switched %s", (flag)?"on":"off");
+    
+    m_LogSwitch = flag;
 }
 

@@ -50,7 +50,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.16"
+#define PROGRAM_VERSION "v1.17"
 
 /*
  * 1.0: base version
@@ -74,6 +74,7 @@
  * 1.14: Crop set get and capabilities improved
  * 1.15: Read all Values button added to update the shown values
  * 1.16: Additional pixelformat conversions 
+ * 1.17: Under Options new log options added
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -142,6 +143,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleShowFrames, SIGNAL(triggered()), this, SLOT(OnShowFrames()));
     connect(ui.m_TitleClearOutputListbox, SIGNAL(triggered()), this, SLOT(OnClearOutputListbox()));
+    connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
 	
     int err = m_Camera.DeviceDiscoveryStart();
     
@@ -231,19 +233,38 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	m_NumberOfUsedFramesLineEdit->setValidator(new QIntValidator(1, 20, this));
 
 	// prepare the layout
-    QHBoxLayout *layout = new QHBoxLayout;
-	QLabel *label = new QLabel("Number of used Frames:");
-	layout->addWidget(label);
-	layout->addWidget(m_NumberOfUsedFramesLineEdit);
+	QHBoxLayout *layoutNum = new QHBoxLayout;
+	QLabel *labelNum = new QLabel("Number of used Frames:");
+	layoutNum->addWidget(labelNum);
+	layoutNum->addWidget(m_NumberOfUsedFramesLineEdit);
 
 	// put the layout into a widget
-	QWidget *widget = new QWidget(this);
-	widget->setLayout(layout);
+	QWidget *widgetNum = new QWidget(this);
+	widgetNum->setLayout(layoutNum);
+
+	// add the number of used frames option to the menu
+	m_LogFrameRangeLineEdit = new QLineEdit(this);
+	m_LogFrameRangeLineEdit->setText("");
+	
+	// prepare the layout
+	QHBoxLayout *layoutDump = new QHBoxLayout;
+	QLabel *labelDump = new QLabel("Log Frame dump:");
+	layoutDump->addWidget(labelDump);
+	layoutDump->addWidget(m_LogFrameRangeLineEdit);
+	
+	// put the layout into a widget
+	QWidget *widgetDump = new QWidget(this);
+	widgetDump->setLayout(layoutDump);
 
 	// add the widget into the menu bar
 	m_NumberOfUsedFramesWidgetAction = new QWidgetAction(this);
-	m_NumberOfUsedFramesWidgetAction->setDefaultWidget(widget);
+	m_NumberOfUsedFramesWidgetAction->setDefaultWidget(widgetNum);
 	ui.m_MenuOptions->addAction(m_NumberOfUsedFramesWidgetAction);
+
+	// add the widget into the menu bar
+	m_LogFrameRangeWidgetAction = new QWidgetAction(this);
+	m_LogFrameRangeWidgetAction->setDefaultWidget(widgetDump);
+	ui.m_MenuOptions->addAction(m_LogFrameRangeWidgetAction);
 
 	UpdateViewerLayout();
 	UpdateZoomButtons();
@@ -301,6 +322,11 @@ void v4l2test::OnShowFrames()
 void v4l2test::OnClearOutputListbox()
 {
     ui.m_LogTextEdit->clear();
+}
+
+void v4l2test::OnLogToFile()
+{
+    Logger::LogSwitch(ui.m_TitleLogtofile->isChecked());
 }
 
 void v4l2test::RemoteClose()
@@ -624,15 +650,32 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 
     m_nDroppedFrames = 0;
         
+    QString logFrameRange = m_LogFrameRangeLineEdit->text();
+    QStringList logFrameRangeList = logFrameRange.split('-');
+	
+    if (logFrameRangeList.size() > 3)
+    {
+	QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1 or 1-2!") );
+	return;
+    }
+	
+    int32_t logFrameRangeStart = -1;
+    if (m_LogFrameRangeLineEdit->text() != "" && logFrameRangeList.size() >= 1)
+	logFrameRangeStart = logFrameRangeList.at(0).toInt();
+    int32_t logFrameRangeEnd = logFrameRangeStart;
+    if (logFrameRangeList.size() == 2)
+	logFrameRangeEnd = logFrameRangeList.at(1).toInt();
+	
+
     err = m_Camera.StartStreamChannel(pixelformat, 
 				  payloadsize, 
 				  width, 
 				  height, 
 				  bytesPerLine, 
 				  NULL,
-				  true,
-				  0,
-				  1);
+				  ui.m_TitleLogtofile->isChecked(),
+				  logFrameRangeStart,
+				  logFrameRangeEnd);
     if (0 != err)
         OnLog("Start Acquisition failed during SI Start channel.");
     else

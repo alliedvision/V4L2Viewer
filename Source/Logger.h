@@ -16,9 +16,11 @@ public:
     static void Log(const std::string &rMessage);
     static void LogEx(const char *text, ...);
     static void LogDump(const std::string &rMessage, uint8_t *buffer, uint32_t length);
+    static void LogSwitch(bool flag);
 
 private:
     static QSharedPointer<AVT::BaseTools::Logger> m_pLogger;
+    static bool m_LogSwitch;
 
 };
 

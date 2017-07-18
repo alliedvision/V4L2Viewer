@@ -70,6 +70,10 @@ private:
 	QWidgetAction *m_NumberOfUsedFramesWidgetAction;
 	// The line which holds the number of used frames
 	QLineEdit *m_NumberOfUsedFramesLineEdit;
+	// The menu widget to setup the number of dumped frames
+	QWidgetAction *m_LogFrameRangeWidgetAction;
+	// The line which holds the number dumped frames
+	QLineEdit *m_LogFrameRangeLineEdit;
 	// A list of known camera IDs
     std::vector<uint32_t> m_cameras;
 	// Is a camera open?
@@ -128,6 +132,7 @@ private:
 	void UpdateCameraFormat();
 
 private slots:
+    void OnLogToFile();
       void OnClearOutputListbox();
       void OnShowFrames();
 	// The event handler to close the program

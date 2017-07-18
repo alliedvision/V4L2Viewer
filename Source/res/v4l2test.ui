@@ -1983,6 +1983,7 @@
     <addaction name="m_TitleFlipHorizontal"/>
     <addaction name="m_TitleFlipVertical"/>
     <addaction name="m_TitleClearOutputListbox"/>
+    <addaction name="m_TitleLogtofile"/>
    </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>
@@ -2023,7 +2024,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>MMAP/USERPTR</string>
@@ -2073,6 +2074,17 @@
   <action name="m_TitleClearOutputListbox">
    <property name="text">
     <string>Clear Output Listbox</string>
+   </property>
+  </action>
+  <action name="m_TitleLogtofile">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Log to file</string>
    </property>
   </action>
  </widget>

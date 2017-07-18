@@ -94,7 +94,7 @@ FrameObserver::~FrameObserver()
 
 int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, 
 			       uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
-			       uint32_t enableLogging, uint32_t dumpFrameStart, uint32_t dumpFrameEnd)
+			       uint32_t enableLogging, int32_t dumpFrameStart, int32_t dumpFrameEnd)
 {
     int nResult = 0;
     
@@ -190,9 +190,10 @@ void FrameObserver::DequeueAndProcessFrame()
 			{
 			    if (length <= m_RealPayloadsize)
 			    {
-			        if (m_DumpFrameCount >= m_DumpFrameStart && m_DumpFrameCount <  m_DumpFrameEnd)
+			        if (m_DumpFrameCount >= m_DumpFrameStart && 
+				    m_DumpFrameCount <=  m_DumpFrameEnd)
     				{
-        				Logger::LogDump("Received buffer:", (uint8_t*)buffer, (uint32_t)m_PayloadSize);
+        				Logger::LogDump("Received frame:", (uint8_t*)buffer, (uint32_t)m_PayloadSize);
 				}
 				m_DumpFrameCount++;
 				
