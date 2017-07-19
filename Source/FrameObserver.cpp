@@ -94,7 +94,8 @@ FrameObserver::~FrameObserver()
 
 int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, 
 			       uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
-			       uint32_t enableLogging, int32_t dumpFrameStart, int32_t dumpFrameEnd)
+			       uint32_t enableLogging, int32_t dumpFrameStart, int32_t dumpFrameEnd,
+			       std::vector<uint8_t> &rData)
 {
     int nResult = 0;
     
@@ -116,6 +117,8 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_DumpFrameStart = dumpFrameStart;
     m_DumpFrameEnd = dumpFrameEnd;
     m_DumpFrameCount = 0;
+    
+    m_rCSVData = rData;
     
     if (0 == g_ConversionBuffer)
         g_ConversionBuffer = (uint8_t*)malloc(m_nWidth*m_nHeight*4);
@@ -196,6 +199,36 @@ void FrameObserver::DequeueAndProcessFrame()
         				Logger::LogDump("Received frame:", (uint8_t*)buffer, (uint32_t)m_PayloadSize);
 				}
 				m_DumpFrameCount++;
+				
+				if (m_rCSVData.size() > 0 && m_DumpFrameCount == 1)
+				{
+				    uint32_t tmpPayloadSize = m_rCSVData.size();
+				    if (m_PayloadSize == tmpPayloadSize)
+				    {
+					for (uint32_t i=0; i<m_PayloadSize; i++)
+					{
+					    bool flag = false;
+					    if (buffer[i] != m_rCSVData[i])
+					    {
+						Logger::Log("Buffer unequal to CSV file.");
+						emit OnMessage_Signal("Buffer unequal to CSV file.");
+						flag = true;
+						break;
+					    }
+					
+					    if (!flag)
+					    {
+						Logger::Log("Buffer equal to CSV file.");
+						emit OnMessage_Signal("Buffer equal to CSV file.");
+					    }
+					}
+				    }
+				    else
+				    {
+					Logger::LogEx("Buffer size=%d unequal to CSV file data size=%d.", m_PayloadSize, tmpPayloadSize);
+					emit OnMessage_Signal(QString("Buffer size=%1 unequal to CSV file data size=%2.").arg(m_PayloadSize).arg(tmpPayloadSize));
+				    }
+				}
 				
 				if (m_bRecording)
 				{

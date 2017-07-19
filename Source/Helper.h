@@ -29,7 +29,7 @@ namespace BaseTools {
         static void uSleep(uint32_t msec);
 
         static std::string GetTimeStamp();
-    
+	
     };
 
 }} /* namespace AVT::BaseTools { */

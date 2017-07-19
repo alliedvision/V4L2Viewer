@@ -74,6 +74,10 @@ private:
 	QWidgetAction *m_LogFrameRangeWidgetAction;
 	// The line which holds the number dumped frames
 	QLineEdit *m_LogFrameRangeLineEdit;
+	// The menu widget to setup the number of CSV File
+	QWidgetAction *m_CSVFileWidgetAction;
+	// The line which holds the number CSV File
+	QLineEdit *m_CSVFileLineEdit;
 	// A list of known camera IDs
     std::vector<uint32_t> m_cameras;
 	// Is a camera open?

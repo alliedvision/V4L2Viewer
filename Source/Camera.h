@@ -29,6 +29,7 @@
 #ifndef AVT_VMBAPI_EXAMPLES_CAMERA
 #define AVT_VMBAPI_EXAMPLES_CAMERA
 
+#include <vector>
 #include <QObject>
 #include "FrameObserver.h"
 #include "CameraObserver.h"
@@ -51,7 +52,8 @@ public:
 
     int DeviceDiscoveryStart();
     int DeviceDiscoveryStop();
-    int StartStreamChannel(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, 
+    int StartStreamChannel(const char* csvFilename,
+                           uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, 
 			   uint32_t bytesPerLine, void *pPrivateData,
 			   uint32_t enableLogging, uint32_t dumpFrameStart, uint32_t dumpFrameEnd);
     int StopStreamChannel();
@@ -144,7 +146,12 @@ private:
 
     CameraObserver              	m_DeviceDiscoveryCallbacks;
     QSharedPointer<FrameObserver>	m_StreamCallbacks;
-	
+
+    std::vector<uint8_t> 		m_rCSVData;
+    	
+    size_t fsize(const char *filename);
+    int ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData);
+    
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
     void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);

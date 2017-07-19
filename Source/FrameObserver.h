@@ -29,6 +29,7 @@
 #ifndef FRAMEOBSERVER_INCLUDE
 #define FRAMEOBSERVER_INCLUDE
 
+#include <vector>
 #include <queue>
 
 #include <QObject>
@@ -82,7 +83,8 @@ class FrameObserver : public QThread
 
 	int StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, 
 			uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
-			uint32_t enableLogging, int32_t dumpFrameStart, int32_t dumpFrameEnd);
+			uint32_t enableLogging, int32_t dumpFrameStart, int32_t dumpFrameEnd,
+			std::vector<uint8_t> &rData);
 	int StopStream();
 	
     // Get the number of frames
@@ -166,6 +168,8 @@ protected:
 	
 	// Shared pointer to a worker thread for the image processing
 	QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
+	
+	std::vector<uint8_t> 			    m_rCSVData;
 
 private slots:
 	//Event handler for getting the processed frame to an image
