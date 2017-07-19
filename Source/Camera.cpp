@@ -331,6 +331,8 @@ int Camera::StopStreamChannel()
        emit OnCameraError_Signal("Camera::StopStreamChannel failed.");
     }
 
+    m_rCSVData.resize(0);
+    
     return nResult;
 }
 

@@ -205,22 +205,21 @@ void FrameObserver::DequeueAndProcessFrame()
 				    uint32_t tmpPayloadSize = m_rCSVData.size();
 				    if (m_PayloadSize == tmpPayloadSize)
 				    {
+					bool notequalflag = false;
 					for (uint32_t i=0; i<m_PayloadSize; i++)
 					{
-					    bool flag = false;
 					    if (buffer[i] != m_rCSVData[i])
 					    {
-						Logger::Log("Buffer unequal to CSV file.");
-						emit OnMessage_Signal("Buffer unequal to CSV file.");
-						flag = true;
+						Logger::Log("!!! Buffer unequal to CSV file. !!!");
+						emit OnMessage_Signal("!!! Buffer unequal to CSV file. !!!");
+						notequalflag = true;
 						break;
 					    }
-					
-					    if (!flag)
-					    {
-						Logger::Log("Buffer equal to CSV file.");
-						emit OnMessage_Signal("Buffer equal to CSV file.");
-					    }
+					}
+					if (!notequalflag)
+					{
+					    Logger::Log("*** Buffer equal to CSV file. ***");
+					    emit OnMessage_Signal("*** Buffer equal to CSV file. ***");
 					}
 				    }
 				    else
