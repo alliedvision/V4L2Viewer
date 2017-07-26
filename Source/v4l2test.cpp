@@ -50,7 +50,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.18"
+#define PROGRAM_VERSION "v1.19"
 
 /*
  * 1.0: base version
@@ -76,6 +76,7 @@
  * 1.16: Additional pixelformat conversions 
  * 1.17: Under Options new log options added
  * 1.18: Compare with CSV file added
+ * 1.19: Fixed bug when app is closed unexpected
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)

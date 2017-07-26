@@ -58,7 +58,6 @@ namespace Examples {
 FrameObserver::FrameObserver(bool showFrames) 
 	: m_nReceivedFramesCounter(0)
 	, m_nDroppedFramesCounter(0)
-	, m_bTerminate(false)
 	, m_bRecording(false)
 	, m_nFileDescriptor(0)
 	, m_nWidth(0)
@@ -70,7 +69,7 @@ FrameObserver::FrameObserver(bool showFrames)
         , m_BlockingMode(false)
         , m_UsedBufferCount(0)
 	, m_bStreamRunning(false)
-	, m_bStreamStopped(false)
+	, m_bStreamStopped(true)
         , m_ShowFrames(showFrames)
 	, m_RealPayloadsize(0)
 	, m_DQBUF_last_errno(0)
@@ -152,11 +151,6 @@ int FrameObserver::StopStream()
     g_ConversionBuffer = 0;
     
     return nResult;
-}
-
-void FrameObserver::SetTerminateFlag()// Event will be called when the frame processing is done and the frame can be returned to streaming engine
-{
-    m_bTerminate = true;
 }
 
 int FrameObserver::ReadFrame(v4l2_buffer &buf)

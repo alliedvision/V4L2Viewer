@@ -97,9 +97,6 @@ class FrameObserver : public QThread
 	// Set the number of uncompleted frames
 	void ResetDroppedFramesCount();
 
-    // switch to stop callbacks immediately
-    void SetTerminateFlag();
-
     // Recording
     void SetRecording(bool start);
     void DisplayStepBack();
@@ -135,9 +132,6 @@ protected:
 
 	// Counter to count the received uncompleted images
 	unsigned int m_nDroppedFramesCounter;
-
-    // switch to stop callbacks immediately
-    bool m_bTerminate;
 
     // Variable to abort the running thread
 	int m_nFileDescriptor;

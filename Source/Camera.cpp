@@ -64,7 +64,8 @@ Camera::Camera()
 Camera::~Camera()
 {
     m_DeviceDiscoveryCallbacks.SetTerminateFlag();
-    m_StreamCallbacks->SetTerminateFlag();
+    if (NULL != m_StreamCallbacks.data())
+	m_StreamCallbacks->StopStream();
 
     CloseDevice();
 }
