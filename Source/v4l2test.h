@@ -78,6 +78,16 @@ private:
 	QWidgetAction *m_CSVFileWidgetAction;
 	// The line which holds the number CSV File
 	QLineEdit *m_CSVFileLineEdit;
+	// The menu widget to setup the number of CSV File
+	QWidgetAction *m_ToggleStreamDelayRandWidgetAction;
+	// The line which holds the number CSV File
+	QLineEdit *m_ToggleStreamDelayRandLineEdit;
+	QCheckBox *m_ToggleStreamDelayRandCheckBox;
+	// The menu widget to setup the number of CSV File
+	QWidgetAction *m_ToggleStreamDelayWidgetAction;
+	// The line which holds the number CSV File
+	QLineEdit *m_ToggleStreamDelayLineEdit;
+	QCheckBox *m_ToggleStreamDelayCheckBox;
 	// A list of known camera IDs
     std::vector<uint32_t> m_cameras;
 	// Is a camera open?
@@ -243,6 +253,9 @@ private slots:
 	
 	void OnCameraPixelformat(const QString &);
 	void OnCameraFramesize(const QString &);
+	
+	void OnToggleStreamDelayRand();
+	void OnToggleStreamDelay();
 };
 
 #endif // v4l2test_H

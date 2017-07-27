@@ -38,8 +38,6 @@
 #include "Logger.h"
 #include <ctime>
 
-#define MAX_RANDOM_NUMBER   500
-
 #define NUM_COLORS 3
 #define BIT_DEPTH 8
 
@@ -50,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.19"
+#define PROGRAM_VERSION "v1.20"
 
 /*
  * 1.0: base version
@@ -77,6 +75,7 @@
  * 1.17: Under Options new log options added
  * 1.18: Compare with CSV file added
  * 1.19: Fixed bug when app is closed unexpected
+ * 1.20: Added configurable stream toggle delays
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -275,6 +274,48 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	QWidget *widgetCSVFile = new QWidget(this);
 	widgetCSVFile->setLayout(layoutCSVFile);
 
+///////////////////// Toggle stream Delay Random /////////////////////
+	// add the number of used frames option to the menu
+	m_ToggleStreamDelayRandLineEdit = new QLineEdit(this);
+	m_ToggleStreamDelayRandLineEdit->setText("500");
+	m_ToggleStreamDelayRandLineEdit->setValidator(new QIntValidator(1, 10000, this));
+	
+	m_ToggleStreamDelayRandCheckBox = new QCheckBox(this);
+	m_ToggleStreamDelayRandCheckBox->setChecked(true);
+	connect(m_ToggleStreamDelayRandCheckBox, SIGNAL(clicked()), this, SLOT(OnToggleStreamDelayRand()));
+	
+	// prepare the layout
+	QHBoxLayout *layoutToggleStreamDelayRand = new QHBoxLayout;
+	QLabel *labelToggleStreamDelayRand = new QLabel("Toggle Stream Delay Random/ms 1-");
+	layoutToggleStreamDelayRand->addWidget(m_ToggleStreamDelayRandCheckBox);
+	layoutToggleStreamDelayRand->addWidget(labelToggleStreamDelayRand);
+	layoutToggleStreamDelayRand->addWidget(m_ToggleStreamDelayRandLineEdit);
+	
+	// put the layout into a widget
+	QWidget *widgetToggleStreamDelayRand = new QWidget(this);
+	widgetToggleStreamDelayRand->setLayout(layoutToggleStreamDelayRand);
+
+///////////////////// Toggle stream Delay Random /////////////////////
+	// add the number of used frames option to the menu
+	m_ToggleStreamDelayLineEdit = new QLineEdit(this);
+	m_ToggleStreamDelayLineEdit->setText("1000");
+	m_ToggleStreamDelayLineEdit->setValidator(new QIntValidator(1, 10000, this));
+	
+	m_ToggleStreamDelayCheckBox = new QCheckBox(this);
+	m_ToggleStreamDelayCheckBox->setChecked(false);
+	connect(m_ToggleStreamDelayCheckBox, SIGNAL(clicked()), this, SLOT(OnToggleStreamDelay()));
+	
+	// prepare the layout
+	QHBoxLayout *layoutToggleStreamDelay = new QHBoxLayout;
+	QLabel *labelToggleStreamDelay = new QLabel("Toggle Stream Delay/ms ");
+	layoutToggleStreamDelay->addWidget(m_ToggleStreamDelayCheckBox);
+	layoutToggleStreamDelay->addWidget(labelToggleStreamDelay);
+	layoutToggleStreamDelay->addWidget(m_ToggleStreamDelayLineEdit);
+	
+	// put the layout into a widget
+	QWidget *widgetToggleStreamDelay = new QWidget(this);
+	widgetToggleStreamDelay->setLayout(layoutToggleStreamDelay);
+
 	// add the widget into the menu bar
 	m_NumberOfUsedFramesWidgetAction = new QWidgetAction(this);
 	m_NumberOfUsedFramesWidgetAction->setDefaultWidget(widgetNum);
@@ -289,6 +330,16 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	m_CSVFileWidgetAction = new QWidgetAction(this);
 	m_CSVFileWidgetAction->setDefaultWidget(widgetCSVFile);
 	ui.m_MenuOptions->addAction(m_CSVFileWidgetAction);
+
+	// add the widget into the menu bar
+	m_ToggleStreamDelayRandWidgetAction = new QWidgetAction(this);
+	m_ToggleStreamDelayRandWidgetAction->setDefaultWidget(widgetToggleStreamDelayRand);
+	ui.m_MenuTest->addAction(m_ToggleStreamDelayRandWidgetAction);
+
+	// add the widget into the menu bar
+	m_ToggleStreamDelayWidgetAction = new QWidgetAction(this);
+	m_ToggleStreamDelayWidgetAction->setDefaultWidget(widgetToggleStreamDelay);
+	ui.m_MenuTest->addAction(m_ToggleStreamDelayWidgetAction);
 
 	UpdateViewerLayout();
 	UpdateZoomButtons();
@@ -582,18 +633,34 @@ void v4l2test::OnToggleButtonClicked()
 
     if (result == 0)
     {
-        int randomNumber;
-        randomNumber = (rand()%MAX_RANDOM_NUMBER)+1;
+	int timeout = 1000;
+	if (m_ToggleStreamDelayRandCheckBox->isChecked())
+	{
+	    int randomBase = m_ToggleStreamDelayRandLineEdit->text().toInt();
+	    timeout = (rand()%randomBase)+1;
+	}
+	else
+	{
+	    timeout = m_ToggleStreamDelayLineEdit->text().toInt();
+	}
                
-        m_StreamToggleTimer.start(randomNumber);
+        m_StreamToggleTimer.start(timeout);
     }
 }
 
 void v4l2test::OnStreamToggleTimeout()
 {
-    int randomNumber;
-    randomNumber = (rand()%MAX_RANDOM_NUMBER)+1;
-
+    int timeout = 1000;
+    if (m_ToggleStreamDelayRandCheckBox->isChecked())
+    {
+	int randomBase = m_ToggleStreamDelayRandLineEdit->text().toInt();
+	timeout = (rand()%randomBase)+1;
+    }
+    else
+    {
+	timeout = m_ToggleStreamDelayLineEdit->text().toInt();
+    }
+	    
     m_StreamToggleTimer.stop();
 
     if (m_bIsStreaming)
@@ -613,7 +680,7 @@ void v4l2test::OnStreamToggleTimeout()
     else
         OnStartButtonClicked();
     
-    m_StreamToggleTimer.start(randomNumber);
+    m_StreamToggleTimer.start(timeout);
 }
 
 void v4l2test::OnCameraRegisterValueReady(unsigned long long value)
@@ -1907,6 +1974,18 @@ void v4l2test::OnReadAllValues()
     UpdateCameraFormat();
 }
 
+void v4l2test::OnToggleStreamDelayRand()
+{
+    m_ToggleStreamDelayCheckBox->setChecked(false);
+    m_ToggleStreamDelayRandCheckBox->setChecked(true);
+}
+
+void v4l2test::OnToggleStreamDelay()
+{
+    m_ToggleStreamDelayCheckBox->setChecked(true);
+    m_ToggleStreamDelayRandCheckBox->setChecked(false);
+}
+	
 ////////////////////////////////////////////////////////////////////////
 // Tools
 ////////////////////////////////////////////////////////////////////////

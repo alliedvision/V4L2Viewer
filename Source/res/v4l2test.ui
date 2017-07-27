@@ -1985,8 +1985,14 @@
     <addaction name="m_TitleClearOutputListbox"/>
     <addaction name="m_TitleLogtofile"/>
    </widget>
+   <widget class="QMenu" name="m_MenuTest">
+    <property name="title">
+     <string>Test</string>
+    </property>
+   </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>
+   <addaction name="m_MenuTest"/>
   </widget>
   <action name="m_MenuClose">
    <property name="text">
@@ -2085,6 +2091,17 @@
    </property>
    <property name="text">
     <string>Log to file</string>
+   </property>
+  </action>
+  <action name="m_TitleToggleStreamRandom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle Stream On/Off with random delay</string>
    </property>
   </action>
  </widget>
