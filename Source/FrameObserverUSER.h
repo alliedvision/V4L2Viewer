@@ -55,15 +55,15 @@ class FrameObserverUSER : public FrameObserver
     //
     virtual ~FrameObserverUSER();
 
-    virtual int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
-    virtual int QueueAllUserBuffer();
-    virtual int QueueSingleUserBuffer(const int index);
-    virtual int DeleteUserBuffer();
+    virtual uint32_t GetBufferType();
+    virtual int CreateSingleUserBuffer(uint32_t index, uint32_t bufferSize, PUSER_BUFFER &userBuffer);
+    virtual int QueueSingleUserBuffer(const int index, uint8_t *pBuffer, uint32_t nBufferLength);
+    virtual int DeleteSingleUserBuffer(PUSER_BUFFER &userBuffer);
 
 protected:
     // v4l2
     virtual int ReadFrame(v4l2_buffer &buf);
-	virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
+	virtual int GetFrameData(v4l2_buffer &buf, PUSER_BUFFER &userBuffer, uint8_t *&buffer, uint32_t &length);
 	
 private:
 };

@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.20"
+#define PROGRAM_VERSION "v1.21"
 
 /*
  * 1.0: base version
@@ -76,6 +76,7 @@
  * 1.18: Compare with CSV file added
  * 1.19: Fixed bug when app is closed unexpected
  * 1.20: Added configurable stream toggle delays
+ * 1.21: user buffer list now threadsafe
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)

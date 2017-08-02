@@ -10,10 +10,10 @@
 namespace AVT {
 namespace BaseTools {
 
-    class LoggerMutex
+    class LocalMutex
     {
     public:
-        LoggerMutex()
+        LocalMutex()
         {
     #ifdef _WIN32       /* Windows */
             InitializeCriticalSection(&m_Mutex);
@@ -21,7 +21,7 @@ namespace BaseTools {
             pthread_mutex_init(&m_Mutex, NULL);
     #endif
         }
-        virtual ~LoggerMutex()
+        virtual ~LocalMutex()
         {
     #ifdef _WIN32       /* Windows */
             DeleteCriticalSection(&m_Mutex);
@@ -55,22 +55,22 @@ namespace BaseTools {
 
     };
 
-    class AutoLoggerMutex
+    class AutoLocalMutex
     {
     public:
-        AutoLoggerMutex(LoggerMutex &mutex)
+        AutoLocalMutex(LocalMutex &mutex)
             : m_Mutex(mutex)
         {
             m_Mutex.Lock();
         }
 
-        virtual ~AutoLoggerMutex()
+        virtual ~AutoLocalMutex()
         {
             m_Mutex.Unlock();
         }
 
     private:
-        LoggerMutex &m_Mutex;
+        LocalMutex &m_Mutex;
     };
 
 }} /* namespace AVT::BaseTools */

@@ -67,7 +67,7 @@ namespace BaseTools {
 
             if(NULL != m_pFile)
             {
-                AutoLoggerMutex guard(m_Mutex);
+                AutoLocalMutex guard(m_Mutex);
             
                 m_OutputQueue.push(text.str());
             }
@@ -78,7 +78,7 @@ namespace BaseTools {
     {
         if (m_bDumpThreadRunning)
         {
-            AutoLoggerMutex guard(m_DumpMutex);
+            AutoLocalMutex guard(m_DumpMutex);
         
             PPACKET pack = new PACKET;
             pack->Buffer.resize(length);
@@ -100,7 +100,7 @@ namespace BaseTools {
             {
                 std::string text;
                 {
-                    AutoLoggerMutex guard(m_Mutex);
+                    AutoLocalMutex guard(m_Mutex);
                 
                     text = m_OutputQueue.front();
                     m_OutputQueue.pop();
@@ -126,7 +126,7 @@ namespace BaseTools {
                 std::string text;
                 PPACKET pack;
                 {
-                    AutoLoggerMutex guard(m_DumpMutex);
+                    AutoLocalMutex guard(m_DumpMutex);
                 
                     pack = m_DumpQueue.front();
                     m_DumpQueue.pop();

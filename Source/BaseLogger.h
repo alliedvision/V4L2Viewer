@@ -37,8 +37,8 @@ namespace BaseTools {
         void PrintDumpExitMessage();
 
         FILE                                    *m_pFile;
-        LoggerMutex                             m_Mutex;
-        LoggerMutex                             m_DumpMutex;
+        LocalMutex                              m_Mutex;
+        LocalMutex                              m_DumpMutex;
         Thread                                  m_pLogTextThread;
         Thread                                  m_pDumpThread;
         std::queue<std::string>                 m_OutputQueue;

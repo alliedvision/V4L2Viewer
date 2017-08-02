@@ -97,6 +97,7 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
 			       std::vector<uint8_t> &rData)
 {
     int nResult = 0;
+    AVT::BaseTools::AutoLocalMutex guard(m_Mutex);
     
     m_BlockingMode = blockingMode;
     m_nFileDescriptor = fileDescriptor;
@@ -160,7 +161,7 @@ int FrameObserver::ReadFrame(v4l2_buffer &buf)
     return result;
 }
 
-int FrameObserver::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length)
+int FrameObserver::GetFrameData(v4l2_buffer &buf, PUSER_BUFFER &userBuffer, uint8_t *&buffer, uint32_t &length)
 {
     int result = -1;
 
@@ -182,8 +183,10 @@ void FrameObserver::DequeueAndProcessFrame()
 		{
 			uint8_t *buffer = 0;
 			uint32_t length = 0;
+			AVT::BaseTools::AutoLocalMutex guard(m_Mutex);
 			
-			if (0 == GetFrameData(buf, buffer, length))
+			if (m_UserBufferContainerList.size() > buf.index &&
+			    0 == GetFrameData(buf, m_UserBufferContainerList[buf.index], buffer, length))
 			{
 			    if (length <= m_RealPayloadsize)
 			    {
@@ -251,7 +254,7 @@ void FrameObserver::DequeueAndProcessFrame()
 										m_PayloadSize, m_BytesPerLine, m_FrameId))
 				{
 				    //emit OnFrameID_Signal(m_FrameId);
-				    QueueSingleUserBuffer(buf.index);
+				    QueueUserBuffer(buf.index);
 				}
 			    }
 			    else
@@ -261,7 +264,7 @@ void FrameObserver::DequeueAndProcessFrame()
 				emit OnError_Signal(QString("Received data length is higher than announced payload size. lenght=%1, payloadsize=%2").arg(length).arg(m_PayloadSize));
 
 				emit OnFrameID_Signal(m_FrameId);
-			        QueueSingleUserBuffer(buf.index);
+			        QueueUserBuffer(buf.index);
 			    }
 			}
 			else
@@ -271,7 +274,7 @@ void FrameObserver::DequeueAndProcessFrame()
 			    emit OnError_Signal("Missing buffer data.");
 
 			    emit OnFrameID_Signal(m_FrameId);
-			    QueueSingleUserBuffer(buf.index);
+			    QueueUserBuffer(buf.index);
 			}
 		}
 		else
@@ -279,7 +282,7 @@ void FrameObserver::DequeueAndProcessFrame()
 			m_nDroppedFramesCounter++;
 				    
 			emit OnFrameID_Signal(m_FrameId);
-			QueueSingleUserBuffer(buf.index);
+			QueueUserBuffer(buf.index);
 		}
 	}
 	else
@@ -369,7 +372,7 @@ void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned l
 {
     emit OnFrameReady_Signal(image, frameId);
 	
-	QueueSingleUserBuffer(bufIndex);
+	QueueUserBuffer(bufIndex);
 }
 
 void FrameObserver::OnMessageFromThread(const QString &msg)
@@ -421,7 +424,77 @@ void FrameObserver::DeleteRecording()
 // Frame buffer handling
 /*********************************************************************************************************/
 
-int FrameObserver::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
+uint32_t FrameObserver::GetBufferType()
+{
+    return 0;
+}
+
+
+int FrameObserver::CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
+{
+    int result = -1;
+
+    if (bufferCount <= MAX_VIEWER_USER_BUFFER_COUNT)
+    {
+        v4l2_requestbuffers req;
+
+	// creates user defined buffer
+	CLEAR(req);
+
+        req.count  = bufferCount;
+        req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        req.memory = GetBufferType();
+	
+	// requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
+	if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req)) 
+	{
+	    if (EINVAL == errno) 
+	    {
+		Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
+		emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS does not support user pointer i/o.");
+	    } else {
+		Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS error");
+		emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS error.");
+	    }
+	}
+	else 
+	{
+	    AVT::BaseTools::AutoLocalMutex guard(m_Mutex);
+	  
+	    Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS OK");
+	    emit OnMessage_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS OK.");
+		
+	    // create local buffer container
+	    m_UserBufferContainerList.resize(bufferCount);
+        
+	    if (m_UserBufferContainerList.size() != bufferCount) 
+	    {
+		Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer container error");
+		emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: buffer container error.");
+		return -1;
+	    }
+
+	    // get the length and start address of each of the 4 buffer structs and assign the user buffer addresses
+	    for (int x = 0; x < bufferCount; ++x) 
+	    {
+		result = CreateSingleUserBuffer(x, bufferSize, m_UserBufferContainerList[x]);
+	    }
+	    
+	    m_UsedBufferCount = bufferCount;
+	    result = 0;
+	}
+    }
+
+    return result;
+
+}
+
+int FrameObserver::CreateSingleUserBuffer(uint32_t index, uint32_t bufferSize, PUSER_BUFFER &userBuffer)
+{
+    return 0;
+}
+    
+int FrameObserver::QueueSingleUserBuffer(const int index, uint8_t *pBuffer, uint32_t nBufferLength)
 {
     int result = -1;
 
@@ -431,40 +504,98 @@ int FrameObserver::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
 int FrameObserver::QueueAllUserBuffer()
 {
     int result = -1;
+    AVT::BaseTools::AutoLocalMutex guard(m_Mutex);
+    
+    // queue the buffer
+    for (uint32_t i=0; i<m_UsedBufferCount; i++)
+    {
+	result = QueueSingleUserBuffer(i, m_UserBufferContainerList[i]->pBuffer, m_UserBufferContainerList[i]->nBufferlength);
+	if (result == -1)
+	{
+	    Logger::LogEx("FrameObserverMMAP::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", i, m_UserBufferContainerList[i]->pBuffer);
+	    return result;
+	}
+    }
     
     return result;
 }
 
-int FrameObserver::QueueSingleUserBuffer(const int index)
+int FrameObserver::QueueUserBuffer(const int index)
 {
     int result = 0;
+    AVT::BaseTools::AutoLocalMutex guard(m_Mutex);
+    if (m_UserBufferContainerList.size() > index)
+    {
+	uint8_t *pBuffer = m_UserBufferContainerList[index]->pBuffer;
+	uint32_t nBufferLength = m_UserBufferContainerList[index]->nBufferlength;
+    
+	result = QueueSingleUserBuffer(index, pBuffer, nBufferLength);
+    }
+    else
+    {
+	// just for breakpoints
+	int i = 0;
+	i++;
+    }
 	
     return result;
 }
 
-int FrameObserver::DeleteUserBuffer()
+int FrameObserver::DeleteSingleUserBuffer(PUSER_BUFFER &userBuffer)
 {
     int result = 0;
 
     return result;
 }
 
+int FrameObserver::DeleteAllUserBuffer()
+{
+    int result = 0;
+    AVT::BaseTools::AutoLocalMutex guard(m_Mutex);
+
+    // delete all user buffer
+    for (int x = 0; x < m_UsedBufferCount; x++)
+    {
+	DeleteSingleUserBuffer(m_UserBufferContainerList[x]);
+    }
+	
+    m_UserBufferContainerList.resize(0);
+    m_UsedBufferCount = 0;
+	
+	
+    // free all internal buffers
+    v4l2_requestbuffers req;
+    // creates user defined buffer
+    CLEAR(req);
+    req.count  = 0;
+    req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    req.memory = GetBufferType();
+
+    // requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
+    V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
+	
+    return result;
+}
+
+/*
 // The event handler to return the frame
 void FrameObserver::FrameDone(const unsigned long long frameHandle)
 {
     if (m_bStreamRunning)
     {
-		for (int i = 0; i < m_UsedBufferCount; ++i)
-		{
-			if (frameHandle == (uint64_t)m_UserBufferContainerList[i]->pBuffer)
-			{
-                QueueSingleUserBuffer(i);
-				
-				break;
-			}
-		}
+	AVT::BaseTools::AutoLocalMutex guard(m_Mutex);
+	for (int i = 0; i < m_UsedBufferCount; ++i)
+	{
+	    if (frameHandle == (uint64_t)m_UserBufferContainerList[i]->pBuffer)
+	    {
+                QueueUserBuffer(i);
+			
+		break;
+	    }
+	}
     }
 }
+*/
 
 void FrameObserver::SwitchFrameTransfer2GUI(bool showFrames)
 {
