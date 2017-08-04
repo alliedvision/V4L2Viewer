@@ -56,10 +56,10 @@ class FrameObserverMMAP : public FrameObserver
     //
     virtual ~FrameObserverMMAP();
 
-    virtual int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
+    virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
     virtual int QueueAllUserBuffer();
     virtual int QueueSingleUserBuffer(const int index);
-    virtual int DeleteUserBuffer();
+    virtual int DeleteAllUserBuffer();
     
 protected:
     // v4l2

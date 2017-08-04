@@ -67,8 +67,7 @@ FrameObserver::FrameObserver(bool showFrames)
 	, m_BytesPerLine(0)
 	, m_MessageSendFlag(false)
         , m_BlockingMode(false)
-        , m_UsedBufferCount(0)
-	, m_bStreamRunning(false)
+        , m_bStreamRunning(false)
 	, m_bStreamStopped(true)
         , m_ShowFrames(showFrames)
 	, m_RealPayloadsize(0)
@@ -126,7 +125,10 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     
     start();
 
-    m_UserBufferContainerList.resize(0);
+    {
+	AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+	m_UserBufferContainerList.resize(0);
+    }
     
     return nResult;
 }
@@ -169,129 +171,144 @@ int FrameObserver::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &le
 
 void FrameObserver::DequeueAndProcessFrame()
 {
-	v4l2_buffer buf;
-	int result = 0;
+    v4l2_buffer buf;
+    int result = 0;
 			
-	result = ReadFrame(buf);
-	if (0 == result)
-	{
-		m_FrameId++;
-		m_nReceivedFramesCounter++;
+    result = ReadFrame(buf);
+    if (0 == result)
+    {
+	m_FrameId++;
+	m_nReceivedFramesCounter++;
 		
-		if (m_ShowFrames)
+	if (m_ShowFrames)
+	{
+	    uint8_t *buffer = 0;
+	    uint32_t length = 0;
+		
+	    if (0 == GetFrameData(buf, buffer, length))
+	    {
+		if (length <= m_RealPayloadsize)
 		{
-			uint8_t *buffer = 0;
-			uint32_t length = 0;
-			
-			if (0 == GetFrameData(buf, buffer, length))
+		    if (m_DumpFrameCount >= m_DumpFrameStart && 
+			m_DumpFrameCount <=  m_DumpFrameEnd)
+		    {
+        		Logger::LogDump("Received frame:", (uint8_t*)buffer, (uint32_t)m_PayloadSize);
+		    }
+		    m_DumpFrameCount++;
+				
+		    
+		    if (m_rCSVData.size() > 0 && m_DumpFrameCount == 1)
+		    {
+			uint32_t tmpPayloadSize = m_rCSVData.size();
+			if (m_PayloadSize == tmpPayloadSize)
 			{
-			    if (length <= m_RealPayloadsize)
+			    bool notequalflag = false;
+			    for (uint32_t i=0; i<m_PayloadSize; i++)
 			    {
-			        if (m_DumpFrameCount >= m_DumpFrameStart && 
-				    m_DumpFrameCount <=  m_DumpFrameEnd)
-    				{
-        				Logger::LogDump("Received frame:", (uint8_t*)buffer, (uint32_t)m_PayloadSize);
-				}
-				m_DumpFrameCount++;
-				
-				if (m_rCSVData.size() > 0 && m_DumpFrameCount == 1)
+				if (buffer[i] != m_rCSVData[i])
 				{
-				    uint32_t tmpPayloadSize = m_rCSVData.size();
-				    if (m_PayloadSize == tmpPayloadSize)
-				    {
-					bool notequalflag = false;
-					for (uint32_t i=0; i<m_PayloadSize; i++)
-					{
-					    if (buffer[i] != m_rCSVData[i])
-					    {
-						Logger::Log("!!! Buffer unequal to CSV file. !!!");
-						emit OnMessage_Signal("!!! Buffer unequal to CSV file. !!!");
-						notequalflag = true;
-						break;
-					    }
-					}
-					if (!notequalflag)
-					{
-					    Logger::Log("*** Buffer equal to CSV file. ***");
-					    emit OnMessage_Signal("*** Buffer equal to CSV file. ***");
-					}
-				    }
-				    else
-				    {
-					Logger::LogEx("Buffer size=%d unequal to CSV file data size=%d.", m_PayloadSize, tmpPayloadSize);
-					emit OnMessage_Signal(QString("Buffer size=%1 unequal to CSV file data size=%2.").arg(m_PayloadSize).arg(tmpPayloadSize));
-				    }
-				}
-				
-				if (m_bRecording)
-				{
-    					if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
-					{
-						QImage convertedImage;
-			
-						if (AVT::Tools::ImageTransf::ConvertFrame(buffer, length, 
-												  m_nWidth, m_nHeight, m_Pixelformat, 
-												  m_PayloadSize, m_BytesPerLine, convertedImage) == 0)
-						{
-							m_FrameRecordQueue.Enqueue(convertedImage, m_FrameId);
-							emit OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
-						}
-						else
-							emit OnError_Signal("Frame buffer not converted. Possible missing conversion.");
-					}
-					else
-					{
-						if (m_FrameRecordQueue.GetSize() == MAX_RECORD_FRAME_QUEUE_SIZE)
-							emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
-					}
-				}
-				
-				if (m_pImageProcessingThread->QueueFrame(buf, buffer, length, 
-										m_nWidth, m_nHeight, m_Pixelformat, 
-										m_PayloadSize, m_BytesPerLine, m_FrameId))
-				{
-				    //emit OnFrameID_Signal(m_FrameId);
-				    QueueSingleUserBuffer(buf.index);
+				    Logger::Log("!!! Buffer unequal to CSV file. !!!");
+				    emit OnMessage_Signal("!!! Buffer unequal to CSV file. !!!");
+				    notequalflag = true;
+				    break;
 				}
 			    }
-			    else
+			    if (!notequalflag)
 			    {
-			        m_nDroppedFramesCounter++;
-				    
-				emit OnError_Signal(QString("Received data length is higher than announced payload size. lenght=%1, payloadsize=%2").arg(length).arg(m_PayloadSize));
-
-				emit OnFrameID_Signal(m_FrameId);
-			        QueueSingleUserBuffer(buf.index);
+				Logger::Log("*** Buffer equal to CSV file. ***");
+				emit OnMessage_Signal("*** Buffer equal to CSV file. ***");
 			    }
 			}
 			else
 			{
-			    m_nDroppedFramesCounter++;
-				    
-			    emit OnError_Signal("Missing buffer data.");
-
-			    emit OnFrameID_Signal(m_FrameId);
-			    QueueSingleUserBuffer(buf.index);
+			    Logger::LogEx("Buffer size=%d unequal to CSV file data size=%d.", m_PayloadSize, tmpPayloadSize);
+			    emit OnMessage_Signal(QString("Buffer size=%1 unequal to CSV file data size=%2.").arg(m_PayloadSize).arg(tmpPayloadSize));
 			}
+		    }
+				
+		    if (m_bRecording)
+		    {
+    			if (m_FrameRecordQueue.GetSize() < MAX_RECORD_FRAME_QUEUE_SIZE)
+			{
+			    QImage convertedImage;
+			
+			    if (AVT::Tools::ImageTransf::ConvertFrame(buffer, length, 
+								  m_nWidth, m_nHeight, m_Pixelformat, 
+								  m_PayloadSize, m_BytesPerLine, convertedImage) == 0)
+			    {
+				m_FrameRecordQueue.Enqueue(convertedImage, m_FrameId);
+				emit OnRecordFrame_Signal(m_FrameId, m_FrameRecordQueue.GetSize());
+			    }
+			    else
+				emit OnError_Signal("Frame buffer not converted. Possible missing conversion.");
+			}
+			else
+			{
+			    if (m_FrameRecordQueue.GetSize() == MAX_RECORD_FRAME_QUEUE_SIZE)
+				emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
+			}
+		    }
+			
+		    /*
+		     * Test data for Mono12P and Mono10P from csv file
+		     * Therefore please comment csv comparison and recording out */
+		    /*
+		    buffer = &m_rCSVData[0];
+		    length = m_rCSVData.size();
+		    m_nWidth = 1296;
+		    m_nHeight = 968;
+		    m_Pixelformat = V4L2_PIX_FMT_Y12P; //V4L2_PIX_FMT_Y10P; //V4L2_PIX_FMT_Y12P;
+		    m_PayloadSize = 1881792; //1568160; //1881792;
+		    m_BytesPerLine = 1944; //1620; //1944;
+		    */
+		    if (m_pImageProcessingThread->QueueFrame(buf, buffer, length, 
+							m_nWidth, m_nHeight, m_Pixelformat, 
+							m_PayloadSize, m_BytesPerLine, m_FrameId))
+		    {
+			// when frame was not queued to image queue because queue is full 
+			// frame should be queued to v4l2 queue again
+			//emit OnFrameID_Signal(m_FrameId);
+			QueueSingleUserBuffer(buf.index);
+		    }
 		}
 		else
 		{
-			m_nDroppedFramesCounter++;
-				    
-			emit OnFrameID_Signal(m_FrameId);
-			QueueSingleUserBuffer(buf.index);
+		    m_nDroppedFramesCounter++;
+			    
+		    emit OnError_Signal(QString("Received data length is higher than announced payload size. lenght=%1, payloadsize=%2").arg(length).arg(m_PayloadSize));
+
+		    emit OnFrameID_Signal(m_FrameId);
+		    QueueSingleUserBuffer(buf.index);
 		}
+	    }
+	    else
+	    {
+		m_nDroppedFramesCounter++;
+			    
+		emit OnError_Signal("Missing buffer data.");
+
+		emit OnFrameID_Signal(m_FrameId);
+		QueueSingleUserBuffer(buf.index);
+	    }
 	}
 	else
 	{
-	    static int i=0;
-	    i++;
-	    if (i%10000 == 0 || m_DQBUF_last_errno != errno)
-	    {
-		m_DQBUF_last_errno = errno;
-		emit OnError_Signal(QString("DQBUF error %1 times, error=%2").arg(i).arg(errno));
-	    }
+	    m_nDroppedFramesCounter++;
+				    
+	    emit OnFrameID_Signal(m_FrameId);
+	    QueueSingleUserBuffer(buf.index);
 	}
+    }
+    else
+    {
+	static int i=0;
+	i++;
+	if (i%10000 == 0 || m_DQBUF_last_errno != errno)
+	{
+	    m_DQBUF_last_errno = errno;
+	    emit OnError_Signal(QString("DQBUF error %1 times, error=%2").arg(i).arg(errno));
+	}
+    }
 }
 
 // Do the work within this thread
@@ -356,20 +373,20 @@ unsigned int FrameObserver::GetReceivedFramesCount()
 // Get the number of uncompleted frames
 unsigned int FrameObserver::GetDroppedFramesCount()
 {
-	return m_nDroppedFramesCounter;
+    return m_nDroppedFramesCounter;
 }
 
 // Set the number of uncompleted frames
 void FrameObserver::ResetDroppedFramesCount()
 {
-	m_nDroppedFramesCounter = 0;
+    m_nDroppedFramesCounter = 0;
 }
 
 void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex)
 {
     emit OnFrameReady_Signal(image, frameId);
 	
-	QueueSingleUserBuffer(bufIndex);
+    QueueSingleUserBuffer(bufIndex);
 }
 
 void FrameObserver::OnMessageFromThread(const QString &msg)
@@ -421,7 +438,7 @@ void FrameObserver::DeleteRecording()
 // Frame buffer handling
 /*********************************************************************************************************/
 
-int FrameObserver::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
+int FrameObserver::CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
 {
     int result = -1;
 
@@ -442,7 +459,7 @@ int FrameObserver::QueueSingleUserBuffer(const int index)
     return result;
 }
 
-int FrameObserver::DeleteUserBuffer()
+int FrameObserver::DeleteAllUserBuffer()
 {
     int result = 0;
 
@@ -450,6 +467,7 @@ int FrameObserver::DeleteUserBuffer()
 }
 
 // The event handler to return the frame
+/*
 void FrameObserver::FrameDone(const unsigned long long frameHandle)
 {
     if (m_bStreamRunning)
@@ -465,6 +483,7 @@ void FrameObserver::FrameDone(const unsigned long long frameHandle)
 		}
     }
 }
+*/
 
 void FrameObserver::SwitchFrameTransfer2GUI(bool showFrames)
 {

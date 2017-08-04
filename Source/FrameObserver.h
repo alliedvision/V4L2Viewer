@@ -48,6 +48,7 @@
 #include "videodev2_av.h"
 
 #include "V4l2Helper.h"
+#include "LoggerMutex.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // TYPEDEFS
@@ -103,12 +104,12 @@ class FrameObserver : public QThread
     void DisplayStepForw();
     void DeleteRecording();
     
-    virtual int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
+    virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
     virtual int QueueAllUserBuffer();
     virtual int QueueSingleUserBuffer(const int index);
-    virtual int DeleteUserBuffer();
+    virtual int DeleteAllUserBuffer();
     
-    void FrameDone(const unsigned long long frameHandle);
+    //void FrameDone(const unsigned long long frameHandle);
 
     void SwitchFrameTransfer2GUI(bool showFrames);
 
@@ -154,11 +155,10 @@ protected:
 	int32_t m_DumpFrameEnd;
 	int32_t m_DumpFrameCount;
 
-    bool m_ShowFrames;
+	bool m_ShowFrames;
 	
-    std::vector<PUSER_BUFFER>					m_UserBufferContainerList;
-
-	uint32_t                                    m_UsedBufferCount;
+	std::vector<PUSER_BUFFER>		    m_UserBufferContainerList;
+	AVT::BaseTools::LocalMutex                  m_UsedBufferMutex;
 	
 	// Shared pointer to a worker thread for the image processing
 	QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
@@ -177,7 +177,7 @@ signals:
 	// Event will be called when a frame is processed by the internal thread and ready to show
 	void OnFrameID_Signal(const unsigned long long &frameId);
 	// Event will be called when the frame processing is done and the frame can be returned to streaming engine
-    void OnFrameDone_Signal(const unsigned long long frameHandle);
+	//void OnFrameDone_Signal(const unsigned long long frameHandle);
     // Event will be called when the a frame is recorded
 	void OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &);
     // Event will be called when the a frame is displayed

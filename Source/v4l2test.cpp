@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.23"
+#define PROGRAM_VERSION "v1.24"
 
 /*
  * 1.0: base version
@@ -81,6 +81,7 @@
          The resolution could have been adjusted.
          RAW10 and RAW12 conversion bug fix
  * 1.23: threadsafety fix is buggy rollback
+ * 1.24: second try for threadsafety
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -268,6 +269,8 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	// add the number of used frames option to the menu
 	m_CSVFileLineEdit = new QLineEdit(this);
 	m_CSVFileLineEdit->setText("");
+	//m_CSVFileLineEdit->setText("/home/ubuntu/Desktop/1296x968_Mono12p.csv");
+	//m_CSVFileLineEdit->setText("/home/ubuntu/Desktop/1296x968_Mono10p.csv");
 	
 	// prepare the layout
 	QHBoxLayout *layoutCSVFile = new QHBoxLayout;

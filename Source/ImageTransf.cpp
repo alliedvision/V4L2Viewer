@@ -53,6 +53,52 @@ ImageTransf::~ImageTransf()
 {
 }
 
+void  ConvertMono12gToRGB24(const void *sourceBuffer, uint32_t width, uint32_t height, const void *destBuffer)
+{
+    unsigned char *destdata = (unsigned char *)destBuffer;
+    unsigned char *srcdata = (unsigned char *)sourceBuffer;
+    uint32_t count = 0;
+    uint32_t bytesPerLine = width * 1.5;
+    
+    for (int i= 0; i<height; i++)
+    {
+       for (int ii= 0; ii<bytesPerLine; ii++)
+       {
+           if (((count+1)%3) != 0)
+	   {
+                *destdata++ = *srcdata;
+		*destdata++ = *srcdata;
+		*destdata++ = *srcdata;
+	   }
+	   count++;
+	   srcdata++;
+       }
+    }
+}
+
+void  ConvertMono10gToRGB24(const void *sourceBuffer, uint32_t width, uint32_t height, const void *destBuffer)
+{
+    unsigned char *destdata = (unsigned char *)destBuffer;
+    unsigned char *srcdata = (unsigned char *)sourceBuffer;
+    uint32_t count = 0;
+    uint32_t bytesPerLine = width * 1.25;
+    
+    for (int i= 0; i<height; i++)
+    {
+       for (int ii= 0; ii<bytesPerLine; ii++)
+       {
+           if (((count+1)%5) != 0)
+	   {
+                *destdata++ = *srcdata;
+		*destdata++ = *srcdata;
+		*destdata++ = *srcdata;
+	   }
+	   count++;
+	   srcdata++;
+       }
+    }
+}
+
 void  ConvertRAW12gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t height, const void *destBuffer)
 {
     unsigned char *destdata = (unsigned char *)destBuffer;
@@ -623,9 +669,8 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
     /* 10bit raw bayer packed, 5 bytes for every 4 pixels */
     case V4L2_PIX_FMT_Y10P:
     {
-	ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer);
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	v4lconvert_grey_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height);
+	ConvertMono10gToRGB24(pBuffer, width, height, convertedImage.bits());
 	break;
     }
     case V4L2_PIX_FMT_SBGGR10P:
@@ -666,8 +711,7 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
     case V4L2_PIX_FMT_Y12P:
     {
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
-	v4lconvert_grey_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height);
+	ConvertMono12gToRGB24(pBuffer, width, height, convertedImage.bits());
 	break;
     }
     case V4L2_PIX_FMT_SBGGR12P:
