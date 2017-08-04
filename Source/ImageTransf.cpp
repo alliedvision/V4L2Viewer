@@ -34,6 +34,7 @@
 #include "videodev2_av.h"
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
+#define V4L2_PIX_FMT_GREY12P     v4l2_fourcc('G', '1', '2', 'P') /* FKL 12  Greyscale packed */
 
 extern uint8_t *g_ConversionBuffer;
 
@@ -661,6 +662,7 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
     }
 
     /* 12bit raw bayer packed, 6 bytes for every 4 pixels */
+    case V4L2_PIX_FMT_GREY12P:
     case V4L2_PIX_FMT_Y12P:
     {
 	convertedImage = QImage(width, height, QImage::Format_RGB888);

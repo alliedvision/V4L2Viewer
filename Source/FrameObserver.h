@@ -40,7 +40,6 @@
 #include "MyFrameQueue.h"
 #include "ImageProcessingThread.h"
 #include "Helper.h"
-#include "LoggerMutex.h"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -104,23 +103,19 @@ class FrameObserver : public QThread
     void DisplayStepForw();
     void DeleteRecording();
     
-    int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
-    int QueueAllUserBuffer();
-    int QueueUserBuffer(const int index);
-    int DeleteAllUserBuffer();
-    virtual uint32_t GetBufferType();
-    virtual int CreateSingleUserBuffer(uint32_t index, uint32_t bufferSize, PUSER_BUFFER &userBuffer);
-    virtual int QueueSingleUserBuffer(const int index, uint8_t *pBuffer, uint32_t nBufferLength);
-    virtual int DeleteSingleUserBuffer(PUSER_BUFFER &userBuffer);
+    virtual int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
+    virtual int QueueAllUserBuffer();
+    virtual int QueueSingleUserBuffer(const int index);
+    virtual int DeleteUserBuffer();
     
-    //void FrameDone(const unsigned long long frameHandle);
+    void FrameDone(const unsigned long long frameHandle);
 
     void SwitchFrameTransfer2GUI(bool showFrames);
 
 protected:
 	// v4l2
     virtual int ReadFrame(v4l2_buffer &buf);
-	virtual int GetFrameData(v4l2_buffer &buf, PUSER_BUFFER &userBuffer, uint8_t *&buffer, uint32_t &length);
+	virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
 	int ProcessFrame(v4l2_buffer &buf);
 	void DequeueAndProcessFrame();
 		
@@ -161,17 +156,14 @@ protected:
 
     bool m_ShowFrames;
 	
+    std::vector<PUSER_BUFFER>					m_UserBufferContainerList;
 
+	uint32_t                                    m_UsedBufferCount;
+	
 	// Shared pointer to a worker thread for the image processing
 	QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
 	
 	std::vector<uint8_t> 			    m_rCSVData;
-
-private:
-	std::vector<PUSER_BUFFER> 		    m_UserBufferContainerList;
-	uint32_t                                    m_UsedBufferCount;
-	AVT::BaseTools::LocalMutex                  m_Mutex;
-	
 
 private slots:
 	//Event handler for getting the processed frame to an image
@@ -185,7 +177,7 @@ signals:
 	// Event will be called when a frame is processed by the internal thread and ready to show
 	void OnFrameID_Signal(const unsigned long long &frameId);
 	// Event will be called when the frame processing is done and the frame can be returned to streaming engine
-    //void OnFrameDone_Signal(const unsigned long long frameHandle);
+    void OnFrameDone_Signal(const unsigned long long frameHandle);
     // Event will be called when the a frame is recorded
 	void OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &);
     // Event will be called when the a frame is displayed

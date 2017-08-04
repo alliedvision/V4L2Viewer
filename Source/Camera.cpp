@@ -1501,7 +1501,7 @@ int Camera::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
 {
     int result = -1;
 
-    result = m_StreamCallbacks->CreateAllUserBuffer(bufferCount, bufferSize);
+    result = m_StreamCallbacks->CreateUserBuffer(bufferCount, bufferSize);
 
     return result;
 }
@@ -1519,7 +1519,7 @@ int Camera::QueueSingleUserBuffer(const int index)
 {
     int result = 0;
 
-    result = m_StreamCallbacks->QueueUserBuffer(index);
+    result = m_StreamCallbacks->QueueSingleUserBuffer(index);
     
     return result;
 }
@@ -1528,7 +1528,7 @@ int Camera::DeleteUserBuffer()
 {
     int result = 0;
 
-    result = m_StreamCallbacks->DeleteAllUserBuffer();
+    result = m_StreamCallbacks->DeleteUserBuffer();
 	
     return result;
 }
