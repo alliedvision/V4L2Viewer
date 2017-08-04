@@ -78,7 +78,7 @@
  * 1.20: Added configurable stream toggle delays
  * 1.21: user buffer list now threadsafe
  * 1.22: VIDIOC_S_FMT reads back the resolution if result is OK.
-         The resolution might be adjusted.
+         The resolution could have been adjusted.
          RAW10 and RAW12 conversion bug fix
  */
 
@@ -266,7 +266,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 ///////////////////// CSV File /////////////////////
 	// add the number of used frames option to the menu
 	m_CSVFileLineEdit = new QLineEdit(this);
-	m_CSVFileLineEdit->setText("/home/ubuntu/Desktop/1296x968_Mono10p.csv");
+	m_CSVFileLineEdit->setText("");
 	
 	// prepare the layout
 	QHBoxLayout *layoutCSVFile = new QHBoxLayout;
