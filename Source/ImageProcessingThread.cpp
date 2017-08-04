@@ -32,8 +32,6 @@
 #include "videodev2_av.h"
 #include "Logger.h"
 
-#define V4L2_PIX_FMT_GREY12P     v4l2_fourcc('G', '1', '2', 'P') /* FKL 12  Greyscale packed */
-
 ImageProcessingThread::ImageProcessingThread()
 	: m_bAbort(false)
 {

@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.22"
+#define PROGRAM_VERSION "v1.23"
 
 /*
  * 1.0: base version
@@ -80,6 +80,7 @@
  * 1.22: VIDIOC_S_FMT reads back the resolution if result is OK.
          The resolution could have been adjusted.
          RAW10 and RAW12 conversion bug fix
+ * 1.23: threadsafety fix is buggy rollback
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
