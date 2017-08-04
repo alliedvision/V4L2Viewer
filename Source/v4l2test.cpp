@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.21"
+#define PROGRAM_VERSION "v1.22"
 
 /*
  * 1.0: base version
@@ -77,6 +77,9 @@
  * 1.19: Fixed bug when app is closed unexpected
  * 1.20: Added configurable stream toggle delays
  * 1.21: user buffer list now threadsafe
+ * 1.22: VIDIOC_S_FMT reads back the resolution if result is OK.
+         The resolution might be adjusted.
+         RAW10 and RAW12 conversion bug fix
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -233,7 +236,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	// add the number of used frames option to the menu
 	m_NumberOfUsedFramesLineEdit = new QLineEdit(this);
 	m_NumberOfUsedFramesLineEdit->setText("5");
-	m_NumberOfUsedFramesLineEdit->setValidator(new QIntValidator(1, 20, this));
+	m_NumberOfUsedFramesLineEdit->setValidator(new QIntValidator(1, 500000, this));
 
 	// prepare the layout
 	QHBoxLayout *layoutNum = new QHBoxLayout;
@@ -263,7 +266,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 ///////////////////// CSV File /////////////////////
 	// add the number of used frames option to the menu
 	m_CSVFileLineEdit = new QLineEdit(this);
-	m_CSVFileLineEdit->setText("");
+	m_CSVFileLineEdit->setText("/home/ubuntu/Desktop/1296x968_Mono10p.csv");
 	
 	// prepare the layout
 	QHBoxLayout *layoutCSVFile = new QHBoxLayout;
@@ -1386,14 +1389,12 @@ void v4l2test::OnWidth()
 
 void v4l2test::OnHeight()
 {
+	uint32_t width = 0;
+	uint32_t height = 0;
+		
 	if (m_Camera.SetFrameSize(ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt()) < 0)
 	{
-		uint32_t width = 0;
-		uint32_t height = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framesize!") );
-		m_Camera.ReadFrameSize(width, height);
-		ui.m_edWidth->setText(QString("%1").arg(width));
-		ui.m_edHeight->setText(QString("%1").arg(height));
 	}
 	else
 	{
@@ -1403,6 +1404,10 @@ void v4l2test::OnHeight()
 		m_Camera.ReadPayloadsize(payloadsize);
 		ui.m_edPayloadsize->setText(QString("%1").arg(payloadsize));
 	}	
+	
+	m_Camera.ReadFrameSize(width, height);
+	ui.m_edWidth->setText(QString("%1").arg(width));
+	ui.m_edHeight->setText(QString("%1").arg(height));
 }
 
 void v4l2test::OnPixelformat()

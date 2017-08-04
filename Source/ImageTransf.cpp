@@ -57,6 +57,7 @@ void  ConvertRAW12gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t hei
     unsigned char *destdata = (unsigned char *)destBuffer;
     unsigned char *srcdata = (unsigned char *)sourceBuffer;
     uint32_t count = 0;
+    //uint32_t count2 = 0;
     uint32_t bytesPerLine = width * 1.5;
     
     for (int i= 0; i<height; i++)
@@ -64,12 +65,16 @@ void  ConvertRAW12gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t hei
        for (int ii= 0; ii<bytesPerLine; ii++)
        {
            if (((count+1)%3) != 0)
-                *destdata++ = *srcdata++;
+	   {
+	        //count2++;
+                *destdata++ = *srcdata;
+	   }
 	   count++;
+	   srcdata++;
        }
     }
     
-    //printf("counter= %d", count);
+    //printf("counter= %d, count2=%d", count, count2);
 }
 
 void  ConvertRAW10gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t height, const void *destBuffer)
@@ -77,6 +82,7 @@ void  ConvertRAW10gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t hei
     unsigned char *destdata = (unsigned char *)destBuffer;
     unsigned char *srcdata = (unsigned char *)sourceBuffer;
     uint32_t count = 0;
+    //uint32_t count2 = 0;
     uint32_t bytesPerLine = width * 1.25;
     
     for (int i= 0; i<height; i++)
@@ -84,12 +90,16 @@ void  ConvertRAW10gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t hei
        for (int ii= 0; ii<bytesPerLine; ii++)
        {
            if (((count+1)%5) != 0)
-                *destdata++ = *srcdata++;
+	   {
+                //count2++;
+                *destdata++ = *srcdata;
+	   }
 	   count++;
+	   srcdata++;
        }
     }
     
-    //printf("counter= %d", count);
+    //printf("counter= %d, count2=%d", count, count2);
 }
 
 /* inspired by OpenCV's Bayer decoding */
@@ -375,8 +385,11 @@ void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
 		int width, int height)
 {
 	int j;
-	while (--height >= 0) {
-		for (j = 0; j < width; j++) {
+	
+	while (--height >= 0) 
+	{
+		for (j = 0; j < width; j++) 
+		{
 			*dest++ = *src;
 			*dest++ = *src;
 			*dest++ = *src;
@@ -650,8 +663,8 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
     /* 12bit raw bayer packed, 6 bytes for every 4 pixels */
     case V4L2_PIX_FMT_Y12P:
     {
-	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
+	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
 	v4lconvert_grey_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height);
 	break;
     }
