@@ -92,8 +92,8 @@ FrameObserver::~FrameObserver()
 
 int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, 
 			       uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
-			       uint32_t enableLogging, int32_t dumpFrameStart, int32_t dumpFrameEnd,
-			       std::vector<uint8_t> &rData)
+			       uint32_t enableLogging, int32_t logFrameStart, int32_t logFrameEnd,
+			       int32_t dumpFrameStart, int32_t dumpFrameEnd, std::vector<uint8_t> &rData)
 {
     int nResult = 0;
     
@@ -112,9 +112,11 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_bStreamRunning = true;
     
     m_EnableLogging = enableLogging;
+    m_FrameCount = 0;
+    m_LogFrameStart = logFrameStart;
+    m_LogFrameEnd = logFrameEnd;
     m_DumpFrameStart = dumpFrameStart;
     m_DumpFrameEnd = dumpFrameEnd;
-    m_DumpFrameCount = 0;
     
     m_rCSVData = rData;
     
@@ -189,15 +191,24 @@ void FrameObserver::DequeueAndProcessFrame()
 	    {
 		if (length <= m_RealPayloadsize)
 		{
-		    if (m_DumpFrameCount >= m_DumpFrameStart && 
-			m_DumpFrameCount <=  m_DumpFrameEnd)
+		    if (m_FrameCount >= m_LogFrameStart && 
+			m_FrameCount <=  m_LogFrameEnd)
 		    {
         		Logger::LogDump("Received frame:", (uint8_t*)buffer, (uint32_t)m_PayloadSize);
 		    }
-		    m_DumpFrameCount++;
 				
-		    
-		    if (m_rCSVData.size() > 0 && m_DumpFrameCount == 1)
+		    if (m_FrameCount >= m_DumpFrameStart && 
+			m_FrameCount <=  m_DumpFrameEnd)
+		    {
+			std::stringstream localFileName;
+			
+			localFileName << "v4l2test_Frame" << m_FrameCount << ".dmp";
+		
+        		Logger::LogBuffer(localFileName.str(), (uint8_t*)buffer, (uint32_t)m_PayloadSize);
+		    }
+		    m_FrameCount++;
+		
+		    if (m_rCSVData.size() > 0 && m_FrameCount == 1)
 		    {
 			uint32_t tmpPayloadSize = m_rCSVData.size();
 			if (m_PayloadSize == tmpPayloadSize)

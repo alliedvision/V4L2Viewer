@@ -6,6 +6,11 @@
 namespace AVT {
 namespace BaseTools {
 
+    void BufferThreadProc(Logger *threadParams)
+    {
+        threadParams->BufThreadProc();
+    }
+
     void DumpThreadProc(Logger *threadParams)
     {
         threadParams->DmpThreadProc();
@@ -23,6 +28,8 @@ namespace BaseTools {
         , m_bThreadStopped(false)
         , m_bDumpThreadRunning(true)
         , m_bDumpThreadStopped(false)
+	, m_bBufferThreadRunning(true)
+        , m_bBufferThreadStopped(false)
     {
         if(true == bAppend)
         {
@@ -35,10 +42,14 @@ namespace BaseTools {
 
         m_pLogTextThread.StartThread((LPTHREAD_START_ROUTINE)LoggerThreadProc, this);
         m_pDumpThread.StartThread((LPTHREAD_START_ROUTINE)DumpThreadProc, this);
+	m_pBufferThread.StartThread((LPTHREAD_START_ROUTINE)BufferThreadProc, this);
     }
 
     Logger::~Logger()
     {
+        m_bBufferThreadRunning = false;
+        while (!m_bBufferThreadStopped) Helper::uSleep(10);
+    
         m_bDumpThreadRunning = false;
         while (!m_bDumpThreadStopped) Helper::uSleep(10);
     
@@ -55,6 +66,7 @@ namespace BaseTools {
 
         m_pLogTextThread.Join();
         m_pDumpThread.Join();
+	m_pBufferThread.Join();
     }
 
     void Logger::Log(const std::string &rStrMessage)
@@ -87,6 +99,22 @@ namespace BaseTools {
             pack->Message = rStrMessage;
 
             m_DumpQueue.push(pack);
+        }
+    }
+
+    void Logger::LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t length)
+    {
+        if (m_bDumpThreadRunning)
+        {
+            AutoLocalMutex guard(m_DumpMutex);
+        
+            PPACKET pack = new PACKET;
+            pack->Buffer.resize(length);
+            memcpy (&pack->Buffer[0], buffer, length);
+            pack->Length = length;
+	    pack->FileName = rFileName;
+            
+            m_BufferQueue.push(pack);
         }
     }
 
@@ -142,6 +170,40 @@ namespace BaseTools {
         PrintDumpExitMessage();
 
         m_bDumpThreadStopped = true;
+    }
+
+    void Logger::BufThreadProc()
+    {
+        while (m_bBufferThreadRunning)
+        {
+            if(m_BufferQueue.size() > 0)
+            {
+                PPACKET pack;
+		
+		{
+		    AutoLocalMutex guard(m_BufferMutex);
+		    pack = m_BufferQueue.front();
+		    m_BufferQueue.pop();
+		}
+		    
+		FILE *localFile = fopen(pack->FileName.c_str(), "wb");
+		
+		if (NULL != localFile)
+		{
+		    fwrite(&pack->Buffer[0], 1, pack->Length, localFile);
+		
+		    fflush(localFile);
+		    fclose(localFile);
+		}
+                delete pack;
+            }
+
+            Helper::uSleep(3);
+        }
+
+        PrintBufferExitMessage();
+
+        m_bBufferThreadStopped = true;
     }
 
     void Logger::PrintStartMessage()
@@ -214,4 +276,24 @@ namespace BaseTools {
         fflush(m_pFile);
     }
 
+    void Logger::PrintBufferExitMessage()
+    {
+        while (m_BufferQueue.size() > 0)
+        {
+            PPACKET pack = m_BufferQueue.front();
+            FILE *localFile = fopen(pack->FileName.c_str(), "wb");
+		
+	    m_BufferQueue.pop();
+	    
+	    if (NULL != localFile)
+	    {
+		fwrite(&pack->Buffer[0], 1, pack->Length, localFile);
+		
+		fflush(localFile);
+		fclose(localFile);
+	    }
+            delete pack;
+        }
+    }
+    
 }} /* namespace AVT::BaseTools */

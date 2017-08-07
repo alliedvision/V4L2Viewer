@@ -74,6 +74,10 @@ private:
 	QWidgetAction *m_LogFrameRangeWidgetAction;
 	// The line which holds the number dumped frames
 	QLineEdit *m_LogFrameRangeLineEdit;
+	// The menu widget to setup the number of dumped frames
+	QWidgetAction *m_DumpByteFrameRangeWidgetAction;
+	// The line which holds the number dumped frames
+	QLineEdit *m_DumpByteFrameRangeLineEdit;
 	// The menu widget to setup the number of CSV File
 	QWidgetAction *m_CSVFileWidgetAction;
 	// The line which holds the number CSV File

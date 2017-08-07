@@ -88,6 +88,12 @@ void Logger::LogDump(const std::string &rMessage, uint8_t *buffer, uint32_t leng
 	m_pLogger->LogDump(rMessage, buffer, length);
 }
 
+void Logger::LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t length)
+{
+    //if (m_LogSwitch)
+	m_pLogger->LogBuffer(rFileName, buffer, length);
+}
+
 void Logger::LogSwitch(bool flag)
 {
     LogEx("Logger switched %s", (flag)?"on":"off");

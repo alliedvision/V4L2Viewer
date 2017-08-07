@@ -82,16 +82,17 @@
          RAW10 and RAW12 conversion bug fix
  * 1.23: threadsafety fix is buggy rollback
  * 1.24: second try for threadsafety
+         frame byte dump to disk added
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     : QMainWindow(parent, flags)
     , m_nViewerNumber(viewerNumber)
     , m_bIsOpen(false)
-	, m_bIsStreaming(false)
-	, m_dFitToScreen(false)
-	, m_dScaleFactor(1.0)
-	, m_DirectAccessData(0)
+    , m_bIsStreaming(false)
+    , m_dFitToScreen(false)
+    , m_dScaleFactor(1.0)
+    , m_DirectAccessData(0)
     , m_saveFileDialog(0)
     , m_BLOCKING_MODE(false)
     , m_MMAP_BUFFER(true) // use mmap by default
@@ -265,6 +266,21 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	QWidget *widgetDump = new QWidget(this);
 	widgetDump->setLayout(layoutDump);
 
+///////////////////// Dump byte range /////////////////////
+	// add the number of used frames option to the menu
+	m_DumpByteFrameRangeLineEdit = new QLineEdit(this);
+	m_DumpByteFrameRangeLineEdit->setText("");
+	
+	// prepare the layout
+	QHBoxLayout *layoutByteDump = new QHBoxLayout;
+	QLabel *labelByteDump = new QLabel("Byte Frame Dump to Disk:");
+	layoutByteDump->addWidget(labelByteDump);
+	layoutByteDump->addWidget(m_DumpByteFrameRangeLineEdit);
+	
+	// put the layout into a widget
+	QWidget *widgetByteDump = new QWidget(this);
+	widgetByteDump->setLayout(layoutByteDump);
+
 ///////////////////// CSV File /////////////////////
 	// add the number of used frames option to the menu
 	m_CSVFileLineEdit = new QLineEdit(this);
@@ -334,6 +350,11 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	m_LogFrameRangeWidgetAction->setDefaultWidget(widgetDump);
 	ui.m_MenuOptions->addAction(m_LogFrameRangeWidgetAction);
 
+	// add the widget into the menu bar
+	m_DumpByteFrameRangeWidgetAction = new QWidgetAction(this);
+	m_DumpByteFrameRangeWidgetAction->setDefaultWidget(widgetByteDump);
+	ui.m_MenuOptions->addAction(m_DumpByteFrameRangeWidgetAction);
+	
 	// add the widget into the menu bar
 	m_CSVFileWidgetAction = new QWidgetAction(this);
 	m_CSVFileWidgetAction->setDefaultWidget(widgetCSVFile);
@@ -749,6 +770,7 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 
     m_nDroppedFrames = 0;
         
+    // prepare the frame ascii log range
     QString logFrameRange = m_LogFrameRangeLineEdit->text();
     QStringList logFrameRangeList = logFrameRange.split('-');
 	
@@ -766,6 +788,24 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 	logFrameRangeEnd = logFrameRangeList.at(1).toInt();
 	
 
+    // prepare the frame byte log range
+    QString dumpByteFrameRange = m_DumpByteFrameRangeLineEdit->text();
+    QStringList dumpByteFrameRangeList = dumpByteFrameRange.split('-');
+	
+    if (dumpByteFrameRangeList.size() > 3)
+    {
+	QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1 or 1-2!") );
+	return;
+    }
+	
+    int32_t dumpByteFrameRangeStart = -1;
+    if (m_DumpByteFrameRangeLineEdit->text() != "" && dumpByteFrameRangeList.size() >= 1)
+	dumpByteFrameRangeStart = dumpByteFrameRangeList.at(0).toInt();
+    int32_t dumpByteFrameRangeEnd = dumpByteFrameRangeStart;
+    if (dumpByteFrameRangeList.size() == 2)
+	dumpByteFrameRangeEnd = dumpByteFrameRangeList.at(1).toInt();
+
+    // start streaming
     err = m_Camera.StartStreamChannel(m_CSVFileLineEdit->text().toStdString().c_str(),
 				  pixelformat, 
 				  payloadsize, 
@@ -775,7 +815,9 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 				  NULL,
 				  ui.m_TitleLogtofile->isChecked(),
 				  logFrameRangeStart,
-				  logFrameRangeEnd);
+				  logFrameRangeEnd,
+				  dumpByteFrameRangeStart,
+ 				  dumpByteFrameRangeEnd);
     if (0 != err)
         OnLog("Start Acquisition failed during SI Start channel.");
     else
