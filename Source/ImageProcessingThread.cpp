@@ -41,18 +41,19 @@ ImageProcessingThread::~ImageProcessingThread(void)
 {
 }
 
-int ImageProcessingThread::QueueFrame(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length, 
-									  uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-									  uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+int ImageProcessingThread::QueueFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
+				      uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+				      uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
 {
-	int result = -1;
+    int result = -1;
     
     // make sure Viewer is never working in the past
     // if viewer is too slow we drop the frames.
     if (m_FrameQueue.GetSize() < MAX_QUEUE_SIZE)
     {
-		m_FrameQueue.Enqueue(buf, buffer, length, width, height, pixelformat, payloadSize, bytesPerLine, frameID);
-		result = 0;
+	m_FrameQueue.Enqueue(bufferIndex, buffer, length, width, height, 
+			     pixelformat, payloadSize, bytesPerLine, frameID);
+	result = 0;
     }
     
     return result;
@@ -67,8 +68,8 @@ int ImageProcessingThread::QueueFrame(QImage &image, uint64_t &frameID)
     // if viewer is too slow we drop the frames.
     if (m_FrameQueue.GetSize() < MAX_QUEUE_SIZE)
     {
-		m_FrameQueue.Enqueue(image, frameID);
-		result = 0;
+	m_FrameQueue.Enqueue(image, frameID);
+	result = 0;
     }
     
     return result;
@@ -340,23 +341,23 @@ int ImageProcessingThread::Try2ConvertV4l2Pixelformat2OpenCV(uint32_t pixelforma
 // Do the work within this thread
 void ImageProcessingThread::run()
 {
-	int result = 0;
+    int result = 0;
 	
-	while (!m_bAbort)
+    while (!m_bAbort)
+    {
+	if(0 < m_FrameQueue.GetSize())
 	{
-		if(0 < m_FrameQueue.GetSize())
-		{
-			QSharedPointer<MyFrame> pFrame = m_FrameQueue.Dequeue();
-			uint64_t frameID = pFrame->GetFrameId();
-			v4l2_buffer buf = pFrame->GetV4l2Image();
-			const uint8_t* pBuffer = pFrame->GetBuffer();
-			uint32_t length = pFrame->GetBufferlength();
-			uint32_t width = pFrame->GetWidth();
-			uint32_t height = pFrame->GetHeight();
-			uint32_t pixelformat = pFrame->GetPixelformat();
-			uint32_t payloadSize = pFrame->GetPayloadSize();
-			uint32_t bytesPerLine = pFrame->GetBytesPerLine();
-			QImage convertedImage;
+	    QSharedPointer<MyFrame> pFrame = m_FrameQueue.Dequeue();
+	    uint64_t frameID = pFrame->GetFrameId();
+	    const uint8_t* pBuffer = pFrame->GetBuffer();
+	    uint32_t length = pFrame->GetBufferlength();
+	    uint32_t width = pFrame->GetWidth();
+	    uint32_t height = pFrame->GetHeight();
+	    uint32_t pixelformat = pFrame->GetPixelformat();
+	    uint32_t payloadSize = pFrame->GetPayloadSize();
+	    uint32_t bytesPerLine = pFrame->GetBytesPerLine();
+	    uint32_t bufferIndex = pFrame->GetBufferIndex();
+	    QImage convertedImage;
             //VmbPixelFormat_t resPixelformat;
 	    //cv::Mat destMat(cv::Size(width, height), CV_8UC3); 
 	    
@@ -376,13 +377,13 @@ void ImageProcessingThread::run()
                 result = AVT::Tools::ImageTransf::ConvertFrame(pBuffer, length, 
                                                                width, height, pixelformat, 
                                                                payloadSize, bytesPerLine, convertedImage);
-			}
+	    }
 			
             if (result == 0)
-		emit OnFrameReady_Signal(convertedImage, frameID, buf.index);
-	    }
-
-	    QThread::msleep(1);
+		emit OnFrameReady_Signal(convertedImage, frameID, bufferIndex);
 	}
+
+	QThread::msleep(1);
+    }
 }
 

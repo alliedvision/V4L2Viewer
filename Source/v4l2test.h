@@ -63,6 +63,7 @@ private:
 	Camera m_Camera;
     
     uint32_t m_nDroppedFrames;
+    uint32_t m_nStreamNumber;
     
 	// The Qt GUI
     Ui::v4l2testTestClass ui;

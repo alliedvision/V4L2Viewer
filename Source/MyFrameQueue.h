@@ -37,39 +37,39 @@
 class MyFrameQueue
 {
 public:
-	// Copy the of the given frame
-	MyFrameQueue(void);
-	~MyFrameQueue(void);
+    // Copy the of the given frame
+    MyFrameQueue(void);
+    ~MyFrameQueue(void);
 
-	// Get the size of the queue
-	unsigned int GetSize();
+    // Get the size of the queue
+    unsigned int GetSize();
 
-	// Clear queue
+    // Clear queue
     void Clear();
 
-	// Add a new frame
-	void Enqueue(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length, 
-				 uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-			     uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
+    // Add a new frame
+    void Enqueue(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
+		 uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+		 uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
 	
-	// Add a new frame
-	void Enqueue(QImage &image, uint64_t frameID);
+    // Add a new frame
+    void Enqueue(QImage &image, uint64_t frameID);
 
-	// Add a new frame
-	void Enqueue(QSharedPointer<MyFrame> pFrame);
+    // Add a new frame
+    void Enqueue(QSharedPointer<MyFrame> pFrame);
 
     // Get the frame out of the queue
-	QSharedPointer<MyFrame> Dequeue();
+    QSharedPointer<MyFrame> Dequeue();
 
     // Get the frame at the previous index
-	QSharedPointer<MyFrame> GetPrevious();
+    QSharedPointer<MyFrame> GetPrevious();
 
     // Get the frame at the next index
-	QSharedPointer<MyFrame> GetNext();
+    QSharedPointer<MyFrame> GetNext();
 
 private:
-	QQueue< QSharedPointer<MyFrame> > m_FrameQueue;
-	QMutex m_FrameQueueMutex;
+    QQueue< QSharedPointer<MyFrame> > m_FrameQueue;
+    QMutex m_FrameQueueMutex;
     int m_nQueueIndex;
 };
 

@@ -47,9 +47,9 @@ public:
 	~ImageProcessingThread(void);
 
 	// Queue the frame for the thread to work with
-	int QueueFrame(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length, 
-				   uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-				   uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
+	int QueueFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
+		       uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+		       uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
 	
 	// Queue the frame for the thread to work with
 	int QueueFrame(QImage &image, uint64_t &frameID);

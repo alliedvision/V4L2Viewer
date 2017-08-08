@@ -147,6 +147,7 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
 
 		if (!pTmpBuffer->pBuffer) 
 		{
+		    delete pTmpBuffer;
 		    Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer creation error");
 		    emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: buffer creation error.");
 		    m_UserBufferContainerList.resize(0);

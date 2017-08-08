@@ -39,85 +39,93 @@ MyFrameQueue::~MyFrameQueue()
 // Get the size of the queue
 unsigned int MyFrameQueue::GetSize()
 {
-	unsigned int size = 0;
+    unsigned int size = 0;
 
-	m_FrameQueueMutex.lock();
+    m_FrameQueueMutex.lock();
 
-	size = m_FrameQueue.size();
+    size = m_FrameQueue.size();
 
-	m_FrameQueueMutex.unlock();
+    m_FrameQueueMutex.unlock();
 
-	return size;
+    return size;
 }
 
 // Get the size of the queue
 void MyFrameQueue::Clear()
 {
-	m_FrameQueueMutex.lock();
+    m_FrameQueueMutex.lock();
 
     m_FrameQueue.clear();
     m_nQueueIndex = 0;
 
-	m_FrameQueueMutex.unlock();
+    m_FrameQueueMutex.unlock();
 }
 
-void MyFrameQueue::Enqueue(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length, 
-						   uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-						   uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+void MyFrameQueue::Enqueue(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
+			   uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+			   uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
 {
-	m_FrameQueueMutex.lock();
+    m_FrameQueueMutex.lock();
 
-	QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(buf, buffer, length, width, height, pixelformat, payloadSize, bytesPerLine, frameID));
+    QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(bufferIndex, 
+									   buffer, 
+									   length, 
+									   width, 
+									   height, 
+									   pixelformat, 
+									   payloadSize, 
+									   bytesPerLine, 
+									   frameID));
 		
     m_FrameQueue.enqueue(newFrame);
 	
-	m_FrameQueueMutex.unlock();
+    m_FrameQueueMutex.unlock();
 }
 
 // Add a new frame
 void MyFrameQueue::Enqueue( QImage &image, 
                             uint64_t frameID)
 {
-	m_FrameQueueMutex.lock();
+    m_FrameQueueMutex.lock();
 
-	QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(image, frameID));
+    QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(image, frameID));
 		
     m_FrameQueue.enqueue(newFrame);
 	
-	m_FrameQueueMutex.unlock();
+    m_FrameQueueMutex.unlock();
 }
 
 // Add a new frame
 void MyFrameQueue::Enqueue(QSharedPointer<MyFrame> pFrame)
 {
-	m_FrameQueueMutex.lock();
+    m_FrameQueueMutex.lock();
 
-	m_FrameQueue.enqueue(pFrame);
+    m_FrameQueue.enqueue(pFrame);
 	
-	m_FrameQueueMutex.unlock();
+    m_FrameQueueMutex.unlock();
 }
 
 // Get the frame out of the queue
 QSharedPointer<MyFrame> MyFrameQueue::Dequeue()
 {
-	QSharedPointer<MyFrame> queuedFrame;
+    QSharedPointer<MyFrame> queuedFrame;
 
-	m_FrameQueueMutex.lock();
+    m_FrameQueueMutex.lock();
 
     if (m_FrameQueue.size() > 0)
-	    queuedFrame = m_FrameQueue.dequeue();
+	queuedFrame = m_FrameQueue.dequeue();
 
-	m_FrameQueueMutex.unlock();
+    m_FrameQueueMutex.unlock();
 
-	return queuedFrame;
+    return queuedFrame;
 }
 
 // Get the frame out of the queue
 QSharedPointer<MyFrame> MyFrameQueue::GetPrevious()
 {
-	QSharedPointer<MyFrame> queuedFrame;
+    QSharedPointer<MyFrame> queuedFrame;
 
-	m_FrameQueueMutex.lock();
+    m_FrameQueueMutex.lock();
 
     if (m_FrameQueue.size() > 0)
     {
@@ -128,17 +136,17 @@ QSharedPointer<MyFrame> MyFrameQueue::GetPrevious()
         queuedFrame = m_FrameQueue.at(m_nQueueIndex);
     }
 
-	m_FrameQueueMutex.unlock();
+    m_FrameQueueMutex.unlock();
 
-	return queuedFrame;
+    return queuedFrame;
 }
 
 // Get the frame out of the queue
 QSharedPointer<MyFrame> MyFrameQueue::GetNext()
 {
-	QSharedPointer<MyFrame> queuedFrame;
+    QSharedPointer<MyFrame> queuedFrame;
 
-	m_FrameQueueMutex.lock();
+    m_FrameQueueMutex.lock();
 
     if (m_FrameQueue.size() > 0)
     {
@@ -149,7 +157,7 @@ QSharedPointer<MyFrame> MyFrameQueue::GetNext()
         queuedFrame = m_FrameQueue.at(m_nQueueIndex);
     }
 
-	m_FrameQueueMutex.unlock();
+    m_FrameQueueMutex.unlock();
 
-	return queuedFrame;
+    return queuedFrame;
 }

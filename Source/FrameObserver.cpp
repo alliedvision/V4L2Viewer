@@ -272,7 +272,7 @@ void FrameObserver::DequeueAndProcessFrame()
 		    m_PayloadSize = 1881792; //1568160; //1881792;
 		    m_BytesPerLine = 1944; //1620; //1944;
 		    */
-		    if (m_pImageProcessingThread->QueueFrame(buf, buffer, length, 
+		    if (m_pImageProcessingThread->QueueFrame(buf.index, buffer, length, 
 							m_nWidth, m_nHeight, m_Pixelformat, 
 							m_PayloadSize, m_BytesPerLine, m_FrameId))
 		    {

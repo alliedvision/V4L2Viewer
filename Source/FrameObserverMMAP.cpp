@@ -142,6 +142,7 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         
 	    if (m_UserBufferContainerList.size() != bufferCount) 
 	    {
+		m_UserBufferContainerList.resize(0);
 		Logger::LogEx("FrameObserverMMAP::CreateUserBuffer buffer container error");
 		emit OnError_Signal("FrameObserverMMAP::CreateUserBuffer: buffer container error.");
 		return -1;
@@ -166,7 +167,6 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
 		emit OnMessage_Signal(QString("FrameObserverMMAP::CreateUserBuffer: VIDIOC_QUERYBUF OK length=%1.").arg(buf.length));
 				
 		PUSER_BUFFER pTmpBuffer = new USER_BUFFER;
-		pTmpBuffer = new USER_BUFFER;
 		pTmpBuffer->nBufferlength = buf.length;
 		m_RealPayloadsize = pTmpBuffer->nBufferlength;
 		pTmpBuffer->pBuffer = (uint8_t*)mmap(NULL,
@@ -178,6 +178,7 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
 	
 		if (MAP_FAILED == pTmpBuffer->pBuffer)
 		{
+		    delete pTmpBuffer;
 		    m_UserBufferContainerList.resize(0);
 		    return -1;
 		}

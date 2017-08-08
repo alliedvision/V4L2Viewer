@@ -404,6 +404,23 @@
             </widget>
            </item>
            <item>
+            <widget class="Line" name="line">
+             <property name="lineWidth">
+              <number>2</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="m_StreamLabel">
+             <property name="text">
+              <string>Stream#0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -428,7 +445,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>795</width>
+              <width>834</width>
               <height>290</height>
              </rect>
             </property>
@@ -1982,6 +1999,7 @@
     <addaction name="m_TitleShowFrames"/>
     <addaction name="m_TitleFlipHorizontal"/>
     <addaction name="m_TitleFlipVertical"/>
+    <addaction name="m_TitleEnableMessageListbox"/>
     <addaction name="m_TitleClearOutputListbox"/>
     <addaction name="m_TitleLogtofile"/>
    </widget>
@@ -2079,7 +2097,7 @@
   </action>
   <action name="m_TitleClearOutputListbox">
    <property name="text">
-    <string>Clear Output Listbox</string>
+    <string>Clear Message Listbox</string>
    </property>
   </action>
   <action name="m_TitleLogtofile">
@@ -2102,6 +2120,17 @@
    </property>
    <property name="text">
     <string>Toggle Stream On/Off with random delay</string>
+   </property>
+  </action>
+  <action name="m_TitleEnableMessageListbox">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Message Listbox</string>
    </property>
   </action>
  </widget>

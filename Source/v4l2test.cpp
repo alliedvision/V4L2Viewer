@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.24"
+#define PROGRAM_VERSION "v1.25"
 
 /*
  * 1.0: base version
@@ -83,6 +83,9 @@
  * 1.23: threadsafety fix is buggy rollback
  * 1.24: second try for threadsafety
          frame byte dump to disk added
+ * 1.25: Memoryleak fixed
+         Message Listbox can be disabled now
+         number of stream now available in GUI
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -98,6 +101,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_MMAP_BUFFER(true) // use mmap by default
     , m_ShowFrames(true)
     , m_nDroppedFrames(0)
+    , m_nStreamNumber(0)
 {
     srand((unsigned)time(0));
 
@@ -258,7 +262,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	
 	// prepare the layout
 	QHBoxLayout *layoutDump = new QHBoxLayout;
-	QLabel *labelDump = new QLabel("Log Frame dump:");
+	QLabel *labelDump = new QLabel("Dump frames to log file (range 1 or 1-3):");
 	layoutDump->addWidget(labelDump);
 	layoutDump->addWidget(m_LogFrameRangeLineEdit);
 	
@@ -273,7 +277,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	
 	// prepare the layout
 	QHBoxLayout *layoutByteDump = new QHBoxLayout;
-	QLabel *labelByteDump = new QLabel("Byte Frame Dump to Disk:");
+	QLabel *labelByteDump = new QLabel("Dump frames to binary file (range 1 or 1-3):");
 	layoutByteDump->addWidget(labelByteDump);
 	layoutByteDump->addWidget(m_DumpByteFrameRangeLineEdit);
 	
@@ -824,6 +828,7 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
     {
         OnLog("Acquisition started ...");
     	m_bIsStreaming = true;
+	ui.m_StreamLabel->setText(QString("Stream#%1").arg(++m_nStreamNumber));
     }
 	
 	UpdateViewerLayout();
@@ -1073,6 +1078,7 @@ void v4l2test::UpdateViewerLayout()
 	ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
 	ui.m_FramesPerSecondLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
 	ui.m_FrameIdLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
+	ui.m_StreamLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
 
 	UpdateZoomButtons();
 }
@@ -1107,8 +1113,11 @@ void v4l2test::UpdateZoomButtons()
 // Prints out some logging without error
 void v4l2test::OnLog(const QString &strMsg)
 {
+    if (ui.m_TitleEnableMessageListbox->isChecked())
+    {
 	ui.m_LogTextEdit->appendPlainText(strMsg);
 	ui.m_LogTextEdit->verticalScrollBar()->setValue(ui.m_LogTextEdit->verticalScrollBar()->maximum());
+    }
 }
 
 // Open/Close the camera
@@ -1121,6 +1130,8 @@ int v4l2test::OpenAndSetupCamera(const uint32_t cardNumber, const QString &devic
 
     if (0 != err)
     	OnLog("Open device failed");
+    else
+	m_nStreamNumber = 0;
 
     return err;
 }
