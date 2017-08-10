@@ -1999,6 +1999,7 @@
     <addaction name="m_TitleShowFrames"/>
     <addaction name="m_TitleFlipHorizontal"/>
     <addaction name="m_TitleFlipVertical"/>
+    <addaction name="m_TitleEnable_VIDIOC_TRY_FMT"/>
     <addaction name="m_TitleEnableMessageListbox"/>
     <addaction name="m_TitleClearOutputListbox"/>
     <addaction name="m_TitleLogtofile"/>
@@ -2131,6 +2132,17 @@
    </property>
    <property name="text">
     <string>Enable Message Listbox</string>
+   </property>
+  </action>
+  <action name="m_TitleEnable_VIDIOC_TRY_FMT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable VIDIOC_TRY_FMT</string>
    </property>
   </action>
  </widget>

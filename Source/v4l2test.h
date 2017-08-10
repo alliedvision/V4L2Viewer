@@ -57,6 +57,7 @@ private:
     
     bool m_BLOCKING_MODE;
     bool m_MMAP_BUFFER;
+    bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
 	
     // The currently streaming camera
@@ -160,6 +161,8 @@ private slots:
 	void OnBlockingMode();
 	// The event handler to set MMAP
 	void OnUseMMAP();
+	// The event handler to set VIDIOC_TRY_FMT
+	void OnUseVIDIOC_TRY_FMT();
     // The event handler to open a next viewer
     void OnMenuOpenNextViewer();
 	// Prints out some logging

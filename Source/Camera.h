@@ -47,7 +47,7 @@ public:
     Camera();
     virtual ~Camera();
 
-    int OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuffer);
+    int OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuffer, bool v4l2TryFmt);
     int CloseDevice();
 
     int DeviceDiscoveryStart();
@@ -144,6 +144,7 @@ private:
     int 				m_nFileDescriptor;
     bool 				m_BlockingMode;   
     bool 				m_ShowFrames;
+    bool				m_useV4l2TryFmt;
 
     CameraObserver              	m_DeviceDiscoveryCallbacks;
     QSharedPointer<FrameObserver>	m_StreamCallbacks;
