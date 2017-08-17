@@ -1999,6 +1999,7 @@
     <addaction name="m_TitleShowFrames"/>
     <addaction name="m_TitleFlipHorizontal"/>
     <addaction name="m_TitleFlipVertical"/>
+    <addaction name="m_TitleEnableExtendedControls"/>
     <addaction name="m_TitleEnable_VIDIOC_TRY_FMT"/>
     <addaction name="m_TitleEnableMessageListbox"/>
     <addaction name="m_TitleClearOutputListbox"/>
@@ -2143,6 +2144,17 @@
    </property>
    <property name="text">
     <string>Enable VIDIOC_TRY_FMT</string>
+   </property>
+  </action>
+  <action name="m_TitleEnableExtendedControls">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Enable Extended Controls</string>
    </property>
   </action>
  </widget>

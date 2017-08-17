@@ -59,6 +59,7 @@ private:
     bool m_MMAP_BUFFER;
     bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
+    bool m_ExtendedControls;
 	
     // The currently streaming camera
 	Camera m_Camera;
@@ -153,20 +154,22 @@ private:
 
 private slots:
     void OnLogToFile();
-      void OnClearOutputListbox();
-      void OnShowFrames();
-	// The event handler to close the program
-	void OnMenuCloseTriggered();
-	// The event handler to set blocking mode
-	void OnBlockingMode();
-	// The event handler to set MMAP
-	void OnUseMMAP();
-	// The event handler to set VIDIOC_TRY_FMT
-	void OnUseVIDIOC_TRY_FMT();
+    void OnClearOutputListbox();
+    void OnShowFrames();
+    // The event handler to close the program
+    void OnMenuCloseTriggered();
+    // The event handler to set blocking mode
+    void OnBlockingMode();
+    // The event handler to set MMAP
+    void OnUseMMAP();
+    // The event handler to set VIDIOC_TRY_FMT
+    void OnUseVIDIOC_TRY_FMT();
+    // The event handler to set Extended Controls
+    void OnUseExtendedControls();
     // The event handler to open a next viewer
     void OnMenuOpenNextViewer();
-	// Prints out some logging
-	void OnLog(const QString &strMsg);
+    // Prints out some logging
+    void OnLog(const QString &strMsg);
     // The event handler for open / close camera
     void OnOpenCloseButtonClicked();
     // The event handler for get device info
@@ -175,55 +178,54 @@ private slots:
     void OnGetStreamStatisticsButtonClicked();
     // The event handler for the camera list changed event
     void OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info);
-	// The event handler for starting acquisition
-	void OnStartButtonClicked();
+    // The event handler for starting acquisition
+    void OnStartButtonClicked();
     // The event handler for toggeling acquisition
-	void OnToggleButtonClicked();
-	// The event handler for stopping acquisition
-	void OnStopButtonClicked();
-	// The event handler to resize the image to fit to window
-	void OnZoomFitButtonClicked();
-	// The event handler for resize the image
-	void OnZoomInButtonClicked();
-	void OnZoomOutButtonClicked();
-	// The event handler to show the frames received
-	void OnUpdateFramesReceived();
+    void OnToggleButtonClicked();
+    // The event handler for stopping acquisition
+    void OnStopButtonClicked();
+    // The event handler to resize the image to fit to window
+    void OnZoomFitButtonClicked();
+    // The event handler for resize the image
+    void OnZoomInButtonClicked();
+    void OnZoomOutButtonClicked();
+    // The event handler to show the frames received
+    void OnUpdateFramesReceived();
     // The event handler to check for controller timeouts
-	void OnControllerResponseTimeout();
+    void OnControllerResponseTimeout();
     // The event handler to receive timer messages
     void OnStreamToggleTimeout();
-	// The event handler to show the processed frame
-	void OnFrameReady(const QImage &image, const unsigned long long &frameId);
-	// The event handler to show the processed frame ID
-	void OnFrameID(const unsigned long long &frameId);
-	// The event handler to show the event data
-	void OnCameraEventReady(const QString &eventText);
+    // The event handler to show the processed frame
+    void OnFrameReady(const QImage &image, const unsigned long long &frameId);
+    // The event handler to show the processed frame ID
+    void OnFrameID(const unsigned long long &frameId);
+    // The event handler to show the event data
+    void OnCameraEventReady(const QString &eventText);
     // The event handler to clear the event list
-	void OnClearEventLogButtonClicked();
-	// The event handler to show the received values
-	void OnCameraRegisterValueReady(unsigned long long value);
+    void OnClearEventLogButtonClicked();
+    // The event handler to show the received values
+    void OnCameraRegisterValueReady(unsigned long long value);
     // Event will be called on error
-	void OnCameraError(const QString &text);
+    void OnCameraError(const QString &text);
     // Event will be called on message
-	void OnCameraMessage(const QString &text);
+    void OnCameraMessage(const QString &text);
     // Event will be called when the a frame is recorded
     void OnCameraRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue);
-	// Event will be called when the a frame is displayed
+    // Event will be called when the a frame is displayed
     void OnCameraDisplayFrame(const unsigned long long &frameID);
     // The event handler to open a camera on double click event
-	void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
-	// The event handler to read a register per direct access
-	void OnDirectRegisterAccessReadButtonClicked();
-	// The event handler to write a register per direct access
-	void OnDirectRegisterAccessWriteButtonClicked();
-	// The event handler to update the direct register access value
-	void OnDirectRegisterAccessUpdateData();
+    void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
+    // The event handler to read a register per direct access
+    void OnDirectRegisterAccessReadButtonClicked();
+    // The event handler to write a register per direct access
+    void OnDirectRegisterAccessWriteButtonClicked();
+    // The event handler to update the direct register access value
+    void OnDirectRegisterAccessUpdateData();
 
-	void OnCropXOffset();
-	void OnCropYOffset();
-	void OnCropWidth();
-	void OnCropHeight();
-
+    void OnCropXOffset();
+    void OnCropYOffset();
+    void OnCropWidth();
+    void OnCropHeight();
     
     void OnStartRecording();
     void OnStopRecording();

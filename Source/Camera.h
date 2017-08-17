@@ -47,7 +47,8 @@ public:
     Camera();
     virtual ~Camera();
 
-    int OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuffer, bool v4l2TryFmt);
+    int OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuffer, 
+		   bool v4l2TryFmt, bool extendedControls);
     int CloseDevice();
 
     int DeviceDiscoveryStart();
@@ -105,6 +106,9 @@ public:
     int SetFramerate(uint32_t numerator, uint32_t denominator);
     int SetControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName);
     int ReadControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
+    int SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName);
+    int ReadExtControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
+    int EnumAllControl();
     int ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
 				 uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
 				 uint32_t &aspectnum, uint32_t &aspectdenum);
@@ -145,7 +149,8 @@ private:
     bool 				m_BlockingMode;   
     bool 				m_ShowFrames;
     bool				m_useV4l2TryFmt;
-
+    bool				m_UseExtendedControls;
+    
     CameraObserver              	m_DeviceDiscoveryCallbacks;
     QSharedPointer<FrameObserver>	m_StreamCallbacks;
 

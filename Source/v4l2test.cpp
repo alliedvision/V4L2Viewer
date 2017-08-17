@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.26"
+#define PROGRAM_VERSION "v1.27"
 
 /*
  * 1.0: base version
@@ -87,6 +87,8 @@
          Message Listbox can be disabled now
          number of stream now available in GUI
  * 1.26: VIDIOC_TRY_FMT can be now switched off
+ * 1.27: Extended Controls added
+	 min max default values added to outputbox
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -101,6 +103,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_BLOCKING_MODE(false)
     , m_MMAP_BUFFER(true) // use mmap by default
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
+    , m_ExtendedControls(false)
     , m_ShowFrames(true)
     , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
@@ -156,6 +159,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_chkUseMMAP, SIGNAL(clicked()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleEnable_VIDIOC_TRY_FMT, SIGNAL(triggered()), this, SLOT(OnUseVIDIOC_TRY_FMT()));
+    connect(ui.m_TitleEnableExtendedControls, SIGNAL(triggered()), this, SLOT(OnUseExtendedControls()));
     connect(ui.m_TitleShowFrames, SIGNAL(triggered()), this, SLOT(OnShowFrames()));
     connect(ui.m_TitleClearOutputListbox, SIGNAL(triggered()), this, SLOT(OnClearOutputListbox()));
     connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
@@ -385,6 +389,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     ui.m_UseMMAP->setChecked(m_MMAP_BUFFER);
     ui.m_TitleUseMMAP->setChecked((m_MMAP_BUFFER));
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
+    ui.m_TitleEnableExtendedControls->setChecked((m_ExtendedControls));
 }
 
 v4l2test::~v4l2test()
@@ -431,6 +436,14 @@ void v4l2test::OnUseVIDIOC_TRY_FMT()
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked(m_VIDIOC_TRY_FMT);
 }
  
+void v4l2test::OnUseExtendedControls()
+{
+    m_ExtendedControls = !m_ExtendedControls;
+    OnLog(QString("Use Extended Controls = %1").arg((m_ExtendedControls)?"TRUE":"FALSE"));
+    
+    ui.m_TitleEnableExtendedControls->setChecked(m_ExtendedControls);
+}
+
 void v4l2test::OnShowFrames()
 {
     m_ShowFrames = !m_ShowFrames;
@@ -592,6 +605,7 @@ void v4l2test::OnOpenCloseButtonClicked()
 	ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
 	ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
 	ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
+	ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 }
 
 // The event handler for get device info
@@ -602,11 +616,11 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
 	std::string deviceName;
     std::string tmp;
 
-	devName = devName.right(devName.length()-devName.indexOf(':')-2);
-	deviceName = devName.left(devName.indexOf('(')-1).toStdString();
+    devName = devName.right(devName.length()-devName.indexOf(':')-2);
+    deviceName = devName.left(devName.indexOf('(')-1).toStdString();
 	
-	m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
-	
+    m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
+    
     OnLog("---------------------------------------------");
     OnLog("---- Device Info ");
     OnLog("---------------------------------------------");
@@ -1038,6 +1052,7 @@ void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, u
     ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
+    ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 }
 
 // The event handler to open a camera on double click event
@@ -1068,6 +1083,7 @@ void v4l2test::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const
     ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
+    ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 }
 
 // Update the viewer range
@@ -1140,13 +1156,13 @@ int v4l2test::OpenAndSetupCamera(const uint32_t cardNumber, const QString &devic
 {
     int err = 0;
 	
-	std::string devName = deviceName.toStdString();
-	err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
+    std::string devName = deviceName.toStdString();
+    err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
 
     if (0 != err)
     	OnLog("Open device failed");
     else
-	m_nStreamNumber = 0;
+    	m_nStreamNumber = 0;
 
     return err;
 }
@@ -2240,6 +2256,8 @@ void v4l2test::GetImageInformation()
 	    ui.m_edCropHeight->setEnabled(false);
     }
     OnCropCapabilities();
+    
+    m_Camera.EnumAllControl();
 }
 
 void v4l2test::UpdateCameraFormat()
