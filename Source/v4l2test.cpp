@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.27"
+#define PROGRAM_VERSION "v1.28"
 
 /*
  * 1.0: base version
@@ -89,6 +89,9 @@
  * 1.26: VIDIOC_TRY_FMT can be now switched off
  * 1.27: Extended Controls added
 	 min max default values added to outputbox
+ * 1.28: Extended controls get by camera class id
+	 get standard controls by user class id
+	 controls converter id -> string added
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)

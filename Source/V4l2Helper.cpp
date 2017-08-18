@@ -228,7 +228,7 @@ namespace Examples {
 	}
 
     
-    std::string V4l2Helper::ConvertErrno2String(int errnumber)
+std::string V4l2Helper::ConvertErrno2String(int errnumber)
 {
 	std::string result;
 	
@@ -274,5 +274,95 @@ namespace Examples {
 	return result;
 }
 
+std::string V4l2Helper::ConvertControlID2String(uint32_t controlID)
+{
+    std::string result = "";
+    
+    switch(controlID)
+    {
+	// V4L2_CID_USER_CLASS_BASE
+	case V4L2_CID_BRIGHTNESS: 	result = "V4L2_CID_BRIGHTNESS"; break;
+	case V4L2_CID_CONTRAST: 	result = "V4L2_CID_CONTRAST"; break;
+	case V4L2_CID_SATURATION: 	result = "V4L2_CID_SATURATION"; break;
+	case V4L2_CID_HUE: 		result = "V4L2_CID_HUE"; break;
+	case V4L2_CID_AUDIO_VOLUME: 	result = "V4L2_CID_AUDIO_VOLUME"; break;
+	case V4L2_CID_AUDIO_BALANCE: 	result = "V4L2_CID_AUDIO_BALANCE"; break;
+	case V4L2_CID_AUDIO_BASS: 	result = "V4L2_CID_AUDIO_BASS"; break;
+	case V4L2_CID_AUDIO_TREBLE: 	result = "V4L2_CID_AUDIO_TREBLE"; break;
+	case V4L2_CID_AUDIO_MUTE: 	result = "V4L2_CID_AUDIO_MUTE"; break;
+	case V4L2_CID_AUDIO_LOUDNESS: 	result = "V4L2_CID_AUDIO_LOUDNESS"; break;
+	case V4L2_CID_BLACK_LEVEL: 	result = "V4L2_CID_BLACK_LEVEL"; break; //deprecated
+	case V4L2_CID_AUTO_WHITE_BALANCE: 	result = "V4L2_CID_AUTO_WHITE_BALANCE"; break;
+	case V4L2_CID_DO_WHITE_BALANCE: 	result = "V4L2_CID_DO_WHITE_BALANCE"; break;
+	case V4L2_CID_RED_BALANCE: 	result = "V4L2_CID_RED_BALANCE"; break;
+	case V4L2_CID_BLUE_BALANCE: 	result = "V4L2_CID_BLUE_BALANCE"; break;
+	case V4L2_CID_GAMMA: 	result = "V4L2_CID_GAMMA"; break;
+	//case V4L2_CID_WHITENESS: 	result = "V4L2_CID_WHITENESS"; break; // deprecated // same as gamma
+	case V4L2_CID_EXPOSURE: 	result = "V4L2_CID_EXPOSURE"; break;
+	case V4L2_CID_AUTOGAIN: 	result = "V4L2_CID_AUTOGAIN"; break;
+	case V4L2_CID_GAIN: 	result = "V4L2_CID_GAIN"; break;
+	case V4L2_CID_HFLIP: 	result = "V4L2_CID_HFLIP"; break;
+	case V4L2_CID_VFLIP: 	result = "V4L2_CID_VFLIP"; break;
+	case V4L2_CID_POWER_LINE_FREQUENCY: 	result = "V4L2_CID_POWER_LINE_FREQUENCY"; break;
+	case V4L2_CID_HUE_AUTO: 	result = "V4L2_CID_HUE_AUTO"; break;
+	case V4L2_CID_WHITE_BALANCE_TEMPERATURE: 	result = "V4L2_CID_WHITE_BALANCE_TEMPERATURE"; break;
+	case V4L2_CID_SHARPNESS: 	result = "V4L2_CID_SHARPNESS"; break;
+	case V4L2_CID_BACKLIGHT_COMPENSATION: 	result = "V4L2_CID_BACKLIGHT_COMPENSATION"; break;
+	case V4L2_CID_CHROMA_AGC: 	result = "V4L2_CID_CHROMA_AGC"; break;
+	case V4L2_CID_COLOR_KILLER: 	result = "V4L2_CID_COLOR_KILLER"; break;
+	case V4L2_CID_COLORFX: 	result = "V4L2_CID_COLORFX"; break;
+	case V4L2_CID_AUTOBRIGHTNESS: 	result = "V4L2_CID_AUTOBRIGHTNESS"; break;
+	case V4L2_CID_BAND_STOP_FILTER: 	result = "V4L2_CID_BAND_STOP_FILTER"; break;
+	case V4L2_CID_ROTATE: 	result = "V4L2_CID_ROTATE"; break;
+	case V4L2_CID_BG_COLOR: 	result = "V4L2_CID_BG_COLOR"; break;
+	case V4L2_CID_CHROMA_GAIN: 	result = "V4L2_CID_CHROMA_GAIN"; break;
+	case V4L2_CID_ILLUMINATORS_1: 	result = "V4L2_CID_ILLUMINATORS_1"; break;
+	case V4L2_CID_ILLUMINATORS_2: 	result = "V4L2_CID_ILLUMINATORS_2"; break;
+	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE: 	result = "V4L2_CID_MIN_BUFFERS_FOR_CAPTURE"; break;
+	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT: 	result = "V4L2_CID_MIN_BUFFERS_FOR_OUTPUT"; break;
+	case V4L2_CID_ALPHA_COMPONENT: 	result = "V4L2_CID_ALPHA_COMPONENT"; break;
+	case V4L2_CID_COLORFX_CBCR: 	result = "V4L2_CID_COLORFX_CBCR"; break;
+	case V4L2_CID_LASTP1: 	result = "V4L2_CID_LASTP1"; break;
+
+	// V4L2_CID_CAMERA_CLASS_BASE
+	case V4L2_CID_EXPOSURE_AUTO: 	result = "V4L2_CID_EXPOSURE_AUTO"; break;
+	case V4L2_CID_EXPOSURE_ABSOLUTE: 	result = "V4L2_CID_EXPOSURE_ABSOLUTE"; break;
+	case V4L2_CID_EXPOSURE_AUTO_PRIORITY: 	result = "V4L2_CID_EXPOSURE_AUTO_PRIORITY"; break;
+	case V4L2_CID_PAN_RELATIVE: 	result = "V4L2_CID_PAN_RELATIVE"; break;
+	case V4L2_CID_TILT_RELATIVE: 	result = "V4L2_CID_TILT_RELATIVE"; break;
+	case V4L2_CID_PAN_RESET: 	result = "V4L2_CID_PAN_RESET"; break;
+	case V4L2_CID_TILT_RESET: 	result = "V4L2_CID_TILT_RESET"; break;
+	case V4L2_CID_PAN_ABSOLUTE: 	result = "V4L2_CID_PAN_ABSOLUTE"; break;
+	case V4L2_CID_TILT_ABSOLUTE: 	result = "V4L2_CID_TILT_ABSOLUTE"; break;
+	case V4L2_CID_FOCUS_ABSOLUTE: 	result = "V4L2_CID_FOCUS_ABSOLUTE"; break;
+	case V4L2_CID_FOCUS_RELATIVE: 	result = "V4L2_CID_FOCUS_RELATIVE"; break;
+	case V4L2_CID_FOCUS_AUTO: 	result = "V4L2_CID_FOCUS_AUTO"; break;
+	case V4L2_CID_ZOOM_ABSOLUTE: 	result = "V4L2_CID_ZOOM_ABSOLUTE"; break;
+	case V4L2_CID_ZOOM_RELATIVE: 	result = "V4L2_CID_ZOOM_RELATIVE"; break;
+	case V4L2_CID_ZOOM_CONTINUOUS: 	result = "V4L2_CID_ZOOM_CONTINUOUS"; break;
+	case V4L2_CID_PRIVACY: 	result = "V4L2_CID_PRIVACY"; break;
+	case V4L2_CID_IRIS_ABSOLUTE: 	result = "V4L2_CID_IRIS_ABSOLUTE"; break;
+	case V4L2_CID_IRIS_RELATIVE: 	result = "V4L2_CID_IRIS_RELATIVE"; break;
+	case V4L2_CID_AUTO_EXPOSURE_BIAS: 	result = "V4L2_CID_AUTO_EXPOSURE_BIAS"; break;
+	case V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE: 	result = "V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE"; break;
+	case V4L2_CID_WIDE_DYNAMIC_RANGE: 	result = "V4L2_CID_WIDE_DYNAMIC_RANGE"; break;
+	case V4L2_CID_IMAGE_STABILIZATION: 	result = "V4L2_CID_IMAGE_STABILIZATION"; break;
+	case V4L2_CID_ISO_SENSITIVITY: 	result = "V4L2_CID_ISO_SENSITIVITY"; break;
+	case V4L2_CID_ISO_SENSITIVITY_AUTO: 	result = "V4L2_CID_ISO_SENSITIVITY_AUTO"; break;
+	case V4L2_CID_EXPOSURE_METERING: 	result = "V4L2_CID_EXPOSURE_METERING"; break;
+	case V4L2_CID_SCENE_MODE: 	result = "V4L2_CID_SCENE_MODE"; break;
+	case V4L2_CID_3A_LOCK: 	result = "V4L2_CID_3A_LOCK"; break;
+	case V4L2_LOCK_EXPOSURE: 	result = "V4L2_LOCK_EXPOSURE"; break;
+	case V4L2_LOCK_WHITE_BALANCE: 	result = "V4L2_LOCK_WHITE_BALANCE"; break;
+	case V4L2_LOCK_FOCUS: 	result = "V4L2_LOCK_FOCUS"; break;
+	case V4L2_CID_AUTO_FOCUS_START: 	result = "V4L2_CID_AUTO_FOCUS_START"; break;
+	case V4L2_CID_AUTO_FOCUS_STOP: 	result = "V4L2_CID_AUTO_FOCUS_STOP"; break;
+	case V4L2_CID_AUTO_FOCUS_STATUS: 	result = "V4L2_CID_AUTO_FOCUS_STATUS"; break;
+	case V4L2_CID_AUTO_FOCUS_RANGE: 	result = "V4L2_CID_AUTO_FOCUS_RANGE"; break;
+	default: result = "<unknown>"; break;
+    }
+    
+    return result;
+}
 
 }}} /* namespace AVT::Tools::Examples */

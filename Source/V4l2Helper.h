@@ -21,6 +21,8 @@ namespace Examples {
 		
 		
 		static std::string ConvertPixelformat2String(int pixelformat);
+		
+		static std::string ConvertControlID2String(uint32_t controlID);
 
     };
 
