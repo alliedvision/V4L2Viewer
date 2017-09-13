@@ -36,7 +36,8 @@
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 #define V4L2_PIX_FMT_GREY12P     v4l2_fourcc('G', '1', '2', 'P') /* FKL 12  Greyscale packed */
 
-extern uint8_t *g_ConversionBuffer;
+extern uint8_t *g_ConversionBuffer1;
+extern uint8_t *g_ConversionBuffer2;
 
 namespace AVT {
 namespace Tools {
@@ -122,6 +123,33 @@ void  ConvertRAW12gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t hei
     }
     
     //printf("counter= %d, count2=%d", count, count2);
+}
+
+void  ConvertRAW10inRAW16ToRAW10g(const void *sourceBuffer, uint32_t width, uint32_t height, const void *destBuffer)
+{
+    unsigned char *destdata = (unsigned char *)destBuffer;
+    unsigned char *srcdata = (unsigned char *)sourceBuffer;
+    uint32_t bytesPerLine = width * 2;
+    
+    for (int i= 0; i<height; i++)
+    {
+       for (int ii= 0; ii<bytesPerLine; ii++)
+       {
+           unsigned char lsbits = 0;
+
+           for(int iii=0; iii<4; iii++)
+           {
+               *destdata++ = *(srcdata+1); // bits [9:2]
+
+               lsbits |= (*srcdata >> 6) << (iii*2); // least significant bits [1:0]
+
+               srcdata += 2; // move to next 16 bits
+           }
+
+           *destdata++ = lsbits; // every 5th byte contains the lsbs from the last 4 pixels
+       }
+    }
+    
 }
 
 void  ConvertRAW10gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t height, const void *destBuffer)
@@ -669,39 +697,49 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
     /* 10bit raw bayer packed, 5 bytes for every 4 pixels */
     case V4L2_PIX_FMT_Y10P:
     {
+    ConvertRAW10inRAW16ToRAW10g(pBuffer, width, height, g_ConversionBuffer2);
+
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	ConvertMono10gToRGB24(pBuffer, width, height, convertedImage.bits());
+	ConvertMono10gToRGB24(g_ConversionBuffer2, width, height, convertedImage.bits());
 	break;
     }
     case V4L2_PIX_FMT_SBGGR10P:
     {
-	ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+    ConvertRAW10inRAW16ToRAW10g(pBuffer, width, height, g_ConversionBuffer2);
+
+	ConvertRAW10gToRAW8(g_ConversionBuffer2, width, height, g_ConversionBuffer1);
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(), width, height, 
 				   width/*bytesPerLine*/, V4L2_PIX_FMT_SBGGR8);
 	break;
     }
     case V4L2_PIX_FMT_SGBRG10P:
     {
-	ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+    ConvertRAW10inRAW16ToRAW10g(pBuffer, width, height, g_ConversionBuffer2);
+
+	ConvertRAW10gToRAW8(g_ConversionBuffer2, width, height, g_ConversionBuffer1);
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(), width, height, 
 				   width/*bytesPerLine*/, V4L2_PIX_FMT_SGBRG8);
 	break;
     }
     case V4L2_PIX_FMT_SGRBG10P:
     {
-	ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	ConvertRAW10inRAW16ToRAW10g(pBuffer, width, height, g_ConversionBuffer2);
+
+	ConvertRAW10gToRAW8(g_ConversionBuffer2, width, height, g_ConversionBuffer1);
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(), width, height, 
 				   width/*bytesPerLine*/, V4L2_PIX_FMT_SGRBG8);
 	break;
     }
     case V4L2_PIX_FMT_SRGGB10P:
     {
-	ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	ConvertRAW10inRAW16ToRAW10g(pBuffer, width, height, g_ConversionBuffer2);
+
+	ConvertRAW10gToRAW8(g_ConversionBuffer2, width, height, g_ConversionBuffer1);
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(), width, height, 
 				   width/*bytesPerLine*/, V4L2_PIX_FMT_SRGGB8);
 	break;
     }
@@ -716,33 +754,33 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
     }
     case V4L2_PIX_FMT_SBGGR12P:
     {
-	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(), width, height, 
 				   width/*bytesPerLine*/, V4L2_PIX_FMT_SBGGR8);
 	break;
     }
     case V4L2_PIX_FMT_SGBRG12P:
     {
-	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(), width, height, 
 				   width/*bytesPerLine*/, V4L2_PIX_FMT_SGBRG8);
 	break;
     }
     case V4L2_PIX_FMT_SGRBG12P: 
     {
-	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(), width, height, 
 				   width/*bytesPerLine*/, V4L2_PIX_FMT_SGRBG8);
 	break;
     }
     case V4L2_PIX_FMT_SRGGB12P:
     {
-	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer);
+	ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
 	convertedImage = QImage(width, height, QImage::Format_RGB888);
-	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer, convertedImage.bits(), width, height, 
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(), width, height, 
 				   width/*bytesPerLine*/, V4L2_PIX_FMT_SRGGB8);
 	break;
     }

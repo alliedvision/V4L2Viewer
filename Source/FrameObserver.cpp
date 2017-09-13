@@ -45,7 +45,8 @@
 // Global data
 ////////////////////////////////////////////////////////////////////////////    
 
-uint8_t *g_ConversionBuffer = 0;
+uint8_t *g_ConversionBuffer1 = 0;
+uint8_t *g_ConversionBuffer2 = 0;
 
 namespace AVT {
 namespace Tools {
@@ -120,8 +121,11 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     
     m_rCSVData = rData;
     
-    if (0 == g_ConversionBuffer)
-        g_ConversionBuffer = (uint8_t*)malloc(m_nWidth*m_nHeight*4);
+    if (0 == g_ConversionBuffer1)
+        g_ConversionBuffer1 = (uint8_t*)malloc(m_nWidth*m_nHeight*4);
+    
+    if (0 == g_ConversionBuffer2)
+        g_ConversionBuffer2 = (uint8_t*)malloc(m_nWidth*m_nHeight*4);
     
     m_pImageProcessingThread->StartThread();
     
@@ -150,9 +154,13 @@ int FrameObserver::StopStream()
     if (count <= 0)
        nResult = -1;
 
-    if (0 != g_ConversionBuffer)
-        free(g_ConversionBuffer);
-    g_ConversionBuffer = 0;
+    if (0 != g_ConversionBuffer1)
+        free(g_ConversionBuffer1);
+    g_ConversionBuffer1 = 0;
+    
+    if (0 != g_ConversionBuffer2)
+        free(g_ConversionBuffer2);
+    g_ConversionBuffer2 = 0;
     
     return nResult;
 }
