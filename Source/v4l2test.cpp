@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.28"
+#define PROGRAM_VERSION "v1.29"
 
 /*
  * 1.0: base version
@@ -92,6 +92,8 @@
  * 1.28: Extended controls get by camera class id
 	 get standard controls by user class id
 	 controls converter id -> string added
+ * 1.29: image conversion from RAW10 in RAW16 to RAW10g implemented,
+         because IMX serves only this weird format.
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -851,7 +853,8 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 				  logFrameRangeStart,
 				  logFrameRangeEnd,
 				  dumpByteFrameRangeStart,
- 				  dumpByteFrameRangeEnd);
+ 				  dumpByteFrameRangeEnd,
+				  ui.m_TitleCorrectIncomingRAW10Image->isChecked());
     if (0 != err)
         OnLog("Start Acquisition failed during SI Start channel.");
     else

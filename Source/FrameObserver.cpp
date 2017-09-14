@@ -53,6 +53,40 @@ namespace Tools {
 namespace Examples {
 
 ////////////////////////////////////////////////////////////////////////////
+// C service
+////////////////////////////////////////////////////////////////////////////    
+
+uint32_t InternalConvertRAW10inRAW16ToRAW10g(const void *sourceBuffer, uint32_t length, const void *destBuffer)
+{
+    uint8_t *destdata = (unsigned char *)destBuffer;
+    uint8_t *srcdata = (unsigned char *)sourceBuffer;
+    uint32_t srcCount = 0;
+	uint32_t destCount = 0;
+    
+    while (srcCount < length)
+    {
+       unsigned char lsbits = 0;
+
+       for(int iii=0; iii<4; iii++)
+       {
+		  *destdata++ = *(srcdata+1); // bits [9:2]
+		  destCount++;
+
+          lsbits |= (*srcdata >> 6) << (iii*2); // least significant bits [1:0]
+
+          srcdata += 2; // move to next 16 bits
+          
+          srcCount += 2;
+       }
+
+       *destdata++ = lsbits; // every 5th byte contains the lsbs from the last 4 pixels
+       destCount++;
+    }
+    
+    return destCount;
+}
+
+////////////////////////////////////////////////////////////////////////////
 // Implementation
 ////////////////////////////////////////////////////////////////////////////    
 
@@ -94,7 +128,8 @@ FrameObserver::~FrameObserver()
 int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, 
 			       uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
 			       uint32_t enableLogging, int32_t logFrameStart, int32_t logFrameEnd,
-			       int32_t dumpFrameStart, int32_t dumpFrameEnd, std::vector<uint8_t> &rData)
+			       int32_t dumpFrameStart, int32_t dumpFrameEnd, uint32_t enableRAW10Correction,
+				   std::vector<uint8_t> &rData)
 {
     int nResult = 0;
     
@@ -120,6 +155,8 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_DumpFrameEnd = dumpFrameEnd;
     
     m_rCSVData = rData;
+	
+	m_EnableRAW10Correction = enableRAW10Correction;
     
     if (0 == g_ConversionBuffer1)
         g_ConversionBuffer1 = (uint8_t*)malloc(m_nWidth*m_nHeight*4);
@@ -194,15 +231,29 @@ void FrameObserver::DequeueAndProcessFrame()
 	{
 	    uint8_t *buffer = 0;
 	    uint32_t length = 0;
+		uint32_t logPayloadSize = m_PayloadSize;
 		
 	    if (0 == GetFrameData(buf, buffer, length))
 	    {
+		  
+		if (m_EnableRAW10Correction &&
+		    (m_Pixelformat == V4L2_PIX_FMT_Y10P ||
+			 m_Pixelformat == V4L2_PIX_FMT_SBGGR10P ||
+			 m_Pixelformat == V4L2_PIX_FMT_SGBRG10P ||
+			 m_Pixelformat == V4L2_PIX_FMT_SGRBG10P ||
+			 m_Pixelformat == V4L2_PIX_FMT_SRGGB10P))
+		{
+			length = InternalConvertRAW10inRAW16ToRAW10g(buffer, m_PayloadSize, g_ConversionBuffer2);
+			buffer = g_ConversionBuffer2;
+			logPayloadSize = length;
+		}
+		  
 		if (length <= m_RealPayloadsize)
 		{
 		    if (m_FrameCount >= m_LogFrameStart && 
 			m_FrameCount <=  m_LogFrameEnd)
 		    {
-        		Logger::LogDump("Received frame:", (uint8_t*)buffer, (uint32_t)m_PayloadSize);
+        		Logger::LogDump("Received frame:", (uint8_t*)buffer, logPayloadSize);
 		    }
 				
 		    if (m_FrameCount >= m_DumpFrameStart && 
@@ -212,14 +263,15 @@ void FrameObserver::DequeueAndProcessFrame()
 			
 			localFileName << "v4l2test_Frame" << m_FrameCount << ".dmp";
 		
-        		Logger::LogBuffer(localFileName.str(), (uint8_t*)buffer, (uint32_t)m_PayloadSize);
+        		Logger::LogBuffer(localFileName.str(), (uint8_t*)buffer, logPayloadSize);
 		    }
 		    m_FrameCount++;
 		
 		    if (m_rCSVData.size() > 0 && m_FrameCount == 1)
 		    {
-			uint32_t tmpPayloadSize = m_rCSVData.size();
-			if (m_PayloadSize == tmpPayloadSize)
+			uint32_t tmpCSVPayloadSize = m_rCSVData.size();
+			
+			if (m_PayloadSize == tmpCSVPayloadSize)
 			{
 			    bool notequalflag = false;
 			    for (uint32_t i=0; i<m_PayloadSize; i++)
@@ -240,8 +292,8 @@ void FrameObserver::DequeueAndProcessFrame()
 			}
 			else
 			{
-			    Logger::LogEx("Buffer size=%d unequal to CSV file data size=%d.", m_PayloadSize, tmpPayloadSize);
-			    emit OnMessage_Signal(QString("Buffer size=%1 unequal to CSV file data size=%2.").arg(m_PayloadSize).arg(tmpPayloadSize));
+			    Logger::LogEx("Buffer size=%d unequal to CSV file data size=%d.", m_PayloadSize, tmpCSVPayloadSize);
+			    emit OnMessage_Signal(QString("Buffer size=%1 unequal to CSV file data size=%2.").arg(m_PayloadSize).arg(tmpCSVPayloadSize));
 			}
 		    }
 				

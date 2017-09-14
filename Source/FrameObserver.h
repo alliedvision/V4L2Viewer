@@ -85,7 +85,8 @@ class FrameObserver : public QThread
 	int StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat, 
 			uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
 			uint32_t enableLogging, int32_t logFrameStart, int32_t logFrameEnd,
-			int32_t dumpFrameStart, int32_t dumpFrameEnd, std::vector<uint8_t> &rData);
+			int32_t dumpFrameStart, int32_t dumpFrameEnd, uint32_t enableRAW10Correction,
+			std::vector<uint8_t> &rData);
 	int StopStream();
 	
     // Get the number of frames
@@ -150,6 +151,7 @@ protected:
 	bool m_bStreamRunning;
 	bool m_bStreamStopped;
 	
+	uint32_t m_EnableRAW10Correction;
 	uint32_t m_EnableLogging;
 	int32_t m_FrameCount;
 	int32_t m_LogFrameStart;

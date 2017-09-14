@@ -57,7 +57,8 @@ public:
                            uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, 
 			   uint32_t bytesPerLine, void *pPrivateData,
 			   uint32_t enableLogging, uint32_t logFrameStart, uint32_t logFrameEnd, 
-			   uint32_t dumpFrameStart, uint32_t dumpFrameEnd);
+			   uint32_t dumpFrameStart, uint32_t dumpFrameEnd,
+			   uint32_t enableRAW10Correction);
     int StopStreamChannel();
     
     int ReadPayloadsize(uint32_t &payloadsize);

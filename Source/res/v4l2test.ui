@@ -2001,9 +2001,12 @@
     <addaction name="m_TitleFlipVertical"/>
     <addaction name="m_TitleEnableExtendedControls"/>
     <addaction name="m_TitleEnable_VIDIOC_TRY_FMT"/>
+    <addaction name="m_TitleCorrectIncomingRAW10Image"/>
+    <addaction name="separator"/>
     <addaction name="m_TitleEnableMessageListbox"/>
     <addaction name="m_TitleClearOutputListbox"/>
     <addaction name="m_TitleLogtofile"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="m_MenuTest">
     <property name="title">
@@ -2155,6 +2158,14 @@
    </property>
    <property name="text">
     <string>Enable Extended Controls</string>
+   </property>
+  </action>
+  <action name="m_TitleCorrectIncomingRAW10Image">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Correct incoming RAW10 image</string>
    </property>
   </action>
  </widget>

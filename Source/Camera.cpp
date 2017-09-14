@@ -294,7 +294,8 @@ int Camera::StartStreamChannel(const char* csvFilename,
                                uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, 
 			       uint32_t bytesPerLine, void *pPrivateData,
 			       uint32_t enableLogging, uint32_t logFrameStart, uint32_t logFrameEnd,
-			       uint32_t dumpFrameStart, uint32_t dumpFrameEnd)
+			       uint32_t dumpFrameStart, uint32_t dumpFrameEnd,
+				   uint32_t enableRAW10Correction)
 {
     int nResult = 0;
     
@@ -307,7 +308,7 @@ int Camera::StartStreamChannel(const char* csvFilename,
     m_StreamCallbacks->StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, 
 				   payloadsize, width, height, bytesPerLine,
 				   enableLogging, logFrameStart, logFrameEnd,
-				   dumpFrameStart, dumpFrameEnd, m_rCSVData);
+				   dumpFrameStart, dumpFrameEnd, enableRAW10Correction, m_rCSVData);
 
     m_StreamCallbacks->ResetDroppedFramesCount();
 

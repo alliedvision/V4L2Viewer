@@ -153,7 +153,7 @@ private:
 	void UpdateCameraFormat();
 
 private slots:
-    void OnLogToFile();
+	void OnLogToFile();
     void OnClearOutputListbox();
     void OnShowFrames();
     // The event handler to close the program
