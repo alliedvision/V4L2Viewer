@@ -732,8 +732,8 @@
           </property>
           <property name="geometry">
            <rect>
-            <x>150</x>
-            <y>260</y>
+            <x>10</x>
+            <y>280</y>
             <width>211</width>
             <height>22</height>
            </rect>
@@ -750,12 +750,12 @@
            <rect>
             <x>10</x>
             <y>260</y>
-            <width>131</width>
+            <width>71</width>
             <height>22</height>
            </rect>
           </property>
           <property name="text">
-           <string>MMAP/USERPTR</string>
+           <string>MMAP</string>
           </property>
          </widget>
          <widget class="QLineEdit" name="m_edBrightness">
@@ -1470,6 +1470,38 @@
            <string>Read all values</string>
           </property>
          </widget>
+         <widget class="QCheckBox" name="m_chkUseUSERPTR">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="geometry">
+           <rect>
+            <x>100</x>
+            <y>260</y>
+            <width>91</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>USERPTR</string>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="m_chkUseRead">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="geometry">
+           <rect>
+            <x>200</x>
+            <y>260</y>
+            <width>61</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Read</string>
+          </property>
+         </widget>
         </widget>
         <widget class="QWidget" name="m_DirectRegisterAccessTab">
          <attribute name="title">
@@ -1994,7 +2026,9 @@
     <property name="title">
      <string>Options</string>
     </property>
+    <addaction name="m_TitleUseRead"/>
     <addaction name="m_TitleUseMMAP"/>
+    <addaction name="m_TitleUseUSERPTR"/>
     <addaction name="m_TitleBlockingMode"/>
     <addaction name="m_TitleShowFrames"/>
     <addaction name="m_TitleFlipHorizontal"/>
@@ -2056,7 +2090,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>MMAP/USERPTR</string>
+    <string>IO MMAP Method</string>
    </property>
    <property name="iconText">
     <string>MMAP/USERPTR</string>
@@ -2166,6 +2200,22 @@
    </property>
    <property name="text">
     <string>Correct incoming RAW10 image</string>
+   </property>
+  </action>
+  <action name="m_TitleUseUSERPTR">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>IO USERPTR Method</string>
+   </property>
+  </action>
+  <action name="m_TitleUseRead">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>IO Read Method</string>
    </property>
   </action>
  </widget>

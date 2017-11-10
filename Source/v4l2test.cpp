@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.29"
+#define PROGRAM_VERSION "v1.30"
 
 /*
  * 1.0: base version
@@ -94,6 +94,7 @@
 	 controls converter id -> string added
  * 1.29: image conversion from RAW10 in RAW16 to RAW10g implemented,
          because IMX serves only this weird format.
+ * 1.30: IO Read added and changed the GUI
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -106,7 +107,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_DirectAccessData(0)
     , m_saveFileDialog(0)
     , m_BLOCKING_MODE(false)
-    , m_MMAP_BUFFER(true) // use mmap by default
+    , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
     , m_ExtendedControls(false)
     , m_ShowFrames(true)
@@ -161,8 +162,12 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	
     connect(ui.m_chkBlockingMode, SIGNAL(clicked()), this, SLOT(OnBlockingMode()));
     connect(ui.m_TitleBlockingMode, SIGNAL(triggered()), this, SLOT(OnBlockingMode()));
+    connect(ui.m_chkUseRead, SIGNAL(clicked()), this, SLOT(OnUseRead()));
+    connect(ui.m_TitleUseRead, SIGNAL(triggered()), this, SLOT(OnUseRead()));
     connect(ui.m_chkUseMMAP, SIGNAL(clicked()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
+    connect(ui.m_chkUseUSERPTR, SIGNAL(clicked()), this, SLOT(OnUseUSERPTR()));
+    connect(ui.m_TitleUseUSERPTR, SIGNAL(triggered()), this, SLOT(OnUseUSERPTR()));
     connect(ui.m_TitleEnable_VIDIOC_TRY_FMT, SIGNAL(triggered()), this, SLOT(OnUseVIDIOC_TRY_FMT()));
     connect(ui.m_TitleEnableExtendedControls, SIGNAL(triggered()), this, SLOT(OnUseExtendedControls()));
     connect(ui.m_TitleShowFrames, SIGNAL(triggered()), this, SLOT(OnShowFrames()));
@@ -172,6 +177,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     int err = m_Camera.DeviceDiscoveryStart();
     
     connect(ui.m_CamerasListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemDoubleClicked(QListWidgetItem *)));
+    connect(ui.m_CamerasListBox, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemClicked(QListWidgetItem *)));
 
     // Connect the handler to show the frames per second
 	connect(&m_FramesReceivedTimer, SIGNAL(timeout()), this, SLOT(OnUpdateFramesReceived()));
@@ -390,9 +396,37 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	UpdateZoomButtons();
 	
     // set check boxes state for mmap according to variable m_MMAP_BUFFER
-    ui.m_chkUseMMAP->setChecked(m_MMAP_BUFFER);
-    ui.m_UseMMAP->setChecked(m_MMAP_BUFFER);
-    ui.m_TitleUseMMAP->setChecked((m_MMAP_BUFFER));
+    if (IO_METHOD_READ == m_MMAP_BUFFER)
+    {
+	ui.m_chkUseRead->setChecked(true);
+	ui.m_TitleUseRead->setChecked(true);
+    }
+    else
+    {
+	ui.m_chkUseRead->setChecked(false);
+	ui.m_TitleUseRead->setChecked(false);
+    }
+    if (IO_METHOD_USERPTR == m_MMAP_BUFFER)
+    {
+	ui.m_chkUseUSERPTR->setChecked(true);
+	ui.m_TitleUseUSERPTR->setChecked(true);
+    }
+    else
+    {
+	ui.m_chkUseUSERPTR->setChecked(false);
+	ui.m_TitleUseUSERPTR->setChecked(false);
+    }
+    if (IO_METHOD_MMAP == m_MMAP_BUFFER)
+    {
+	ui.m_chkUseMMAP->setChecked(true);
+	ui.m_TitleUseMMAP->setChecked(true);
+    }
+    else
+    {
+	ui.m_chkUseMMAP->setChecked(false);
+	ui.m_TitleUseMMAP->setChecked(false);
+    }
+    
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
     ui.m_TitleEnableExtendedControls->setChecked((m_ExtendedControls));
 }
@@ -423,14 +457,43 @@ void v4l2test::OnBlockingMode()
     ui.m_TitleBlockingMode->setChecked(m_BLOCKING_MODE);
 }
 
+void v4l2test::OnUseRead()
+{
+    m_MMAP_BUFFER = IO_METHOD_READ;
+    OnLog(QString("Use IO Read"));
+    
+    ui.m_chkUseUSERPTR->setChecked(false);
+    ui.m_chkUseRead->setChecked(true);
+    ui.m_chkUseMMAP->setChecked(false);
+    ui.m_TitleUseMMAP->setChecked(false);
+    ui.m_TitleUseUSERPTR->setChecked(false);
+    ui.m_TitleUseRead->setChecked(true);
+}
+ 
 void v4l2test::OnUseMMAP()
 {
-    m_MMAP_BUFFER = !m_MMAP_BUFFER;
-    OnLog(QString("Use MMAP = %1").arg((m_MMAP_BUFFER)?"TRUE":"FALSE"));
+    m_MMAP_BUFFER = IO_METHOD_MMAP;
+    OnLog(QString("Use IO MMAP"));
     
-    ui.m_chkUseMMAP->setChecked(m_MMAP_BUFFER);
-    ui.m_UseMMAP->setChecked(m_MMAP_BUFFER);
-    ui.m_TitleUseMMAP->setChecked(m_MMAP_BUFFER);
+    ui.m_chkUseUSERPTR->setChecked(false);
+    ui.m_chkUseRead->setChecked(false);
+    ui.m_chkUseMMAP->setChecked(true);
+    ui.m_TitleUseMMAP->setChecked(true);
+    ui.m_TitleUseUSERPTR->setChecked(false);
+    ui.m_TitleUseRead->setChecked(false);
+}
+ 
+void v4l2test::OnUseUSERPTR()
+{
+    m_MMAP_BUFFER = IO_METHOD_USERPTR;
+    OnLog(QString("Use IO USERPTR"));
+    
+    ui.m_chkUseUSERPTR->setChecked(true);
+    ui.m_chkUseRead->setChecked(false);
+    ui.m_chkUseMMAP->setChecked(false);
+    ui.m_TitleUseMMAP->setChecked(false);
+    ui.m_TitleUseUSERPTR->setChecked(true);
+    ui.m_TitleUseRead->setChecked(false);
 }
  
 void v4l2test::OnUseVIDIOC_TRY_FMT()
@@ -543,9 +606,12 @@ void v4l2test::mousePressEvent(QMouseEvent *event)
 // The event handler for open / close camera
 void v4l2test::OnOpenCloseButtonClicked()
 {
-	// Disable the open/close button and redraw it
-	ui.m_OpenCloseButton->setEnabled(false);
-	QApplication::processEvents();
+    // check if IO parameter are correct
+    OnListBoxCamerasItemClicked(NULL);
+    
+    // Disable the open/close button and redraw it
+    ui.m_OpenCloseButton->setEnabled(false);
+    QApplication::processEvents();
 
     int err;
     int nRow = ui.m_CamerasListBox->currentRow();
@@ -607,8 +673,12 @@ void v4l2test::OnOpenCloseButtonClicked()
 	ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
 	ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
 	ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
+	ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
+	ui.m_chkUseRead->setEnabled( !m_bIsOpen );
 	ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
 	ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
+	ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
+	ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
 	ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 	ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 }
@@ -620,7 +690,7 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
 	QString devName = ui.m_CamerasListBox->item(nRow)->text();
 	std::string deviceName;
     std::string tmp;
-
+    
     devName = devName.right(devName.length()-devName.indexOf(':')-2);
     deviceName = devName.left(devName.indexOf('(')-1).toStdString();
 	
@@ -630,15 +700,15 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
     OnLog("---- Device Info ");
     OnLog("---------------------------------------------");
 	
-    m_Camera.GetCameraDriverName(nRow, tmp);
+    m_Camera.GetCameraDriverName(tmp);
     OnLog(QString("Driver name = %1").arg(tmp.c_str()));
-    m_Camera.GetCameraDeviceName(nRow, tmp);
+    m_Camera.GetCameraDeviceName(tmp);
     OnLog(QString("Device name = %1").arg(tmp.c_str()));
-    m_Camera.GetCameraBusInfo(nRow, tmp);
+    m_Camera.GetCameraBusInfo(tmp);
     OnLog(QString("Bus info = %1").arg(tmp.c_str()));
-    m_Camera.GetCameraDriverVersion(nRow, tmp);
+    m_Camera.GetCameraDriverVersion(tmp);
     OnLog(QString("Driver version = %1").arg(tmp.c_str()));
-    m_Camera.GetCameraCapabilities(nRow, tmp);
+    m_Camera.GetCameraCapabilities(tmp);
     OnLog(QString("Capabilities = %1").arg(tmp.c_str()));
     
     OnLog("---------------------------------------------");
@@ -1055,8 +1125,12 @@ void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, u
     ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
     ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
     ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
+    ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
+    ui.m_chkUseRead->setEnabled( !m_bIsOpen );
     ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
+    ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
+    ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
     ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 }
@@ -1065,6 +1139,38 @@ void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, u
 void v4l2test::OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item)
 {
 	OnOpenCloseButtonClicked();
+}
+
+// The event handler to open a camera on double click event
+void v4l2test::OnListBoxCamerasItemClicked(QListWidgetItem * item)
+{
+    int nRow = ui.m_CamerasListBox->currentRow();
+    QString devName = ui.m_CamerasListBox->item(nRow)->text();
+    std::string deviceName;
+    std::string tmp;
+    
+    devName = devName.right(devName.length()-devName.indexOf(':')-2);
+    deviceName = devName.left(devName.indexOf('(')-1).toStdString();
+    bool ioRead;
+    
+    m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
+    m_Camera.GetCameraReadCapability(ioRead);
+    m_Camera.CloseDevice();
+    
+    if (!ioRead && ui.m_chkUseRead->isChecked())
+    {
+	QMessageBox::warning( this, tr("V4L2 Test"), tr("IO Read not available with this camera."));
+	
+	ui.m_chkUseRead->setEnabled( false );
+	ui.m_TitleUseRead->setEnabled( false );
+	ui.m_chkUseRead->setChecked( false );
+	ui.m_TitleUseRead->setChecked( false );
+	ui.m_chkUseMMAP->setEnabled( true );
+	ui.m_TitleUseMMAP->setEnabled( true );
+	ui.m_chkUseMMAP->setChecked( true );
+	ui.m_TitleUseMMAP->setChecked( true );
+	m_MMAP_BUFFER = IO_METHOD_MMAP;
+    }
 }
 
 // Queries and lists all known camera
@@ -1086,8 +1192,12 @@ void v4l2test::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
     ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
+    ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
+    ui.m_chkUseRead->setEnabled( !m_bIsOpen );
     ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
+    ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
+    ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
     ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 }

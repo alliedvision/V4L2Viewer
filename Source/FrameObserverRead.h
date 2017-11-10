@@ -26,8 +26,8 @@
 
 =============================================================================*/
 
-#ifndef FRAMEOBSERVERMMAP_INCLUDE
-#define FRAMEOBSERVERMMAP_INCLUDE
+#ifndef FRAMEOBSERVERREAD_INCLUDE
+#define FRAMEOBSERVERREAD_INCLUDE
 
 #include "Helper.h"
 #include "V4l2Helper.h"
@@ -48,13 +48,13 @@ namespace AVT {
 namespace Tools {
 namespace Examples {
 
-class FrameObserverMMAP : public FrameObserver
+class FrameObserverRead : public FrameObserver
 {
   public:
     // We pass the camera that will deliver the frames to the constructor
-    FrameObserverMMAP(bool showFrames);
+    FrameObserverRead(bool showFrames);
     //
-    virtual ~FrameObserverMMAP();
+    virtual ~FrameObserverRead();
 
     virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
     virtual int QueueAllUserBuffer();
@@ -64,13 +64,13 @@ class FrameObserverMMAP : public FrameObserver
 protected:
     // v4l2
     virtual int ReadFrame(v4l2_buffer &buf);
-	virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
+    virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
 	
 private:
-
+    int		m_nFrameBufferIndex;
 };
 
 }}} // namespace AVT::Tools::Examples
 
-#endif /* FRAMEOBSERVERMMAP_INCLUDE */
+#endif /* FRAMEOBSERVERREAD_INCLUDE */
 

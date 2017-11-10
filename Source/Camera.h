@@ -39,6 +39,13 @@ namespace AVT {
 namespace Tools {
 namespace Examples {
 
+enum IO_METHOD_TYPE
+{
+    IO_METHOD_READ,
+    IO_METHOD_MMAP,
+    IO_METHOD_USERPTR,
+};
+
 class Camera : public QObject
 {
     Q_OBJECT
@@ -47,7 +54,7 @@ public:
     Camera();
     virtual ~Camera();
 
-    int OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuffer, 
+    int OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType, 
 		   bool v4l2TryFmt, bool extendedControls);
     int CloseDevice();
 
@@ -125,11 +132,12 @@ public:
     int DeleteUserBuffer();
     
     // Info
-    int GetCameraDriverName(uint32_t index, std::string &strText);
-    int GetCameraDeviceName(uint32_t index, std::string &strText);
-    int GetCameraBusInfo(uint32_t index, std::string &strText);
-    int GetCameraDriverVersion(uint32_t index, std::string &strText);
-    int GetCameraCapabilities(uint32_t index, std::string &strText);
+    int GetCameraDriverName(std::string &strText);
+    int GetCameraDeviceName(std::string &strText);
+    int GetCameraBusInfo(std::string &strText);
+    int GetCameraDriverVersion(std::string &strText);
+    int GetCameraReadCapability(bool &flag);
+    int GetCameraCapabilities(std::string &strText);
     
     // Statistics
     unsigned int GetReceivedFramesCount();

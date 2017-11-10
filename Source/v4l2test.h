@@ -56,7 +56,7 @@ private:
     int m_nViewerNumber;
     
     bool m_BLOCKING_MODE;
-    bool m_MMAP_BUFFER;
+    IO_METHOD_TYPE m_MMAP_BUFFER;
     bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
     bool m_ExtendedControls;
@@ -160,8 +160,12 @@ private slots:
     void OnMenuCloseTriggered();
     // The event handler to set blocking mode
     void OnBlockingMode();
-    // The event handler to set MMAP
+    // The event handler to set IO Read
+    void OnUseRead();
+    // The event handler to set IO MMAP
     void OnUseMMAP();
+    // The event handler to set IO USERPTR
+    void OnUseUSERPTR();
     // The event handler to set VIDIOC_TRY_FMT
     void OnUseVIDIOC_TRY_FMT();
     // The event handler to set Extended Controls
@@ -215,6 +219,8 @@ private slots:
     void OnCameraDisplayFrame(const unsigned long long &frameID);
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
+    // The event handler to select a camera on click event
+    void OnListBoxCamerasItemClicked(QListWidgetItem * item);
     // The event handler to read a register per direct access
     void OnDirectRegisterAccessReadButtonClicked();
     // The event handler to write a register per direct access

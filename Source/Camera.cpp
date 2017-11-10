@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <sstream>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -40,6 +41,7 @@
 #include "videodev2_av.h"
 
 #include "Helper.h"
+#include "FrameObserverRead.h"
 #include "FrameObserverMMAP.h"
 #include "FrameObserverUSER.h"
 
@@ -81,7 +83,7 @@ unsigned int Camera::GetDroppedFramesCount()
     return m_StreamCallbacks->GetDroppedFramesCount();
 }
 
-int Camera::OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuffer, 
+int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType, 
 		       bool v4l2TryFmt, bool extendedControls)
 {
 	int result = -1;
@@ -90,13 +92,17 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, bool mmapBuff
 	m_useV4l2TryFmt = v4l2TryFmt;
 	m_UseExtendedControls = extendedControls;
 
-	if (mmapBuffer)
+	switch (ioMethodType)
 	{
-	    m_StreamCallbacks = QSharedPointer<FrameObserverMMAP>(new FrameObserverMMAP(m_ShowFrames));
-	}
-	else
-	{
-	    m_StreamCallbacks = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER(m_ShowFrames));
+	case IO_METHOD_READ:
+	     m_StreamCallbacks = QSharedPointer<FrameObserverRead>(new FrameObserverRead(m_ShowFrames)); 
+	     break;
+	case IO_METHOD_MMAP:
+	     m_StreamCallbacks = QSharedPointer<FrameObserverMMAP>(new FrameObserverMMAP(m_ShowFrames));
+	     break;
+	case IO_METHOD_USERPTR:
+	     m_StreamCallbacks = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER(m_ShowFrames));
+	     break;
 	}
 	connect(m_StreamCallbacks.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
 	connect(m_StreamCallbacks.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
@@ -1511,7 +1517,7 @@ int Camera::DeleteUserBuffer()
 // Info
 /*********************************************************************************************************/
 
-int Camera::GetCameraDriverName(uint32_t index, std::string &strText)
+int Camera::GetCameraDriverName(std::string &strText)
 {
     int result = 0;
 	
@@ -1549,7 +1555,7 @@ int Camera::GetCameraDriverName(uint32_t index, std::string &strText)
     return result;
 }
 
-int Camera::GetCameraDeviceName(uint32_t index, std::string &strText)
+int Camera::GetCameraDeviceName(std::string &strText)
 {
     int result = 0;
 	
@@ -1587,7 +1593,7 @@ int Camera::GetCameraDeviceName(uint32_t index, std::string &strText)
     return result;
 }
 
-int Camera::GetCameraBusInfo(uint32_t index, std::string &strText)
+int Camera::GetCameraBusInfo(std::string &strText)
 {
     int result = 0;
 	
@@ -1625,7 +1631,7 @@ int Camera::GetCameraBusInfo(uint32_t index, std::string &strText)
     return result;
 }
 
-int Camera::GetCameraDriverVersion(uint32_t index, std::string &strText)
+int Camera::GetCameraDriverVersion(std::string &strText)
 {
     int result = 0;
 	std::stringstream tmp;
@@ -1665,7 +1671,53 @@ int Camera::GetCameraDriverVersion(uint32_t index, std::string &strText)
     return result;
 }
 
-int Camera::GetCameraCapabilities(uint32_t index, std::string &strText)
+int Camera::GetCameraReadCapability(bool &flag)
+{
+    int result = 0;
+    std::stringstream tmp;
+    
+    struct v4l2_capability cap;
+    struct v4l2_cropcap cropcap;
+    struct v4l2_crop crop;
+    struct v4l2_format fmt;
+    unsigned int min;
+    
+    flag = false;
+
+    // queuery device capabilities
+    if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap)) 
+    {
+	Logger::LogEx("Camera::GetCameraReadCapability %s is no V4L2 device\n", m_DeviceName.c_str());
+	emit OnCameraError_Signal("Camera::GetCameraReadCapability " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
+	return -1;
+    }
+    else
+    {
+	    Logger::LogEx("Camera::GetCameraReadCapability VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
+    }
+
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) 
+    {
+	Logger::LogEx("Camera::GetCameraReadCapability %s is no video capture device\n", m_DeviceName.c_str());
+	emit OnCameraError_Signal("Camera::GetCameraReadCapability " + QString(m_DeviceName.c_str()) + " is no video capture device.");
+	return -1;
+    }
+    else
+    {
+	    tmp << "0x" << std::hex << cap.capabilities << std::endl
+		    << "    Read/Write = " << ((cap.capabilities & V4L2_CAP_READWRITE)?"Yes":"No") << std::endl
+		    << "    Streaming = " << ((cap.capabilities & V4L2_CAP_STREAMING)?"Yes":"No");
+	    Logger::LogEx("Camera::GetCameraReadCapability VIDIOC_QUERYCAP %s driver version=%s\n", m_DeviceName.c_str(), tmp.str().c_str());
+	    
+	    if (cap.capabilities & V4L2_CAP_READWRITE)
+		flag = true;
+    }
+
+	
+    return result;
+}
+
+int Camera::GetCameraCapabilities(std::string &strText)
 {
 	int result = 0;
 	std::stringstream tmp;

@@ -62,6 +62,7 @@ OBJ_FILES               = $(OBJ_DIR)/BaseLogger.o \
 			  $(OBJ_DIR)/Camera.o \
 			  $(OBJ_DIR)/CameraObserver.o \
                           $(OBJ_DIR)/FrameObserver.o \
+			  $(OBJ_DIR)/FrameObserverRead.o \
 			  $(OBJ_DIR)/FrameObserverMMAP.o \
 			  $(OBJ_DIR)/FrameObserverUSER.o \
 			  $(OBJ_DIR)/ImageProcessingThread.o \
