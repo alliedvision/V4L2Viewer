@@ -146,14 +146,17 @@ private:
     // called by master viewer window
     void RemoteClose();
 	
-	void GetImageInformation();
+    void GetImageInformation();
 	
-	void SetTitleText(QString additionalText);
+    // Check if IO Read was checked and remove it when not capable
+    void Check4IOReadAbility();
+    
+    void SetTitleText(QString additionalText);
 	
-	void UpdateCameraFormat();
+    void UpdateCameraFormat();
 
 private slots:
-	void OnLogToFile();
+    void OnLogToFile();
     void OnClearOutputListbox();
     void OnShowFrames();
     // The event handler to close the program
@@ -219,8 +222,6 @@ private slots:
     void OnCameraDisplayFrame(const unsigned long long &frameID);
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
-    // The event handler to select a camera on click event
-    void OnListBoxCamerasItemClicked(QListWidgetItem * item);
     // The event handler to read a register per direct access
     void OnDirectRegisterAccessReadButtonClicked();
     // The event handler to write a register per direct access

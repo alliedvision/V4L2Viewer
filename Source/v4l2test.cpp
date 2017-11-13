@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.30"
+#define PROGRAM_VERSION "v1.31"
 
 /*
  * 1.0: base version
@@ -95,6 +95,7 @@
  * 1.29: image conversion from RAW10 in RAW16 to RAW10g implemented,
          because IMX serves only this weird format.
  * 1.30: IO Read added and changed the GUI
+ * 1.31: Modifications of IO Read
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -177,8 +178,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     int err = m_Camera.DeviceDiscoveryStart();
     
     connect(ui.m_CamerasListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemDoubleClicked(QListWidgetItem *)));
-    connect(ui.m_CamerasListBox, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemClicked(QListWidgetItem *)));
-
+    
     // Connect the handler to show the frames per second
 	connect(&m_FramesReceivedTimer, SIGNAL(timeout()), this, SLOT(OnUpdateFramesReceived()));
 
@@ -607,7 +607,7 @@ void v4l2test::mousePressEvent(QMouseEvent *event)
 void v4l2test::OnOpenCloseButtonClicked()
 {
     // check if IO parameter are correct
-    OnListBoxCamerasItemClicked(NULL);
+    Check4IOReadAbility();
     
     // Disable the open/close button and redraw it
     ui.m_OpenCloseButton->setEnabled(false);
@@ -631,31 +631,31 @@ void v4l2test::OnOpenCloseButtonClicked()
             if (0 == err)
             {
                 OnLog("Camera opened successfully");
-				GetImageInformation();
+		GetImageInformation();
 				
-				SetTitleText(deviceName);
+		SetTitleText(deviceName);
             }
             else
                 CloseCamera(m_cameras[nRow]);
 
-			m_bIsOpen = 0 == err;
+	    m_bIsOpen = (0 == err);
         }
         else
         {
             m_bIsOpen = false;
             // Stop 
-			if (true == m_bIsStreaming)
-			{
-				OnStopButtonClicked();
-			}
+	    if (true == m_bIsStreaming)
+	    {
+		OnStopButtonClicked();
+	    }
 
-			m_dScaleFactor = 1.0;
+	    m_dScaleFactor = 1.0;
 			
             err = CloseCamera(m_cameras[nRow]);
             if (0 == err)
-			    OnLog("Camera closed successfully");
+		OnLog("Camera closed successfully");
 			
-			SetTitleText("");
+	    SetTitleText("");
         }
 
         if(false == m_bIsOpen)
@@ -670,31 +670,32 @@ void v4l2test::OnOpenCloseButtonClicked()
 		UpdateViewerLayout();
     }
 
-	ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
-	ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
-	ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
-	ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
-	ui.m_chkUseRead->setEnabled( !m_bIsOpen );
-	ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
-	ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
-	ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-	ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
-	ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
-	ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
+    ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
+    ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
+    ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
+    ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
+    ui.m_chkUseRead->setEnabled( !m_bIsOpen );
+    ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
+    ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
+    ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
+    ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
+    ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
+    ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 }
 
 // The event handler for get device info
 void v4l2test::OnGetDeviceInfoButtonClicked()
 {
     int nRow = ui.m_CamerasListBox->currentRow();
-	QString devName = ui.m_CamerasListBox->item(nRow)->text();
-	std::string deviceName;
+    QString devName = ui.m_CamerasListBox->item(nRow)->text();
+    std::string deviceName;
     std::string tmp;
     
     devName = devName.right(devName.length()-devName.indexOf(':')-2);
     deviceName = devName.left(devName.indexOf('(')-1).toStdString();
 	
-    m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
+    if ( !m_bIsOpen )
+	m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
     
     OnLog("---------------------------------------------");
     OnLog("---- Device Info ");
@@ -713,6 +714,7 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
     
     OnLog("---------------------------------------------");
     
+    if ( !m_bIsOpen )
 	m_Camera.CloseDevice();
 }
 
@@ -725,9 +727,8 @@ void v4l2test::OnGetStreamStatisticsButtonClicked()
     OnLog("---- Stream Statistics ");
     OnLog("---------------------------------------------");
 
-    //m_Camera.GetStreamStatistics(tmp);
-    //OnLog(QString("GUID = %1").arg(tmp.c_str()));
-	OnLog("Not implemented");
+    //TODO m_Camera.GetStreamStatistics(tmp);
+    OnLog("Not implemented");
 
     OnLog("---------------------------------------------");
 }
@@ -1139,38 +1140,6 @@ void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, u
 void v4l2test::OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item)
 {
 	OnOpenCloseButtonClicked();
-}
-
-// The event handler to open a camera on double click event
-void v4l2test::OnListBoxCamerasItemClicked(QListWidgetItem * item)
-{
-    int nRow = ui.m_CamerasListBox->currentRow();
-    QString devName = ui.m_CamerasListBox->item(nRow)->text();
-    std::string deviceName;
-    std::string tmp;
-    
-    devName = devName.right(devName.length()-devName.indexOf(':')-2);
-    deviceName = devName.left(devName.indexOf('(')-1).toStdString();
-    bool ioRead;
-    
-    m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
-    m_Camera.GetCameraReadCapability(ioRead);
-    m_Camera.CloseDevice();
-    
-    if (!ioRead && ui.m_chkUseRead->isChecked())
-    {
-	QMessageBox::warning( this, tr("V4L2 Test"), tr("IO Read not available with this camera."));
-	
-	ui.m_chkUseRead->setEnabled( false );
-	ui.m_TitleUseRead->setEnabled( false );
-	ui.m_chkUseRead->setChecked( false );
-	ui.m_TitleUseRead->setChecked( false );
-	ui.m_chkUseMMAP->setEnabled( true );
-	ui.m_TitleUseMMAP->setEnabled( true );
-	ui.m_chkUseMMAP->setChecked( true );
-	ui.m_TitleUseMMAP->setChecked( true );
-	m_MMAP_BUFFER = IO_METHOD_MMAP;
-    }
 }
 
 // Queries and lists all known camera
@@ -2402,6 +2371,46 @@ void v4l2test::UpdateCameraFormat()
     ui.m_edPixelformatText->setText(QString("%1").arg(pixelformatText));
     
     result = m_Camera.ReadFormats();
+}
+
+// Check if IO Read was checked and remove it when not capable
+void v4l2test::Check4IOReadAbility()
+{
+    int nRow = ui.m_CamerasListBox->currentRow();
+    QString devName = ui.m_CamerasListBox->item(nRow)->text();
+    std::string deviceName;
+    std::string tmp;
+    
+    devName = devName.right(devName.length()-devName.indexOf(':')-2);
+    deviceName = devName.left(devName.indexOf('(')-1).toStdString();
+    bool ioRead;
+    
+    m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
+    m_Camera.GetCameraReadCapability(ioRead);
+    m_Camera.CloseDevice();
+    
+    if (!ioRead)
+    {
+	ui.m_chkUseRead->setEnabled( false );
+	ui.m_TitleUseRead->setEnabled( false );
+    }
+    else
+    {
+	ui.m_chkUseRead->setEnabled( true );
+	ui.m_TitleUseRead->setEnabled( true );
+    }
+    if (!ioRead && ui.m_chkUseRead->isChecked())
+    {
+	QMessageBox::warning( this, tr("V4L2 Test"), tr("IO Read not available with this camera. V4L2_CAP_VIDEO_CAPTURE not set. Switched to IO MMAP."));
+	
+	ui.m_chkUseRead->setChecked( false );
+	ui.m_TitleUseRead->setChecked( false );
+	ui.m_chkUseMMAP->setEnabled( true );
+	ui.m_TitleUseMMAP->setEnabled( true );
+	ui.m_chkUseMMAP->setChecked( true );
+	ui.m_TitleUseMMAP->setChecked( true );
+	m_MMAP_BUFFER = IO_METHOD_MMAP;
+    }
 }
 
 void v4l2test::SetTitleText(QString additionalText)
