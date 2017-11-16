@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.31"
+#define PROGRAM_VERSION "v1.32"
 
 /*
  * 1.0: base version
@@ -96,6 +96,7 @@
          because IMX serves only this weird format.
  * 1.30: IO Read added and changed the GUI
  * 1.31: Modifications of IO Read
+ * 1.32: Omnivision SBGGR8 10 and 12 added to image conversion but wrong colors
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -687,35 +688,39 @@ void v4l2test::OnOpenCloseButtonClicked()
 void v4l2test::OnGetDeviceInfoButtonClicked()
 {
     int nRow = ui.m_CamerasListBox->currentRow();
-    QString devName = ui.m_CamerasListBox->item(nRow)->text();
-    std::string deviceName;
-    std::string tmp;
     
-    devName = devName.right(devName.length()-devName.indexOf(':')-2);
-    deviceName = devName.left(devName.indexOf('(')-1).toStdString();
+    if (-1 != nRow)
+    {
+	QString devName = ui.m_CamerasListBox->item(nRow)->text();
+	std::string deviceName;
+	std::string tmp;
 	
-    if ( !m_bIsOpen )
-	m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
-    
-    OnLog("---------------------------------------------");
-    OnLog("---- Device Info ");
-    OnLog("---------------------------------------------");
+	devName = devName.right(devName.length()-devName.indexOf(':')-2);
+	deviceName = devName.left(devName.indexOf('(')-1).toStdString();
+	    
+	if ( !m_bIsOpen )
+	    m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
 	
-    m_Camera.GetCameraDriverName(tmp);
-    OnLog(QString("Driver name = %1").arg(tmp.c_str()));
-    m_Camera.GetCameraDeviceName(tmp);
-    OnLog(QString("Device name = %1").arg(tmp.c_str()));
-    m_Camera.GetCameraBusInfo(tmp);
-    OnLog(QString("Bus info = %1").arg(tmp.c_str()));
-    m_Camera.GetCameraDriverVersion(tmp);
-    OnLog(QString("Driver version = %1").arg(tmp.c_str()));
-    m_Camera.GetCameraCapabilities(tmp);
-    OnLog(QString("Capabilities = %1").arg(tmp.c_str()));
-    
-    OnLog("---------------------------------------------");
-    
-    if ( !m_bIsOpen )
-	m_Camera.CloseDevice();
+	OnLog("---------------------------------------------");
+	OnLog("---- Device Info ");
+	OnLog("---------------------------------------------");
+	    
+	m_Camera.GetCameraDriverName(tmp);
+	OnLog(QString("Driver name = %1").arg(tmp.c_str()));
+	m_Camera.GetCameraDeviceName(tmp);
+	OnLog(QString("Device name = %1").arg(tmp.c_str()));
+	m_Camera.GetCameraBusInfo(tmp);
+	OnLog(QString("Bus info = %1").arg(tmp.c_str()));
+	m_Camera.GetCameraDriverVersion(tmp);
+	OnLog(QString("Driver version = %1").arg(tmp.c_str()));
+	m_Camera.GetCameraCapabilities(tmp);
+	OnLog(QString("Capabilities = %1").arg(tmp.c_str()));
+	
+	OnLog("---------------------------------------------");
+	
+	if ( !m_bIsOpen )
+	    m_Camera.CloseDevice();
+    }
 }
 
 // The event handler for stream statistics
@@ -1159,6 +1164,8 @@ void v4l2test::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const
 	}
 
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
+    ui.m_GetDeviceInfoButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
+    ui.m_GetStreamStatisticsButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
     ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
     ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
@@ -2377,39 +2384,43 @@ void v4l2test::UpdateCameraFormat()
 void v4l2test::Check4IOReadAbility()
 {
     int nRow = ui.m_CamerasListBox->currentRow();
-    QString devName = ui.m_CamerasListBox->item(nRow)->text();
-    std::string deviceName;
-    std::string tmp;
     
-    devName = devName.right(devName.length()-devName.indexOf(':')-2);
-    deviceName = devName.left(devName.indexOf('(')-1).toStdString();
-    bool ioRead;
-    
-    m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
-    m_Camera.GetCameraReadCapability(ioRead);
-    m_Camera.CloseDevice();
-    
-    if (!ioRead)
+    if (-1 != nRow)
     {
-	ui.m_chkUseRead->setEnabled( false );
-	ui.m_TitleUseRead->setEnabled( false );
-    }
-    else
-    {
-	ui.m_chkUseRead->setEnabled( true );
-	ui.m_TitleUseRead->setEnabled( true );
-    }
-    if (!ioRead && ui.m_chkUseRead->isChecked())
-    {
-	QMessageBox::warning( this, tr("V4L2 Test"), tr("IO Read not available with this camera. V4L2_CAP_VIDEO_CAPTURE not set. Switched to IO MMAP."));
+	QString devName = ui.m_CamerasListBox->item(nRow)->text();
+	std::string deviceName;
+	std::string tmp;
 	
-	ui.m_chkUseRead->setChecked( false );
-	ui.m_TitleUseRead->setChecked( false );
-	ui.m_chkUseMMAP->setEnabled( true );
-	ui.m_TitleUseMMAP->setEnabled( true );
-	ui.m_chkUseMMAP->setChecked( true );
-	ui.m_TitleUseMMAP->setChecked( true );
-	m_MMAP_BUFFER = IO_METHOD_MMAP;
+	devName = devName.right(devName.length()-devName.indexOf(':')-2);
+	deviceName = devName.left(devName.indexOf('(')-1).toStdString();
+	bool ioRead;
+	
+	m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
+	m_Camera.GetCameraReadCapability(ioRead);
+	m_Camera.CloseDevice();
+	
+	if (!ioRead)
+	{
+	    ui.m_chkUseRead->setEnabled( false );
+	    ui.m_TitleUseRead->setEnabled( false );
+	}
+	else
+	{
+	    ui.m_chkUseRead->setEnabled( true );
+	    ui.m_TitleUseRead->setEnabled( true );
+	}
+	if (!ioRead && ui.m_chkUseRead->isChecked())
+	{
+	    QMessageBox::warning( this, tr("V4L2 Test"), tr("IO Read not available with this camera. V4L2_CAP_VIDEO_CAPTURE not set. Switched to IO MMAP."));
+	    
+	    ui.m_chkUseRead->setChecked( false );
+	    ui.m_TitleUseRead->setChecked( false );
+	    ui.m_chkUseMMAP->setEnabled( true );
+	    ui.m_TitleUseMMAP->setEnabled( true );
+	    ui.m_chkUseMMAP->setChecked( true );
+	    ui.m_TitleUseMMAP->setChecked( true );
+	    m_MMAP_BUFFER = IO_METHOD_MMAP;
+	}
     }
 }
 

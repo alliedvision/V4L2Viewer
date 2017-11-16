@@ -391,38 +391,38 @@ void FrameObserver::run()
 	
 	while (m_bStreamRunning)
 	{
-		fd_set fds;
-		struct timeval tv;
-		int result = -1;
+	    fd_set fds;
+	    struct timeval tv;
+	    int result = -1;
 
-		FD_ZERO(&fds);
-		FD_SET(m_nFileDescriptor, &fds);
+	    FD_ZERO(&fds);
+	    FD_SET(m_nFileDescriptor, &fds);
 
-        if (!m_BlockingMode)
-        {
-		    /* Timeout. */
-		    tv.tv_sec = 1;
-		    tv.tv_usec = 0;
+	    if (!m_BlockingMode)
+	    {
+		/* Timeout. */
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
 
-		    result = select(m_nFileDescriptor + 1, &fds, NULL, NULL, &tv);
-		    
-		    if (-1 == result) 
-		    {
-			    // Error
-			    continue;
-		    } else if (0 == result) 
-		    {
-			    // Timeout
-			    QThread::msleep(0);
-			    continue;
-		    } else {
-				DequeueAndProcessFrame();
-		    }
-		}
-		else
+		result = select(m_nFileDescriptor + 1, &fds, NULL, NULL, &tv);
+		
+		if (-1 == result) 
 		{
-			DequeueAndProcessFrame();
+		    // Error
+		    continue;
+		} else if (0 == result) 
+		{
+		    // Timeout
+		    QThread::msleep(0);
+		    continue;
+		} else {
+		    DequeueAndProcessFrame();
 		}
+	    }
+	    else
+	    {
+		DequeueAndProcessFrame();
+	    }
 	}
 
 	m_bStreamStopped = true;

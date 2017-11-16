@@ -93,6 +93,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="m_OpenCloseButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -112,6 +115,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="m_GetDeviceInfoButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Get Device Info</string>
            </property>
@@ -119,6 +125,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="m_GetStreamStatisticsButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Get Stream Statistics</string>
            </property>
@@ -445,7 +454,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>834</width>
+              <width>836</width>
               <height>290</height>
              </rect>
             </property>

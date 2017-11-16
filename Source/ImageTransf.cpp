@@ -150,6 +150,31 @@ void  ConvertRAW10gToRAW8(const void *sourceBuffer, uint32_t width, uint32_t hei
     //printf("counter= %d, count2=%d", count, count2);
 }
 
+void  ConvertRAW10ToRAW8(const void *sourceBuffer, uint32_t width, uint32_t height, const void *destBuffer)
+{
+    unsigned char *destdata = (unsigned char *)destBuffer;
+    unsigned char *srcdata = (unsigned char *)sourceBuffer;
+    uint32_t count = 0;
+    //uint32_t count2 = 0;
+    uint32_t bytesPerLine = width * 2;
+    
+    for (int i= 0; i<height; i++)
+    {
+       for (int ii= 0; ii<bytesPerLine; ii++)
+       {
+           if (((count+1)%2) != 0)
+	   {
+                //count2++;
+                *destdata++ = *srcdata;
+	   }
+	   count++;
+	   srcdata++;
+       }
+    }
+    
+    //printf("counter= %d, count2=%d", count, count2);
+}
+
 /* inspired by OpenCV's Bayer decoding */
 static void v4lconvert_border_bayer8_line_to_bgr24(
 		const unsigned char *bayer, const unsigned char *adjacent_bayer,
@@ -662,7 +687,33 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
     case V4L2_PIX_FMT_SRGGB8:
     {
         convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(pBuffer, convertedImage.bits(), width, height, bytesPerLine, pixelformat);
+        v4lconvert_bayer8_to_rgb24(pBuffer, convertedImage.bits(), width, height, width/*bytesPerLine*/, pixelformat);
+    }
+    break;
+    
+    // omnivision camera
+    case V4L2_PIX_FMT_SBGGR10:
+    case V4L2_PIX_FMT_SGBRG10:
+    case V4L2_PIX_FMT_SGRBG10:
+    case V4L2_PIX_FMT_SRGGB10:
+    {
+	ConvertRAW10ToRAW8(pBuffer, width, height, g_ConversionBuffer1);
+        convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(), width, height, 
+				   width/*bytesPerLine*/, pixelformat);
+    }
+    break;
+    
+    // omnivision camera
+    case V4L2_PIX_FMT_SBGGR12:
+    case V4L2_PIX_FMT_SGBRG12:
+    case V4L2_PIX_FMT_SGRBG12:
+    case V4L2_PIX_FMT_SRGGB12:
+    {
+	ConvertRAW10ToRAW8(pBuffer, width, height, g_ConversionBuffer1);
+        convertedImage = QImage(width, height, QImage::Format_RGB888);
+	v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(), width, height, 
+				   width/*bytesPerLine*/, pixelformat);
     }
     break;
     
