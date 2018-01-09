@@ -162,7 +162,7 @@ int Camera::CloseDevice()
 			result = 0;
 		}
     }
-    
+        
     m_nFileDescriptor = -1;
 	
     return result;

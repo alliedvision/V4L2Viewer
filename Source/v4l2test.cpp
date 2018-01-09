@@ -609,8 +609,11 @@ void v4l2test::mousePressEvent(QMouseEvent *event)
 // The event handler for open / close camera
 void v4l2test::OnOpenCloseButtonClicked()
 {
-    // check if IO parameter are correct
-    Check4IOReadAbility();
+    if(false == m_bIsOpen)
+    {
+	    // check if IO parameter are correct
+        Check4IOReadAbility();
+	}
     
     // Disable the open/close button and redraw it
     ui.m_OpenCloseButton->setEnabled(false);
