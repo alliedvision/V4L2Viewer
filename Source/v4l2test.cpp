@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.32"
+#define PROGRAM_VERSION "v1.33"
 
 /*
  * 1.0: base version
@@ -97,6 +97,8 @@
  * 1.30: IO Read added and changed the GUI
  * 1.31: Modifications of IO Read
  * 1.32: Omnivision SBGGR8 10 and 12 added to image conversion but wrong colors
+ * 1.33: VIDIOC_DQBUF errno EAGAIN disregarded in nonblocking mode
+         emit framecount display in FrameObserver 369 disabled.
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)

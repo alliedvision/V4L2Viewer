@@ -366,19 +366,22 @@ void FrameObserver::DequeueAndProcessFrame()
 	{
 	    m_nDroppedFramesCounter++;
 				    
-	    emit OnFrameID_Signal(m_FrameId);
+	    //emit OnFrameID_Signal(m_FrameId);
 	    QueueSingleUserBuffer(buf.index);
 	}
     }
     else
     {
-	static int i=0;
-	i++;
-	if (i%10000 == 0 || m_DQBUF_last_errno != errno)
+	if (!m_BlockingMode && errno != EAGAIN)
 	{
-	    m_DQBUF_last_errno = errno;
-	    emit OnError_Signal(QString("DQBUF error %1 times, error=%2").arg(i).arg(errno));
-	}
+		static int i=0;
+		i++;
+		if (i%10000 == 0 || m_DQBUF_last_errno != errno)
+		{
+	    		m_DQBUF_last_errno = errno;
+	    		emit OnError_Signal(QString("DQBUF error %1 times, error=%2").arg(i).arg(errno));
+		}
+    	}
     }
 }
 
