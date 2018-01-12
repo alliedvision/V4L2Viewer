@@ -880,29 +880,29 @@ int Camera::EnumAllControlOldStyle()
     CLEAR(qctrl);
     qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
 
-	for (qctrl.id = V4L2_CID_BASE; qctrl.id < V4L2_CID_LASTP1; qctrl.id++)
-	{
+    for (qctrl.id = V4L2_CID_BASE; qctrl.id < V4L2_CID_CAMERA_CLASS_BASE+200; qctrl.id++)
+    {
     	if (0 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl))
-		{
-			if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-				continue;
+	{
+	    if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+		continue;
 
-			Logger::LogEx("Camera::EnumAllControlOldStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, 		V4l2Helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
-        	emit OnCameraMessage_Signal(QString("EnumAllControlOldStyle VIDIOC_QUERYCTRL: id=%1=%2, min=%3, max=%4, default=%5.").arg(qctrl.id).arg(V4l2Helper::ConvertControlID2String(qctrl.id).c_str()).arg(qctrl.minimum).arg(qctrl.maximum).arg(qctrl.default_value));
+	    Logger::LogEx("Camera::EnumAllControlOldStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, 		V4l2Helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
+	    emit OnCameraMessage_Signal(QString("EnumAllControlOldStyle VIDIOC_QUERYCTRL: id=%1=%2, min=%3, max=%4, default=%5.").arg(qctrl.id).arg(V4l2Helper::ConvertControlID2String(qctrl.id).c_str()).arg(qctrl.minimum).arg(qctrl.maximum).arg(qctrl.default_value));
 
-			cidCount++;
+	    cidCount++;
 			
-			if (qctrl.type & V4L2_CTRL_TYPE_MENU)
-				continue;
-		}
-		else
-		{
-			if (errno == EINVAL)
-				continue;
-
-			break;
-    	}    
+	    if (qctrl.type & V4L2_CTRL_TYPE_MENU)
+		continue;
 	}
+	else
+	{
+	    if (errno == EINVAL)
+		continue;
+
+	    break;
+	}    
+    }
     
     if (0 == cidCount)
     {
