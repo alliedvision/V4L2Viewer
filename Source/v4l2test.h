@@ -214,6 +214,8 @@ private slots:
     void OnCameraRegisterValueReady(unsigned long long value);
     // Event will be called on error
     void OnCameraError(const QString &text);
+    // Event will be called on warning
+    void OnCameraWarning(const QString &text);
     // Event will be called on message
     void OnCameraMessage(const QString &text);
     // Event will be called when the a frame is recorded

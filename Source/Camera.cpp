@@ -837,23 +837,22 @@ int Camera::ReadPixelformat(uint32_t &pixelformat, uint32_t &bytesPerLine, QStri
 
 //////////////////// Extended Controls ////////////////////////
 
-int Camera::EnumAllControl()
+int Camera::EnumAllControlNewStyle()
 {
     int result = -1;
     v4l2_queryctrl qctrl;
     int cidCount = 0;
     
     CLEAR(qctrl);
-    //qctrl.id = V4L2_CTRL_CLASS_CAMERA | V4L2_CTRL_FLAG_NEXT_CTRL;
     qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
     
     while (0 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl))
     {
-	//if (V4L2_CTRL_ID2CLASS(qctrl.id) != V4L2_CTRL_CLASS_CAMERA)
-	//    break;
-	
-	Logger::LogEx("Camera::EnumAllControl VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, V4l2Helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
-        emit OnCameraMessage_Signal(QString("EnumAllControl VIDIOC_QUERYCTRL: id=%1=%2, min=%3, max=%4, default=%5.").arg(qctrl.id).arg(V4l2Helper::ConvertControlID2String(qctrl.id).c_str()).arg(qctrl.minimum).arg(qctrl.maximum).arg(qctrl.default_value));
+		if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+				continue;
+
+	Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, V4l2Helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
+        emit OnCameraMessage_Signal(QString("EnumAllControlNewStyle VIDIOC_QUERYCTRL: id=%1=%2, min=%3, max=%4, default=%5.").arg(qctrl.id).arg(V4l2Helper::ConvertControlID2String(qctrl.id).c_str()).arg(qctrl.minimum).arg(qctrl.maximum).arg(qctrl.default_value));
 	cidCount++;
         
 	qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
@@ -861,8 +860,54 @@ int Camera::EnumAllControl()
     
     if (0 == cidCount)
     {
-	Logger::LogEx("Camera::EnumAllControl VIDIOC_QUERYCTRL returned error, no controls can be enumerated.");
-        emit OnCameraMessage_Signal(QString("EnumAllControl VIDIOC_QUERYCTRL returned error: no controls can be enumerated."));
+	Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL returned error, no controls can be enumerated.");
+        emit OnCameraMessage_Signal(QString("EnumAllControlNewStyle VIDIOC_QUERYCTRL returned error: no controls can be enumerated."));
+    }
+	else
+	{
+		result = 0;
+	}
+    
+    return result;
+}
+
+int Camera::EnumAllControlOldStyle()
+{
+    int result = -1;
+    v4l2_queryctrl qctrl;
+    int cidCount = 0;
+    
+    CLEAR(qctrl);
+    qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
+
+	for (qctrl.id = V4L2_CID_BASE; qctrl.id < V4L2_CID_LASTP1; qctrl.id++)
+	{
+    	if (0 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl))
+		{
+			if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+				continue;
+
+			Logger::LogEx("Camera::EnumAllControlOldStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, 		V4l2Helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
+        	emit OnCameraMessage_Signal(QString("EnumAllControlOldStyle VIDIOC_QUERYCTRL: id=%1=%2, min=%3, max=%4, default=%5.").arg(qctrl.id).arg(V4l2Helper::ConvertControlID2String(qctrl.id).c_str()).arg(qctrl.minimum).arg(qctrl.maximum).arg(qctrl.default_value));
+
+			cidCount++;
+			
+			if (qctrl.type & V4L2_CTRL_TYPE_MENU)
+				continue;
+		}
+		else
+		{
+			if (errno == EINVAL)
+				continue;
+
+			break;
+    	}    
+	}
+    
+    if (0 == cidCount)
+    {
+	Logger::LogEx("Camera::EnumAllControlOldStyle VIDIOC_QUERYCTRL returned error, no controls can be enumerated.");
+        emit OnCameraMessage_Signal(QString("EnumAllControlOldStyle VIDIOC_QUERYCTRL returned error: no controls can be enumerated."));
     }
     
     return result;

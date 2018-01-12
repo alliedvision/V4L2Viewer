@@ -116,7 +116,8 @@ public:
     int ReadControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
     int SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-    int EnumAllControl();
+    int EnumAllControlNewStyle();
+    int EnumAllControlOldStyle();
     int ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
 				 uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
 				 uint32_t &aspectnum, uint32_t &aspectdenum);

@@ -48,7 +48,7 @@
 #define MANUF_NAME_AV "Allied Vision"
 
 #define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.33"
+#define PROGRAM_VERSION "v1.34"
 
 /*
  * 1.0: base version
@@ -99,6 +99,8 @@
  * 1.32: Omnivision SBGGR8 10 and 12 added to image conversion but wrong colors
  * 1.33: VIDIOC_DQBUF errno EAGAIN disregarded in nonblocking mode
          emit framecount display in FrameObserver 369 disabled.
+ * 1.34: EnumAllControlOldStyle and NewStyle added. There is a difference 
+		 between these two approaches.
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -837,6 +839,11 @@ void v4l2test::OnCameraRegisterValueReady(unsigned long long value)
 void v4l2test::OnCameraError(const QString &text)
 {
     OnLog(QString("Error = %1").arg(text));
+}
+
+void v4l2test::OnCameraWarning(const QString &text)
+{
+    OnLog(QString("Warning = %1").arg(text));
 }
 
 void v4l2test::OnCameraMessage(const QString &text)
@@ -2354,7 +2361,11 @@ void v4l2test::GetImageInformation()
     }
     OnCropCapabilities();
     
-    m_Camera.EnumAllControl();
+    if (0 != m_Camera.EnumAllControlNewStyle())
+	{
+		OnCameraWarning("Didn't get Controls with new style.");
+		m_Camera.EnumAllControlOldStyle();
+	}
 }
 
 void v4l2test::UpdateCameraFormat()
