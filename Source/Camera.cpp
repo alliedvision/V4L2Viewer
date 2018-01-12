@@ -848,12 +848,12 @@ int Camera::EnumAllControlNewStyle()
     
     while (0 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl))
     {
-		if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-				continue;
-
-	Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, V4l2Helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
-        emit OnCameraMessage_Signal(QString("EnumAllControlNewStyle VIDIOC_QUERYCTRL: id=%1=%2, min=%3, max=%4, default=%5.").arg(qctrl.id).arg(V4l2Helper::ConvertControlID2String(qctrl.id).c_str()).arg(qctrl.minimum).arg(qctrl.maximum).arg(qctrl.default_value));
-	cidCount++;
+	if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
+	{
+	    Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, V4l2Helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
+	    emit OnCameraMessage_Signal(QString("EnumAllControlNewStyle VIDIOC_QUERYCTRL: id=%1=%2, min=%3, max=%4, default=%5.").arg(qctrl.id).arg(V4l2Helper::ConvertControlID2String(qctrl.id).c_str()).arg(qctrl.minimum).arg(qctrl.maximum).arg(qctrl.default_value));
+	    cidCount++;
+	}
         
 	qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
     }
@@ -863,10 +863,10 @@ int Camera::EnumAllControlNewStyle()
 	Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL returned error, no controls can be enumerated.");
         emit OnCameraMessage_Signal(QString("EnumAllControlNewStyle VIDIOC_QUERYCTRL returned error: no controls can be enumerated."));
     }
-	else
-	{
-		result = 0;
-	}
+    else
+    {
+	result = 0;
+    }
     
     return result;
 }
@@ -908,6 +908,10 @@ int Camera::EnumAllControlOldStyle()
     {
 	Logger::LogEx("Camera::EnumAllControlOldStyle VIDIOC_QUERYCTRL returned error, no controls can be enumerated.");
         emit OnCameraMessage_Signal(QString("EnumAllControlOldStyle VIDIOC_QUERYCTRL returned error: no controls can be enumerated."));
+    }
+    else
+    {
+	result = 0;
     }
     
     return result;
