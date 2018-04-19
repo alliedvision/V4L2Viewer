@@ -865,7 +865,9 @@ int Camera::EnumAllControlNewStyle()
     }
     else
     {
-	result = 0;
+        Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL: NumControls=%d", cidCount);
+        emit OnCameraMessage_Signal(QString("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL: NumControls=%1.").arg(cidCount));
+        result = 0;
     }
     
     return result;
@@ -911,7 +913,9 @@ int Camera::EnumAllControlOldStyle()
     }
     else
     {
-	result = 0;
+        Logger::LogEx("Camera::EnumAllControlOldStyle VIDIOC_QUERYCTRL: NumControls=%d", cidCount);
+        emit OnCameraMessage_Signal(QString("Camera::EnumAllControlOldStyle VIDIOC_QUERYCTRL: NumControls=%1.").arg(cidCount));
+        result = 0;
     }
     
     return result;

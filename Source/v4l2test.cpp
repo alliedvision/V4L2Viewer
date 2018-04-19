@@ -47,8 +47,16 @@
 
 #define MANUF_NAME_AV "Allied Vision"
 
-#define PROGRAM_NAME    "Video4Linux2 Testtool"
-#define PROGRAM_VERSION "v1.34"
+//#define PROGRAM_NAME    "Video4Linux2 Testtool"
+//#define PROGRAM_VERSION "v1.35"
+#define APP_NAME    "Video4Linux2 Testtool"
+#define APP_VERSION_MAJOR   1
+#define APP_VERSION_MINOR   35
+#define APP_VERSION_PATCH   0
+#ifndef SVN_REV
+#define SVN_REV             0
+#endif
+
 
 /*
  * 1.0: base version
@@ -101,6 +109,9 @@
          emit framecount display in FrameObserver 369 disabled.
  * 1.34: EnumAllControlOldStyle and NewStyle added. There is a difference 
 		 between these two approaches.
+ * 1.35  Starts maximized
+         Added svn revision number
+         Camera::EnumAllControlNewStyle and Camera::EnumAllControlOldStyle now display number of found controls
  */
 
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
@@ -397,6 +408,8 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	m_ToggleStreamDelayWidgetAction->setDefaultWidget(widgetToggleStreamDelay);
 	ui.m_MenuTest->addAction(m_ToggleStreamDelayWidgetAction);
 
+    QMainWindow::showMaximized();  
+    
 	UpdateViewerLayout();
 	UpdateZoomButtons();
 	
@@ -2442,9 +2455,18 @@ void v4l2test::Check4IOReadAbility()
 
 void v4l2test::SetTitleText(QString additionalText)
 {
-	if (VIEWER_MASTER == m_nViewerNumber)
+    if (VIEWER_MASTER == m_nViewerNumber)
+        setWindowTitle(QString("%1 V%2.%3.%4.%5 - master view  %6").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(SVN_REV).arg(additionalText));
+    else
+        setWindowTitle(QString("%1 V%2.%3.%4.%5 - %6. viewer %7").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(SVN_REV).arg(m_nViewerNumber).arg(additionalText));
+    
+
+    /*
+ *
+ 	if (VIEWER_MASTER == m_nViewerNumber)
 		setWindowTitle(QString("%1 %2 - master view  %3").arg(PROGRAM_NAME, PROGRAM_VERSION, additionalText));
 	else
 		setWindowTitle(QString("%1 %2 - %3. view  %4").arg(PROGRAM_NAME, PROGRAM_VERSION).arg(m_nViewerNumber).arg(additionalText));
+    */
 }
 

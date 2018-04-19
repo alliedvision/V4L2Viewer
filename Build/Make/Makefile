@@ -25,6 +25,8 @@ INCLUDE_DIRS            = $(SOURCE_DIR) \
                           $(AVTIMAGETRANSFORM_DIR)/Include \
                           $(OBJ_DIR)
 
+SVNDEV:='SVN_REV="$(shell svnversion -n .)"'
+
 LIBS                    = pthread \
 #                          VimbaImageTransform \
                           $(SHO_LIB)
@@ -51,7 +53,8 @@ LIB_DIRS                = $(AVTIMAGETRANSFORM_DIR)/DynamicLib/linux_pc_64bit \
 endif
 endif
 			  
-DEFINES                 = TIXML_USE_STL
+DEFINES                 = TIXML_USE_STL \
+						$(SVNDEV)
 
 PACKAGES                = QtCore \
 			  QtSvg \
