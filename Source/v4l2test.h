@@ -125,6 +125,9 @@ private:
     QString m_SelectedExtension;
     // save a frame name
     QString m_SaveImageName;
+    
+    // store radio buttons for blocking/non-blocking mode in a group
+    QButtonGroup* m_blockingModeRadioButtonGroup;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -162,7 +165,7 @@ private slots:
     // The event handler to close the program
     void OnMenuCloseTriggered();
     // The event handler to set blocking mode
-    void OnBlockingMode();
+    void OnBlockingMode(QAbstractButton* button);
     // The event handler to set IO Read
     void OnUseRead();
     // The event handler to set IO MMAP

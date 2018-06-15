@@ -454,8 +454,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>837</width>
-              <height>287</height>
+              <width>829</width>
+              <height>300</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -723,22 +723,6 @@
           </property>
           <property name="readOnly">
            <bool>true</bool>
-          </property>
-         </widget>
-         <widget class="QCheckBox" name="m_chkBlockingMode">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>290</y>
-            <width>271</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Blocking/Nonblocking Mode</string>
           </property>
          </widget>
          <widget class="QCheckBox" name="m_chkUseMMAP">
@@ -1175,7 +1159,7 @@
            <rect>
             <x>390</x>
             <y>220</y>
-            <width>151</width>
+            <width>161</width>
             <height>101</height>
            </rect>
           </property>
@@ -1502,6 +1486,32 @@
           </property>
           <property name="text">
            <string>Read</string>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="m_radioBlocking">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>300</y>
+            <width>121</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Blocking Mode</string>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="m_radioNonBlocking">
+          <property name="geometry">
+           <rect>
+            <x>140</x>
+            <y>300</y>
+            <width>151</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Non-Blocking Mode</string>
           </property>
          </widget>
         </widget>
@@ -2013,7 +2023,7 @@
      <x>0</x>
      <y>0</y>
      <width>1224</width>
-     <height>29</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="m_MenuFile">
@@ -2031,7 +2041,6 @@
     <addaction name="m_TitleUseRead"/>
     <addaction name="m_TitleUseMMAP"/>
     <addaction name="m_TitleUseUSERPTR"/>
-    <addaction name="m_TitleBlockingMode"/>
     <addaction name="m_TitleShowFrames"/>
     <addaction name="m_TitleFlipHorizontal"/>
     <addaction name="m_TitleFlipVertical"/>
@@ -2061,14 +2070,6 @@
   <action name="m_MenuOpenNextViewer">
    <property name="text">
     <string>Open Next Viewer ...</string>
-   </property>
-  </action>
-  <action name="m_BlockingMode">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Blocking mode</string>
    </property>
   </action>
   <action name="m_UseMMAP">
@@ -2101,12 +2102,12 @@
     <string>MMAP/USERPTR</string>
    </property>
   </action>
-  <action name="m_TitleBlockingMode">
+  <action name="m_TitleNonBlockingMode">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Blocking/Nonblocking</string>
+    <string>Nonblocking-mode</string>
    </property>
   </action>
   <action name="m_TitleShowFrames">

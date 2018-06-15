@@ -126,7 +126,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	, m_dScaleFactor(1.0)
 	, m_DirectAccessData(0)
 	, m_saveFileDialog(0)
-	, m_BLOCKING_MODE(false)
+	, m_BLOCKING_MODE(true)
 	, m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
 	, m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
 	, m_ExtendedControls(false)
@@ -180,8 +180,23 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(&m_Camera, SIGNAL(OnCameraPixelformat_Signal(const QString &)), this, SLOT(OnCameraPixelformat(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
 	
-	connect(ui.m_chkBlockingMode, SIGNAL(clicked()), this, SLOT(OnBlockingMode()));
-	connect(ui.m_TitleBlockingMode, SIGNAL(triggered()), this, SLOT(OnBlockingMode()));
+    // Setup blocking mode radio buttons
+    m_blockingModeRadioButtonGroup = new QButtonGroup();
+    m_blockingModeRadioButtonGroup->setExclusive(true);
+    m_blockingModeRadioButtonGroup->addButton(ui.m_radioBlocking);
+    m_blockingModeRadioButtonGroup->addButton(ui.m_radioNonBlocking);
+    if(m_BLOCKING_MODE)
+    {
+        ui.m_radioBlocking->setChecked(true);
+    }
+    else
+    {
+        ui.m_radioNonBlocking->setChecked(true);
+    }
+    
+    connect(m_blockingModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(OnBlockingMode(QAbstractButton*)));
+	//connect(ui.m_chkBlockingMode, SIGNAL(clicked()), this, SLOT(OnBlockingMode()));
+	//connect(ui.m_TitleBlockingMode, SIGNAL(triggered()), this, SLOT(OnBlockingMode()));
 	connect(ui.m_chkUseRead, SIGNAL(clicked()), this, SLOT(OnUseRead()));
 	connect(ui.m_TitleUseRead, SIGNAL(triggered()), this, SLOT(OnUseRead()));
 	connect(ui.m_chkUseMMAP, SIGNAL(clicked()), this, SLOT(OnUseMMAP()));
@@ -470,14 +485,14 @@ void v4l2test::OnMenuCloseTriggered()
 	close();
 }
 
-void v4l2test::OnBlockingMode()
+void v4l2test::OnBlockingMode(QAbstractButton* button)
 {
-	m_BLOCKING_MODE = !m_BLOCKING_MODE;
+    m_BLOCKING_MODE = ui.m_radioBlocking->isChecked();
 	OnLog(QString("Use BLOCKING_MODE = %1").arg((m_BLOCKING_MODE)?"TRUE":"FALSE"));
 	
-	ui.m_chkBlockingMode->setChecked(m_BLOCKING_MODE);
-	ui.m_BlockingMode->setChecked(m_BLOCKING_MODE);
-	ui.m_TitleBlockingMode->setChecked(m_BLOCKING_MODE);
+	//ui.m_chkBlockingMode->setChecked(m_BLOCKING_MODE);
+	//ui.m_BlockingMode->setChecked(m_BLOCKING_MODE);
+	//ui.m_TitleBlockingMode->setChecked(m_BLOCKING_MODE);
 }
 
 void v4l2test::OnUseRead()
@@ -698,8 +713,10 @@ void v4l2test::OnOpenCloseButtonClicked()
 	}
 
 	ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
-	ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
-	ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
+    ui.m_radioBlocking->setEnabled( !m_bIsOpen );
+    ui.m_radioNonBlocking->setEnabled( !m_bIsOpen );
+	//ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
+	//ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
 	ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
 	ui.m_chkUseRead->setEnabled( !m_bIsOpen );
 	ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
@@ -1160,8 +1177,10 @@ void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, u
 	}
 
 	ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
-	ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
-	ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
+    ui.m_radioBlocking->setEnabled( !m_bIsOpen );
+    ui.m_radioNonBlocking->setEnabled( !m_bIsOpen );
+	//ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
+	//ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
 	ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
 	ui.m_chkUseRead->setEnabled( !m_bIsOpen );
 	ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
@@ -1197,8 +1216,10 @@ void v4l2test::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const
 	ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
 	ui.m_GetDeviceInfoButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
 	ui.m_GetStreamStatisticsButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
-	ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
-	ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
+    ui.m_radioBlocking->setEnabled( !m_bIsOpen );
+    ui.m_radioNonBlocking->setEnabled( !m_bIsOpen );
+	//ui.m_chkBlockingMode->setEnabled( !m_bIsOpen );
+	//ui.m_TitleBlockingMode->setEnabled( !m_bIsOpen );
 	ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
 	ui.m_chkUseRead->setEnabled( !m_bIsOpen );
 	ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );

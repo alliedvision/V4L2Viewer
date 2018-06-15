@@ -401,7 +401,7 @@ void FrameObserver::run()
 	    FD_ZERO(&fds);
 	    FD_SET(m_nFileDescriptor, &fds);
 
-	    if (!m_BlockingMode)
+	    if (m_BlockingMode)
 	    {
 		/* Timeout. */
 		tv.tv_sec = 1;
@@ -422,6 +422,7 @@ void FrameObserver::run()
 		    DequeueAndProcessFrame();
 		}
 	    }
+	    // non-blocking mode
 	    else
 	    {
 		DequeueAndProcessFrame();
