@@ -94,16 +94,16 @@ public:
     int SetReverseX(uint32_t value);
     int ReadReverseY(uint32_t &value);
     int SetReverseY(uint32_t value);
-    int ReadSharpness(uint32_t &value);
-    int SetSharpness(uint32_t value);
+    int ReadSharpness(int32_t &value);
+    int SetSharpness(int32_t value);
     int ReadBrightness(uint32_t &value);
     int SetBrightness(uint32_t value);
     int ReadContrast(uint32_t &value);
     int SetContrast(uint32_t value);
     int ReadSaturation(uint32_t &value);
     int SetSaturation(uint32_t value);
-    int ReadHue(uint32_t &value);
-    int SetHue(uint32_t value);
+    int ReadHue(int32_t &value);
+    int SetHue(int32_t value);
     int SetContinousWhiteBalance(bool flag);
     int DoWhiteBalanceOnce();
     int ReadRedBalance(uint32_t &value);
@@ -114,9 +114,18 @@ public:
     int SetFramerate(uint32_t numerator, uint32_t denominator);
     int SetControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName);
     int ReadControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
-    int SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    
+	int SetControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName);
+    int ReadControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
+
+	int SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-    int EnumAllControlNewStyle();
+
+	int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+	
+	
+	int EnumAllControlNewStyle();
     int EnumAllControlOldStyle();
     int ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
 				 uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
