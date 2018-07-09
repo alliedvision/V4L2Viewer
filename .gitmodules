@@ -1,0 +1,6 @@
+[submodule "Externals/Makefiles"]
+	path = Externals/Makefiles
+	url = ssh://driverdevelopment@vs-ssh.visualstudio.com:22/Makefiles/_ssh/Makefiles
+[submodule "Externals/build_scripts"]
+	path = Externals/build_scripts
+	url = ssh://driverdevelopment@vs-ssh.visualstudio.com:22/build_scripts/_ssh/build_scripts
