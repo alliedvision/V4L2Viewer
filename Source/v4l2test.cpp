@@ -966,38 +966,10 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 	dumpByteFrameRangeEnd = dumpByteFrameRangeList.at(1).toInt();
 
 	// start streaming
-	err = m_Camera.StartStreamChannel(m_CSVFileLineEdit->text().toStdString().c_str(),
-				pixelformat, 
-				payloadsize, 
-				width, 
-				height, 
-				bytesPerLine, 
-				NULL,
-				ui.m_TitleLogtofile->isChecked(),
-				logFrameRangeStart,
-				logFrameRangeEnd,
-				dumpByteFrameRangeStart,
-				dumpByteFrameRangeEnd,
-				ui.m_TitleCorrectIncomingRAW10Image->isChecked());
-	if (0 != err)
-		OnLog("Start Acquisition failed during SI Start channel.");
-	else
-	{
-		OnLog("Acquisition started ...");
-		m_bIsStreaming = true;
-	ui.m_StreamLabel->setText(QString("Stream#%1").arg(++m_nStreamNumber));
-	}
-	
-	UpdateViewerLayout();
-	
-	m_FramesReceivedTimer.start(1000);
 
 	if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadsize) == 0)
 	{
 		m_Camera.QueueAllUserBuffer();
-
-	OnLog("Starting Stream...");
-	
 		if (m_Camera.StartStreaming() == 0)
 		{
 			OnLog("Start Stream OK.");
@@ -1006,7 +978,35 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 		{
 			OnLog("Start Stream failed.");
 		}
+		err = m_Camera.StartStreamChannel(m_CSVFileLineEdit->text().toStdString().c_str(),
+						  pixelformat,
+						  payloadsize,
+						  width,
+						  height,
+						  bytesPerLine,
+						  NULL,
+						  ui.m_TitleLogtofile->isChecked(),
+						  logFrameRangeStart,
+						  logFrameRangeEnd,
+						  dumpByteFrameRangeStart,
+						  dumpByteFrameRangeEnd,
+						  ui.m_TitleCorrectIncomingRAW10Image->isChecked());
 
+		if (0 != err)
+			OnLog("Start Acquisition failed during SI Start channel.");
+		else
+		{
+			OnLog("Acquisition started ...");
+			m_bIsStreaming = true;
+			ui.m_StreamLabel->setText(QString("Stream#%1").arg(++m_nStreamNumber));
+		}
+
+		UpdateViewerLayout();
+
+		m_FramesReceivedTimer.start(1000);
+		m_Camera.QueueAllUserBuffer();
+
+		OnLog("Starting Stream...");
 	}
 	else
 	{
