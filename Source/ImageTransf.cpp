@@ -644,6 +644,7 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
             v4lconvert_swap_rgb(pBuffer, convertedImage.bits(), width, height);
         }
         break;
+	case V4L2_PIX_FMT_VYUY:
 	case V4L2_PIX_FMT_UYVY:
         {	
             convertedImage = QImage(width, height, QImage::Format_RGB888);
