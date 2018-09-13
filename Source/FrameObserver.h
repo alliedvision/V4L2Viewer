@@ -104,6 +104,8 @@ class FrameObserver : public QThread
     void DisplayStepBack();
     void DisplayStepForw();
     void DeleteRecording();
+
+    void setFileDescriptor(int fd);
     
     virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
     virtual int QueueAllUserBuffer();

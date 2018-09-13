@@ -1693,6 +1693,8 @@ int Camera::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
 {
     int result = -1;
 
+    m_StreamCallbacks->setFileDescriptor(m_nFileDescriptor);
+
     result = m_StreamCallbacks->CreateAllUserBuffer(bufferCount, bufferSize);
 
     return result;
