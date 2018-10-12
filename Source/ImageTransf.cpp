@@ -624,6 +624,14 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
 	
     switch(pixelformat)
     {
+	case V4L2_PIX_FMT_ABGR32:
+	{
+		convertedImage = QImage(width,height,QImage::Format_ARGB32);
+		unsigned char* dst = convertedImage.bits();
+		memcpy(dst, pBuffer, length);
+	}
+	break;
+
 	case V4L2_PIX_FMT_JPEG:
 	case V4L2_PIX_FMT_MJPEG:
         {	

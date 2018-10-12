@@ -63,6 +63,8 @@ namespace Examples {
 		
 		switch(pixelformat)
 		{
+			case V4L2_PIX_FMT_ABGR32: result = "V4L2_PIX_FMT_ABGR32"; break;
+
 			/* RGB formats */
 			case V4L2_PIX_FMT_RGB332: result = "V4L2_PIX_FMT_RGB332"; break;
 			case V4L2_PIX_FMT_RGB444: result = "V4L2_PIX_FMT_RGB444"; break;
