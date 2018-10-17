@@ -161,3 +161,8 @@ QSharedPointer<MyFrame> MyFrameQueue::GetNext()
 
     return queuedFrame;
 }
+
+MyFrameQueue& MyFrameQueue::GetQueue()
+{
+    return this;
+}

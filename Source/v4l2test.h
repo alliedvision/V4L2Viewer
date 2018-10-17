@@ -118,16 +118,19 @@ private:
 	// Direct access value
 	uint64_t m_DirectAccessData;
     // save a frame dialog
-    QFileDialog *m_saveFileDialog;
+    QFileDialog *m_SaveFileDialog;
     // save a frame directory
     QString m_SaveFileDir;
     // save a frame extension
     QString m_SelectedExtension;
     // save a frame name
-    QString m_SaveImageName;
-    
+    QString m_SaveImageName;   
     // store radio buttons for blocking/non-blocking mode in a group
-    QButtonGroup* m_blockingModeRadioButtonGroup;
+    QButtonGroup* m_BlockingModeRadioButtonGroup;
+    // load reference image dialog
+    QFileDialog *m_ReferenceImageDialog;
+    // reference image
+    QPixmap *m_ReferenceImage; 
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -141,6 +144,11 @@ private:
 	// called by OnCameraPayloadSizeReady when payloadsize arrieved
     void StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
     
+    // update record listing
+    void InitializeTableWidget();
+    void UpdateRecordTableWidget();
+    void DeleteRecordTableWidget();
+
     // Official QT dialog close event callback
     virtual void closeEvent(QCloseEvent *event);
 	virtual void mousePressEvent(QMouseEvent *event);
@@ -245,6 +253,9 @@ private slots:
     void OnForwardDisplay();
     void OnDeleteRecording();
     void OnSaveFrame();
+    void OnSaveFrameSeries();
+    void OnCalcDeviation();
+    void OnGetReferenceImage();
 	
 	void OnWidth();
 	void OnHeight();
