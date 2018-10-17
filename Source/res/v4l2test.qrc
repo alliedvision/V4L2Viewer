@@ -1,5 +1,14 @@
 <RCC>
   <qresource prefix="v4l2test">
+    <file>addReference.ico</file>
+    <file>back.ico</file>
+    <file>calculate.ico</file>
+    <file>next.ico</file>
+    <file>recordStart.ico</file>
+    <file>recordStop.ico</file>
+    <file>removeRecord.ico</file>
+    <file>saveSeries.ico</file>
+    <file>saveSingle.ico</file>
     <file>play128orange.png</file>
     <file>bars-graphic.png</file>
     <file>binary5.png</file>
@@ -8,11 +17,6 @@
     <file>magnifying-glass1.png</file>
     <file>magnifying-glass2.png</file>
     <file>zoom75.png</file>
-    <file>Cross128.png</file>
-    <file>StartRec128.png</file>
-    <file>StepB128.png</file>
-    <file>StepF128.png</file>
-    <file>StopRec128.png</file>
     <file>play128.png</file>
     <file>stop4.png</file>
     <file>Viewer.png</file>
