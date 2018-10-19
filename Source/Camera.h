@@ -158,7 +158,7 @@ public:
     void DisplayStepBack();
     void DisplayStepForw();
     void DeleteRecording();
-    MyFrameQueue& GetRecordQueue();
+ //   MyFrameQueue& GetRecordQueue();
 
     // Misc
     void SwitchFrameTransfer2GUI(bool showFrames);

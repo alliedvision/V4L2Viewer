@@ -1084,7 +1084,7 @@ void v4l2test::UpdateRecordTableWidget()
 
 	// get recording queue
 	qDebug() << "get frame queue";
-	MyFrameQueue* pQueue = m_Camera.GetRecordQueue();
+/*	MyFrameQueue* pQueue = m_Camera.GetRecordQueue();
 	if(!pQueue->isNull())
 	{
 		qDebug() << "Invalid Frame Record Queue pointer!";
@@ -1146,7 +1146,7 @@ void v4l2test::UpdateRecordTableWidget()
 		QTableWidgetItem item_bytesPerLine;
 		item_bytesPerLine.setText(QString::number(bytesPerLine));
 		ui.m_FrameRecordTable->setItem(i, 7, &item_bytesPerLine);		
-	}
+	}*/
 }
 
 void v4l2test::DeleteRecordTableWidget()
@@ -1785,7 +1785,7 @@ void v4l2test::OnSaveFrameSeries()
 {
 	qDebug() << Q_FUNC_INFO;
 	// get recording queue
-	QSharedPointer<MyFrameQueue> pQueue = m_Camera.GetRecordQueue();
+/*	QSharedPointer<MyFrameQueue> pQueue = m_Camera.GetRecordQueue();
 
 	for(int i=0; i<pQueue->GetSize(); ++i)
 	{
@@ -1796,7 +1796,7 @@ void v4l2test::OnSaveFrameSeries()
 		QString fileName = "/home/ubuntu/Development/" + QString::number(frameId) + ".tif";
 		image.save(fileName);
 		qDebug() << "image saved";
-	}	
+	}	*/
 }
 
 void v4l2test::OnCalcDeviation()

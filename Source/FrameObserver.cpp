@@ -507,12 +507,12 @@ void FrameObserver::DeleteRecording()
     m_FrameRecordQueue.Clear();
 }
 
-
+/*
 MyFrameQueue& FrameObserver::GetRecordQueue()
 {
 	return m_FrameRecordQueue.GetQueue();
 }
-
+*/
 /*********************************************************************************************************/
 // Frame buffer handling
 /*********************************************************************************************************/

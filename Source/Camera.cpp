@@ -1993,12 +1993,12 @@ void Camera::DeleteRecording()
 {
     m_StreamCallbacks->DeleteRecording();
 }
-
+/*
 MyFrameQueue& Camera::GetRecordQueue()
 {
 	return m_StreamCallbacks->GetRecordQueue();
 }
-
+*/
 /*********************************************************************************************************/
 // Commands
 /*********************************************************************************************************/
