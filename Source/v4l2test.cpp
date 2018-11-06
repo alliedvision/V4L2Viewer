@@ -117,6 +117,40 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		Fixed some code indention
 */
 
+static const QStringList GetImageFormats()
+{
+	qDebug() << Q_FUNC_INFO;
+	QStringList formats;
+	unsigned int count = QImageReader::supportedImageFormats().count();
+	
+	for( int i=count-1; i>=0; i-- ) 
+	{
+		QString format = QString(QImageReader::supportedImageFormats().at(i)).toLower();
+		formats << format;
+	}
+
+	return formats;
+}
+
+static const QString GetImageFormatString()
+{
+	qDebug() << Q_FUNC_INFO;
+	QString formatString;
+	unsigned int count = QImageReader::supportedImageFormats().count();
+	
+	for( int i=count-1; i>=0; i-- ) 
+	{
+		formatString += ".";
+		formatString += QString(QImageReader::supportedImageFormats().at(i)).toLower();
+		if( 0 != i )
+		{
+			formatString += ";;";
+		}
+	}
+
+	return formatString;
+}
+
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	: QMainWindow(parent, flags)
 	, m_nViewerNumber(viewerNumber)
@@ -125,7 +159,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	, m_dFitToScreen(false)
 	, m_dScaleFactor(1.0)
 	, m_DirectAccessData(0)
-	, m_saveFileDialog(0)
+	, m_SaveFileDialog(0)
 	, m_BLOCKING_MODE(true)
 	, m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
 	, m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
@@ -133,6 +167,8 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	, m_ShowFrames(true)
 	, m_nDroppedFrames(0)
 	, m_nStreamNumber(0)
+	, m_ReferenceImageDialog(0)
+	, m_ReferenceImage(0)
 {
 	srand((unsigned)time(0));
 
@@ -181,10 +217,10 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
 	
     // Setup blocking mode radio buttons
-    m_blockingModeRadioButtonGroup = new QButtonGroup();
-    m_blockingModeRadioButtonGroup->setExclusive(true);
-    m_blockingModeRadioButtonGroup->addButton(ui.m_radioBlocking);
-    m_blockingModeRadioButtonGroup->addButton(ui.m_radioNonBlocking);
+    m_BlockingModeRadioButtonGroup = new QButtonGroup();
+    m_BlockingModeRadioButtonGroup->setExclusive(true);
+    m_BlockingModeRadioButtonGroup->addButton(ui.m_radioBlocking);
+    m_BlockingModeRadioButtonGroup->addButton(ui.m_radioNonBlocking);
     if(m_BLOCKING_MODE)
     {
         ui.m_radioBlocking->setChecked(true);
@@ -194,7 +230,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
         ui.m_radioNonBlocking->setChecked(true);
     }
     
-    connect(m_blockingModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(OnBlockingMode(QAbstractButton*)));
+    connect(m_BlockingModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(OnBlockingMode(QAbstractButton*)));
 	//connect(ui.m_chkBlockingMode, SIGNAL(clicked()), this, SLOT(OnBlockingMode()));
 	//connect(ui.m_TitleBlockingMode, SIGNAL(triggered()), this, SLOT(OnBlockingMode()));
 	connect(ui.m_chkUseRead, SIGNAL(clicked()), this, SLOT(OnUseRead()));
@@ -242,7 +278,10 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(ui.m_ForewardDisplayRecording, SIGNAL(clicked()), this, SLOT(OnForwardDisplay()));
 	connect(ui.m_DeleteRecording, SIGNAL(clicked()), this, SLOT(OnDeleteRecording()));
 	connect(ui.m_DisplaySaveFrame, SIGNAL(clicked()), this, SLOT(OnSaveFrame()));
-	
+	connect(ui.m_SaveFrameSeriesButton, SIGNAL(clicked()), this, SLOT(OnSaveFrameSeries()));
+	connect(ui.m_CalcDeviationButton, SIGNAL(clicked()), this, SLOT(OnCalcDeviation()));
+	connect(ui.m_GetReferenceButton, SIGNAL(clicked()), this, SLOT(OnGetReferenceImage()));
+
 	// connect the buttons for Image m_ControlRequestTimer
 	connect(ui.m_edWidth, SIGNAL(returnPressed()), this, SLOT(OnWidth()));
 	connect(ui.m_edHeight, SIGNAL(returnPressed()), this, SLOT(OnHeight()));
@@ -467,6 +506,17 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	
 	ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
 	ui.m_TitleEnableExtendedControls->setChecked((m_ExtendedControls));
+
+	// get available image formats
+	// and add them to combobox
+	QStringList imageFormats = GetImageFormats();
+	if( imageFormats.size() )
+	{
+		ui.m_SelectFileExtensionComboBox->addItems( imageFormats );
+	}
+
+	// setup table widgets for record listing
+	InitializeTableWidget();
 }
 
 v4l2test::~v4l2test()
@@ -1014,6 +1064,97 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 	}
 }
 
+void v4l2test::InitializeTableWidget()
+{
+	qDebug() << Q_FUNC_INFO;
+
+	// set number of columns and rows
+	ui.m_FrameRecordTable->setRowCount(100);
+	ui.m_FrameRecordTable->setColumnCount(8);
+
+	// set table headers
+	QStringList header;
+	header << "Frame ID" << "Buffer index" << "Width" << "Height" << "Payload size" << "Pixelformat" << "Buffer length" << "Bytes per line";
+	ui.m_FrameRecordTable->setHorizontalHeaderLabels(header);
+}
+
+void v4l2test::UpdateRecordTableWidget()
+{
+	qDebug() << Q_FUNC_INFO;
+
+	// get recording queue
+	qDebug() << "get frame queue";
+/*	MyFrameQueue* pQueue = m_Camera.GetRecordQueue();
+	if(!pQueue->isNull())
+	{
+		qDebug() << "Invalid Frame Record Queue pointer!";
+		return;
+	}
+
+	for(int i=0; i<pQueue->GetSize(); ++i)
+	{
+		// get frame object and create new table widget item
+		QSharedPointer<MyFrame> pFrame;
+		pFrame = pQueue->GetNext();
+
+		// get frame information
+		unsigned long long frameId = pFrame->GetFrameId();
+		uint32_t bufferIndex = pFrame->GetBufferIndex();
+		uint32_t width = pFrame->GetWidth();
+		uint32_t height = pFrame->GetHeight();
+		uint32_t payloadSize = pFrame->GetPayloadSize();
+		uint32_t pixelFormat = pFrame->GetPixelformat();
+		uint32_t bufferLength = pFrame->GetBufferlength();		
+		uint32_t bytesPerLine = pFrame->GetBytesPerLine();
+
+		// frame id
+		QTableWidgetItem item_frameId;
+		item_frameId.setText(QString::number(frameId));
+		ui.m_FrameRecordTable->setItem(i, 0, &item_frameId);
+
+		// buffer index
+		QTableWidgetItem item_bufferIndex;
+		item_bufferIndex.setText(QString::number(bufferIndex));
+		ui.m_FrameRecordTable->setItem(i, 1, &item_bufferIndex);		
+
+		// width
+		QTableWidgetItem item_width;
+		item_width.setText(QString::number(width));
+		ui.m_FrameRecordTable->setItem(i, 2, &item_width);
+
+		// height
+		QTableWidgetItem item_height;
+		item_height.setText(QString::number(height));
+		ui.m_FrameRecordTable->setItem(i, 3, &item_height);	
+
+		// payload size
+		QTableWidgetItem item_payloadSize;
+		item_payloadSize.setText(QString::number(payloadSize));
+		ui.m_FrameRecordTable->setItem(i, 4, &item_payloadSize);
+
+		// pixel format
+		QTableWidgetItem item_pixelFormat;
+		item_pixelFormat.setText(QString::number(pixelFormat));
+		ui.m_FrameRecordTable->setItem(i, 5, &item_pixelFormat);
+
+		// buffer length
+		QTableWidgetItem item_bufferLength;
+		item_bufferLength.setText(QString::number(bufferLength));
+		ui.m_FrameRecordTable->setItem(i, 6, &item_bufferLength);
+
+		// bytes per line
+		QTableWidgetItem item_bytesPerLine;
+		item_bytesPerLine.setText(QString::number(bytesPerLine));
+		ui.m_FrameRecordTable->setItem(i, 7, &item_bytesPerLine);		
+	}*/
+}
+
+void v4l2test::DeleteRecordTableWidget()
+{
+	qDebug() << Q_FUNC_INFO;
+	ui.m_FrameRecordTable->clearContents();
+}
+
 // The event handler for stopping acquisition
 void v4l2test::OnStopButtonClicked()
 {
@@ -1326,9 +1467,10 @@ int v4l2test::CloseCamera(const uint32_t cardNumber)
 void v4l2test::OnUpdateFramesReceived()
 {
 	unsigned int fpsReceived = m_Camera.GetReceivedFramesCount();
+        unsigned int fpsRendered = m_Camera.GetRenderedFramesCount();
 	unsigned int uncompletedFrames = m_Camera.GetDroppedFramesCount() + m_nDroppedFrames;
 
-	ui.m_FramesPerSecondLabel->setText(QString("%1 fps [drops %2]").arg(fpsReceived).arg(uncompletedFrames));
+	ui.m_FramesPerSecondLabel->setText(QString("fps: %1 received/%2 rendered [drops %3]").arg(fpsReceived).arg(fpsRendered).arg(uncompletedFrames));
 }
 
 // The event handler to show the frames received
@@ -1504,18 +1646,38 @@ void v4l2test::OnDirectRegisterAccessUpdateData()
 
 void v4l2test::OnStartRecording()
 {
+	qDebug() << Q_FUNC_INFO;
 	m_Camera.SetRecording(true);
 
 	ui.m_StartRecordButton->setEnabled(false);
 	ui.m_StopRecordButton->setEnabled(true);
+	ui.m_BackwardDisplayRecording->setEnabled(false);
+	ui.m_ForewardDisplayRecording->setEnabled(false);
+	ui.m_DisplaySaveFrame->setEnabled(false);
+	ui.m_SaveFrameSeriesButton->setEnabled(false);
+	ui.m_CalcDeviationButton->setEnabled(false);
+	ui.m_GetReferenceButton->setEnabled(false);
+	ui.m_SelectFileExtensionComboBox->setEnabled(false);
 }
 
 void v4l2test::OnStopRecording()
 {
+	qDebug() << Q_FUNC_INFO;
 	m_Camera.SetRecording(false);
+
+	// show recorded content
+	DeleteRecordTableWidget();
+	UpdateRecordTableWidget();
 
 	ui.m_StartRecordButton->setEnabled(true);
 	ui.m_StopRecordButton->setEnabled(false);
+	ui.m_BackwardDisplayRecording->setEnabled(true);
+	ui.m_ForewardDisplayRecording->setEnabled(true);
+	ui.m_DisplaySaveFrame->setEnabled(true);	
+	ui.m_SaveFrameSeriesButton->setEnabled(true);
+	ui.m_CalcDeviationButton->setEnabled(true);
+	ui.m_GetReferenceButton->setEnabled(true);
+	ui.m_SelectFileExtensionComboBox->setEnabled(true);
 }
 
 void v4l2test::OnBackwardDisplay()
@@ -1534,50 +1696,72 @@ void v4l2test::OnDeleteRecording()
 
 	m_Camera.DeleteRecording();
 
-	ui.m_StartRecordButton->setEnabled(true);
-	ui.m_StopRecordButton->setEnabled(false);
-	ui.m_BackwardDisplayRecording->setEnabled(false);
-	ui.m_ForewardDisplayRecording->setEnabled(false);
-	ui.m_DisplaySaveFrame->setEnabled(false);
-
 	ui.m_FrameIDRecording->setText(QString("FrameID: -"));
 	ui.m_FrameIDStartedRecord->setText(QString("FrameID start: -"));
 	ui.m_FrameIDStoppedRecord->setText(QString("FrameID stopped: -"));
 	ui.m_FramesInQueue->setText(QString("Frames in Queue: 0"));
 }
 
+void v4l2test::OnGetReferenceImage()
+{
+	qDebug() << Q_FUNC_INFO;
+	// if dialog already exist, delete it
+	if( NULL != m_ReferenceImageDialog )
+	{
+		delete m_ReferenceImageDialog;
+		m_ReferenceImageDialog = NULL;
+	}
+
+	// create new file dialog
+	QString fileExtensions = GetImageFormatString();
+	m_ReferenceImageDialog = new QFileDialog( this, tr("Open reference image"), m_SaveFileDir, "" );	
+	m_ReferenceImageDialog->selectFilter( m_SelectedExtension );
+	m_ReferenceImageDialog->setAcceptMode( QFileDialog::AcceptOpen );
+
+	// open file dialog
+	if( m_ReferenceImageDialog->exec() )
+	{
+		m_SelectedExtension = m_ReferenceImageDialog->selectedNameFilter();
+		m_SaveFileDir = m_ReferenceImageDialog->directory().absolutePath();
+		QStringList selectedFiles = m_ReferenceImageDialog->selectedFiles();
+
+		// get selected file
+		if( !selectedFiles.isEmpty() )
+		{
+			QString selectedFile = selectedFiles.at(0);
+			
+			if( NULL != m_ReferenceImage )
+			{
+				delete m_ReferenceImage;
+				m_ReferenceImage = NULL;
+			}
+
+			m_ReferenceImage = new QPixmap( selectedFile ); 
+		}
+	}
+}
+
 void v4l2test::OnSaveFrame()
 {
-	QString fileExtension;
+	qDebug() << Q_FUNC_INFO;
+	QString fileExtensions = GetImageFormatString();;
 	QPixmap imageShot = m_PixmapItem->pixmap();
-			
-	/* Get all inputformats */
-	unsigned int nFilterSize = QImageReader::supportedImageFormats().count();
-	for (int i = nFilterSize-1; i >= 0; i--) 
+
+	if( NULL != m_SaveFileDialog )
 	{
-		QString format = (QImageReader::supportedImageFormats().at(i)).toLower();
-		
-		fileExtension += "."; /* Insert wildcard */
-		fileExtension += QString(QImageReader::supportedImageFormats().at(i)).toLower(); /* Insert the format */
-		if(0 != i)
-			fileExtension += ";;"; /* Insert a space */
+		delete m_SaveFileDialog;
+		m_SaveFileDialog = NULL;
 	}
 
-	if( NULL != m_saveFileDialog )
-	{
-		delete m_saveFileDialog;
-		m_saveFileDialog = NULL;
-	}
-
-	m_saveFileDialog = new QFileDialog ( this, tr("Save Image"), m_SaveFileDir, fileExtension );
-	m_saveFileDialog->selectFilter(m_SelectedExtension);
-	m_saveFileDialog->setAcceptMode(QFileDialog::AcceptSave);
+	m_SaveFileDialog = new QFileDialog ( this, tr("Save Image"), m_SaveFileDir, fileExtensions );
+	m_SaveFileDialog->selectFilter(m_SelectedExtension);
+	m_SaveFileDialog->setAcceptMode(QFileDialog::AcceptSave);
 	
-	if (m_saveFileDialog->exec())
+	if (m_SaveFileDialog->exec())
 	{   //OK
-		m_SelectedExtension = m_saveFileDialog->selectedNameFilter();
-		m_SaveFileDir = m_saveFileDialog->directory().absolutePath();
-		QStringList files = m_saveFileDialog->selectedFiles();
+		m_SelectedExtension = m_SaveFileDialog->selectedNameFilter();
+		m_SaveFileDir = m_SaveFileDialog->directory().absolutePath();
+		QStringList files = m_SaveFileDialog->selectedFiles();
 
 		if (!files.isEmpty())
 		{
@@ -1596,6 +1780,30 @@ void v4l2test::OnSaveFrame()
 			}   
 		}    
 	}
+}
+
+void v4l2test::OnSaveFrameSeries()
+{
+	qDebug() << Q_FUNC_INFO;
+	// get recording queue
+/*	QSharedPointer<MyFrameQueue> pQueue = m_Camera.GetRecordQueue();
+
+	for(int i=0; i<pQueue->GetSize(); ++i)
+	{
+		
+		QSharedPointer<MyFrame> pFrame = pQueue->GetNext();
+		QImage image = pFrame->GetImage();
+		unsigned long long frameId = pFrame->GetFrameId();
+		QString fileName = "/home/ubuntu/Development/" + QString::number(frameId) + ".tif";
+		image.save(fileName);
+		qDebug() << "image saved";
+	}	*/
+}
+
+void v4l2test::OnCalcDeviation()
+{
+	qDebug() << Q_FUNC_INFO;
+	// TODO
 }
 
 void v4l2test::OnWidth()

@@ -92,6 +92,7 @@ uint32_t InternalConvertRAW10inRAW16ToRAW10g(const void *sourceBuffer, uint32_t 
 
 FrameObserver::FrameObserver(bool showFrames) 
 	: m_nReceivedFramesCounter(0)
+        , m_nRenderedFramesCounter(0)
 	, m_nDroppedFramesCounter(0)
 	, m_bRecording(false)
 	, m_nFileDescriptor(0)
@@ -139,6 +140,7 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_nHeight = height;
     m_FrameId = 0;
     m_nReceivedFramesCounter = 0;
+    m_nRenderedFramesCounter = 0;
     m_PayloadSize = payloadsize;
     m_Pixelformat = pixelformat;
     m_BytesPerLine = bytesPerLine;
@@ -226,7 +228,7 @@ void FrameObserver::DequeueAndProcessFrame()
 	{
 	    uint8_t *buffer = 0;
 	    uint32_t length = 0;
-		uint32_t logPayloadSize = m_PayloadSize;
+            uint32_t logPayloadSize = m_PayloadSize;
 		
 	    if (0 == GetFrameData(buf, buffer, length))
 	    {
@@ -358,10 +360,8 @@ void FrameObserver::DequeueAndProcessFrame()
 	    }
 	}
 	else
-	{
-	    m_nDroppedFramesCounter++;
-				    
-	    //emit OnFrameID_Signal(m_FrameId);
+	{		    
+	    emit OnFrameID_Signal(m_FrameId);
 	    QueueSingleUserBuffer(buf.index);
 	}
     }
@@ -440,6 +440,13 @@ unsigned int FrameObserver::GetReceivedFramesCount()
 	return res;
 }
 
+unsigned int FrameObserver::GetRenderedFramesCount()
+{
+        unsigned int res = m_nRenderedFramesCounter;
+        m_nRenderedFramesCounter = 0;
+        return res;
+}
+
 // Get the number of uncompleted frames
 unsigned int FrameObserver::GetDroppedFramesCount()
 {
@@ -454,6 +461,7 @@ void FrameObserver::ResetDroppedFramesCount()
 
 void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex)
 {
+    m_nRenderedFramesCounter++;
     emit OnFrameReady_Signal(image, frameId);
 	
     QueueSingleUserBuffer(bufIndex);
@@ -502,8 +510,12 @@ void FrameObserver::DeleteRecording()
     m_FrameRecordQueue.Clear();
 }
 
-
-
+/*
+MyFrameQueue& FrameObserver::GetRecordQueue()
+{
+	return m_FrameRecordQueue.GetQueue();
+}
+*/
 /*********************************************************************************************************/
 // Frame buffer handling
 /*********************************************************************************************************/

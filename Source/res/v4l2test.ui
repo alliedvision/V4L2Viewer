@@ -454,8 +454,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>829</width>
-              <height>300</height>
+              <width>837</width>
+              <height>290</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1739,45 +1739,10 @@
           <string>Recorder</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_7">
-          <item row="0" column="1">
-           <widget class="QPushButton" name="m_StartRecordButton">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="toolTip">
-             <string>Start recording</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="v4l2test.qrc">
-              <normaloff>:/v4l2test/StartRec128.png</normaloff>:/v4l2test/StartRec128.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="7">
-           <widget class="QPushButton" name="m_DeleteRecording">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+          <item row="3" column="3">
+           <widget class="QPushButton" name="m_SaveFrameSeriesButton">
+            <property name="enabled">
+             <bool>false</bool>
             </property>
             <property name="minimumSize">
              <size>
@@ -1796,24 +1761,82 @@
             </property>
             <property name="icon">
              <iconset resource="v4l2test.qrc">
-              <normaloff>:/v4l2test/Cross128.png</normaloff>:/v4l2test/Cross128.png</iconset>
+              <normaloff>:/v4l2test/saveSeries.ico</normaloff>:/v4l2test/saveSeries.ico</iconset>
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <spacer name="horizontalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+          <item row="3" column="2">
+           <widget class="QPushButton" name="m_DisplaySaveFrame">
+            <property name="enabled">
+             <bool>false</bool>
             </property>
-            <property name="sizeHint" stdset="0">
+            <property name="minimumSize">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>32</width>
+              <height>32</height>
              </size>
             </property>
-           </spacer>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="v4l2test.qrc">
+              <normaloff>:/v4l2test/saveSingle.ico</normaloff>:/v4l2test/saveSingle.ico</iconset>
+            </property>
+           </widget>
           </item>
-          <item row="4" column="1">
+          <item row="0" column="12">
+           <widget class="QLabel" name="m_FrameIDRecording">
+            <property name="minimumSize">
+             <size>
+              <width>189</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>189</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>FrameID: -</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QPushButton" name="m_GetReferenceButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="v4l2test.qrc">
+              <normaloff>:/v4l2test/addReference.ico</normaloff>:/v4l2test/addReference.ico</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
            <widget class="QPushButton" name="m_BackwardDisplayRecording">
             <property name="enabled">
              <bool>false</bool>
@@ -1841,59 +1864,14 @@
             </property>
             <property name="icon">
              <iconset resource="v4l2test.qrc">
-              <normaloff>:/v4l2test/StepB128.png</normaloff>:/v4l2test/StepB128.png</iconset>
+              <normaloff>:/v4l2test/back.ico</normaloff>:/v4l2test/back.ico</iconset>
             </property>
             <property name="autoRepeat">
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="9" column="1">
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="m_StopRecordButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="v4l2test.qrc">
-              <normaloff>:/v4l2test/StopRec128.png</normaloff>:/v4l2test/StopRec128.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="2">
+          <item row="1" column="4">
            <widget class="QPushButton" name="m_ForewardDisplayRecording">
             <property name="enabled">
              <bool>false</bool>
@@ -1921,75 +1899,272 @@
             </property>
             <property name="icon">
              <iconset resource="v4l2test.qrc">
-              <normaloff>:/v4l2test/StepF128.png</normaloff>:/v4l2test/StepF128.png</iconset>
+              <normaloff>:/v4l2test/next.ico</normaloff>:/v4l2test/next.ico</iconset>
             </property>
             <property name="autoRepeat">
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="0" column="5">
-           <widget class="QLabel" name="m_FrameIDRecording">
+          <item row="0" column="3">
+           <widget class="QPushButton" name="m_StopRecordButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
-              <width>189</width>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="v4l2test.qrc">
+              <normaloff>:/v4l2test/recordStop.ico</normaloff>:/v4l2test/recordStop.ico</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_9">
+            <property name="maximumSize">
+             <size>
+              <width>170</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>16</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Frame Recorder</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="label_30">
+            <property name="maximumSize">
+             <size>
+              <width>170</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Frame record list:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="m_StartRecordButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Start recording</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="v4l2test.qrc">
+              <normaloff>:/v4l2test/recordStart.ico</normaloff>:/v4l2test/recordStart.ico</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1" rowspan="9" colspan="7">
+           <widget class="QTableWidget" name="m_FrameRecordTable"/>
+          </item>
+          <item row="0" column="4">
+           <widget class="QPushButton" name="m_DeleteRecording">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="v4l2test.qrc">
+              <normaloff>:/v4l2test/removeRecord.ico</normaloff>:/v4l2test/removeRecord.ico</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="6">
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="6">
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="3" column="4">
+           <widget class="QPushButton" name="m_CalcDeviationButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="v4l2test.qrc">
+              <normaloff>:/v4l2test/calculate.ico</normaloff>:/v4l2test/calculate.ico</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="m_SelectFileExtensionComboBox">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>189</width>
-              <height>16777215</height>
+              <width>150</width>
+              <height>100</height>
              </size>
-            </property>
-            <property name="text">
-             <string>FrameID: -</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="5">
+          <item row="3" column="6">
+           <spacer name="horizontalSpacer_6">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="12">
            <widget class="QLabel" name="m_FrameIDStartedRecord">
             <property name="text">
              <string>FrameID start: -</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="5">
+          <item row="3" column="12">
            <widget class="QLabel" name="m_FrameIDStoppedRecord">
             <property name="text">
              <string>FrameID stopped: -</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="5">
+          <item row="4" column="12">
            <widget class="QLabel" name="m_FramesInQueue">
             <property name="text">
              <string>Frames in Queue: -</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="5">
+          <item row="5" column="12">
            <widget class="QLabel" name="m_DisplayFrameID">
             <property name="text">
              <string>Displaying FrameID: -</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="5">
+          <item row="6" column="12">
            <widget class="QLabel" name="m_DisplayFrameWidth">
             <property name="text">
              <string>Displaying Frame Width: -</string>
             </property>
            </widget>
           </item>
-          <item row="6" column="5">
+          <item row="7" column="12">
            <widget class="QLabel" name="m_DisplayFrameHeight">
             <property name="text">
              <string>Displaying Frame Height: -</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="5">
+          <item row="8" column="12">
            <widget class="QLabel" name="m_DisplayFramePixelformat">
             <property name="minimumSize">
              <size>
@@ -1999,13 +2174,6 @@
             </property>
             <property name="text">
              <string>Displaying Frame Pixelformat: -</string>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="5">
-           <widget class="QPushButton" name="m_DisplaySaveFrame">
-            <property name="text">
-             <string>Save Frame</string>
             </property>
            </widget>
           </item>
@@ -2023,7 +2191,7 @@
      <x>0</x>
      <y>0</y>
      <width>1224</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="m_MenuFile">

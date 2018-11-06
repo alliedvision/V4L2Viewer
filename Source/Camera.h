@@ -151,6 +151,7 @@ public:
     
     // Statistics
     unsigned int GetReceivedFramesCount();
+    unsigned int GetRenderedFramesCount();
     unsigned int GetDroppedFramesCount();
 
     // Recording
@@ -158,6 +159,7 @@ public:
     void DisplayStepBack();
     void DisplayStepForw();
     void DeleteRecording();
+ //   MyFrameQueue& GetRecordQueue();
 
     // Misc
     void SwitchFrameTransfer2GUI(bool showFrames);

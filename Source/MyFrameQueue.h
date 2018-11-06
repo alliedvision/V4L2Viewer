@@ -67,6 +67,8 @@ public:
     // Get the frame at the next index
     QSharedPointer<MyFrame> GetNext();
 
+  //  MyFrameQueue& GetQueue();
+
 private:
     QQueue< QSharedPointer<MyFrame> > m_FrameQueue;
     QMutex m_FrameQueueMutex;

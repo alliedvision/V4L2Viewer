@@ -93,6 +93,8 @@ class FrameObserver : public QThread
 	// This function will clear the counter of received frames
 	unsigned int GetReceivedFramesCount();
 
+        unsigned int GetRenderedFramesCount();
+
 	// Get the number of uncompleted frames
 	unsigned int GetDroppedFramesCount();
 
@@ -104,8 +106,10 @@ class FrameObserver : public QThread
     void DisplayStepBack();
     void DisplayStepForw();
     void DeleteRecording();
-
     void setFileDescriptor(int fd);
+
+//	MyFrameQueue& GetRecordQueue();
+
     
     virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
     virtual int QueueAllUserBuffer();
@@ -134,10 +138,13 @@ protected:
 	// Counter to count the received images
 	uint32_t m_nReceivedFramesCounter;
 
+        // Counter to coutn the rendered frames
+        uint32_t m_nRenderedFramesCounter;
+
 	// Counter to count the received uncompleted images
 	unsigned int m_nDroppedFramesCounter;
 
-    // Variable to abort the running thread
+        // Variable to abort the running thread
 	int m_nFileDescriptor;
 	uint32_t m_Pixelformat;
 	uint32_t m_nWidth;
@@ -149,7 +156,7 @@ protected:
 	uint32_t m_DQBUF_last_errno;
 	
 	bool m_MessageSendFlag;
-    bool m_BlockingMode;
+        bool m_BlockingMode;
 	bool m_bStreamRunning;
 	bool m_bStreamStopped;
 	
