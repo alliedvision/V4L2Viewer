@@ -454,7 +454,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>834</width>
+              <width>837</width>
               <height>290</height>
              </rect>
             </property>
@@ -513,7 +513,7 @@
          <enum>QTabWidget::South</enum>
         </property>
         <property name="currentIndex">
-         <number>3</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="m_ChunkDataTab">
          <attribute name="title">

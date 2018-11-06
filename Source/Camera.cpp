@@ -78,6 +78,11 @@ unsigned int Camera::GetReceivedFramesCount()
     return m_StreamCallbacks->GetReceivedFramesCount();
 }
 
+unsigned int Camera::GetRenderedFramesCount()
+{
+    return m_StreamCallbacks->GetRenderedFramesCount();
+}
+
 unsigned int Camera::GetDroppedFramesCount()
 {
     return m_StreamCallbacks->GetDroppedFramesCount();

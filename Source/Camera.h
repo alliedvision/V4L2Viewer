@@ -151,6 +151,7 @@ public:
     
     // Statistics
     unsigned int GetReceivedFramesCount();
+    unsigned int GetRenderedFramesCount();
     unsigned int GetDroppedFramesCount();
 
     // Recording

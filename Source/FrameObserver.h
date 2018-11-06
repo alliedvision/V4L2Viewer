@@ -93,6 +93,8 @@ class FrameObserver : public QThread
 	// This function will clear the counter of received frames
 	unsigned int GetReceivedFramesCount();
 
+        unsigned int GetRenderedFramesCount();
+
 	// Get the number of uncompleted frames
 	unsigned int GetDroppedFramesCount();
 
@@ -132,6 +134,9 @@ protected:
 
 	// Counter to count the received images
 	uint32_t m_nReceivedFramesCounter;
+
+        // Counter to coutn the rendered frames
+        uint32_t m_nRenderedFramesCounter;
 
 	// Counter to count the received uncompleted images
 	unsigned int m_nDroppedFramesCounter;
