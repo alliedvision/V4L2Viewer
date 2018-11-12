@@ -1981,29 +1981,24 @@ int Camera::GetCameraCapabilities(std::string &strText)
 // Recording
 void Camera::SetRecording(bool start)
 {
-    m_StreamCallbacks->SetRecording(start);
-}
-
-void Camera::DisplayStepBack()
-{
-    m_StreamCallbacks->DisplayStepBack();
-}
-
-void Camera::DisplayStepForw()
-{
-    m_StreamCallbacks->DisplayStepForw();
+	m_Recording = start;
+	if(m_StreamCallbacks)
+	{
+    	m_StreamCallbacks->SetRecording(start);
+    }
 }
 
 void Camera::DeleteRecording()
 {
     m_StreamCallbacks->DeleteRecording();
 }
-/*
-MyFrameQueue& Camera::GetRecordQueue()
+
+QVector<QSharedPointer<MyFrame> > Camera::GetRecordVector()
 {
-	return m_StreamCallbacks->GetRecordQueue();
+	return m_StreamCallbacks->GetFrameRecordVector();
 }
-*/
+
+
 /*********************************************************************************************************/
 // Commands
 /*********************************************************************************************************/

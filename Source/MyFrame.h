@@ -34,6 +34,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <vector>
 
 class MyFrame
 {
@@ -44,6 +45,9 @@ public:
     MyFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
 	    uint32_t &width, uint32_t &height, uint32_t &pixelformat,
 	    uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
+    MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
+      uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+      uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
     ~MyFrame(void);
 
     // Get the frame buffer
@@ -61,14 +65,14 @@ public:
     uint32_t 			GetBufferIndex();
 
 private:
-    QImage		        m_Image;
+    QImage		    m_Image;
+    std::vector<uint8_t> m_buffer;
     uint64_t			m_FrameId;	
-    uint32_t                	m_Width;
+    uint32_t      m_Width;
     uint32_t 			m_Height;
     uint32_t 			m_Pixelformat;
     uint32_t 			m_PayloadSize;
     uint32_t 			m_BytesPerLine;
-    uint8_t 			*m_buffer;
     uint32_t 			m_bufferlength;
     uint32_t 			m_bufferIndex;
 };

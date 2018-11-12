@@ -54,20 +54,20 @@ public:
     Camera();
     virtual ~Camera();
 
-    int OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType, 
-		   bool v4l2TryFmt, bool extendedControls);
+    int OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,
+                   bool v4l2TryFmt, bool extendedControls);
     int CloseDevice();
 
     int DeviceDiscoveryStart();
     int DeviceDiscoveryStop();
     int StartStreamChannel(const char* csvFilename,
-                           uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, 
-			   uint32_t bytesPerLine, void *pPrivateData,
-			   uint32_t enableLogging, uint32_t logFrameStart, uint32_t logFrameEnd, 
-			   uint32_t dumpFrameStart, uint32_t dumpFrameEnd,
-			   uint32_t enableRAW10Correction);
+                           uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height,
+                           uint32_t bytesPerLine, void *pPrivateData,
+                           uint32_t enableLogging, uint32_t logFrameStart, uint32_t logFrameEnd,
+                           uint32_t dumpFrameStart, uint32_t dumpFrameEnd,
+                           uint32_t enableRAW10Correction);
     int StopStreamChannel();
-    
+
     int ReadPayloadsize(uint32_t &payloadsize);
     int ReadFrameSize(uint32_t &width, uint32_t &height);
     int SetFrameSize(uint32_t width, uint32_t height);
@@ -114,25 +114,25 @@ public:
     int SetFramerate(uint32_t numerator, uint32_t denominator);
     int SetControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName);
     int ReadControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
-    
-	int SetControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName);
+
+    int SetControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName);
     int ReadControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
 
-	int SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
-	int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-	
-	
-	int EnumAllControlNewStyle();
+
+
+    int EnumAllControlNewStyle();
     int EnumAllControlOldStyle();
     int ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
-				 uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
-				 uint32_t &aspectnum, uint32_t &aspectdenum);
+                             uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
+                             uint32_t &aspectnum, uint32_t &aspectdenum);
     int ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint32_t &height);
     int SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t height);
-	
+
     int StartStreaming();
     int StopStreaming();
 
@@ -140,7 +140,7 @@ public:
     int QueueAllUserBuffer();
     int QueueSingleUserBuffer(const int index);
     int DeleteUserBuffer();
-    
+
     // Info
     int GetCameraDriverName(std::string &strText);
     int GetCameraDeviceName(std::string &strText);
@@ -148,7 +148,7 @@ public:
     int GetCameraDriverVersion(std::string &strText);
     int GetCameraReadCapability(bool &flag);
     int GetCameraCapabilities(std::string &strText);
-    
+
     // Statistics
     unsigned int GetReceivedFramesCount();
     unsigned int GetRenderedFramesCount();
@@ -156,63 +156,62 @@ public:
 
     // Recording
     void SetRecording(bool start);
-    void DisplayStepBack();
-    void DisplayStepForw();
     void DeleteRecording();
- //   MyFrameQueue& GetRecordQueue();
+    QVector<QSharedPointer<MyFrame> > GetRecordVector();
 
     // Misc
     void SwitchFrameTransfer2GUI(bool showFrames);
 
 private:
-    std::string				m_DeviceName;
-    int 				m_nFileDescriptor;
-    bool 				m_BlockingMode;   
-    bool 				m_ShowFrames;
-    bool				m_useV4l2TryFmt;
-    bool				m_UseExtendedControls;
-    
-    CameraObserver              	m_DeviceDiscoveryCallbacks;
-    QSharedPointer<FrameObserver>	m_StreamCallbacks;
+    std::string         m_DeviceName;
+    int                 m_nFileDescriptor;
+    bool                m_BlockingMode;
+    bool                m_ShowFrames;
+    bool                m_useV4l2TryFmt;
+    bool                m_UseExtendedControls;
+    bool                m_Recording;
 
-    std::vector<uint8_t> 		m_rCSVData;
-    	
+    CameraObserver                  m_DeviceDiscoveryCallbacks;
+    QSharedPointer<FrameObserver>   m_StreamCallbacks;
+
+    std::vector<uint8_t>        m_rCSVData;
+
     size_t fsize(const char *filename);
     int ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData);
-    
+
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
     void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);
     // Event will be called when a frame is processed by the internal thread and ready to show
-	void OnCameraFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
-	// Event will be called when a frame ID is processed by the internal thread and ready to show
-	void OnCameraFrameID_Signal(const unsigned long long &frameId);
-	// Event will be called when the event data are processed by the internal thread and ready to show
-	void OnCameraEventReady_Signal(const QString &eventText);
+    void OnCameraFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
+    // Event will be called when a frame ID is processed by the internal thread and ready to show
+    void OnCameraFrameID_Signal(const unsigned long long &frameId);
+    // Event will be called when the event data are processed by the internal thread and ready to show
+    void OnCameraEventReady_Signal(const QString &eventText);
     // Event will be called when the any other data arrieved
-	void OnCameraRegisterValueReady_Signal(unsigned long long value);
+    void OnCameraRegisterValueReady_Signal(unsigned long long value);
     // Event will be called on error
-	void OnCameraError_Signal(const QString &text);
+    void OnCameraError_Signal(const QString &text);
     // Event will be called on message
-	void OnCameraMessage_Signal(const QString &text);
+    void OnCameraMessage_Signal(const QString &text);
     // Event will be called when the a frame is recorded
-	void OnCameraRecordFrame_Signal(const unsigned long long &, const unsigned long long &);
+    void OnCameraRecordFrame_Signal(const unsigned long long &, const unsigned long long &);
     // Event will be called when the a frame is displayed
-	void OnCameraDisplayFrame_Signal(const unsigned long long &);
-	
-	void OnCameraPixelformat_Signal(const QString &);
-	void OnCameraFramesize_Signal(const QString &);
-    
+    void OnCameraDisplayFrame_Signal(const unsigned long long &);
+
+    void OnCameraPixelformat_Signal(const QString &);
+    void OnCameraFramesize_Signal(const QString &);
+
 private slots:
-    // The event handler to set or remove devices 
-	void OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &);
+    // The event handler to set or remove devices
+    void OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &);
     // The event handler to show the processed frame
-	void OnFrameReady(const QImage &image, const unsigned long long &frameId);
-	// The event handler to show the processed frame ID
-	void OnFrameID(const unsigned long long &frameId);
-	// Event will be called when the a frame is recorded
+    void OnFrameReady(const QImage &image, const unsigned long long &frameId);
+    // The event handler to show the processed frame ID
+    void OnFrameID(const unsigned long long &frameId);
+    // Event will be called when the a frame is recorded
     void OnRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue);
-	// Event will be called when the a frame is displayed
+    // Event will be called when the a frame is displayed
     void OnDisplayFrame(const unsigned long long &frameID);
     // Event will be called when for text notification
     void OnMessage(const QString &msg);
@@ -220,6 +219,8 @@ private slots:
     void OnError(const QString &msg);
 };
 
-}}} // namespace AVT::Tools::Examples
+}
+}
+} // namespace AVT::Tools::Examples
 
 #endif

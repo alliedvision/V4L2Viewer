@@ -34,7 +34,27 @@ MyFrame::MyFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
 	: m_FrameId(0)
 {
     m_FrameId = frameID;
-    m_buffer = buffer;
+    m_buffer.resize(length);
+    memcpy(m_buffer.data(), buffer, length);
+    m_bufferlength = length; 
+    m_Width = width;
+    m_Height = height;
+    m_Pixelformat = pixelformat;
+    m_PayloadSize = payloadSize;
+    m_BytesPerLine = bytesPerLine;
+    m_bufferIndex = bufferIndex;
+}
+
+
+MyFrame::MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
+     uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+     uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+  : m_FrameId(0)
+{
+    m_buffer.resize(length);
+    memcpy(m_buffer.data(), buffer, length);
+    m_Image = image;
+    m_FrameId = frameID;
     m_bufferlength = length; 
     m_Width = width;
     m_Height = height;
@@ -70,7 +90,7 @@ QImage &MyFrame::GetImage()
 
 uint8_t *MyFrame::GetBuffer()
 {
-    return m_buffer;
+    return m_buffer.data();
 }
 
 uint32_t MyFrame::GetBufferlength() 

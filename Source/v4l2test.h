@@ -37,6 +37,7 @@
 #include <MyFrame.h>
 #include <Camera.h>
 #include <FrameObserver.h>
+#include <DeviationCalculator.h>
 
 using namespace AVT::Tools::Examples;
 
@@ -51,6 +52,7 @@ public:
     ~v4l2test();
 
 private:
+
     // Graphics scene to show the image
 	std::list<QSharedPointer<v4l2test> > m_pViewer;
     int m_nViewerNumber;
@@ -130,7 +132,9 @@ private:
     // load reference image dialog
     QFileDialog *m_ReferenceImageDialog;
     // reference image
-    QPixmap *m_ReferenceImage; 
+    QSharedPointer<QByteArray> m_ReferenceImage;
+    // thread to calculate deviation
+    QSharedPointer<DeviationCalculator> m_CalcThread;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -147,7 +151,8 @@ private:
     // update record listing
     void InitializeTableWidget();
     void UpdateRecordTableWidget();
-    void DeleteRecordTableWidget();
+    QSharedPointer<MyFrame> getSelectedRecordedFrame();
+
 
     // Official QT dialog close event callback
     virtual void closeEvent(QCloseEvent *event);
@@ -249,14 +254,14 @@ private slots:
     
     void OnStartRecording();
     void OnStopRecording();
-    void OnBackwardDisplay();
-    void OnForwardDisplay();
+    void OnRecordTableSelectionChanged(const QItemSelection &, const QItemSelection &);
     void OnDeleteRecording();
     void OnSaveFrame();
     void OnSaveFrameSeries();
     void OnCalcDeviation();
     void OnGetReferenceImage();
-	
+    void OnCalcDeviationReady(const std::map<unsigned int, double>& tableRowToDeviation);
+	     
 	void OnWidth();
 	void OnHeight();
 	void OnPixelformat();
