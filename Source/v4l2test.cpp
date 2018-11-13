@@ -1950,6 +1950,7 @@ void v4l2test::OnCalcDeviationReady(const std::map<unsigned int, double>& tableR
 
 	ui.m_StartRecordButton->setEnabled(true);
 	ui.m_CalcDeviationButton->setEnabled(true);
+	ui.m_DeleteRecording->setEnabled(true);
 	m_CalcThread.clear();
 }
 
@@ -1957,6 +1958,7 @@ void v4l2test::OnCalcDeviation()
 {
 	ui.m_StartRecordButton->setEnabled(false);
 	ui.m_CalcDeviationButton->setEnabled(false);
+	ui.m_DeleteRecording->setEnabled(false);
 
 	std::map<unsigned int, QSharedPointer<MyFrame> > tableRowToFrame;
 	QVector<QSharedPointer<MyFrame> > recordedFrames = m_Camera.GetRecordVector();
