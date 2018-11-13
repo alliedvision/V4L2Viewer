@@ -1751,8 +1751,40 @@
                    <string>Record Options</string>
                   </property>
                   <layout class="QGridLayout" name="gridLayout_6">
+                   <item row="1" column="1">
+                    <widget class="QPushButton" name="m_SaveFrameSeriesButton">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>Save all recorded frames RAW</string>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="v4l2test.qrc">
+                       <normaloff>:/v4l2test/saveSeries.ico</normaloff>:/v4l2test/saveSeries.ico</iconset>
+                     </property>
+                    </widget>
+                   </item>
                    <item row="0" column="0">
                     <widget class="QPushButton" name="m_StartRecordButton">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -1780,32 +1812,6 @@
                      <property name="icon">
                       <iconset resource="v4l2test.qrc">
                        <normaloff>:/v4l2test/recordStart.ico</normaloff>:/v4l2test/recordStart.ico</iconset>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QPushButton" name="m_SaveFrameSeriesButton">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>32</width>
-                       <height>32</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>32</width>
-                       <height>32</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/saveSeries.ico</normaloff>:/v4l2test/saveSeries.ico</iconset>
                      </property>
                     </widget>
                    </item>
@@ -1861,6 +1867,9 @@
                        <height>32</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string>Stop recording</string>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -1902,6 +1911,41 @@
                      <property name="icon">
                       <iconset resource="v4l2test.qrc">
                        <normaloff>:/v4l2test/removeRecord.ico</normaloff>:/v4l2test/removeRecord.ico</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="3">
+                    <widget class="QPushButton" name="m_ExportRecordedFrameButton">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>Export selected frame to PNG</string>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="v4l2test.qrc">
+                       <normaloff>:/v4l2test/export.png</normaloff>:/v4l2test/export.png</iconset>
                      </property>
                     </widget>
                    </item>
@@ -1966,6 +2010,13 @@
                      </property>
                     </widget>
                    </item>
+                   <item row="2" column="1">
+                    <widget class="QLabel" name="m_meanDeviationLabel">
+                     <property name="text">
+                      <string>Mean Deviation: -</string>
+                     </property>
+                    </widget>
+                   </item>
                    <item row="2" column="0">
                     <widget class="QPushButton" name="m_CalcDeviationButton">
                      <property name="enabled">
@@ -1984,7 +2035,7 @@
                       </size>
                      </property>
                      <property name="toolTip">
-                      <string>Calculate binary deviations of the recorded frames and reference imgae</string>
+                      <string>Calculate binary deviations of the recorded frames and reference image</string>
                      </property>
                      <property name="text">
                       <string/>
@@ -1992,13 +2043,6 @@
                      <property name="icon">
                       <iconset resource="v4l2test.qrc">
                        <normaloff>:/v4l2test/calculate.ico</normaloff>:/v4l2test/calculate.ico</iconset>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLabel" name="m_meanDeviationLabel">
-                     <property name="text">
-                      <string>Mean Deviation: -</string>
                      </property>
                     </widget>
                    </item>
@@ -2018,6 +2062,55 @@
                   </property>
                  </spacer>
                 </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_10">
+                  <property name="title">
+                   <string>Record Info</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_5">
+                   <item>
+                    <widget class="QLabel" name="m_FrameIDRecording">
+                     <property name="minimumSize">
+                      <size>
+                       <width>189</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>189</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>FrameID: -</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="m_FrameIDStartedRecord">
+                     <property name="text">
+                      <string>FrameID start: -</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="m_FrameIDStoppedRecord">
+                     <property name="text">
+                      <string>FrameID stopped: -</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="m_FramesInQueue">
+                     <property name="text">
+                      <string>Frames in Queue: -</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
                </layout>
               </item>
               <item>
@@ -2029,113 +2122,6 @@
                  </size>
                 </property>
                </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
-              <item>
-               <widget class="QLabel" name="m_FrameIDRecording">
-                <property name="minimumSize">
-                 <size>
-                  <width>189</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>189</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>FrameID: -</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="m_FrameIDStartedRecord">
-                <property name="text">
-                 <string>FrameID start: -</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="m_FrameIDStoppedRecord">
-                <property name="text">
-                 <string>FrameID stopped: -</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="m_FramesInQueue">
-                <property name="text">
-                 <string>Frames in Queue: -</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="verticalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Fixed</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QLabel" name="m_DisplayFrameID">
-                <property name="text">
-                 <string>Displaying FrameID: -</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="m_DisplayFramePixelformat">
-                <property name="minimumSize">
-                 <size>
-                  <width>289</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Displaying Frame Pixelformat: -</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="m_DisplayFrameWidth">
-                <property name="text">
-                 <string>Displaying Frame Width: -</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="m_DisplayFrameHeight">
-                <property name="text">
-                 <string>Displaying Frame Height: -</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="verticalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
               </item>
              </layout>
             </item>

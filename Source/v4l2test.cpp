@@ -212,7 +212,6 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(&m_Camera, SIGNAL(OnCameraError_Signal(const QString &)), this, SLOT(OnCameraError(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraMessage_Signal(const QString &)), this, SLOT(OnCameraMessage(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnCameraRecordFrame(const unsigned long long &, const unsigned long long &)));
-	connect(&m_Camera, SIGNAL(OnCameraDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnCameraDisplayFrame(const unsigned long long &)));
 	connect(&m_Camera, SIGNAL(OnCameraPixelformat_Signal(const QString &)), this, SLOT(OnCameraPixelformat(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
 
@@ -276,6 +275,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(ui.m_StopRecordButton, SIGNAL(clicked()), this, SLOT(OnStopRecording()));
 	connect(ui.m_DeleteRecording, SIGNAL(clicked()), this, SLOT(OnDeleteRecording()));
 	connect(ui.m_DisplaySaveFrame, SIGNAL(clicked()), this, SLOT(OnSaveFrame()));
+	connect(ui.m_ExportRecordedFrameButton, SIGNAL(clicked()), this, SLOT(OnExportFrame()));
 	connect(ui.m_SaveFrameSeriesButton, SIGNAL(clicked()), this, SLOT(OnSaveFrameSeries()));
 	connect(ui.m_CalcDeviationButton, SIGNAL(clicked()), this, SLOT(OnCalcDeviation()));
 	connect(ui.m_GetReferenceButton, SIGNAL(clicked()), this, SLOT(OnGetReferenceImage()));
@@ -784,6 +784,17 @@ void v4l2test::OnOpenCloseButtonClicked()
 	ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
 	ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 	ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
+
+	// enable/disable record buttons accordingly
+	if( m_bIsOpen )
+	{
+		ui.m_StartRecordButton->setEnabled(true);
+	}
+	else
+	{
+		OnStopRecording();
+		ui.m_StartRecordButton->setEnabled(false);
+	}
 }
 
 // The event handler for get device info
@@ -959,12 +970,6 @@ void v4l2test::OnCameraRecordFrame(const unsigned long long &frameID, const unsi
 	UpdateRecordTableWidget();
 }
 
-// Event will be called when the a frame is displayed
-void v4l2test::OnCameraDisplayFrame(const unsigned long long &frameID)
-{
-	ui.m_DisplayFrameID->setText(QString("Displaying FrameID: %1").arg(frameID));
-}
-
 void v4l2test::OnCameraPixelformat(const QString& format)
 {
 	ui.m_liPixelformats->addItem(format);
@@ -1081,8 +1086,9 @@ void v4l2test::InitializeTableWidget()
 
 	// set table headers
 	QStringList header;
-	header << "Frame ID" << "Buffer index" << "Width" << "Height" << "Payload size" << "Pixelformat" << "Buffer length" << "Bytes per line" << "Deviation from Reference Image [%]";
+	header << "Frame ID" << "Buffer index" << "Width" << "Height" << "Payload size" << "Pixelformat" << "Buffer length" << "Bytes per line" << "Deviation from Reference Image";
 	ui.m_FrameRecordTable->setHorizontalHeaderLabels(header);
+	ui.m_FrameRecordTable->resizeColumnsToContents();
 }
 
 // Returns the frame object that is selected in the gui table, or a null pointer if nothing is selected
@@ -1166,6 +1172,8 @@ void v4l2test::UpdateRecordTableWidget()
 		item_bytesPerLine->setText(QString::number(bytesPerLine));
 		ui.m_FrameRecordTable->setItem(i, 7, item_bytesPerLine);
 	}
+
+	ui.m_FrameRecordTable->resizeColumnsToContents();
 }
 
 
@@ -1668,6 +1676,7 @@ void v4l2test::OnStartRecording()
 	ui.m_StopRecordButton->setEnabled(true);
 	ui.m_CalcDeviationButton->setEnabled(false);
 	ui.m_DeleteRecording->setEnabled(false);
+	ui.m_SaveFrameSeriesButton->setEnabled(false);
 }
 
 void v4l2test::OnStopRecording()
@@ -1679,10 +1688,15 @@ void v4l2test::OnStopRecording()
 	ui.m_StartRecordButton->setEnabled(true);
 	ui.m_StopRecordButton->setEnabled(false);
 
-	if (m_Camera.GetRecordVector().size() > 0 && m_ReferenceImage)
-	{
-		ui.m_CalcDeviationButton->setEnabled(true);
+	if (m_Camera.GetRecordVector().size() > 0)
+	{		
 		ui.m_DeleteRecording->setEnabled(true);
+		ui.m_SaveFrameSeriesButton->setEnabled(true);
+
+		if(m_ReferenceImage)
+		{
+			ui.m_CalcDeviationButton->setEnabled(true);
+		}
 	}
 }
 
@@ -1701,6 +1715,9 @@ void v4l2test::OnDeleteRecording()
 	if (m_Camera.GetRecordVector().size() == 0)
 	{
 		ui.m_DeleteRecording->setEnabled(false);
+		ui.m_SaveFrameSeriesButton->setEnabled(false);
+		ui.m_CalcDeviationButton->setEnabled(false);
+		ui.m_meanDeviationLabel->setText(QString("Mean Deviation: -"));
 	}
 }
 
@@ -1710,6 +1727,7 @@ void v4l2test::OnRecordTableSelectionChanged(const QItemSelection &, const QItem
 
 	// enable save frame if there is a frame selected
 	ui.m_DisplaySaveFrame->setEnabled(!(!selectedFrame));
+	ui.m_ExportRecordedFrameButton->setEnabled(!(!selectedFrame));
 
 	// Display selected recorded frame if camera is not streaming
 	if (!m_bIsStreaming)
@@ -1767,7 +1785,7 @@ void v4l2test::OnGetReferenceImage()
 
 				file.close();
 
-				if(m_Camera.GetRecordVector().size())
+				if (m_Camera.GetRecordVector().size())
 				{
 					ui.m_CalcDeviationButton->setEnabled(true);
 				}
@@ -1781,14 +1799,51 @@ void v4l2test::OnGetReferenceImage()
 	}
 }
 
-void v4l2test::OnSaveFrame()
+
+void v4l2test::SaveFrame(QSharedPointer<MyFrame> frame, QString fileName, bool raw)
+{
+	// dump frame binary to file
+	if (raw)
+	{
+		QFile file(fileName);
+		if (file.open(QIODevice::WriteOnly))
+		{
+			QByteArray databuf = QByteArray((char*)(frame->GetBuffer()), frame->GetBufferlength());
+			file.write(databuf);
+			file.flush();
+			file.close();
+
+			OnLog(QString("Saving RAW image successful: %1").arg(fileName));
+		}
+		else
+		{
+			QMessageBox::warning( this, tr("V4L2 Test"), tr("FAILED TO SAVE IMAGE! \nCheck access rights."), tr("") );
+		}
+
+	}
+	// save png
+	else
+	{
+		QImage image = frame->GetImage();
+		if (image.save(fileName))
+		{
+			OnLog(QString("Saving PNG image successful: %1").arg(fileName));
+		}
+		else
+		{
+			QMessageBox::warning( this, tr("V4L2 Test"), tr("Failed to save image! \nCheck access rights."), tr("") );
+		}				
+	}
+}
+
+
+void v4l2test::SaveFrameDialog(bool raw)
 {
 	QSharedPointer<MyFrame> selectedFrame = getSelectedRecordedFrame();
 
 	if (selectedFrame)
 	{
-		QString fileExtensions = ".raw"; //GetImageFormatString();;
-		QPixmap imageShot = m_PixmapItem->pixmap();
+		QString fileExtensions = raw ? ".raw" : ".png";
 
 		QString pixelformat = QString::fromStdString(V4l2Helper::ConvertPixelformat2EnumString(selectedFrame->GetPixelformat()));
 		QString width = QString::number(selectedFrame->GetWidth());
@@ -1802,7 +1857,7 @@ void v4l2test::OnSaveFrame()
 			m_SaveFileDialog = NULL;
 		}
 
-		m_SaveFileDialog = new QFileDialog ( this, tr("Save Image"), m_SaveFileDir + QString("/") + defaultFileName, fileExtensions );
+		m_SaveFileDialog = new QFileDialog ( this, tr((raw ? "Save Image" : "Export Image")), m_SaveFileDir + QString("/") + defaultFileName, fileExtensions );
 		m_SaveFileDialog->selectFilter(m_SelectedExtension);
 		m_SaveFileDialog->setAcceptMode(QFileDialog::AcceptSave);
 
@@ -1821,75 +1876,80 @@ void v4l2test::OnSaveFrame()
 					fileName.append(m_SelectedExtension);
 				}
 
-				QFile file(fileName);
-				if (file.open(QIODevice::WriteOnly))
-				{
-					QByteArray databuf = QByteArray((char*)(selectedFrame->GetBuffer()), selectedFrame->GetBufferlength());
-					file.write(databuf);
-					file.flush();
-					file.close();
-				}
-				else
-				{
-					QMessageBox::warning( this, tr("V4L2 Test"), tr("FAILED TO SAVE IMAGE! \nCheck access rights."), tr("") );
-				}
-
-				/*
-				if (imageShot.save(fileName))
-				{
-					QMessageBox::warning( this, tr("V4L2 Test"), tr("Saving image: ") + fileName + tr(" is DONE!") );
-				}
-				else
-				{
-					QMessageBox::warning( this, tr("V4L2 Test"), tr("FAILED TO SAVE IMAGE! \nCheck access rights."), tr("") );
-				}
-				*/
+				SaveFrame(selectedFrame, fileName, raw);
 			}
 		}
 	}
 }
 
+void v4l2test::OnSaveFrame()
+{
+	SaveFrameDialog(true);
+}
+
 void v4l2test::OnSaveFrameSeries()
 {
-	qDebug() << Q_FUNC_INFO;
-	// get recording queue
-	/*	QSharedPointer<MyFrameQueue> pQueue = m_Camera.GetRecordQueue();
+	QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"), m_SaveFileDir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-		for(int i=0; i<pQueue->GetSize(); ++i)
+	// check if user has hit the cancel button in the file dialog
+	if(!dir.isEmpty() && !dir.isNull())
+	{
+		QVector<QSharedPointer<MyFrame> > recordedFrames = m_Camera.GetRecordVector();
+
+		// iterate through table
+		for (unsigned int tableRow = 0; tableRow < ui.m_FrameRecordTable->rowCount(); ++tableRow)
 		{
+			if (tableRow < recordedFrames.size())
+			{
+				QSharedPointer<MyFrame> frame = recordedFrames[tableRow];
 
-			QSharedPointer<MyFrame> pFrame = pQueue->GetNext();
-			QImage image = pFrame->GetImage();
-			unsigned long long frameId = pFrame->GetFrameId();
-			QString fileName = "/home/ubuntu/Development/" + QString::number(frameId) + ".tif";
-			image.save(fileName);
-			qDebug() << "image saved";
-		}	*/
+				QString pixelformat = QString::fromStdString(V4l2Helper::ConvertPixelformat2EnumString(frame->GetPixelformat()));
+				QString width = QString::number(frame->GetWidth());
+				QString height = QString::number(frame->GetHeight());
+				QString frameId = QString::number(frame->GetFrameId());
+				QString filename = QString::number(tableRow) + QString("_Frame") + frameId + QString("_") + width + QString("x") + height + QString("_") + pixelformat + QString(".raw");
+				QString absoluteFilePath = dir + QString("/") + filename;
+
+				SaveFrame(frame, absoluteFilePath, true);
+			}
+		}
+	}
+}
+
+void v4l2test::OnExportFrame()
+{
+	SaveFrameDialog(false); 
 }
 
 void v4l2test::OnCalcDeviationReady(const std::map<unsigned int, double>& tableRowToDeviation)
 {
-	double meanDeviation = 0;	
-
-	for(std::map<unsigned int, double>::const_iterator it = tableRowToDeviation.begin();
-		it != tableRowToDeviation.end();
-		++it)
+	if(tableRowToDeviation.size() > 0)
 	{
-		unsigned int row = it->first;
-		double deviation = it->second;
+		double meanDeviation = 0;
 
-		meanDeviation += deviation;
+		for (std::map<unsigned int, double>::const_iterator it = tableRowToDeviation.begin();
+		        it != tableRowToDeviation.end();
+		        ++it)
+		{
+			unsigned int row = it->first;
+			double deviation = it->second;
 
-		QTableWidgetItem* item_deviation = new QTableWidgetItem();
-		item_deviation->setText(QString::number(deviation));
-		ui.m_FrameRecordTable->setItem(row, 8, item_deviation);
+			meanDeviation += deviation;
+
+			QTableWidgetItem* item_deviation = new QTableWidgetItem();
+			item_deviation->setText(QString::number(deviation));
+			ui.m_FrameRecordTable->setItem(row, 8, item_deviation);
+		}
+
+		ui.m_meanDeviationLabel->setText(QString("Mean Deviation: %1 %").arg(meanDeviation / tableRowToDeviation.size() * 100));	
 	}
-
-	ui.m_meanDeviationLabel->setText(QString("Mean Deviation: %1 %").arg(meanDeviation/tableRowToDeviation.size()));
+	else
+	{
+		QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixelformat!"), tr("") );
+	}
 
 	ui.m_StartRecordButton->setEnabled(true);
 	ui.m_CalcDeviationButton->setEnabled(true);
-
 	m_CalcThread.clear();
 }
 
@@ -1902,7 +1962,7 @@ void v4l2test::OnCalcDeviation()
 	QVector<QSharedPointer<MyFrame> > recordedFrames = m_Camera.GetRecordVector();
 
 	// iterate through table
-	for(unsigned int tableRow = 0; tableRow < ui.m_FrameRecordTable->rowCount(); ++tableRow)
+	for (unsigned int tableRow = 0; tableRow < ui.m_FrameRecordTable->rowCount(); ++tableRow)
 	{
 		if (tableRow < recordedFrames.size())
 		{
@@ -1915,7 +1975,7 @@ void v4l2test::OnCalcDeviation()
 	m_CalcThread = QSharedPointer<DeviationCalculator>(new DeviationCalculator(m_ReferenceImage, tableRowToFrame));
 
 	connect(m_CalcThread.data(), SIGNAL(OnCalcDeviationReady_Signal(const std::map<unsigned int, double>&)),
-			this, SLOT(OnCalcDeviationReady(const std::map<unsigned int, double>&)));
+	        this, SLOT(OnCalcDeviationReady(const std::map<unsigned int, double>&)));
 
 	m_CalcThread->start();
 }

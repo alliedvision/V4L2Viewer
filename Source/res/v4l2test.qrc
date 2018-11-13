@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="v4l2test">
+    <file>export.png</file>
     <file>addReference.ico</file>
     <file>back.ico</file>
     <file>calculate.ico</file>

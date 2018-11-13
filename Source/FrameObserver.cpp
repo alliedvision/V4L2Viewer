@@ -317,6 +317,7 @@ void FrameObserver::DequeueAndProcessFrame()
 						else
 						{
 							emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
+							m_bRecording = false;
 						}
 					}
 
