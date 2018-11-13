@@ -136,6 +136,8 @@ private:
     // thread to calculate deviation
     QSharedPointer<DeviationCalculator> m_CalcThread;
 
+    QMovie *m_LoadingAnimation;
+
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
     // Update the viewer range

@@ -119,7 +119,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 static const QStringList GetImageFormats()
 {
-	qDebug() << Q_FUNC_INFO;
 	QStringList formats;
 	unsigned int count = QImageReader::supportedImageFormats().count();
 
@@ -134,7 +133,6 @@ static const QStringList GetImageFormats()
 
 static const QString GetImageFormatString()
 {
-	qDebug() << Q_FUNC_INFO;
 	QString formatString;
 	unsigned int count = QImageReader::supportedImageFormats().count();
 
@@ -786,7 +784,7 @@ void v4l2test::OnOpenCloseButtonClicked()
 	ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 
 	// enable/disable record buttons accordingly
-	if( m_bIsOpen )
+	if ( m_bIsOpen )
 	{
 		ui.m_StartRecordButton->setEnabled(true);
 	}
@@ -1078,8 +1076,6 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
 
 void v4l2test::InitializeTableWidget()
 {
-	qDebug() << Q_FUNC_INFO;
-
 	// set number of columns and rows
 	ui.m_FrameRecordTable->setRowCount(0);
 	ui.m_FrameRecordTable->setColumnCount(9);
@@ -1689,11 +1685,11 @@ void v4l2test::OnStopRecording()
 	ui.m_StopRecordButton->setEnabled(false);
 
 	if (m_Camera.GetRecordVector().size() > 0)
-	{		
+	{
 		ui.m_DeleteRecording->setEnabled(true);
 		ui.m_SaveFrameSeriesButton->setEnabled(true);
 
-		if(m_ReferenceImage)
+		if (m_ReferenceImage)
 		{
 			ui.m_CalcDeviationButton->setEnabled(true);
 		}
@@ -1747,7 +1743,6 @@ void v4l2test::OnRecordTableSelectionChanged(const QItemSelection &, const QItem
 
 void v4l2test::OnGetReferenceImage()
 {
-	qDebug() << Q_FUNC_INFO;
 	// if dialog already exist, delete it
 	if ( NULL != m_ReferenceImageDialog )
 	{
@@ -1817,7 +1812,7 @@ void v4l2test::SaveFrame(QSharedPointer<MyFrame> frame, QString fileName, bool r
 		}
 		else
 		{
-			QMessageBox::warning( this, tr("V4L2 Test"), tr("FAILED TO SAVE IMAGE! \nCheck access rights."), tr("") );
+			QMessageBox::warning( this, tr("V4L2 Test"), tr("Failed to save image! \nCheck access rights."), tr("") );
 		}
 
 	}
@@ -1832,7 +1827,7 @@ void v4l2test::SaveFrame(QSharedPointer<MyFrame> frame, QString fileName, bool r
 		else
 		{
 			QMessageBox::warning( this, tr("V4L2 Test"), tr("Failed to save image! \nCheck access rights."), tr("") );
-		}				
+		}
 	}
 }
 
@@ -1892,7 +1887,7 @@ void v4l2test::OnSaveFrameSeries()
 	QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"), m_SaveFileDir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
 	// check if user has hit the cancel button in the file dialog
-	if(!dir.isEmpty() && !dir.isNull())
+	if (!dir.isEmpty() && !dir.isNull())
 	{
 		QVector<QSharedPointer<MyFrame> > recordedFrames = m_Camera.GetRecordVector();
 
@@ -1918,12 +1913,16 @@ void v4l2test::OnSaveFrameSeries()
 
 void v4l2test::OnExportFrame()
 {
-	SaveFrameDialog(false); 
+	SaveFrameDialog(false);
 }
 
 void v4l2test::OnCalcDeviationReady(const std::map<unsigned int, double>& tableRowToDeviation)
 {
-	if(tableRowToDeviation.size() > 0)
+	// clear loading animation
+	ui.m_meanDeviationLabel->clear();
+	delete m_LoadingAnimation;
+
+	if (tableRowToDeviation.size() > 0)
 	{
 		double meanDeviation = 0;
 
@@ -1941,10 +1940,11 @@ void v4l2test::OnCalcDeviationReady(const std::map<unsigned int, double>& tableR
 			ui.m_FrameRecordTable->setItem(row, 8, item_deviation);
 		}
 
-		ui.m_meanDeviationLabel->setText(QString("Mean Deviation: %1 %").arg(meanDeviation / tableRowToDeviation.size() * 100));	
+		ui.m_meanDeviationLabel->setText(QString("Mean Deviation: %1 %").arg(meanDeviation / tableRowToDeviation.size() * 100));
 	}
 	else
 	{
+		ui.m_meanDeviationLabel->setText(QString("Mean Deviation: -"));
 		QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixelformat!"), tr("") );
 	}
 
@@ -1970,6 +1970,12 @@ void v4l2test::OnCalcDeviation()
 			tableRowToFrame.insert(std::make_pair(tableRow, frame));
 		}
 	}
+
+	// show loading animation
+	m_LoadingAnimation = new QMovie(":/v4l2test/loading-animation.gif");
+	ui.m_meanDeviationLabel->setMovie(m_LoadingAnimation);
+	ui.m_meanDeviationLabel->show();
+	m_LoadingAnimation->start();
 
 	// calculate in separate thread
 	m_CalcThread = QSharedPointer<DeviationCalculator>(new DeviationCalculator(m_ReferenceImage, tableRowToFrame));
