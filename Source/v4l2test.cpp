@@ -209,7 +209,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(&m_Camera, SIGNAL(OnCameraRegisterValueReady_Signal(unsigned long long)), this, SLOT(OnCameraRegisterValueReady(unsigned long long)));
 	connect(&m_Camera, SIGNAL(OnCameraError_Signal(const QString &)), this, SLOT(OnCameraError(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraMessage_Signal(const QString &)), this, SLOT(OnCameraMessage(const QString &)));
-	connect(&m_Camera, SIGNAL(OnCameraRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnCameraRecordFrame(const unsigned long long &, const unsigned long long &)));
+	connect(&m_Camera, SIGNAL(OnCameraRecordFrame_Signal(const QSharedPointer<MyFrame>&)), this, SLOT(OnCameraRecordFrame(const QSharedPointer<MyFrame>&)));
 	connect(&m_Camera, SIGNAL(OnCameraPixelformat_Signal(const QString &)), this, SLOT(OnCameraPixelformat(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
 
@@ -285,6 +285,9 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	ui.m_FrameRecordTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.m_FrameRecordTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.m_FrameRecordTable->setSelectionMode(QAbstractItemView::SingleSelection);
+
+	// register meta type for QT signal/slot mechanism
+	qRegisterMetaType<QSharedPointer<MyFrame> >("QSharedPointer<MyFrame>");
 
 	// connect the buttons for Image m_ControlRequestTimer
 	connect(ui.m_edWidth, SIGNAL(returnPressed()), this, SLOT(OnWidth()));
@@ -955,15 +958,27 @@ void v4l2test::OnCameraMessage(const QString &text)
 }
 
 // Event will be called when the a frame is recorded
-void v4l2test::OnCameraRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue)
+void v4l2test::OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame)
 {
-	ui.m_FrameIDRecording->setText(QString("FrameID: %1").arg(frameID));
-	ui.m_FramesInQueue->setText(QString("Frames in Queue: %1").arg(framesInQueue));
+	if(m_FrameRecordVector.size() >= 100)
+	{
+		OnLog(QString("The following frames are not recorded, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_VECTOR_SIZE));
+		OnStopRecording();
+	}
+	else
+	{
+		m_FrameRecordVector.push_back(frame);
+		ui.m_FrameIDRecording->setText(QString("FrameID: %1").arg(frame->GetFrameId()));
 
-	if (1 == framesInQueue)
-		ui.m_FrameIDStartedRecord->setText(QString("FrameID start: %1").arg(frameID));
-	ui.m_FrameIDStoppedRecord->setText(QString("FrameID stopped: %1").arg(frameID));
+		ui.m_FramesInQueue->setText(QString("Frames in Queue: %1").arg(m_FrameRecordVector.size()));
 
+		if (1 == m_FrameRecordVector.size())
+		{
+			ui.m_FrameIDStartedRecord->setText(QString("FrameID start: %1").arg(frame->GetFrameId()));
+		}
+		ui.m_FrameIDStoppedRecord->setText(QString("FrameID stopped: %1").arg(frame->GetFrameId()));
+	}	
+	
 	UpdateRecordTableWidget();
 }
 
@@ -1096,11 +1111,10 @@ QSharedPointer<MyFrame> v4l2test::getSelectedRecordedFrame()
 	{
 		QTableWidgetItem* item = selectedItems[0];
 		int index = item->row();
-		QVector<QSharedPointer<MyFrame> > recordedFrames = m_Camera.GetRecordVector();
 
-		if (index >= 0 && index < recordedFrames.size())
+		if (index >= 0 && index < m_FrameRecordVector.size())
 		{
-			result = recordedFrames[index];
+			result = m_FrameRecordVector[index];
 		}
 	}
 
@@ -1109,13 +1123,11 @@ QSharedPointer<MyFrame> v4l2test::getSelectedRecordedFrame()
 
 void v4l2test::UpdateRecordTableWidget()
 {
-	QVector<QSharedPointer<MyFrame> > recordedFrames = m_Camera.GetRecordVector();
+	ui.m_FrameRecordTable->setRowCount(m_FrameRecordVector.size());
 
-	ui.m_FrameRecordTable->setRowCount(recordedFrames.size());
-
-	for (int i = 0; i < recordedFrames.size(); i++)
+	for (int i = 0; i < m_FrameRecordVector.size(); i++)
 	{
-		QSharedPointer<MyFrame> frame = recordedFrames.at(i);
+		QSharedPointer<MyFrame> frame = m_FrameRecordVector.at(i);
 
 		// get frame information
 		unsigned long long frameId = frame->GetFrameId();
@@ -1683,7 +1695,7 @@ void v4l2test::OnStopRecording()
 	ui.m_StartRecordButton->setEnabled(true);
 	ui.m_StopRecordButton->setEnabled(false);
 
-	if (m_Camera.GetRecordVector().size() > 0)
+	if (m_FrameRecordVector.size() > 0)
 	{
 		ui.m_DeleteRecording->setEnabled(true);
 		ui.m_SaveFrameSeriesButton->setEnabled(true);
@@ -1697,9 +1709,12 @@ void v4l2test::OnStopRecording()
 
 void v4l2test::OnDeleteRecording()
 {
-	OnStopRecording();
+	if(m_bIsStreaming)
+	{
+		OnStopRecording();
+	}
 
-	m_Camera.DeleteRecording();
+	m_FrameRecordVector.clear();
 	UpdateRecordTableWidget();
 
 	ui.m_FrameIDRecording->setText(QString("FrameID: -"));
@@ -1707,7 +1722,7 @@ void v4l2test::OnDeleteRecording()
 	ui.m_FrameIDStoppedRecord->setText(QString("FrameID stopped: -"));
 	ui.m_FramesInQueue->setText(QString("Frames in Queue: 0"));
 
-	if (m_Camera.GetRecordVector().size() == 0)
+	if (m_FrameRecordVector.size() == 0)
 	{
 		ui.m_DeleteRecording->setEnabled(false);
 		ui.m_SaveFrameSeriesButton->setEnabled(false);
@@ -1779,7 +1794,7 @@ void v4l2test::OnGetReferenceImage()
 
 				file.close();
 
-				if (m_Camera.GetRecordVector().size())
+				if (m_FrameRecordVector.size())
 				{
 					ui.m_CalcDeviationButton->setEnabled(true);
 				}
@@ -1888,14 +1903,12 @@ void v4l2test::OnSaveFrameSeries()
 	// check if user has hit the cancel button in the file dialog
 	if (!dir.isEmpty() && !dir.isNull())
 	{
-		QVector<QSharedPointer<MyFrame> > recordedFrames = m_Camera.GetRecordVector();
-
 		// iterate through table
 		for (unsigned int tableRow = 0; tableRow < ui.m_FrameRecordTable->rowCount(); ++tableRow)
 		{
-			if (tableRow < recordedFrames.size())
+			if (tableRow < m_FrameRecordVector.size())
 			{
-				QSharedPointer<MyFrame> frame = recordedFrames[tableRow];
+				QSharedPointer<MyFrame> frame = m_FrameRecordVector[tableRow];
 
 				QString pixelformat = QString::fromStdString(V4l2Helper::ConvertPixelformat2EnumString(frame->GetPixelformat()));
 				QString width = QString::number(frame->GetWidth());
@@ -1966,7 +1979,6 @@ void v4l2test::OnCalcDeviation()
 	m_deviationErrors = 0;
 
 	std::map<unsigned int, QSharedPointer<MyFrame> > tableRowToFrame;
-	QVector<QSharedPointer<MyFrame> > recordedFrames = m_Camera.GetRecordVector();
 
 	// iterate through table
 	for (unsigned int tableRow = 0; tableRow < ui.m_FrameRecordTable->rowCount(); ++tableRow)
@@ -1975,9 +1987,9 @@ void v4l2test::OnCalcDeviation()
 		delete ui.m_FrameRecordTable->item(tableRow, 8);
 
 		// populate map for deviation calculator thread
-		if (tableRow < recordedFrames.size())
+		if (tableRow < m_FrameRecordVector.size())
 		{
-			QSharedPointer<MyFrame> frame = recordedFrames[tableRow];
+			QSharedPointer<MyFrame> frame = m_FrameRecordVector[tableRow];
 			tableRowToFrame.insert(std::make_pair(tableRow, frame));
 		}
 	}

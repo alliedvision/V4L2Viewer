@@ -297,27 +297,18 @@ void FrameObserver::DequeueAndProcessFrame()
 
 					if (m_bRecording)
 					{
-						if (m_FrameRecordVector.size() < MAX_RECORD_FRAME_QUEUE_SIZE)
-						{
-							QImage convertedImage;
+						QImage convertedImage;
 
-							if (AVT::Tools::ImageTransf::ConvertFrame(buffer, length,
-							        m_nWidth, m_nHeight, m_Pixelformat,
-							        m_PayloadSize, m_BytesPerLine, convertedImage) == 0)
-							{
-								QSharedPointer<MyFrame> frame(new MyFrame(convertedImage, buf.index, buffer, length, m_nWidth, m_nHeight, m_Pixelformat, m_PayloadSize, m_BytesPerLine, m_FrameId));
-								m_FrameRecordVector.push_back(frame);
-								emit OnRecordFrame_Signal(m_FrameId, m_FrameRecordVector.size());
-							}
-							else
-							{
-								emit OnError_Signal("Frame buffer not converted. Possible missing conversion.");
-							}
+						if (AVT::Tools::ImageTransf::ConvertFrame(buffer, length,
+						        m_nWidth, m_nHeight, m_Pixelformat,
+						        m_PayloadSize, m_BytesPerLine, convertedImage) == 0)
+						{
+							QSharedPointer<MyFrame> frame(new MyFrame(convertedImage, buf.index, buffer, length, m_nWidth, m_nHeight, m_Pixelformat, m_PayloadSize, m_BytesPerLine, m_FrameId));
+							emit OnRecordFrame_Signal(frame);
 						}
 						else
 						{
-							emit OnMessage_Signal(QString("Following frames are not saved, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_QUEUE_SIZE));
-							m_bRecording = false;
+							emit OnError_Signal("Frame buffer not converted. Possible missing conversion.");
 						}
 					}
 
@@ -481,19 +472,6 @@ void FrameObserver::OnMessageFromThread(const QString &msg)
 void FrameObserver::SetRecording(bool start)
 {
 	m_bRecording = start;
-}
-
-void FrameObserver::DeleteRecording()
-{
-	m_FrameRecordVector.clear();
-}
-
-
-QVector<QSharedPointer<MyFrame> > FrameObserver::GetFrameRecordVector()
-{
-	// return a copy of the vector
-	QVector<QSharedPointer<MyFrame> > result(m_FrameRecordVector);
-	return result;
 }
 
 /*********************************************************************************************************/

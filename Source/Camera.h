@@ -156,8 +156,6 @@ public:
 
     // Recording
     void SetRecording(bool start);
-    void DeleteRecording();
-    QVector<QSharedPointer<MyFrame> > GetRecordVector();
 
     // Misc
     void SwitchFrameTransfer2GUI(bool showFrames);
@@ -195,7 +193,7 @@ signals:
     // Event will be called on message
     void OnCameraMessage_Signal(const QString &text);
     // Event will be called when the a frame is recorded
-    void OnCameraRecordFrame_Signal(const unsigned long long &, const unsigned long long &);
+    void OnCameraRecordFrame_Signal(const QSharedPointer<MyFrame>&);
     // Event will be called when the a frame is displayed
     void OnCameraDisplayFrame_Signal(const unsigned long long &);
 
@@ -210,7 +208,7 @@ private slots:
     // The event handler to show the processed frame ID
     void OnFrameID(const unsigned long long &frameId);
     // Event will be called when the a frame is recorded
-    void OnRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue);
+    void OnRecordFrame(const QSharedPointer<MyFrame>&);
     // Event will be called when the a frame is displayed
     void OnDisplayFrame(const unsigned long long &frameID);
     // Event will be called when for text notification

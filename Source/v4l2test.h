@@ -135,15 +135,17 @@ private:
     QSharedPointer<QByteArray> m_ReferenceImage;
     // thread to calculate deviation
     QSharedPointer<DeviationCalculator> m_CalcThread;
-
     // for calculating the mean deviation to the reference image
     double m_MeanDeviation;
-
     // for checking if deviation calculation was successful
     unsigned int m_deviationErrors;
-
     // show loading gif during deviation calculation
     QMovie *m_LoadingAnimation;
+    // vector for recorded frames
+    QVector<QSharedPointer<MyFrame> > m_FrameRecordVector;
+    // max size of framerecordvector
+    const static int MAX_RECORD_FRAME_VECTOR_SIZE = 100;
+
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -248,7 +250,7 @@ private slots:
     // Event will be called on message
     void OnCameraMessage(const QString &text);
     // Event will be called when the a frame is recorded
-    void OnCameraRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue);
+    void OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame);
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
     // The event handler to read a register per direct access

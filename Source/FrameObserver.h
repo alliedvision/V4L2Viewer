@@ -102,8 +102,6 @@ public:
 
 	// Recording
 	void SetRecording(bool start);
-	void DeleteRecording();
-	QVector<QSharedPointer<MyFrame> > GetFrameRecordVector();
 
 	virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
 	virtual int QueueAllUserBuffer();
@@ -125,9 +123,7 @@ protected:
 	virtual void run();
 
 protected:
-	const static int MAX_RECORD_FRAME_QUEUE_SIZE = 100;
-	bool m_bRecording;
-	QVector<QSharedPointer<MyFrame> > m_FrameRecordVector;
+	bool m_bRecording;	
 
 	// Counter to count the received images
 	uint32_t m_nReceivedFramesCounter;
@@ -186,7 +182,7 @@ signals:
 	// Event will be called when the frame processing is done and the frame can be returned to streaming engine
 	//void OnFrameDone_Signal(const unsigned long long frameHandle);
 	// Event will be called when the a frame is recorded
-	void OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &);
+	void OnRecordFrame_Signal(const QSharedPointer<MyFrame>&);
 	// Event will be called when the a frame is displayed
 	void OnDisplayFrame_Signal(const unsigned long long &);
 	// Event will be called when for text notification
