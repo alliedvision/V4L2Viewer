@@ -49,9 +49,7 @@ protected:
     void run();
 
 signals:
-    void OnCalcDeviationReady_Signal(const std::map<unsigned int, double>& tableRowToDeviation);
-
-
+    void OnCalcDeviationReady_Signal(unsigned int tableRow, double deviation, bool done);
 };
 
 #endif // DEVIATION_CALCULATOR_H

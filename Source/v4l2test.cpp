@@ -285,7 +285,6 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	ui.m_FrameRecordTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.m_FrameRecordTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui.m_FrameRecordTable->setSelectionMode(QAbstractItemView::SingleSelection);
-	qRegisterMetaType<std::map<unsigned int, double> >("std::map<unsigned int, double>");
 
 	// connect the buttons for Image m_ControlRequestTimer
 	connect(ui.m_edWidth, SIGNAL(returnPressed()), this, SLOT(OnWidth()));
@@ -1916,43 +1915,44 @@ void v4l2test::OnExportFrame()
 	SaveFrameDialog(false);
 }
 
-void v4l2test::OnCalcDeviationReady(const std::map<unsigned int, double>& tableRowToDeviation)
+
+void v4l2test::OnCalcDeviationReady(unsigned int tableRow, double deviation, bool done)
 {
-	// clear loading animation
-	ui.m_meanDeviationLabel->clear();
-	delete m_LoadingAnimation;
-
-	if (tableRowToDeviation.size() > 0)
+	if(deviation < 0)
 	{
-		double meanDeviation = 0;
-
-		for (std::map<unsigned int, double>::const_iterator it = tableRowToDeviation.begin();
-		        it != tableRowToDeviation.end();
-		        ++it)
-		{
-			unsigned int row = it->first;
-			double deviation = it->second;
-
-			meanDeviation += deviation;
-
-			QTableWidgetItem* item_deviation = new QTableWidgetItem();
-			item_deviation->setText(QString::number(deviation));
-			ui.m_FrameRecordTable->setItem(row, 8, item_deviation);
-		}
-
-		ui.m_meanDeviationLabel->setText(QString("Mean Deviation: %1 %").arg(meanDeviation / tableRowToDeviation.size() * 100));
+		m_deviationErrors++;
 	}
 	else
 	{
-		ui.m_meanDeviationLabel->setText(QString("Mean Deviation: -"));
-		QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixelformat!"), tr("") );
+		m_MeanDeviation += deviation;
+
+		QTableWidgetItem* item_deviation = new QTableWidgetItem();
+		item_deviation->setText(QString::number(deviation));
+		ui.m_FrameRecordTable->setItem(tableRow, 8, item_deviation);
 	}
 
-	ui.m_StartRecordButton->setEnabled(true);
-	ui.m_CalcDeviationButton->setEnabled(true);
-	ui.m_DeleteRecording->setEnabled(true);
-	ui.m_GetReferenceButton->setEnabled(true);
-	m_CalcThread.clear();
+	if(done)
+	{
+		// clear loading animation
+		ui.m_meanDeviationLabel->clear();
+		delete m_LoadingAnimation;
+
+		if(m_deviationErrors < ui.m_FrameRecordTable->rowCount())
+		{
+			ui.m_meanDeviationLabel->setText(QString("Mean Deviation: %1 %").arg(m_MeanDeviation / ui.m_FrameRecordTable->rowCount() * 100));
+		}
+		else
+		{
+			ui.m_meanDeviationLabel->setText(QString("Mean Deviation: -"));
+			QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixelformat!"), tr("") );	
+		}
+
+		ui.m_StartRecordButton->setEnabled(true);
+		ui.m_CalcDeviationButton->setEnabled(true);
+		ui.m_DeleteRecording->setEnabled(true);
+		ui.m_GetReferenceButton->setEnabled(true);
+		m_CalcThread.clear();
+	}
 }
 
 void v4l2test::OnCalcDeviation()
@@ -1962,12 +1962,19 @@ void v4l2test::OnCalcDeviation()
 	ui.m_DeleteRecording->setEnabled(false);
 	ui.m_GetReferenceButton->setEnabled(false);
 
+	m_MeanDeviation = 0;
+	m_deviationErrors = 0;
+
 	std::map<unsigned int, QSharedPointer<MyFrame> > tableRowToFrame;
 	QVector<QSharedPointer<MyFrame> > recordedFrames = m_Camera.GetRecordVector();
 
 	// iterate through table
 	for (unsigned int tableRow = 0; tableRow < ui.m_FrameRecordTable->rowCount(); ++tableRow)
 	{
+		// delete deviation column
+		delete ui.m_FrameRecordTable->item(tableRow, 8);
+
+		// populate map for deviation calculator thread
 		if (tableRow < recordedFrames.size())
 		{
 			QSharedPointer<MyFrame> frame = recordedFrames[tableRow];
@@ -1984,8 +1991,8 @@ void v4l2test::OnCalcDeviation()
 	// calculate in separate thread
 	m_CalcThread = QSharedPointer<DeviationCalculator>(new DeviationCalculator(m_ReferenceImage, tableRowToFrame));
 
-	connect(m_CalcThread.data(), SIGNAL(OnCalcDeviationReady_Signal(const std::map<unsigned int, double>&)),
-	        this, SLOT(OnCalcDeviationReady(const std::map<unsigned int, double>&)));
+	connect(m_CalcThread.data(), SIGNAL(OnCalcDeviationReady_Signal(unsigned int, double, bool)),
+	        this, SLOT(OnCalcDeviationReady(unsigned int, double, bool)));
 
 	m_CalcThread->start();
 }

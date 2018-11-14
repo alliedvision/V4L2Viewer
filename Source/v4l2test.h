@@ -136,6 +136,13 @@ private:
     // thread to calculate deviation
     QSharedPointer<DeviationCalculator> m_CalcThread;
 
+    // for calculating the mean deviation to the reference image
+    double m_MeanDeviation;
+
+    // for checking if deviation calculation was successful
+    unsigned int m_deviationErrors;
+
+    // show loading gif during deviation calculation
     QMovie *m_LoadingAnimation;
 
     // Queries and lists all known cameras
@@ -256,15 +263,25 @@ private slots:
     void OnCropWidth();
     void OnCropHeight();
 
+    // Button start recording clicked
     void OnStartRecording();
+    // Button stop recording clicked
     void OnStopRecording();
+    // User has selected a row in the record table
     void OnRecordTableSelectionChanged(const QItemSelection &, const QItemSelection &);
+    // Button delete recording clicked
     void OnDeleteRecording();
+    // Button save frame clicked
     void OnSaveFrame();
+    // Button save frame series clicked
     void OnSaveFrameSeries();
+    // Button calc deviation clicked
     void OnCalcDeviation();
+    // Button load reference image clicked
     void OnGetReferenceImage();
-    void OnCalcDeviationReady(const std::map<unsigned int, double>& tableRowToDeviation);
+    // Deviation calculator thread has calculated the deviation of one frame
+    void OnCalcDeviationReady(unsigned int tableRow, double deviation, bool done);
+    // Button export frame clicked
     void OnExportFrame();
 
     void OnWidth();
