@@ -136,7 +136,7 @@ private:
     // thread to calculate deviation
     QSharedPointer<DeviationCalculator> m_CalcThread;
     // for calculating the mean deviation to the reference image
-    double m_MeanDeviation;
+    int m_MeanNumberOfUnequalBytes;
     // for checking if deviation calculation was successful
     unsigned int m_deviationErrors;
     // show loading gif during deviation calculation
@@ -145,7 +145,10 @@ private:
     QVector<QSharedPointer<MyFrame> > m_FrameRecordVector;
     // max size of framerecordvector
     const static int MAX_RECORD_FRAME_VECTOR_SIZE = 100;
-
+    // frames received for live deviation calc
+    unsigned int m_LiveDeviationFrameCount;
+    // number of unequal bytes of live deviation calc
+    unsigned long long m_LiveDeviationUnequalBytes;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -279,10 +282,15 @@ private slots:
     void OnSaveFrameSeries();
     // Button calc deviation clicked
     void OnCalcDeviation();
+    // Button calc live deviation clicked
+    void OnCalcLiveDeviation();
+    
+    void OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes);
+    
     // Button load reference image clicked
     void OnGetReferenceImage();
     // Deviation calculator thread has calculated the deviation of one frame
-    void OnCalcDeviationReady(unsigned int tableRow, double deviation, bool done);
+    void OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBytes, bool done);
     // Button export frame clicked
     void OnExportFrame();
 

@@ -45,11 +45,14 @@ private:
 public:
     DeviationCalculator(QSharedPointer<QByteArray> referenceFrame, std::map<unsigned int, QSharedPointer<MyFrame> > tableRowToFrame);
 
+    // return -1 if bytearrays have different size, else return number of unequal bytes
+    static int CountUnequalBytes(QSharedPointer<QByteArray> reference, QSharedPointer<QByteArray> compareFrame);
+    
 protected:
     void run();
 
 signals:
-    void OnCalcDeviationReady_Signal(unsigned int tableRow, double deviation, bool done);
+    void OnCalcDeviationReady_Signal(unsigned int tableRow, int unequalBytes, bool done);
 };
 
 #endif // DEVIATION_CALCULATOR_H

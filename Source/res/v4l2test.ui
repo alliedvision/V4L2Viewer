@@ -1974,50 +1974,7 @@
                    <string>Reference Image</string>
                   </property>
                   <layout class="QGridLayout" name="gridLayout_8">
-                   <item row="1" column="0">
-                    <widget class="QPushButton" name="m_GetReferenceButton">
-                     <property name="enabled">
-                      <bool>true</bool>
-                     </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>32</width>
-                       <height>32</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>32</width>
-                       <height>32</height>
-                      </size>
-                     </property>
-                     <property name="toolTip">
-                      <string>Load RAW reference image</string>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/addReference.ico</normaloff>:/v4l2test/addReference.ico</iconset>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLabel" name="m_referenceLabel">
-                     <property name="text">
-                      <string>No reference image loaded.</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLabel" name="m_meanDeviationLabel">
-                     <property name="text">
-                      <string>Mean Deviation: -</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
+                   <item row="2" column="2">
                     <widget class="QPushButton" name="m_CalcDeviationButton">
                      <property name="enabled">
                       <bool>false</bool>
@@ -2043,6 +2000,78 @@
                      <property name="icon">
                       <iconset resource="v4l2test.qrc">
                        <normaloff>:/v4l2test/calculate.ico</normaloff>:/v4l2test/calculate.ico</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QPushButton" name="m_CalcLiveDeviationButton">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>Compare Reference Image to captured frames LIVE</string>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="v4l2test.qrc">
+                       <normaloff>:/v4l2test/calculate-live.png</normaloff>:/v4l2test/calculate-live.png</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="3">
+                    <widget class="QLabel" name="m_meanDeviationLabel">
+                     <property name="text">
+                      <string>Mean Deviation: -</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="3">
+                    <widget class="QLabel" name="m_referenceLabel">
+                     <property name="text">
+                      <string>No reference image loaded.</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="2">
+                    <widget class="QPushButton" name="m_GetReferenceButton">
+                     <property name="enabled">
+                      <bool>true</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>Load RAW reference image</string>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="v4l2test.qrc">
+                       <normaloff>:/v4l2test/addReference.ico</normaloff>:/v4l2test/addReference.ico</iconset>
                      </property>
                     </widget>
                    </item>

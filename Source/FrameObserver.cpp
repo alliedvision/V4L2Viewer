@@ -38,6 +38,7 @@
 #include "FrameObserver.h"
 #include "Logger.h"
 #include "ImageTransf.h"
+#include "DeviationCalculator.h"
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 
@@ -311,6 +312,13 @@ void FrameObserver::DequeueAndProcessFrame()
 							emit OnError_Signal("Frame buffer not converted. Possible missing conversion.");
 						}
 					}
+					
+					if(m_bLiveDeviationCalc)
+                    {
+                        QSharedPointer<QByteArray> currentFrame(new QByteArray((char*)buffer, length));
+                        
+                        emit OnLiveDeviationCalc_Signal(DeviationCalculator::CountUnequalBytes(m_bLiveDeviationCalc, currentFrame));
+                    }
 
 					/*
 					 * Test data for Mono12P and Mono10P from csv file
@@ -472,6 +480,11 @@ void FrameObserver::OnMessageFromThread(const QString &msg)
 void FrameObserver::SetRecording(bool start)
 {
 	m_bRecording = start;
+}
+
+void FrameObserver::SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame)
+{
+    m_bLiveDeviationCalc = referenceFrame;
 }
 
 /*********************************************************************************************************/

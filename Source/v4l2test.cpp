@@ -212,6 +212,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(&m_Camera, SIGNAL(OnCameraRecordFrame_Signal(const QSharedPointer<MyFrame>&)), this, SLOT(OnCameraRecordFrame(const QSharedPointer<MyFrame>&)));
 	connect(&m_Camera, SIGNAL(OnCameraPixelformat_Signal(const QString &)), this, SLOT(OnCameraPixelformat(const QString &)));
 	connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
+    connect(&m_Camera, SIGNAL(OnCameraLiveDeviationCalc_Signal(int)), this, SLOT(OnCalcLiveDeviationFromFrameObserver(int)));
 
 	// Setup blocking mode radio buttons
 	m_BlockingModeRadioButtonGroup = new QButtonGroup();
@@ -276,6 +277,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(ui.m_ExportRecordedFrameButton, SIGNAL(clicked()), this, SLOT(OnExportFrame()));
 	connect(ui.m_SaveFrameSeriesButton, SIGNAL(clicked()), this, SLOT(OnSaveFrameSeries()));
 	connect(ui.m_CalcDeviationButton, SIGNAL(clicked()), this, SLOT(OnCalcDeviation()));
+    connect(ui.m_CalcLiveDeviationButton, SIGNAL(clicked()), this, SLOT(OnCalcLiveDeviation()));
 	connect(ui.m_GetReferenceButton, SIGNAL(clicked()), this, SLOT(OnGetReferenceImage()));
 	connect(ui.m_FrameRecordTable->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
 	        this, SLOT(OnRecordTableSelectionChanged(const QItemSelection &, const QItemSelection &)));
@@ -288,6 +290,10 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
 	// register meta type for QT signal/slot mechanism
 	qRegisterMetaType<QSharedPointer<MyFrame> >("QSharedPointer<MyFrame>");
+    
+    // make calc live deviation button checakbel
+    ui.m_CalcLiveDeviationButton->setCheckable(true);
+    ui.m_meanDeviationLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
 	// connect the buttons for Image m_ControlRequestTimer
 	connect(ui.m_edWidth, SIGNAL(returnPressed()), this, SLOT(OnWidth()));
@@ -789,11 +795,18 @@ void v4l2test::OnOpenCloseButtonClicked()
 	if ( m_bIsOpen )
 	{
 		ui.m_StartRecordButton->setEnabled(true);
+        if(m_ReferenceImage)
+        {
+            ui.m_CalcLiveDeviationButton->setEnabled(true);
+        }
 	}
 	else
 	{
+        ui.m_CalcLiveDeviationButton->setChecked(false);
+        OnCalcLiveDeviation();  
 		OnStopRecording();
 		ui.m_StartRecordButton->setEnabled(false);
+        ui.m_CalcLiveDeviationButton->setEnabled(false);
 	}
 }
 
@@ -1096,7 +1109,7 @@ void v4l2test::InitializeTableWidget()
 
 	// set table headers
 	QStringList header;
-	header << "Frame ID" << "Buffer index" << "Width" << "Height" << "Payload size" << "Pixelformat" << "Buffer length" << "Bytes per line" << "Deviation from Reference Image";
+	header << "Frame ID" << "Buffer index" << "Width" << "Height" << "Payload size" << "Pixelformat" << "Buffer length" << "Bytes per line" << "Reference Image: #Unequal Bytes";
 	ui.m_FrameRecordTable->setHorizontalHeaderLabels(header);
 	ui.m_FrameRecordTable->resizeColumnsToContents();
 }
@@ -1679,6 +1692,7 @@ void v4l2test::OnStartRecording()
 {
 	m_Camera.SetRecording(true);
 
+    ui.m_CalcLiveDeviationButton->setEnabled(false);
 	ui.m_StartRecordButton->setEnabled(false);
 	ui.m_StopRecordButton->setEnabled(true);
 	ui.m_CalcDeviationButton->setEnabled(false);
@@ -1703,6 +1717,7 @@ void v4l2test::OnStopRecording()
 		if (m_ReferenceImage)
 		{
 			ui.m_CalcDeviationButton->setEnabled(true);
+            ui.m_CalcLiveDeviationButton->setEnabled(true);
 		}
 	}
 }
@@ -1727,7 +1742,7 @@ void v4l2test::OnDeleteRecording()
 		ui.m_DeleteRecording->setEnabled(false);
 		ui.m_SaveFrameSeriesButton->setEnabled(false);
 		ui.m_CalcDeviationButton->setEnabled(false);
-		ui.m_meanDeviationLabel->setText(QString("Mean Deviation: -"));
+		ui.m_meanDeviationLabel->setText(QString("Mean #Unequal Bytes: -"));
 	}
 }
 
@@ -1794,10 +1809,15 @@ void v4l2test::OnGetReferenceImage()
 
 				file.close();
 
-				if (m_FrameRecordVector.size())
-				{
-					ui.m_CalcDeviationButton->setEnabled(true);
-				}
+                if(m_bIsOpen)
+                {
+                    ui.m_CalcLiveDeviationButton->setEnabled(true);
+                    
+                    if (m_FrameRecordVector.size())
+                    {
+                        ui.m_CalcDeviationButton->setEnabled(true);
+                    }                    
+                }
 			}
 			else
 			{
@@ -1929,19 +1949,19 @@ void v4l2test::OnExportFrame()
 }
 
 
-void v4l2test::OnCalcDeviationReady(unsigned int tableRow, double deviation, bool done)
+void v4l2test::OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBytes, bool done)
 {
-	if(deviation < 0)
+	if(numberOfUnequalBytes < 0)
 	{
 		m_deviationErrors++;
 	}
 	else
 	{
-		m_MeanDeviation += deviation;
+		m_MeanNumberOfUnequalBytes += numberOfUnequalBytes;
 
-		QTableWidgetItem* item_deviation = new QTableWidgetItem();
-		item_deviation->setText(QString::number(deviation));
-		ui.m_FrameRecordTable->setItem(tableRow, 8, item_deviation);
+		QTableWidgetItem* item_unequalBytes = new QTableWidgetItem();
+		item_unequalBytes->setText(QString::number(numberOfUnequalBytes));
+		ui.m_FrameRecordTable->setItem(tableRow, 8, item_unequalBytes);
 	}
 
 	if(done)
@@ -1952,11 +1972,11 @@ void v4l2test::OnCalcDeviationReady(unsigned int tableRow, double deviation, boo
 
 		if(m_deviationErrors < ui.m_FrameRecordTable->rowCount())
 		{
-			ui.m_meanDeviationLabel->setText(QString("Mean Deviation: %1 %").arg(m_MeanDeviation / ui.m_FrameRecordTable->rowCount() * 100));
+			ui.m_meanDeviationLabel->setText(QString("Mean #Unequal Bytes: %1").arg(m_MeanNumberOfUnequalBytes / ui.m_FrameRecordTable->rowCount()));
 		}
 		else
 		{
-			ui.m_meanDeviationLabel->setText(QString("Mean Deviation: -"));
+			ui.m_meanDeviationLabel->setText(QString("Mean #Unequal Bytes: -"));
 			QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixelformat!"), tr("") );	
 		}
 
@@ -1964,6 +1984,7 @@ void v4l2test::OnCalcDeviationReady(unsigned int tableRow, double deviation, boo
 		ui.m_CalcDeviationButton->setEnabled(true);
 		ui.m_DeleteRecording->setEnabled(true);
 		ui.m_GetReferenceButton->setEnabled(true);
+        ui.m_CalcLiveDeviationButton->setEnabled(true);
 		m_CalcThread.clear();
 	}
 }
@@ -1974,8 +1995,9 @@ void v4l2test::OnCalcDeviation()
 	ui.m_CalcDeviationButton->setEnabled(false);
 	ui.m_DeleteRecording->setEnabled(false);
 	ui.m_GetReferenceButton->setEnabled(false);
+    ui.m_CalcLiveDeviationButton->setEnabled(false);
 
-	m_MeanDeviation = 0;
+	m_MeanNumberOfUnequalBytes = 0;
 	m_deviationErrors = 0;
 
 	std::map<unsigned int, QSharedPointer<MyFrame> > tableRowToFrame;
@@ -2003,11 +2025,76 @@ void v4l2test::OnCalcDeviation()
 	// calculate in separate thread
 	m_CalcThread = QSharedPointer<DeviationCalculator>(new DeviationCalculator(m_ReferenceImage, tableRowToFrame));
 
-	connect(m_CalcThread.data(), SIGNAL(OnCalcDeviationReady_Signal(unsigned int, double, bool)),
-	        this, SLOT(OnCalcDeviationReady(unsigned int, double, bool)));
+	connect(m_CalcThread.data(), SIGNAL(OnCalcDeviationReady_Signal(unsigned int, int, bool)),
+	        this, SLOT(OnCalcDeviationReady(unsigned int, int, bool)));
 
 	m_CalcThread->start();
 }
+
+void v4l2test::OnCalcLiveDeviation()
+{
+    // start calc live deviation
+    if(ui.m_CalcLiveDeviationButton->isChecked())
+    {
+        ui.m_StartRecordButton->setEnabled(false);
+        ui.m_StopRecordButton->setEnabled(false);
+        ui.m_CalcDeviationButton->setEnabled(false);
+        ui.m_DeleteRecording->setEnabled(false);
+        ui.m_SaveFrameSeriesButton->setEnabled(false);
+        ui.m_DisplaySaveFrame->setEnabled(false);
+        ui.m_ExportRecordedFrameButton->setEnabled(false);
+        ui.m_GetReferenceButton->setEnabled(false);
+        ui.m_FrameRecordTable->setDisabled(true);
+        
+        m_LiveDeviationFrameCount = 0;
+        m_LiveDeviationUnequalBytes = 0;
+        m_Camera.SetLiveDeviationCalc(m_ReferenceImage);
+    }
+    // stop calc live deviation
+    else
+    {
+        // pass a QShared-Null-Pointer to disable live deviation calc
+        m_Camera.SetLiveDeviationCalc(QSharedPointer<QByteArray>());
+        
+        ui.m_StartRecordButton->setEnabled(true);
+        ui.m_StopRecordButton->setEnabled(false);
+        ui.m_GetReferenceButton->setEnabled(true);
+        ui.m_FrameRecordTable->setDisabled(false);
+        
+        if(m_FrameRecordVector.size())
+        {
+            ui.m_DeleteRecording->setEnabled(true);
+            ui.m_SaveFrameSeriesButton->setEnabled(true);
+            
+            if(m_ReferenceImage)
+            {
+                ui.m_CalcDeviationButton->setEnabled(true);
+            }
+        }
+    }
+}
+
+void v4l2test::OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes)
+{
+    // invalid reference image
+    if(numberOfUnequalBytes < 0)
+    {
+        // stop calc live deviation
+        ui.m_CalcLiveDeviationButton->setChecked(false);
+        OnCalcLiveDeviation();
+        
+        QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixelformat!"), tr("") );	
+    }
+    // valid reference image
+    else
+    {    
+        m_LiveDeviationFrameCount++;
+        m_LiveDeviationUnequalBytes += numberOfUnequalBytes;
+        
+        ui.m_meanDeviationLabel->setText(QString("Live Deviation: Received frames: %1; Unequal Bytes: %2; Average %3 Unequal Bytes/Frame").arg(m_LiveDeviationFrameCount).arg(m_LiveDeviationUnequalBytes).arg(((double)m_LiveDeviationUnequalBytes)/m_LiveDeviationFrameCount));
+    }
+}
+
 
 void v4l2test::OnWidth()
 {
@@ -2922,5 +3009,6 @@ void v4l2test::SetTitleText(QString additionalText)
 		setWindowTitle(QString("%1 %2 - %3. view  %4").arg(PROGRAM_NAME, PROGRAM_VERSION).arg(m_nViewerNumber).arg(additionalText));
 	*/
 }
+
 
 

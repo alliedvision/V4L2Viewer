@@ -1,6 +1,7 @@
 <RCC>
   <qresource prefix="v4l2test">
     <file>loading-animation.gif</file>
+    <file>calculate-live.png</file>
     <file>export.png</file>
     <file>addReference.ico</file>
     <file>back.ico</file>

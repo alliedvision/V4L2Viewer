@@ -20,29 +20,10 @@ void DeviationCalculator::run()
 				unsigned int row = it->first;
 				QSharedPointer<MyFrame> frame = it->second;
 
-				QByteArray compareFrame((char*)frame->GetBuffer(), frame->GetBufferlength());
+				QSharedPointer<QByteArray> compareFrame( new QByteArray((char*)frame->GetBuffer(), frame->GetBufferlength()));
 				double deviation;
-
-				// set deviation to error if the two frames cannot be compared
-				if (m_referenceFrame->size() != compareFrame.size())
-				{
-					deviation = -1.0;
-				}
-				// compare frames bytewise
-				else
-				{
-					unsigned int unequalBytes = 0;
-					for (int i = 0; i < m_referenceFrame->size(); ++i)
-					{
-						if (m_referenceFrame->at(i) != compareFrame.at(i))
-						{
-							unequalBytes++;
-						}
-					}
-					deviation = ((double)unequalBytes)/((double)m_referenceFrame->size());
-				}
-				 
-				emit OnCalcDeviationReady_Signal(row, deviation, (it == --m_tableRowToFrame.end()));
+                
+				emit OnCalcDeviationReady_Signal(row, CountUnequalBytes(m_referenceFrame, compareFrame), (it == --m_tableRowToFrame.end()));
 			}
 		}
 		// return error if map is empty
@@ -56,4 +37,28 @@ void DeviationCalculator::run()
 	{
 		emit OnCalcDeviationReady_Signal(0, -1.0, true);
 	}	
+}
+
+int DeviationCalculator::CountUnequalBytes(QSharedPointer<QByteArray> reference, QSharedPointer<QByteArray> compareFrame)
+{
+    int unequalBytes = 0;
+    
+    // set deviation to error if the two frames cannot be compared
+    if (reference->size() != compareFrame->size())
+    {
+        unequalBytes = -1;
+    }
+    // compare frames bytewise
+    else
+    {
+        for (int i = 0; i < reference->size(); ++i)
+        {
+            if (reference->at(i) != compareFrame->at(i))
+            {
+                unequalBytes++;
+            }
+        }
+    }
+    
+    return unequalBytes;
 }
