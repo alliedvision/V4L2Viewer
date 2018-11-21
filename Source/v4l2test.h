@@ -149,6 +149,8 @@ private:
     unsigned int m_LiveDeviationFrameCount;
     // number of unequal bytes of live deviation calc
     unsigned long long m_LiveDeviationUnequalBytes;
+    // number of frames with unequal bytes
+    unsigned int m_LiveDeviationNumberOfErrorFrames;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);

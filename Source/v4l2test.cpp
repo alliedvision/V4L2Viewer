@@ -2046,6 +2046,7 @@ void v4l2test::OnCalcLiveDeviation()
         ui.m_GetReferenceButton->setEnabled(false);
         ui.m_FrameRecordTable->setDisabled(true);
         
+        m_LiveDeviationNumberOfErrorFrames = 0;
         m_LiveDeviationFrameCount = 0;
         m_LiveDeviationUnequalBytes = 0;
         m_Camera.SetLiveDeviationCalc(m_ReferenceImage);
@@ -2090,8 +2091,16 @@ void v4l2test::OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes)
     {    
         m_LiveDeviationFrameCount++;
         m_LiveDeviationUnequalBytes += numberOfUnequalBytes;
+        if(numberOfUnequalBytes > 0)
+        {
+            m_LiveDeviationNumberOfErrorFrames++;
+        }
         
-        ui.m_meanDeviationLabel->setText(QString("Live Deviation: Received frames: %1; Unequal Bytes: %2; Average %3 Unequal Bytes/Frame").arg(m_LiveDeviationFrameCount).arg(m_LiveDeviationUnequalBytes).arg(((double)m_LiveDeviationUnequalBytes)/m_LiveDeviationFrameCount));
+        ui.m_FrameIDRecording->setText(QString(""));
+        ui.m_FrameIDStartedRecord->setText(QString("Processed frames: %1").arg(m_LiveDeviationFrameCount));
+        ui.m_FrameIDStoppedRecord->setText(QString("Error Frames: %1").arg(m_LiveDeviationNumberOfErrorFrames));
+        ui.m_FramesInQueue->setText(QString("Unequal Bytes: %1").arg(m_LiveDeviationUnequalBytes));
+        ui.m_meanDeviationLabel->setText(QString("Live Comparison: Average %3 Unequal Bytes/Frame").arg(((double)m_LiveDeviationUnequalBytes)/m_LiveDeviationFrameCount));
     }
 }
 
