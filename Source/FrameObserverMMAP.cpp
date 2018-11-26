@@ -252,6 +252,22 @@ int FrameObserverMMAP::DeleteAllUserBuffer()
 {
     int result = 0;
 
+    AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+
+    // delete all user buffer
+    for (int x = 0; x < m_UserBufferContainerList.size(); x++)
+    {
+        munmap(m_UserBufferContainerList[x]->pBuffer, m_UserBufferContainerList[x]->nBufferlength);
+	      
+        if (0 != m_UserBufferContainerList[x])
+        {
+            delete m_UserBufferContainerList[x];
+        }
+    }
+
+    m_UserBufferContainerList.resize(0);
+
+
     // free all internal buffers
     v4l2_requestbuffers req;
     // creates user defined buffer
@@ -261,22 +277,7 @@ int FrameObserverMMAP::DeleteAllUserBuffer()
     req.memory = V4L2_MEMORY_MMAP;
 
     // requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
-    V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
-	
-    {
-	AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
-	
-	// delete all user buffer
-	for (int x = 0; x < m_UserBufferContainerList.size(); x++)
-	{
-	    munmap(m_UserBufferContainerList[x]->pBuffer, m_UserBufferContainerList[x]->nBufferlength);
-	      
-	    if (0 != m_UserBufferContainerList[x])
-		delete m_UserBufferContainerList[x];
-	}
-    	
-	m_UserBufferContainerList.resize(0);
-    }
+    result = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
 	
     return result;
 }
