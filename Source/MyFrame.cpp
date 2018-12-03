@@ -33,9 +33,10 @@ MyFrame::MyFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
 		 uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
 	: m_FrameId(0)
 {
+    // this constructor is used by the ImageProc thread
+
     m_FrameId = frameID;
-    m_buffer.resize(length);
-    memcpy(m_buffer.data(), buffer, length);
+    m_bufferPtr = buffer;
     m_bufferlength = length; 
     m_Width = width;
     m_Height = height;
@@ -51,6 +52,8 @@ MyFrame::MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_
      uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
   : m_FrameId(0)
 {
+    // this constructor is used by the recorder
+
     m_buffer.resize(length);
     memcpy(m_buffer.data(), buffer, length);
     m_Image = image;
@@ -62,6 +65,7 @@ MyFrame::MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_
     m_PayloadSize = payloadSize;
     m_BytesPerLine = bytesPerLine;
     m_bufferIndex = bufferIndex;
+    m_bufferPtr = m_buffer.data();
 }
 
 MyFrame::MyFrame(QImage &image, unsigned long long frameID) 
@@ -90,7 +94,7 @@ QImage &MyFrame::GetImage()
 
 uint8_t *MyFrame::GetBuffer()
 {
-    return m_buffer.data();
+    return m_bufferPtr;
 }
 
 uint32_t MyFrame::GetBufferlength() 

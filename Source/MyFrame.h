@@ -67,6 +67,7 @@ public:
 private:
     QImage		    m_Image;
     std::vector<uint8_t> m_buffer;
+    uint8_t *           m_bufferPtr;
     uint64_t			m_FrameId;	
     uint32_t      m_Width;
     uint32_t 			m_Height;
