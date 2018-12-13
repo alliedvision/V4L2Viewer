@@ -162,6 +162,8 @@ public:
 
     // Misc
     void SwitchFrameTransfer2GUI(bool showFrames);
+    
+    std::string getAvtDeviceFirmwareVersion();
 
 private:
     std::string         m_DeviceName;
@@ -171,6 +173,16 @@ private:
     bool                m_useV4l2TryFmt;
     bool                m_UseExtendedControls;
     bool                m_Recording;
+    bool                m_isAvtCamera;
+    
+    struct v4l2_i2c
+    {
+        __u32       nRegisterAddress;       // Register
+        __u32       nTimeout;               // Timeout value
+        const char  *pBuffer;               // I/O buffer
+        __u32       nRegisterSize;          // Register size
+        __u32       nNumBytes;              // Bytes to read
+    };
 
     CameraObserver                  m_DeviceDiscoveryCallbacks;
     QSharedPointer<FrameObserver>   m_StreamCallbacks;

@@ -831,6 +831,8 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
 		OnLog("---- Device Info ");
 		OnLog("---------------------------------------------");
 
+        OnLog(QString("Camera FW version = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion())));
+        
 		m_Camera.GetCameraDriverName(tmp);
 		OnLog(QString("Driver name = %1").arg(tmp.c_str()));
 		m_Camera.GetCameraDeviceName(tmp);

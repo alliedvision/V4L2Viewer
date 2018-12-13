@@ -60,6 +60,7 @@ Camera::Camera()
     , m_BlockingMode(false)
     , m_ShowFrames(true)
     , m_useV4l2TryFmt(true)
+    , m_isAvtCamera(false)
 {
     connect(&m_DeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
 }
@@ -131,6 +132,8 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
 		}
 		else
 		{
+            getAvtDeviceFirmwareVersion();
+            
 			Logger::LogEx("Camera::OpenDevice open %s OK", deviceName.c_str());
 			emit OnCameraMessage_Signal("OpenDevice: open " + QString(deviceName.c_str()) + " OK");
 	
@@ -1148,6 +1151,15 @@ int Camera::ReadControl(uint32_t &value, uint32_t controlID, const char *functio
 	
     if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
     {
+        
+    // check if control is disbled V4L2_CTRL_FLAG_DISABLED
+    if(ctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s is not supported!", functionName, controlName);
+        emit OnCameraMessage_Signal(QString("Camera::%1 VIDIOC_QUERYCTRL %2 is not supported!").arg(functionName).arg(controlName));        
+        return -2;
+    }
+        
 	v4l2_control fmt;
 	
 	Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
@@ -1962,6 +1974,13 @@ int Camera::GetCameraCapabilities(std::string &strText)
 	{
 		Logger::LogEx("Camera::GetCameraCapabilities VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
 	}
+	
+	std::string driverName((char*)cap.driver);
+    std::string avtDriverName = "avt";
+    if(driverName.find(avtDriverName) != std::string::npos)
+    {
+        m_isAvtCamera = true;
+    }
 
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) 
 	{
@@ -1976,7 +1995,6 @@ int Camera::GetCameraCapabilities(std::string &strText)
 			<< "    Streaming = " << ((cap.capabilities & V4L2_CAP_STREAMING)?"Yes":"No");
 		Logger::LogEx("Camera::GetCameraCapabilities VIDIOC_QUERYCAP %s driver version=%s\n", m_DeviceName.c_str(), tmp.str().c_str());
 	}
-
 	
     strText = tmp.str();
     
@@ -2125,6 +2143,80 @@ int Camera::ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData)
     
     emit OnCameraMessage_Signal(QString("ReadCSVFile: data cache filled with %1 bytes.").arg(width*height));
 }
+
+
+std::string Camera::getAvtDeviceFirmwareVersion()
+{
+    std::string result = "";
+    
+    if(m_StreamCallbacks)
+    {        
+        // dummy call to set m_isAvtCamera
+        std::string dummy;
+        GetCameraCapabilities(dummy);
+        
+        if(m_isAvtCamera)
+        {
+            const int CCI_BCRM_REG = 0x0014;
+            const int BCRM_DEV_FW_VERSION = 0x0010;
+            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
+         
+            uint16_t nBCRMAddress;
+            char pBuffer[2];
+            memset(pBuffer, 0, sizeof(pBuffer));   
+     
+            // get BCRM address offset
+            struct v4l2_i2c i2c_reg;
+            i2c_reg.nRegisterAddress = (__u32)CCI_BCRM_REG;
+            i2c_reg.nRegisterSize = (__u32)2;
+            i2c_reg.nNumBytes = (__u32)sizeof(pBuffer);
+            i2c_reg.pBuffer = pBuffer;
+
+            int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+            
+            if (res >= 0)
+            {
+                nBCRMAddress = ( (((uint16_t)pBuffer[0] << 8) & 0xFF00) | ((uint16_t)pBuffer[1] & 0x00FF) );
+                
+                uint64_t deviceFirmwareVersion = 0;
+                char pBuf[8];
+                memset(pBuf, 0, sizeof(pBuf));   
+                
+                i2c_reg.nRegisterAddress = (__u32)nBCRMAddress + BCRM_DEV_FW_VERSION;
+                i2c_reg.nRegisterSize = (__u32)2;
+                i2c_reg.nNumBytes = (__u32)sizeof(pBuf);
+                i2c_reg.pBuffer = pBuf;
+                
+                res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+                
+                if (res >= 0)
+                {
+                    deviceFirmwareVersion = (  (((uint64_t)pBuf[0] << 56) & 0xFF00000000000000) | 
+                                (((uint64_t)pBuf[1] << 48) & 0x00FF000000000000) | 
+                                (((uint64_t)pBuf[2] << 40) & 0x0000FF0000000000) | 
+                                (((uint64_t)pBuf[3] << 32) & 0x000000FF00000000) | 
+                                (((uint64_t)pBuf[4] << 24) & 0x00000000FF000000) | 
+                                (((uint64_t)pBuf[5] << 16) & 0x0000000000FF0000) |
+                                (((uint64_t)pBuf[6] <<  8) & 0x000000000000FF00) |
+                                ((uint64_t)pBuf[7]        & 0x00000000000000FF) );
+                   
+                                      
+                    uint32_t patchVersion = (deviceFirmwareVersion >> 32) & 0xFFFFFFFF;
+                    uint16_t minorVersion = (deviceFirmwareVersion >> 16) & 0xFFFF;                    
+                    uint8_t majorVersion = (deviceFirmwareVersion >> 8) & 0xFF;
+                    uint8_t specialVersion = (deviceFirmwareVersion & 0xFF);      
+                    
+                    std::stringstream ss;
+                    ss << (unsigned)specialVersion << "." << (unsigned)majorVersion << "." << (unsigned)minorVersion << "." << (unsigned)patchVersion;
+                    result = ss.str();
+                }
+            }
+        }
+    }
+    
+    return result;
+}
+
 
 
 }}} // namespace AVT::Tools::Examples
