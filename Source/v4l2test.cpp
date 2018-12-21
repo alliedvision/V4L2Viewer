@@ -53,8 +53,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define APP_VERSION_MAJOR   1
 #define APP_VERSION_MINOR   36
 #define APP_VERSION_PATCH   0
-#ifndef SVN_REV
-#define SVN_REV             0
+#ifndef SCM_REVISION
+#define SCM_REVISION        0
 #endif
 
 
@@ -2705,9 +2705,9 @@ void v4l2test::Check4IOReadAbility()
 void v4l2test::SetTitleText(QString additionalText)
 {
 	if (VIEWER_MASTER == m_nViewerNumber)
-		setWindowTitle(QString("%1 V%2.%3.%4.%5 - master view  %6").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(SVN_REV).arg(additionalText));
+		setWindowTitle(QString("%1 V%2.%3.%4.%5 - master view  %6").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(SCM_REVISION).arg(additionalText));
 	else
-		setWindowTitle(QString("%1 V%2.%3.%4.%5 - %6. viewer %7").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(SVN_REV).arg(m_nViewerNumber).arg(additionalText));
+		setWindowTitle(QString("%1 V%2.%3.%4.%5 - %6. viewer %7").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(SCM_REVISION).arg(m_nViewerNumber).arg(additionalText));
 	
 
 	/*

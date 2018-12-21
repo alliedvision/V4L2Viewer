@@ -52,9 +52,13 @@ BIN_FILE = $($(call MACRO_TOUPPER,$(OUTPUT))_PREFIX)$(PROJECT_NAME)$($(call MACR
 # required libs
 LIBS = pthread
 
+SCMDEV:='SCM_REVISION="$(shell ./scm_version.sh ./../..)"'
+
 # require packages
 PACKAGES 	= 	QtCore \
 				QtSvg \
+
+DEFINES		= $(SCMDEV)
 
 # object files
 OBJ_FILES	= 	$(OBJ_DIR)/BaseLogger.o \
