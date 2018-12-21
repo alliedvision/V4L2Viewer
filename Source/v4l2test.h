@@ -8,7 +8,7 @@
 
   File:        v4l2test.h
 
-  Description: 
+  Description:
 
 -------------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@
 #include <MyFrame.h>
 #include <Camera.h>
 #include <FrameObserver.h>
+#include <DeviationCalculator.h>
 
 using namespace AVT::Tools::Examples;
 
@@ -51,72 +52,73 @@ public:
     ~v4l2test();
 
 private:
+
     // Graphics scene to show the image
-	std::list<QSharedPointer<v4l2test> > m_pViewer;
+    std::list<QSharedPointer<v4l2test> > m_pViewer;
     int m_nViewerNumber;
-    
+
     bool m_BLOCKING_MODE;
     IO_METHOD_TYPE m_MMAP_BUFFER;
     bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
     bool m_ExtendedControls;
-	
+
     // The currently streaming camera
-	Camera m_Camera;
-    
+    Camera m_Camera;
+
     uint32_t m_nDroppedFrames;
     uint32_t m_nStreamNumber;
-    
-	// The Qt GUI
+
+    // The Qt GUI
     Ui::v4l2testTestClass ui;
-	// The menu widget to setup the number of used frames
-	QWidgetAction *m_NumberOfUsedFramesWidgetAction;
-	// The line which holds the number of used frames
-	QLineEdit *m_NumberOfUsedFramesLineEdit;
-	// The menu widget to setup the number of dumped frames
-	QWidgetAction *m_LogFrameRangeWidgetAction;
-	// The line which holds the number dumped frames
-	QLineEdit *m_LogFrameRangeLineEdit;
-	// The menu widget to setup the number of dumped frames
-	QWidgetAction *m_DumpByteFrameRangeWidgetAction;
-	// The line which holds the number dumped frames
-	QLineEdit *m_DumpByteFrameRangeLineEdit;
-	// The menu widget to setup the number of CSV File
-	QWidgetAction *m_CSVFileWidgetAction;
-	// The line which holds the number CSV File
-	QLineEdit *m_CSVFileLineEdit;
-	// The menu widget to setup the number of CSV File
-	QWidgetAction *m_ToggleStreamDelayRandWidgetAction;
-	// The line which holds the number CSV File
-	QLineEdit *m_ToggleStreamDelayRandLineEdit;
-	QCheckBox *m_ToggleStreamDelayRandCheckBox;
-	// The menu widget to setup the number of CSV File
-	QWidgetAction *m_ToggleStreamDelayWidgetAction;
-	// The line which holds the number CSV File
-	QLineEdit *m_ToggleStreamDelayLineEdit;
-	QCheckBox *m_ToggleStreamDelayCheckBox;
-	// A list of known camera IDs
+    // The menu widget to setup the number of used frames
+    QWidgetAction *m_NumberOfUsedFramesWidgetAction;
+    // The line which holds the number of used frames
+    QLineEdit *m_NumberOfUsedFramesLineEdit;
+    // The menu widget to setup the number of dumped frames
+    QWidgetAction *m_LogFrameRangeWidgetAction;
+    // The line which holds the number dumped frames
+    QLineEdit *m_LogFrameRangeLineEdit;
+    // The menu widget to setup the number of dumped frames
+    QWidgetAction *m_DumpByteFrameRangeWidgetAction;
+    // The line which holds the number dumped frames
+    QLineEdit *m_DumpByteFrameRangeLineEdit;
+    // The menu widget to setup the number of CSV File
+    QWidgetAction *m_CSVFileWidgetAction;
+    // The line which holds the number CSV File
+    QLineEdit *m_CSVFileLineEdit;
+    // The menu widget to setup the number of CSV File
+    QWidgetAction *m_ToggleStreamDelayRandWidgetAction;
+    // The line which holds the number CSV File
+    QLineEdit *m_ToggleStreamDelayRandLineEdit;
+    QCheckBox *m_ToggleStreamDelayRandCheckBox;
+    // The menu widget to setup the number of CSV File
+    QWidgetAction *m_ToggleStreamDelayWidgetAction;
+    // The line which holds the number CSV File
+    QLineEdit *m_ToggleStreamDelayLineEdit;
+    QCheckBox *m_ToggleStreamDelayCheckBox;
+    // A list of known camera IDs
     std::vector<uint32_t> m_cameras;
-	// Is a camera open?
-	bool m_bIsOpen;
-	// The current streaming state
-	bool m_bIsStreaming;
+    // Is a camera open?
+    bool m_bIsOpen;
+    // The current streaming state
+    bool m_bIsStreaming;
     //// Our Qt image to display
-	double m_dScaleFactor;
-	//// Our Qt image to display
-	bool m_dFitToScreen;
-	// Timer to togle the stream
-	QTimer m_StreamToggleTimer;
+    double m_dScaleFactor;
+    //// Our Qt image to display
+    bool m_dFitToScreen;
+    // Timer to togle the stream
+    QTimer m_StreamToggleTimer;
     // Timer to show the frames received from the frame observer
-	QTimer m_FramesReceivedTimer;
+    QTimer m_FramesReceivedTimer;
     // Timer to check for controller timeouts
-	QTimer m_ControlRequestTimer;
-	// Graphics scene to show the image
-	QSharedPointer<QGraphicsScene> m_pScene;
-	// Pixel map for the graphics scene
-	QGraphicsPixmapItem *m_PixmapItem;
-	// Direct access value
-	uint64_t m_DirectAccessData;
+    QTimer m_ControlRequestTimer;
+    // Graphics scene to show the image
+    QSharedPointer<QGraphicsScene> m_pScene;
+    // Pixel map for the graphics scene
+    QGraphicsPixmapItem *m_PixmapItem;
+    // Direct access value
+    uint64_t m_DirectAccessData;
     // save a frame dialog
     QFileDialog *m_SaveFileDialog;
     // save a frame directory
@@ -124,47 +126,70 @@ private:
     // save a frame extension
     QString m_SelectedExtension;
     // save a frame name
-    QString m_SaveImageName;   
+    QString m_SaveImageName;
     // store radio buttons for blocking/non-blocking mode in a group
     QButtonGroup* m_BlockingModeRadioButtonGroup;
     // load reference image dialog
     QFileDialog *m_ReferenceImageDialog;
     // reference image
-    QPixmap *m_ReferenceImage; 
+    QSharedPointer<QByteArray> m_ReferenceImage;
+    // thread to calculate deviation
+    QSharedPointer<DeviationCalculator> m_CalcThread;
+    // for calculating the mean deviation to the reference image
+    int m_MeanNumberOfUnequalBytes;
+    // for checking if deviation calculation was successful
+    unsigned int m_deviationErrors;
+    // show loading gif during deviation calculation
+    QMovie *m_LoadingAnimation;
+    // vector for recorded frames
+    QVector<QSharedPointer<MyFrame> > m_FrameRecordVector;
+    // max size of framerecordvector
+    const static int MAX_RECORD_FRAME_VECTOR_SIZE = 100;
+    // frames received for live deviation calc
+    unsigned int m_LiveDeviationFrameCount;
+    // number of unequal bytes of live deviation calc
+    unsigned long long m_LiveDeviationUnequalBytes;
+    // number of frames with unequal bytes
+    unsigned int m_LiveDeviationNumberOfErrorFrames;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
-	// Update the viewer range
-	void UpdateViewerLayout();
-	// Update the zoom buttons
-	void UpdateZoomButtons();
-	// Open/Close the camera
-	int OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName);
+    // Update the viewer range
+    void UpdateViewerLayout();
+    // Update the zoom buttons
+    void UpdateZoomButtons();
+    // Open/Close the camera
+    int OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName);
     int CloseCamera(const uint32_t cardNumber);
-	// called by OnCameraPayloadSizeReady when payloadsize arrieved
+    // called by OnCameraPayloadSizeReady when payloadsize arrieved
     void StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
-    
+
     // update record listing
     void InitializeTableWidget();
     void UpdateRecordTableWidget();
-    void DeleteRecordTableWidget();
+    QSharedPointer<MyFrame> getSelectedRecordedFrame();
+
 
     // Official QT dialog close event callback
     virtual void closeEvent(QCloseEvent *event);
-	virtual void mousePressEvent(QMouseEvent *event);
-	virtual void wheelEvent(QWheelEvent *event);
+    virtual void mousePressEvent(QMouseEvent *event);
+    virtual void wheelEvent(QWheelEvent *event);
 
     // called by master viewer window
     void RemoteClose();
-	
+
     void GetImageInformation();
-	
+
     // Check if IO Read was checked and remove it when not capable
     void Check4IOReadAbility();
-    
+
     void SetTitleText(QString additionalText);
-	
+
     void UpdateCameraFormat();
+    // returns the file destination for saving the frame
+    void SaveFrameDialog(bool raw);
+    // Saves the given frame to the given destination 
+    void SaveFrame(QSharedPointer<MyFrame> frame, QString filepath, bool raw);
 
 private slots:
     void OnLogToFile();
@@ -230,9 +255,7 @@ private slots:
     // Event will be called on message
     void OnCameraMessage(const QString &text);
     // Event will be called when the a frame is recorded
-    void OnCameraRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue);
-    // Event will be called when the a frame is displayed
-    void OnCameraDisplayFrame(const unsigned long long &frameID);
+    void OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame);
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
     // The event handler to read a register per direct access
@@ -246,49 +269,65 @@ private slots:
     void OnCropYOffset();
     void OnCropWidth();
     void OnCropHeight();
-    
-    void OnStartRecording();
-    void OnStopRecording();
-    void OnBackwardDisplay();
-    void OnForwardDisplay();
-    void OnDeleteRecording();
-    void OnSaveFrame();
-    void OnSaveFrameSeries();
-    void OnCalcDeviation();
-    void OnGetReferenceImage();
-	
-	void OnWidth();
-	void OnHeight();
-	void OnPixelformat();
-	void OnGain();
-	void OnAutoGain();
-	void OnExposure();
-	void OnAutoExposure();
-    void OnExposureAbs();
-	void OnPixelformatDBLClick(QListWidgetItem *);
-	void OnFramesizesDBLClick(QListWidgetItem *);
-	void OnGamma();
-	void OnReverseX();
-	void OnReverseY();
-	void OnSharpness();
-	void OnBrightness();
-	void OnContrast();
-	void OnSaturation();
-	void OnHue();
-	void OnContinousWhiteBalance();
-	void OnWhiteBalanceOnce();
-	void OnRedBalance();
-	void OnBlueBalance();
-	void OnFramerate();
-	void OnCropCapabilities();
-	void OnReadAllValues();
 
-	
-	void OnCameraPixelformat(const QString &);
-	void OnCameraFramesize(const QString &);
-	
-	void OnToggleStreamDelayRand();
-	void OnToggleStreamDelay();
+    // Button start recording clicked
+    void OnStartRecording();
+    // Button stop recording clicked
+    void OnStopRecording();
+    // User has selected a row in the record table
+    void OnRecordTableSelectionChanged(const QItemSelection &, const QItemSelection &);
+    // Button delete recording clicked
+    void OnDeleteRecording();
+    // Button save frame clicked
+    void OnSaveFrame();
+    // Button save frame series clicked
+    void OnSaveFrameSeries();
+    // Button calc deviation clicked
+    void OnCalcDeviation();
+    // Button calc live deviation clicked
+    void OnCalcLiveDeviation();
+    
+    void OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes);
+    
+    // Button load reference image clicked
+    void OnGetReferenceImage();
+    // Deviation calculator thread has calculated the deviation of one frame
+    void OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBytes, bool done);
+    // Button export frame clicked
+    void OnExportFrame();
+
+    void OnWidth();
+    void OnHeight();
+    void OnPixelformat();
+    void OnGain();
+    void OnAutoGain();
+    void OnExposure();
+    void OnAutoExposure();
+    void OnExposureAbs();
+    void OnPixelformatDBLClick(QListWidgetItem *);
+    void OnFramesizesDBLClick(QListWidgetItem *);
+    void OnGamma();
+    void OnReverseX();
+    void OnReverseY();
+    void OnSharpness();
+    void OnBrightness();
+    void OnContrast();
+    void OnSaturation();
+    void OnHue();
+    void OnContinousWhiteBalance();
+    void OnWhiteBalanceOnce();
+    void OnRedBalance();
+    void OnBlueBalance();
+    void OnFramerate();
+    void OnCropCapabilities();
+    void OnReadAllValues();
+
+
+    void OnCameraPixelformat(const QString &);
+    void OnCameraFramesize(const QString &);
+
+    void OnToggleStreamDelayRand();
+    void OnToggleStreamDelay();
 };
 
 #endif // v4l2test_H
