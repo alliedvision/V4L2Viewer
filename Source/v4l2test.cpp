@@ -2175,6 +2175,8 @@ void v4l2test::OnPixelformat()
 
 		OnLog(QString("Pixelformat set to %1").arg(ui.m_edPixelformat->text().toInt()));
 	}
+	
+	OnReadAllValues();
 }
 
 void v4l2test::OnGain()
@@ -2632,6 +2634,8 @@ void v4l2test::OnCropWidth()
 			}
 		}
 	}
+	
+	OnReadAllValues();
 }
 
 void v4l2test::OnCropHeight()
@@ -2662,6 +2666,8 @@ void v4l2test::OnCropHeight()
 			}
 		}
 	}
+	
+	OnReadAllValues();
 }
 
 void v4l2test::OnCropCapabilities()
