@@ -2218,5 +2218,151 @@ std::string Camera::getAvtDeviceFirmwareVersion()
 }
 
 
+std::string Camera::getAvtDeviceTemperature()
+{
+  std::string result = "";
+    
+    if(m_StreamCallbacks)
+    {        
+        // dummy call to set m_isAvtCamera
+        std::string dummy;
+        GetCameraCapabilities(dummy);
+        
+        if(m_isAvtCamera)
+        {
+            const int CCI_BCRM_REG = 0x0014;
+            const int BCRM_DEV_TEMPERATURE = 0x0310;
+            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
+         
+            uint16_t nBCRMAddress;
+            char pBuffer[2];
+            memset(pBuffer, 0, sizeof(pBuffer));   
+     
+            // get BCRM address offset
+            struct v4l2_i2c i2c_reg;
+            i2c_reg.nRegisterAddress = (__u32)CCI_BCRM_REG;
+            i2c_reg.nRegisterSize = (__u32)2;
+            i2c_reg.nNumBytes = (__u32)sizeof(pBuffer);
+            i2c_reg.pBuffer = pBuffer;
+
+            int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+            
+            if (res >= 0)
+            {
+                nBCRMAddress = ( (((uint16_t)pBuffer[0] << 8) & 0xFF00) | ((uint16_t)pBuffer[1] & 0x00FF) );
+                
+                int32_t deviceTemperture = 0;
+                char pBuf[4];
+                memset(pBuf, 0, sizeof(pBuf));   
+                
+                i2c_reg.nRegisterAddress = (__u32)nBCRMAddress + BCRM_DEV_TEMPERATURE;
+                i2c_reg.nRegisterSize = (__u32)2;
+                i2c_reg.nNumBytes = (__u32)sizeof(pBuf);
+                i2c_reg.pBuffer = pBuf;
+                
+                res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+                
+                if (res >= 0)
+                {
+                    deviceTemperture = *(int32_t*)pBuf;
+               
+                    std::stringstream ss;
+                    ss << (signed)deviceTemperture;
+                    result = ss.str();
+                }
+            }
+        }
+    }
+    
+    return result;
+    
+}
+
+std::string Camera::getAvtDeviceSerialNumber()
+{
+    std::string result = "";
+    
+    if(m_StreamCallbacks)
+    {        
+        // dummy call to set m_isAvtCamera
+        std::string dummy;
+        GetCameraCapabilities(dummy);
+        
+        if(m_isAvtCamera)
+        {
+            const int CCI_BCRM_REG = 0x0014;
+            const int DEVICE_SERIAL_NUMBER = 0x0198;
+            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
+
+            char pBuf[64];
+            memset(pBuf, 0, sizeof(pBuf));   
+            
+            struct v4l2_i2c i2c_reg;    
+            i2c_reg.nRegisterAddress = (__u32)DEVICE_SERIAL_NUMBER;
+            i2c_reg.nRegisterSize = (__u32)2;
+            i2c_reg.nNumBytes = (__u32)sizeof(pBuf);
+            i2c_reg.pBuffer = pBuf;
+                
+            int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+                
+            if (res >= 0)
+            {
+                std::stringstream ss;
+                ss << pBuf;
+                result = ss.str();
+            }
+        }
+    }
+    
+    return result;
+}
+
+
+
+
+int Camera::ReadRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize)
+{
+    int iRet = -1;
+    const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
+
+    struct v4l2_i2c i2c_reg;
+    i2c_reg.nRegisterAddress = (__u32)nRegAddr;
+    i2c_reg.nRegisterSize = (__u32)2;
+    i2c_reg.nNumBytes = (__u32)nBufferSize;
+    i2c_reg.pBuffer = pBuffer;
+
+    int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);    
+    
+    if (res >= 0)
+    {
+        iRet = 0;
+    }
+    
+    return iRet;
+}
+
+int Camera::WriteRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize)
+{
+    int iRet = -1;
+
+    const int VIDIOC_W_I2C = _IOWR('V', 105, struct v4l2_i2c);
+    
+    struct v4l2_i2c i2c_reg;
+    i2c_reg.nRegisterAddress = (__u32)nRegAddr;
+    i2c_reg.nRegisterSize = (__u32)2;
+    i2c_reg.nNumBytes = (__u32)nBufferSize;
+    i2c_reg.pBuffer = pBuffer;
+
+    int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_W_I2C, &i2c_reg);    
+    
+    if (res >= 0)
+    {
+        iRet = 0;
+    }
+    
+    return iRet;
+}
+
+
 
 }}} // namespace AVT::Tools::Examples

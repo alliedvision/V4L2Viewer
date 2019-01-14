@@ -45,13 +45,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MAX_ZOOM_OUT (1/8.0)
 #define ZOOM_INCREMENT (2.0)
 
-#define MANUF_NAME_AV "Allied Vision"
-
-//#define PROGRAM_NAME    "Video4Linux2 Testtool"
-//#define PROGRAM_VERSION "v1.35"
-#define APP_NAME    "Video4Linux2 Testtool"
+#define MANUF_NAME_AV       "Allied Vision"
+#define APP_NAME            "Video4Linux2 Testtool"
 #define APP_VERSION_MAJOR   1
-#define APP_VERSION_MINOR   36
+#define APP_VERSION_MINOR   37
 #define APP_VERSION_PATCH   0
 #ifndef SCM_REVISION
 #define SCM_REVISION        0
@@ -115,6 +112,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 1.36  Fixed OCT-2544: Display of negative feature values for sharpness & hue.
 		Changed GUI layout
 		Fixed some code indention
+* 1.37  Added direct register access functionality		
 */
 
 static const QStringList GetImageFormats()
@@ -261,12 +259,8 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	connect(ui.m_DirectRegisterAccessWriteButton, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessWriteButtonClicked()));
 	connect(ui.m_BigEndianessRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
 	connect(ui.m_LittleEndianessRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
-	connect(ui.m_DataUintRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
-	connect(ui.m_DataIntRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
+	connect(ui.m_DataDecRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
 	connect(ui.m_DataHexRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
-	connect(ui.m_DataFloatRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
-	connect(ui.m_DataType32Radio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
-	connect(ui.m_DataType64Radio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
 	OnDirectRegisterAccessUpdateData();
 
 	// connect the buttons for the Recording
@@ -831,7 +825,10 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
 		OnLog("---- Device Info ");
 		OnLog("---------------------------------------------");
 
-        OnLog(QString("Camera FW version = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion())));
+        OnLog(QString("Camera FW Version = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion())));
+        OnLog(QString("Camera Device Temperature = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceTemperature())));
+        OnLog(QString("Camera Serial Number = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceSerialNumber())));
+        
         
 		m_Camera.GetCameraDriverName(tmp);
 		OnLog(QString("Driver name = %1").arg(tmp.c_str()));
@@ -1536,15 +1533,173 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
 	}
 	// convert the register address value
 	bool converted;
-	uint64_t address = ui.m_DirectRegisterAccessAddressLineEdit->text().toLongLong(&converted, base);
+    uint16_t address = (uint16_t)ui.m_DirectRegisterAccessAddressLineEdit->text().toInt(&converted, base);
 
 	if (converted)
 	{
-		uint64_t value;
-		// read the register from the defined address
-		//m_Camera.ReadRegister(address, 4, value);
-		OnDirectRegisterAccessUpdateData();
-		OnLog(QString("Register '%1' read returned %2.").arg(address).arg(value));
+        char *pBuffer = NULL;
+        uint32_t nSize = 0;
+        
+        if (ui.m_DataTypeCombo->currentText() == "Int8")
+        {
+            nSize = 1;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "UInt8")
+        {
+            nSize = 1;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "Int16")
+        {
+            nSize = 2;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "UInt16")
+        {
+            nSize = 2;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "Int32")
+        {
+            nSize = 4;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "UInt32")
+        {
+            nSize = 4;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "Int64")
+        {
+            nSize = 8;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "UInt64")
+        {
+            nSize = 8;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "String64")
+        {
+            nSize = 64;
+        }
+        else{
+            // Error
+            return;
+        }
+        
+        pBuffer = (char*)malloc(nSize+1);
+        memset(pBuffer, 0, nSize+1);
+        int iRet = m_Camera.ReadRegister(address, pBuffer, nSize);
+        QString strValue("");
+
+        if (iRet == 0)
+        {
+            if (ui.m_DataTypeCombo->currentText() == "Int8")
+            {
+                int8_t nVal = *(int8_t*)pBuffer;
+                strValue = ui.m_DataHexRadio->isChecked() ? 
+                    QString("0x%1").arg(nVal, 2, 16, QChar('0')) :
+                    QString("%1").arg(nVal); 
+            }
+            else
+            if (ui.m_DataTypeCombo->currentText() == "UInt8")
+            {
+                uint8_t nVal = *(uint8_t*)pBuffer;
+                strValue = ui.m_DataHexRadio->isChecked() ? 
+                    QString("0x%1").arg(nVal, 2, 16, QChar('0')) :
+                    QString("%1").arg(nVal); 
+            }
+            else
+            if (ui.m_DataTypeCombo->currentText() == "Int16")
+            {
+                int16_t nVal = *(int16_t*)pBuffer;
+                
+                if (ui.m_BigEndianessRadio->isChecked())
+                    nVal = qToBigEndian(nVal);
+                
+                strValue = ui.m_DataHexRadio->isChecked() ? 
+                    QString("0x%1").arg(nVal, 4, 16, QChar('0')) :
+                    QString("%1").arg(nVal); 
+            }
+            else
+            if (ui.m_DataTypeCombo->currentText() == "UInt16")
+            {
+                uint16_t nVal = *(uint16_t*)pBuffer;
+                
+                if (ui.m_BigEndianessRadio->isChecked())
+                    nVal = qToBigEndian(nVal);
+                
+                strValue = ui.m_DataHexRadio->isChecked() ? 
+                    QString("0x%1").arg(nVal, 4, 16, QChar('0')) :
+                    QString("%1").arg(nVal); 
+            }
+            else
+            if (ui.m_DataTypeCombo->currentText() == "Int32")
+            {
+                int32_t nVal = *(int32_t*)pBuffer;
+
+                if (ui.m_BigEndianessRadio->isChecked())
+                    nVal = qToBigEndian(nVal);
+                
+                strValue = ui.m_DataHexRadio->isChecked() ? 
+                    QString("0x%1").arg(nVal, 8, 16, QChar('0')) :
+                    QString("%1").arg(nVal); 
+            }
+            else
+            if (ui.m_DataTypeCombo->currentText() == "UInt32")
+            {
+                uint32_t nVal = *(uint32_t*)pBuffer;
+
+                if (ui.m_BigEndianessRadio->isChecked())
+                    nVal = qToBigEndian(nVal);
+
+                strValue = ui.m_DataHexRadio->isChecked() ? 
+                    QString("0x%1").arg(nVal, 8, 16, QChar('0')) :
+                    QString("%1").arg(nVal); 
+            }
+            else
+            if (ui.m_DataTypeCombo->currentText() == "Int64")
+            {
+                int64_t nVal = *(int64_t*)pBuffer;
+
+                if (ui.m_BigEndianessRadio->isChecked())
+                    nVal = qToBigEndian(nVal);
+
+                strValue = ui.m_DataHexRadio->isChecked() ? 
+                    QString("0x%1").arg(nVal, 16, 16, QChar('0')) :
+                    QString("%1").arg(nVal); 
+            }
+            else
+            if (ui.m_DataTypeCombo->currentText() == "UInt64")
+            {
+                uint64_t nVal = *(uint64_t*)pBuffer;
+
+                if (ui.m_BigEndianessRadio->isChecked())
+                    nVal = qToBigEndian(nVal);
+
+                strValue = ui.m_DataHexRadio->isChecked() ? 
+                    QString("0x%1").arg(nVal, 16, 16, QChar('0')) :
+                    QString("%1").arg(nVal); 
+            }
+            else
+            if (ui.m_DataTypeCombo->currentText() == "String64")
+            {
+                strValue = QString("%1").arg(pBuffer); 
+            }        
+            
+            OnLog(QString("Register '0x%1' read returned %2.").arg(address, 4, 16, QChar('0')).arg(strValue));
+        }
+        else
+        {
+            OnLog(QString("Error while reading register '0x%1'").arg(address, 4, 16, QChar('0')));
+        }
+
+        ui.m_DirectRegisterAccessDataLineEdit->setText(strValue);
+        
+        free(pBuffer);
+        pBuffer = NULL;
 	}
 	else
 	{
@@ -1552,72 +1707,128 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
 	}
 }
 
+
 // The event handler to write a register per direct access
 void v4l2test::OnDirectRegisterAccessWriteButtonClicked()
 {
 	// define the base of the given strings
-	int baseAddress = 10;
+	int base = 10;
 	if (0 <= ui.m_DirectRegisterAccessAddressLineEdit->text().indexOf("x"))
 	{
-		baseAddress = 16;
+		base = 16;
 	}
 
 	// convert the register address value
 	bool converted;
-	uint64_t address = ui.m_DirectRegisterAccessAddressLineEdit->text().toLongLong(&converted, baseAddress);
+	uint16_t address = (uint16_t)ui.m_DirectRegisterAccessAddressLineEdit->text().toInt(&converted, base);
 
 	if (converted)
 	{
-		uint64_t data;
+        uint64_t nVal = 0;
+        bool bValid = false;
+        char *pBuffer = NULL;
+        uint32_t nSize = 0;
+        pBuffer = (char*)malloc(65);
+        memset(pBuffer, 0, 65);
 
-		// Hex display interpretation
-		if (ui.m_DataHexRadio->isChecked())
-		{
-			data = ui.m_DirectRegisterAccessDataLineEdit->text().toLongLong(&converted, 16);
-		}
-		// unsigned integer display interpretation
-		else if (ui.m_DataUintRadio->isChecked())
-		{
-			data = ui.m_DirectRegisterAccessDataLineEdit->text().toULongLong(&converted, 10);
-		}
-		// integer display interpretation
-		else if (ui.m_DataIntRadio->isChecked())
-		{
-			data = ui.m_DirectRegisterAccessDataLineEdit->text().toLongLong(&converted, 10);
-		}
-		// float display interpretation
-		else
-		{
-			float value = ui.m_DirectRegisterAccessDataLineEdit->text().toFloat(&converted);
-			data = (uint64_t)reinterpret_cast<uint64_t &>(value);
-		}
+        if (ui.m_DataTypeCombo->currentText() != "String64")
+        {
+            nVal = ui.m_DataHexRadio->isChecked() ? 
+                    ui.m_DirectRegisterAccessDataLineEdit->text().toLongLong(&converted, 16) :
+                    ui.m_DirectRegisterAccessDataLineEdit->text().toLongLong(&converted, 10);
+        }
+        else
+        {
+            QByteArray ba = ui.m_DirectRegisterAccessDataLineEdit->text().toLocal8Bit();
+            memcpy(pBuffer, ba.data(), ba.length());
+            nSize = 64;
+            bValid = true;
+        }
+                    
+        if (ui.m_DataTypeCombo->currentText() == "Int8")
+        {
+            memcpy(pBuffer, (char*)&nVal, 1);
+            nSize = 1;
+            bValid = true;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "UInt8")
+        {
+            memcpy(pBuffer, (char*)&nVal, 1);
+            nSize = 1;
+            bValid = true;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "Int16")
+        {
+            if (ui.m_BigEndianessRadio->isChecked())
+                nVal = qToBigEndian((int16_t)nVal);            
 
-		if (!ui.m_LittleEndianessRadio->isChecked())
-		{
-			/*
-						if (ui.m_DataType32Radio->isChecked())
-						{
-							data = (uint32_t)qFromBigEndian((uint32_t)data);
-						}
-						else
-						{
-							data = qFromBigEndian(data);
-						}
-			*/
-		}
-
-		if (converted)
-		{
-			m_DirectAccessData = data;
-			// write the register to the defined address
-			//m_Camera.WriteRegister(address, data);
-			OnDirectRegisterAccessUpdateData();
-			OnLog(QString("Register '%1' written %2.").arg(address).arg(data));
-		}
-		else
-		{
-			OnLog("Could not convert the register data from the given string.");
-		}
+            memcpy(pBuffer, (char*)&nVal, 2);
+            nSize = 2;
+            bValid = true;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "UInt16")
+        {
+            if (ui.m_BigEndianessRadio->isChecked())
+                nVal = qToBigEndian((uint16_t)nVal);            
+            memcpy(pBuffer, (char*)&nVal, 2);
+            nSize = 2;
+            bValid = true;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "Int32")
+        {
+            if (ui.m_BigEndianessRadio->isChecked())
+                nVal = qToBigEndian((int32_t)nVal);            
+            memcpy(pBuffer, (char*)&nVal, 4);
+            nSize = 4;
+            bValid = true;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "UInt32")
+        {
+            if (ui.m_BigEndianessRadio->isChecked())
+                nVal = qToBigEndian((uint32_t)nVal);            
+            memcpy(pBuffer, (char*)&nVal, 4);
+            nSize = 4;
+            bValid = true;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "Int64")
+        {
+            if (ui.m_BigEndianessRadio->isChecked())
+                nVal = qToBigEndian((int64_t)nVal);            
+            memcpy(pBuffer, (char*)&nVal, 8);
+            nSize = 8;
+            bValid = true;
+        }
+        else
+        if (ui.m_DataTypeCombo->currentText() == "UInt64")
+        {
+            if (ui.m_BigEndianessRadio->isChecked())
+                nVal = qToBigEndian((uint64_t)nVal);            
+            memcpy(pBuffer, (char*)&nVal, 8);
+            nSize = 8;
+            bValid = true;
+        }
+        
+        if (bValid && converted)
+        {
+            int iRet = m_Camera.WriteRegister(address, pBuffer, nSize);      
+            if (iRet == 0)
+            {
+                OnLog(QString("Register '0x%1' set to %2.").arg(address, 4, 16, QChar('0')).arg(pBuffer));
+            }
+            else
+            {
+                OnLog(QString("Error while writing register '0x%1'").arg(address, 4, 16, QChar('0')));
+            }
+        }
+        
+        free(pBuffer);
+        pBuffer = NULL;
 	}
 	else
 	{
@@ -1644,7 +1855,7 @@ void v4l2test::OnDirectRegisterAccessUpdateData()
 				value32s = qFromBigEndian(value32s);
 		*/
 	}
-
+/*
 	// Hex display interpretation
 	if (ui.m_DataHexRadio->isChecked())
 	{
@@ -1687,7 +1898,7 @@ void v4l2test::OnDirectRegisterAccessUpdateData()
 		strValue = QString("%1").arg(reinterpret_cast<float &>(value32u));
 	}
 
-	ui.m_DirectRegisterAccessDataLineEdit->setText(strValue);
+	ui.m_DirectRegisterAccessDataLineEdit->setText(strValue);*/
 }
 
 void v4l2test::OnStartRecording()

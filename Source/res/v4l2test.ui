@@ -454,8 +454,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>834</width>
-              <height>290</height>
+              <width>825</width>
+              <height>286</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -513,7 +513,7 @@
          <enum>QTabWidget::South</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="m_ChunkDataTab">
          <attribute name="title">
@@ -1556,183 +1556,256 @@
          <attribute name="title">
           <string>Direct Register Access</string>
          </attribute>
-         <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0">
-          <item row="0" column="1">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Register Address:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Register Data:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2" colspan="2">
-           <widget class="QLineEdit" name="m_DirectRegisterAccessAddressLineEdit">
-            <property name="text">
-             <string>0x0</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2" colspan="2">
-           <widget class="QLineEdit" name="m_DirectRegisterAccessDataLineEdit">
-            <property name="minimumSize">
-             <size>
-              <width>150</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>0x0</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="3">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="5" column="3">
-           <widget class="QPushButton" name="m_DirectRegisterAccessWriteButton">
-            <property name="text">
-             <string>Write</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1" colspan="3">
-           <widget class="QGroupBox" name="groupBox">
-            <property name="title">
-             <string>Data Endianess</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_2">
-             <item row="0" column="0">
-              <widget class="QRadioButton" name="m_BigEndianessRadio">
-               <property name="text">
-                <string>Big</string>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-              </widget>
+         <widget class="QLabel" name="label_2">
+          <property name="geometry">
+           <rect>
+            <x>9</x>
+            <y>9</y>
+            <width>105</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Register Address:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_3">
+          <property name="geometry">
+           <rect>
+            <x>9</x>
+            <y>36</y>
+            <width>86</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Register Data:</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_DirectRegisterAccessAddressLineEdit">
+          <property name="geometry">
+           <rect>
+            <x>130</x>
+            <y>9</y>
+            <width>181</width>
+            <height>21</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>0x0000</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="m_DirectRegisterAccessDataLineEdit">
+          <property name="geometry">
+           <rect>
+            <x>130</x>
+            <y>36</y>
+            <width>181</width>
+            <height>21</height>
+           </rect>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>0x0</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="m_DirectRegisterAccessReadButton">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>190</y>
+            <width>81</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Read</string>
+          </property>
+         </widget>
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>130</y>
+            <width>161</width>
+            <height>51</height>
+           </rect>
+          </property>
+          <property name="title">
+           <string>Integer Representation</string>
+          </property>
+          <widget class="QRadioButton" name="m_DataHexRadio">
+           <property name="geometry">
+            <rect>
+             <x>80</x>
+             <y>20</y>
+             <width>61</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Hex</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QRadioButton" name="m_DataDecRadio">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>47</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Dec</string>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="geometry">
+           <rect>
+            <x>180</x>
+            <y>130</y>
+            <width>131</width>
+            <height>51</height>
+           </rect>
+          </property>
+          <property name="title">
+           <string>Data Endianess</string>
+          </property>
+          <widget class="QRadioButton" name="m_BigEndianessRadio">
+           <property name="geometry">
+            <rect>
+             <x>11</x>
+             <y>23</y>
+             <width>49</width>
+             <height>16</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Big</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QRadioButton" name="m_LittleEndianessRadio">
+           <property name="geometry">
+            <rect>
+             <x>66</x>
+             <y>23</y>
+             <width>54</width>
+             <height>16</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Little</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="geometry">
+           <rect>
+            <x>9</x>
+            <y>63</y>
+            <width>301</width>
+            <height>58</height>
+           </rect>
+          </property>
+          <property name="title">
+           <string>Data Type</string>
+          </property>
+          <layout class="QGridLayout" name="_2">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetNoConstraint</enum>
+           </property>
+           <item row="0" column="0">
+            <widget class="QComboBox" name="m_DataTypeCombo">
+             <property name="currentIndex">
+              <number>3</number>
+             </property>
+             <property name="insertPolicy">
+              <enum>QComboBox::NoInsert</enum>
+             </property>
+             <item>
+              <property name="text">
+               <string>Int8</string>
+              </property>
              </item>
-             <item row="0" column="1">
-              <widget class="QRadioButton" name="m_LittleEndianessRadio">
-               <property name="text">
-                <string>Little</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>UInt8</string>
+              </property>
              </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QPushButton" name="m_DirectRegisterAccessReadButton">
-            <property name="text">
-             <string>Read</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1" colspan="3">
-           <widget class="QGroupBox" name="groupBox_3">
-            <property name="title">
-             <string>Data Type</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_4">
-             <item row="0" column="0">
-              <widget class="QRadioButton" name="m_DataType32Radio">
-               <property name="text">
-                <string>32 Bit</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>Int16</string>
+              </property>
              </item>
-             <item row="0" column="1">
-              <widget class="QRadioButton" name="m_DataType64Radio">
-               <property name="text">
-                <string>64 Bit</string>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>UInt16</string>
+              </property>
              </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="3" column="1" colspan="3">
-           <widget class="QGroupBox" name="groupBox_2">
-            <property name="title">
-             <string>Data Interpretation</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_3">
-             <item row="0" column="1">
-              <widget class="QRadioButton" name="m_DataIntRadio">
-               <property name="text">
-                <string>Int</string>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>Int32</string>
+              </property>
              </item>
-             <item row="0" column="2">
-              <widget class="QRadioButton" name="m_DataHexRadio">
-               <property name="text">
-                <string>Hex</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>UInt32</string>
+              </property>
              </item>
-             <item row="0" column="3">
-              <widget class="QRadioButton" name="m_DataFloatRadio">
-               <property name="text">
-                <string>Float</string>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>Int64</string>
+              </property>
              </item>
-             <item row="0" column="0">
-              <widget class="QRadioButton" name="m_DataUintRadio">
-               <property name="text">
-                <string>Uint</string>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>UInt64</string>
+              </property>
              </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
+             <item>
+              <property name="text">
+               <string>String64</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QPushButton" name="m_DirectRegisterAccessWriteButton">
+          <property name="geometry">
+           <rect>
+            <x>230</x>
+            <y>190</y>
+            <width>81</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Write</string>
+          </property>
+         </widget>
         </widget>
         <widget class="QWidget" name="m_RecordTab">
          <attribute name="title">
@@ -2170,7 +2243,7 @@
      <x>0</x>
      <y>0</y>
      <width>1224</width>
-     <height>25</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="m_MenuFile">

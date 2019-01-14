@@ -124,6 +124,9 @@ public:
     int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
+    int ReadRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize);
+    int WriteRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize);
+    
 
     int EnumAllControlNewStyle();
     int EnumAllControlOldStyle();
@@ -164,6 +167,8 @@ public:
     void SwitchFrameTransfer2GUI(bool showFrames);
     
     std::string getAvtDeviceFirmwareVersion();
+    std::string getAvtDeviceTemperature();
+    std::string getAvtDeviceSerialNumber();
 
 private:
     std::string         m_DeviceName;
