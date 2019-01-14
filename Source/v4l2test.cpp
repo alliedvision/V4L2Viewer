@@ -112,7 +112,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 1.36  Fixed OCT-2544: Display of negative feature values for sharpness & hue.
 		Changed GUI layout
 		Fixed some code indention
-* 1.37  Added direct register access functionality		
+* 1.37  Added direct register access functionality
 */
 
 static const QStringList GetImageFormats()
@@ -472,6 +472,8 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	m_ToggleStreamDelayWidgetAction->setDefaultWidget(widgetToggleStreamDelay);
 	ui.m_MenuTest->addAction(m_ToggleStreamDelayWidgetAction);
 
+    ui.m_FeatureTabWidget->setCurrentIndex(0);
+    
 	QMainWindow::showMaximized();
 
 	UpdateViewerLayout();
