@@ -60,6 +60,7 @@ Camera::Camera()
     , m_BlockingMode(false)
     , m_ShowFrames(true)
     , m_useV4l2TryFmt(true)
+    , m_isAvtCamera(false)
 {
     connect(&m_DeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
 }
@@ -111,10 +112,11 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
 	}
 	connect(m_StreamCallbacks.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
 	connect(m_StreamCallbacks.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
-	connect(m_StreamCallbacks.data(), SIGNAL(OnRecordFrame_Signal(const unsigned long long &, const unsigned long long &)), this, SLOT(OnRecordFrame(const unsigned long long &, const unsigned long long &)));
+	connect(m_StreamCallbacks.data(), SIGNAL(OnRecordFrame_Signal(const QSharedPointer<MyFrame>&)), this, SLOT(OnRecordFrame(const QSharedPointer<MyFrame>&)));
 	connect(m_StreamCallbacks.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
 	connect(m_StreamCallbacks.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
 	connect(m_StreamCallbacks.data(), SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
+    connect(m_StreamCallbacks.data(), SIGNAL(OnLiveDeviationCalc_Signal(int)), this, SLOT(OnLiveDeviationCalc(int)));
 
 	if (-1 == m_nFileDescriptor)
 	{
@@ -130,6 +132,8 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
 		}
 		else
 		{
+            getAvtDeviceFirmwareVersion();
+            
 			Logger::LogEx("Camera::OpenDevice open %s OK", deviceName.c_str());
 			emit OnCameraMessage_Signal("OpenDevice: open " + QString(deviceName.c_str()) + " OK");
 	
@@ -189,9 +193,14 @@ void Camera::OnFrameID(const unsigned long long &frameId)
 }
 
 // Event will be called when the a frame is recorded
-void Camera::OnRecordFrame(const unsigned long long &frameID, const unsigned long long &framesInQueue)
+void Camera::OnRecordFrame(const QSharedPointer<MyFrame>& frame)
 {
-    emit OnCameraRecordFrame_Signal(frameID, framesInQueue);
+    emit OnCameraRecordFrame_Signal(frame);
+}
+
+void Camera::OnLiveDeviationCalc(int numberOfUnequalBytes)
+{
+    emit OnCameraLiveDeviationCalc_Signal(numberOfUnequalBytes);
 }
 
 // Event will be called when the a frame is displayed
@@ -1142,6 +1151,15 @@ int Camera::ReadControl(uint32_t &value, uint32_t controlID, const char *functio
 	
     if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
     {
+        
+    // check if control is disbled V4L2_CTRL_FLAG_DISABLED
+    if(ctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s is not supported!", functionName, controlName);
+        emit OnCameraMessage_Signal(QString("Camera::%1 VIDIOC_QUERYCTRL %2 is not supported!").arg(functionName).arg(controlName));        
+        return -2;
+    }
+        
 	v4l2_control fmt;
 	
 	Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
@@ -1523,42 +1541,42 @@ int Camera::ReadFramerate(uint32_t &numerator, uint32_t &denominator, uint32_t w
         parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME)
     {
         v4l2_frmivalenum frmival;
-	CLEAR(frmival);
-	
-	frmival.index = 0;
-	frmival.pixel_format = pixelformat;
-	frmival.width = width;
-	frmival.height = height;
+        CLEAR(frmival);
+        
+        frmival.index = 0;
+        frmival.pixel_format = pixelformat;
+        frmival.width = width;
+        frmival.height = height;
         while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) >= 0)
-	{
-	    frmival.index++;
-	    Logger::LogEx("Camera::ReadFramerate type=%d", frmival.type);
-	    emit OnCameraMessage_Signal(QString("ReadFramerate type=%1").arg(frmival.type));
-	}
-	if (frmival.index == 0)
-	{
-	    Logger::LogEx("Camera::ReadFramerate VIDIOC_ENUM_FRAMEINTERVALS failed");
-	    emit OnCameraMessage_Signal(QString("ReadFramerate VIDIOC_ENUM_FRAMEINTERVALS failed"));
-	}
-	
-	v4l2_streamparm parm;
-	CLEAR(parm);
-	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    
-	if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
-	{
-	    numerator = parm.parm.capture.timeperframe.numerator;
-	    denominator = parm.parm.capture.timeperframe.denominator;
-	    Logger::LogEx("Camera::ReadFramerate %d/%dOK", numerator, denominator);
-	    emit OnCameraMessage_Signal(QString("ReadFramerate OK %1/%2").arg(numerator).arg(denominator));
-	}
+        {
+            frmival.index++;
+            Logger::LogEx("Camera::ReadFramerate type=%d", frmival.type);
+            emit OnCameraMessage_Signal(QString("ReadFramerate type=%1").arg(frmival.type));
+        }
+        if (frmival.index == 0)
+        {
+            Logger::LogEx("Camera::ReadFramerate VIDIOC_ENUM_FRAMEINTERVALS failed");
+            emit OnCameraMessage_Signal(QString("ReadFramerate VIDIOC_ENUM_FRAMEINTERVALS failed"));
+        }
+        
+        v4l2_streamparm parm;
+        CLEAR(parm);
+        parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        
+        if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
+        {
+            numerator = parm.parm.capture.timeperframe.numerator;
+            denominator = parm.parm.capture.timeperframe.denominator;
+            Logger::LogEx("Camera::ReadFramerate %d/%dOK", numerator, denominator);
+            emit OnCameraMessage_Signal(QString("ReadFramerate OK %1/%2").arg(numerator).arg(denominator));
+        }
     }
     else
     {
-	Logger::LogEx("Camera::ReadFramerate VIDIOC_G_PARM V4L2_CAP_TIMEPERFRAME failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
-	emit OnCameraMessage_Signal(QString("ReadFramerate VIDIOC_G_PARM V4L2_CAP_TIMEPERFRAME: failed errno=%3=%4.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
-		
-	result = -2;
+        Logger::LogEx("Camera::ReadFramerate VIDIOC_G_PARM V4L2_CAP_TIMEPERFRAME failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+        emit OnCameraMessage_Signal(QString("ReadFramerate VIDIOC_G_PARM V4L2_CAP_TIMEPERFRAME: failed errno=%3=%4.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+            
+        result = -2;
     }
 	
     return result;
@@ -1574,19 +1592,19 @@ int Camera::SetFramerate(uint32_t numerator, uint32_t denominator)
     
     if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
     {
-	parm.parm.capture.timeperframe.numerator = numerator;
-	parm.parm.capture.timeperframe.denominator = denominator;
-	if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_PARM, &parm))
-	{                
-	    Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM to %d/%d OK", numerator, denominator);
-	    emit OnCameraMessage_Signal(QString("SetFramerate VIDIOC_S_PARM: %1/%2 OK.").arg(numerator).arg(denominator));
-	    result = 0;
-	}
-	else
-	{
-	    Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
-	    emit OnCameraError_Signal(QString("SetFramerate VIDIOC_S_PARM: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
-	}
+        parm.parm.capture.timeperframe.numerator = numerator;
+        parm.parm.capture.timeperframe.denominator = denominator;
+        if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_PARM, &parm))
+        {                
+            Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM to %d/%d OK", numerator, denominator);
+            emit OnCameraMessage_Signal(QString("SetFramerate VIDIOC_S_PARM: %1/%2 OK.").arg(numerator).arg(denominator));
+            result = 0;
+        }
+        else
+        {
+            Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+            emit OnCameraError_Signal(QString("SetFramerate VIDIOC_S_PARM: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+        }
     }
     
     return result;
@@ -1605,28 +1623,28 @@ int Camera::ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t 
     if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_CROPCAP, &cropcap) >= 0)
     {
         boundsx = cropcap.bounds.left;
-	boundsy = cropcap.bounds.top;
-	boundsw = cropcap.bounds.width;
-	boundsh = cropcap.bounds.height;
-	defrectx = cropcap.defrect.left;
-	defrecty = cropcap.defrect.top;
-	defrectw = cropcap.defrect.width;
-	defrecth = cropcap.defrect.height;
-	aspectnum = cropcap.pixelaspect.numerator;
-	aspectdenum = cropcap.pixelaspect.denominator;
-	Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP bx=%d, by=%d, bw=%d, bh=%d, dx=%d, dy=%d, dw=%d, dh=%d, num=%d, denum=%d OK", 
-		      boundsx, boundsy, boundsw, boundsh, defrectx, defrecty, defrectw, defrecth, aspectnum, aspectdenum);
-	emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_CROPCAP OK bx=%1,by=%2, bw=%3, bh=%4, dx=%5, dy=%6, dw=%7, dh=%8, num=%9, denum=%10")
-		      .arg(boundsx).arg(boundsy).arg(boundsw).arg(boundsh).arg(defrectx).arg(defrecty).arg(defrectw).arg(defrecth).arg(aspectnum).arg(aspectdenum));	
-	
-	result = 0;
+        boundsy = cropcap.bounds.top;
+        boundsw = cropcap.bounds.width;
+        boundsh = cropcap.bounds.height;
+        defrectx = cropcap.defrect.left;
+        defrecty = cropcap.defrect.top;
+        defrectw = cropcap.defrect.width;
+        defrecth = cropcap.defrect.height;
+        aspectnum = cropcap.pixelaspect.numerator;
+        aspectdenum = cropcap.pixelaspect.denominator;
+        Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP bx=%d, by=%d, bw=%d, bh=%d, dx=%d, dy=%d, dw=%d, dh=%d, num=%d, denum=%d OK", 
+                boundsx, boundsy, boundsw, boundsh, defrectx, defrecty, defrectw, defrecth, aspectnum, aspectdenum);
+        emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_CROPCAP OK bx=%1,by=%2, bw=%3, bh=%4, dx=%5, dy=%6, dw=%7, dh=%8, num=%9, denum=%10")
+                .arg(boundsx).arg(boundsy).arg(boundsw).arg(boundsh).arg(defrectx).arg(defrecty).arg(defrectw).arg(defrecth).arg(aspectnum).arg(aspectdenum));	
+        
+        result = 0;
     }
     else
     {
-	Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
-	emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_CROPCAP: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
-		
-	result = -2;
+        Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+        emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_CROPCAP: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+            
+        result = -2;
     }
 	
     return result;
@@ -1643,20 +1661,20 @@ int Camera::ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint
     if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_CROP, &crop) >= 0)
     {
         xOffset = crop.c.left;
-	yOffset = crop.c.top;
-	width = crop.c.width;
-	height = crop.c.height;
-	Logger::LogEx("Camera::ReadCrop VIDIOC_G_CROP x=%d, y=%d, w=%d, h=%d OK", xOffset, yOffset, width, height);
-	emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_G_CROP OK %1,%2, %3, %4").arg(xOffset).arg(yOffset).arg(width).arg(height));	
-	
-	result = 0;
+        yOffset = crop.c.top;
+        width = crop.c.width;
+        height = crop.c.height;
+        Logger::LogEx("Camera::ReadCrop VIDIOC_G_CROP x=%d, y=%d, w=%d, h=%d OK", xOffset, yOffset, width, height);
+        emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_G_CROP OK %1,%2, %3, %4").arg(xOffset).arg(yOffset).arg(width).arg(height));	
+        
+        result = 0;
     }
     else
     {
-	Logger::LogEx("Camera::ReadCrop VIDIOC_G_CROP failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
-	emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_G_CROP: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
-		
-	result = -2;
+        Logger::LogEx("Camera::ReadCrop VIDIOC_G_CROP failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+        emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_G_CROP: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+            
+        result = -2;
     }
 	
     return result;
@@ -1676,15 +1694,15 @@ int Camera::SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t
 	
     if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_CROP, &crop) >= 0)
     {
-	Logger::LogEx("Camera::SetCrop VIDIOC_S_CROP %d, %d, %d, %d OK", xOffset, yOffset, width, height);
-	emit OnCameraMessage_Signal(QString("SetCrop VIDIOC_S_CROP %1, %2, %3, %4 OK ").arg(xOffset).arg(yOffset).arg(width).arg(height));	
-	
-	result = 0;
+        Logger::LogEx("Camera::SetCrop VIDIOC_S_CROP %d, %d, %d, %d OK", xOffset, yOffset, width, height);
+        emit OnCameraMessage_Signal(QString("SetCrop VIDIOC_S_CROP %1, %2, %3, %4 OK ").arg(xOffset).arg(yOffset).arg(width).arg(height));	
+        
+        result = 0;
     }
     else
     {
-	Logger::LogEx("Camera::SetCrop VIDIOC_S_CROP failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
-	emit OnCameraMessage_Signal(QString("SetCrop VIDIOC_S_CROP: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+        Logger::LogEx("Camera::SetCrop VIDIOC_S_CROP failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+        emit OnCameraMessage_Signal(QString("SetCrop VIDIOC_S_CROP: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
     }
   	
     return result;
@@ -1902,9 +1920,9 @@ int Camera::GetCameraReadCapability(bool &flag)
     // queuery device capabilities
     if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap)) 
     {
-	Logger::LogEx("Camera::GetCameraReadCapability %s is no V4L2 device\n", m_DeviceName.c_str());
-	emit OnCameraError_Signal("Camera::GetCameraReadCapability " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
-	return -1;
+        Logger::LogEx("Camera::GetCameraReadCapability %s is no V4L2 device\n", m_DeviceName.c_str());
+        emit OnCameraError_Signal("Camera::GetCameraReadCapability " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
+        return -1;
     }
     else
     {
@@ -1913,9 +1931,9 @@ int Camera::GetCameraReadCapability(bool &flag)
 
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) 
     {
-	Logger::LogEx("Camera::GetCameraReadCapability %s is no video capture device\n", m_DeviceName.c_str());
-	emit OnCameraError_Signal("Camera::GetCameraReadCapability " + QString(m_DeviceName.c_str()) + " is no video capture device.");
-	return -1;
+        Logger::LogEx("Camera::GetCameraReadCapability %s is no video capture device\n", m_DeviceName.c_str());
+        emit OnCameraError_Signal("Camera::GetCameraReadCapability " + QString(m_DeviceName.c_str()) + " is no video capture device.");
+        return -1;
     }
     else
     {
@@ -1925,7 +1943,7 @@ int Camera::GetCameraReadCapability(bool &flag)
 	    Logger::LogEx("Camera::GetCameraReadCapability VIDIOC_QUERYCAP %s driver version=%s\n", m_DeviceName.c_str(), tmp.str().c_str());
 	    
 	    if (cap.capabilities & V4L2_CAP_READWRITE)
-		flag = true;
+            flag = true;
     }
 
 	
@@ -1954,6 +1972,13 @@ int Camera::GetCameraCapabilities(std::string &strText)
 	{
 		Logger::LogEx("Camera::GetCameraCapabilities VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
 	}
+	
+	std::string driverName((char*)cap.driver);
+    std::string avtDriverName = "avt";
+    if(driverName.find(avtDriverName) != std::string::npos)
+    {
+        m_isAvtCamera = true;
+    }
 
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) 
 	{
@@ -1968,7 +1993,6 @@ int Camera::GetCameraCapabilities(std::string &strText)
 			<< "    Streaming = " << ((cap.capabilities & V4L2_CAP_STREAMING)?"Yes":"No");
 		Logger::LogEx("Camera::GetCameraCapabilities VIDIOC_QUERYCAP %s driver version=%s\n", m_DeviceName.c_str(), tmp.str().c_str());
 	}
-
 	
     strText = tmp.str();
     
@@ -1979,29 +2003,23 @@ int Camera::GetCameraCapabilities(std::string &strText)
 // Recording
 void Camera::SetRecording(bool start)
 {
-    m_StreamCallbacks->SetRecording(start);
+	m_Recording = start;
+	if(m_StreamCallbacks)
+	{
+    	m_StreamCallbacks->SetRecording(start);
+    }
 }
 
-void Camera::DisplayStepBack()
+
+// Live Deviation Calc
+void Camera::SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame)
 {
-    m_StreamCallbacks->DisplayStepBack();
+    if(m_StreamCallbacks)
+    {
+        m_StreamCallbacks->SetLiveDeviationCalc(referenceFrame);
+    }
 }
 
-void Camera::DisplayStepForw()
-{
-    m_StreamCallbacks->DisplayStepForw();
-}
-
-void Camera::DeleteRecording()
-{
-    m_StreamCallbacks->DeleteRecording();
-}
-/*
-MyFrameQueue& Camera::GetRecordQueue()
-{
-	return m_StreamCallbacks->GetRecordQueue();
-}
-*/
 /*********************************************************************************************************/
 // Commands
 /*********************************************************************************************************/
@@ -2031,20 +2049,20 @@ size_t Camera::fsize(const char *filename)
 int Camera::ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData)
 {
     if (NULL == pFilename)
-	return -1;
+        return -1;
     
     // read csv file
     FILE *pFile = fopen(pFilename, "rt");
     if (NULL == pFile)
-	return -2;
+        return -2;
     
     size_t nSize = fsize(pFilename);
     std::string fileText(nSize, '\0');
     size_t readCount = fread(&(fileText[0]), 1, nSize, pFile);
     if (readCount != nSize)
     {
-	fclose(pFile);
-	return -3;
+        fclose(pFile);
+        return -3;
     }
 
     fclose(pFile);
@@ -2060,31 +2078,31 @@ int Camera::ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData)
     
     for (int i=0; i<lines.size(); i++)
     {
-	QString line = lines.at(i);
-	QStringList items = line.split(',');
-	if (items.size() >= 10)
-	{
-	    QString byte = items.at(6);
-	    uint8_t dataID = byte.toUInt(0, 16);
-	    
-	    if (dataID > 0x12)
-	    {
-		QString byte = items.at(8);
-		uint32_t length = (((uint8_t)items.at(8).toUInt(0, 16)) << 8);
-		byte = items.at(7);
-		length += items.at(7).toUInt(0, 16);
-	    
-		if (length > 0 && width == 0)
-		{
-		    width = length;
-		}
-	    
-		if (length == width)
-		{
-		    height++;
-		}
-	    }
-	}
+        QString line = lines.at(i);
+        QStringList items = line.split(',');
+        if (items.size() >= 10)
+        {
+            QString byte = items.at(6);
+            uint8_t dataID = byte.toUInt(0, 16);
+            
+            if (dataID > 0x12)
+            {
+                QString byte = items.at(8);
+                uint32_t length = (((uint8_t)items.at(8).toUInt(0, 16)) << 8);
+                byte = items.at(7);
+                length += items.at(7).toUInt(0, 16);
+                
+                if (length > 0 && width == 0)
+                {
+                    width = length;
+                }
+                
+                if (length == width)
+                {
+                    height++;
+                }
+            }
+        }
     }
     
     emit OnCameraMessage_Signal(QString("ReadCSVFile: %1 data per row and %2 lines detected.").arg(width).arg(height));
@@ -2095,34 +2113,254 @@ int Camera::ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData)
     uint32_t counter = 0;
     for (int i=0; i<lines.size(); i++)
     {
-	QString line = lines.at(i);
-	QStringList items = line.split(',');
-	if (items.size() >= 10)
-	{
-	    QString byte = items.at(6);
-	    uint8_t dataID = byte.toUInt(0, 16);
-	    
-	    if (dataID > 0x12)
-	    {
-		QString byte = items.at(8);
-		uint32_t length = (((uint8_t)items.at(8).toUInt(0, 16)) << 8);
-		byte = items.at(7);
-		length += items.at(7).toUInt(0, 16);
-	    
-		if (length > 0)
-		{
-		    const uint32_t lineHeader = 10;
-		    for (int x=0; x<length; x++)
-		    {
-			rData[counter++] =  items.at(lineHeader + x).toUInt(0, 16);
-		    }
-		}
-	    }
-	}
+        QString line = lines.at(i);
+        QStringList items = line.split(',');
+        if (items.size() >= 10)
+        {
+            QString byte = items.at(6);
+            uint8_t dataID = byte.toUInt(0, 16);
+            
+            if (dataID > 0x12)
+            {
+                QString byte = items.at(8);
+                uint32_t length = (((uint8_t)items.at(8).toUInt(0, 16)) << 8);
+                byte = items.at(7);
+                length += items.at(7).toUInt(0, 16);
+                
+                if (length > 0)
+                {
+                    const uint32_t lineHeader = 10;
+                    for (int x=0; x<length; x++)
+                    {
+                    rData[counter++] =  items.at(lineHeader + x).toUInt(0, 16);
+                    }
+                }
+            }
+        }
     }
     
     emit OnCameraMessage_Signal(QString("ReadCSVFile: data cache filled with %1 bytes.").arg(width*height));
 }
+
+
+std::string Camera::getAvtDeviceFirmwareVersion()
+{
+    std::string result = "";
+    
+    if(m_StreamCallbacks)
+    {        
+        // dummy call to set m_isAvtCamera
+        std::string dummy;
+        GetCameraCapabilities(dummy);
+        
+        if(m_isAvtCamera)
+        {
+            const int CCI_BCRM_REG = 0x0014;
+            const int BCRM_DEV_FW_VERSION = 0x0010;
+            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
+         
+            uint16_t nBCRMAddress;
+            char pBuffer[2];
+            memset(pBuffer, 0, sizeof(pBuffer));   
+     
+            // get BCRM address offset
+            struct v4l2_i2c i2c_reg;
+            i2c_reg.nRegisterAddress = (__u32)CCI_BCRM_REG;
+            i2c_reg.nRegisterSize = (__u32)2;
+            i2c_reg.nNumBytes = (__u32)sizeof(pBuffer);
+            i2c_reg.pBuffer = pBuffer;
+
+            int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+            
+            if (res >= 0)
+            {
+                nBCRMAddress = ( (((uint16_t)pBuffer[0] << 8) & 0xFF00) | ((uint16_t)pBuffer[1] & 0x00FF) );
+                
+                uint64_t deviceFirmwareVersion = 0;
+                char pBuf[8];
+                memset(pBuf, 0, sizeof(pBuf));   
+                
+                i2c_reg.nRegisterAddress = (__u32)nBCRMAddress + BCRM_DEV_FW_VERSION;
+                i2c_reg.nRegisterSize = (__u32)2;
+                i2c_reg.nNumBytes = (__u32)sizeof(pBuf);
+                i2c_reg.pBuffer = pBuf;
+                
+                res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+                
+                if (res >= 0)
+                {
+                    deviceFirmwareVersion = (  (((uint64_t)pBuf[0] << 56) & 0xFF00000000000000) | 
+                                (((uint64_t)pBuf[1] << 48) & 0x00FF000000000000) | 
+                                (((uint64_t)pBuf[2] << 40) & 0x0000FF0000000000) | 
+                                (((uint64_t)pBuf[3] << 32) & 0x000000FF00000000) | 
+                                (((uint64_t)pBuf[4] << 24) & 0x00000000FF000000) | 
+                                (((uint64_t)pBuf[5] << 16) & 0x0000000000FF0000) |
+                                (((uint64_t)pBuf[6] <<  8) & 0x000000000000FF00) |
+                                ((uint64_t)pBuf[7]        & 0x00000000000000FF) );
+                   
+                                      
+                    uint32_t patchVersion = (deviceFirmwareVersion >> 32) & 0xFFFFFFFF;
+                    uint16_t minorVersion = (deviceFirmwareVersion >> 16) & 0xFFFF;                    
+                    uint8_t majorVersion = (deviceFirmwareVersion >> 8) & 0xFF;
+                    uint8_t specialVersion = (deviceFirmwareVersion & 0xFF);      
+                    
+                    std::stringstream ss;
+                    ss << (unsigned)specialVersion << "." << (unsigned)majorVersion << "." << (unsigned)minorVersion << "." << (unsigned)patchVersion;
+                    result = ss.str();
+                }
+            }
+        }
+    }
+    
+    return result;
+}
+
+
+std::string Camera::getAvtDeviceTemperature()
+{
+  std::string result = "";
+    
+    if(m_StreamCallbacks)
+    {        
+        // dummy call to set m_isAvtCamera
+        std::string dummy;
+        GetCameraCapabilities(dummy);
+        
+        if(m_isAvtCamera)
+        {
+            const int CCI_BCRM_REG = 0x0014;
+            const int BCRM_DEV_TEMPERATURE = 0x0310;
+            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
+         
+            uint16_t nBCRMAddress;
+            char pBuffer[2];
+            memset(pBuffer, 0, sizeof(pBuffer));   
+     
+            // get BCRM address offset
+            struct v4l2_i2c i2c_reg;
+            i2c_reg.nRegisterAddress = (__u32)CCI_BCRM_REG;
+            i2c_reg.nRegisterSize = (__u32)2;
+            i2c_reg.nNumBytes = (__u32)sizeof(pBuffer);
+            i2c_reg.pBuffer = pBuffer;
+
+            int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+            
+            if (res >= 0)
+            {
+                nBCRMAddress = ( (((uint16_t)pBuffer[0] << 8) & 0xFF00) | ((uint16_t)pBuffer[1] & 0x00FF) );
+                
+                int32_t deviceTemperture = 0;
+                char pBuf[4];
+                memset(pBuf, 0, sizeof(pBuf));   
+                
+                i2c_reg.nRegisterAddress = (__u32)nBCRMAddress + BCRM_DEV_TEMPERATURE;
+                i2c_reg.nRegisterSize = (__u32)2;
+                i2c_reg.nNumBytes = (__u32)sizeof(pBuf);
+                i2c_reg.pBuffer = pBuf;
+                
+                res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+                
+                if (res >= 0)
+                {
+                    deviceTemperture = *(int32_t*)pBuf;
+               
+                    std::stringstream ss;
+                    ss << (signed)deviceTemperture;
+                    result = ss.str();
+                }
+            }
+        }
+    }
+    
+    return result;
+    
+}
+
+std::string Camera::getAvtDeviceSerialNumber()
+{
+    std::string result = "";
+    
+    if(m_StreamCallbacks)
+    {        
+        // dummy call to set m_isAvtCamera
+        std::string dummy;
+        GetCameraCapabilities(dummy);
+        
+        if(m_isAvtCamera)
+        {
+            const int CCI_BCRM_REG = 0x0014;
+            const int DEVICE_SERIAL_NUMBER = 0x0198;
+            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
+
+            char pBuf[64];
+            memset(pBuf, 0, sizeof(pBuf));   
+            
+            struct v4l2_i2c i2c_reg;    
+            i2c_reg.nRegisterAddress = (__u32)DEVICE_SERIAL_NUMBER;
+            i2c_reg.nRegisterSize = (__u32)2;
+            i2c_reg.nNumBytes = (__u32)sizeof(pBuf);
+            i2c_reg.pBuffer = pBuf;
+                
+            int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+                
+            if (res >= 0)
+            {
+                std::stringstream ss;
+                ss << pBuf;
+                result = ss.str();
+            }
+        }
+    }
+    
+    return result;
+}
+
+
+
+
+int Camera::ReadRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize)
+{
+    int iRet = -1;
+    const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
+
+    struct v4l2_i2c i2c_reg;
+    i2c_reg.nRegisterAddress = (__u32)nRegAddr;
+    i2c_reg.nRegisterSize = (__u32)2;
+    i2c_reg.nNumBytes = (__u32)nBufferSize;
+    i2c_reg.pBuffer = pBuffer;
+
+    int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);    
+    
+    if (res >= 0)
+    {
+        iRet = 0;
+    }
+    
+    return iRet;
+}
+
+int Camera::WriteRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize)
+{
+    int iRet = -1;
+
+    const int VIDIOC_W_I2C = _IOWR('V', 105, struct v4l2_i2c);
+    
+    struct v4l2_i2c i2c_reg;
+    i2c_reg.nRegisterAddress = (__u32)nRegAddr;
+    i2c_reg.nRegisterSize = (__u32)2;
+    i2c_reg.nNumBytes = (__u32)nBufferSize;
+    i2c_reg.pBuffer = pBuffer;
+
+    int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_W_I2C, &i2c_reg);    
+    
+    if (res >= 0)
+    {
+        iRet = 0;
+    }
+    
+    return iRet;
+}
+
 
 
 }}} // namespace AVT::Tools::Examples

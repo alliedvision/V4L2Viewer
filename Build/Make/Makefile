@@ -52,9 +52,13 @@ BIN_FILE = $($(call MACRO_TOUPPER,$(OUTPUT))_PREFIX)$(PROJECT_NAME)$($(call MACR
 # required libs
 LIBS = pthread
 
+SCMDEV:='SCM_REVISION="$(shell ./scm_version.sh ./../..)"'
+
 # require packages
 PACKAGES 	= 	QtCore \
 				QtSvg \
+
+DEFINES		= $(SCMDEV)
 
 # object files
 OBJ_FILES	= 	$(OBJ_DIR)/BaseLogger.o \
@@ -69,11 +73,13 @@ OBJ_FILES	= 	$(OBJ_DIR)/BaseLogger.o \
 			  	$(OBJ_DIR)/V4l2Helper.o \
 			  	$(OBJ_DIR)/Helper.o \
 			  	$(OBJ_DIR)/v4l2test.o \
+			  	$(OBJ_DIR)/DeviationCalculator.o \
 			  	$(OBJ_DIR)/Logger.o \
                 $(OBJ_DIR)/main.o \
 				$(OBJ_DIR)/MyFrame.o \
 				$(OBJ_DIR)/MyFrameQueue.o \
 				$(OBJ_DIR)/Thread.o \
+				$(OBJ_DIR)/moc_DeviationCalculator.o \
 			  	$(OBJ_DIR)/moc_Camera.o \
 			  	$(OBJ_DIR)/moc_CameraObserver.o \
 				$(OBJ_DIR)/moc_FrameObserver.o \
