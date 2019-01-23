@@ -34,6 +34,8 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include "videodev2_av.h"
+#include <stdlib.h>
+#include <cstdlib>
 
 #include <FrameObserverUSER.h>
 #include <Logger.h>
@@ -143,7 +145,11 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
 		PUSER_BUFFER pTmpBuffer = new USER_BUFFER;
 		pTmpBuffer->nBufferlength = bufferSize;
 		m_RealPayloadsize = pTmpBuffer->nBufferlength;
-		pTmpBuffer->pBuffer = new uint8_t[bufferSize];
+
+		// buffer needs to be aligned to 128 bytes
+		if (bufferSize % 128)
+			bufferSize = ((bufferSize / 128) + 1) * 128;
+		pTmpBuffer->pBuffer = static_cast<uint8_t*>(aligned_alloc(128, bufferSize));
 
 		if (!pTmpBuffer->pBuffer) 
 		{
