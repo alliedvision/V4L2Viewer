@@ -60,7 +60,7 @@ Camera::Camera()
     , m_BlockingMode(false)
     , m_ShowFrames(true)
     , m_useV4l2TryFmt(true)
-    , m_isAvtCamera(false)
+    , m_isAvtCamera(true)
 {
     connect(&m_DeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
 }
@@ -2157,7 +2157,6 @@ std::string Camera::getAvtDeviceFirmwareVersion()
         {
             const int CCI_BCRM_REG = 0x0014;
             const int BCRM_DEV_FW_VERSION = 0x0010;
-            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
          
             uint16_t nBCRMAddress;
             char pBuffer[2];
@@ -2230,7 +2229,6 @@ std::string Camera::getAvtDeviceTemperature()
         {
             const int CCI_BCRM_REG = 0x0014;
             const int BCRM_DEV_TEMPERATURE = 0x0310;
-            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
          
             uint16_t nBCRMAddress;
             char pBuffer[2];
@@ -2290,7 +2288,6 @@ std::string Camera::getAvtDeviceSerialNumber()
         {
             const int CCI_BCRM_REG = 0x0014;
             const int DEVICE_SERIAL_NUMBER = 0x0198;
-            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
 
             char pBuf[64];
             memset(pBuf, 0, sizeof(pBuf));   
@@ -2321,7 +2318,6 @@ std::string Camera::getAvtDeviceSerialNumber()
 int Camera::ReadRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize)
 {
     int iRet = -1;
-    const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
 
     struct v4l2_i2c i2c_reg;
     i2c_reg.nRegisterAddress = (__u32)nRegAddr;
@@ -2342,8 +2338,6 @@ int Camera::ReadRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize)
 int Camera::WriteRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize)
 {
     int iRet = -1;
-
-    const int VIDIOC_W_I2C = _IOWR('V', 105, struct v4l2_i2c);
     
     struct v4l2_i2c i2c_reg;
     i2c_reg.nRegisterAddress = (__u32)nRegAddr;

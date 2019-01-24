@@ -34,6 +34,9 @@
 #include "FrameObserver.h"
 #include "CameraObserver.h"
 
+#define VIDIOC_R_I2C _IOWR('V', BASE_VIDIOC_PRIVATE + 0, struct v4l2_i2c)
+#define VIDIOC_W_I2C _IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct v4l2_i2c)
+
 
 namespace AVT {
 namespace Tools {
