@@ -34,6 +34,9 @@
 #include "FrameObserver.h"
 #include "CameraObserver.h"
 
+#define VIDIOC_R_I2C _IOWR('V', 104, struct v4l2_i2c)
+#define VIDIOC_W_I2C _IOWR('V', 105, struct v4l2_i2c)
+#define VIDIOC_STREAMSTAT _IOWR('V', 111, struct v4l2_stats_t)
 
 namespace AVT {
 namespace Tools {
@@ -124,8 +127,8 @@ public:
     int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
-    int ReadRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize);
-    int WriteRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize);
+    int ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize);
+    int WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize);
     
 
     int EnumAllControlNewStyle();
@@ -153,6 +156,7 @@ public:
     int GetCameraCapabilities(std::string &strText);
 
     // Statistics
+    bool getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError, uint64_t &FramesUnderrun, uint64_t &FramesIncomplete, double &CurrentFrameRate);
     unsigned int GetReceivedFramesCount();
     unsigned int GetRenderedFramesCount();
     unsigned int GetDroppedFramesCount();
@@ -187,6 +191,16 @@ private:
         const char  *pBuffer;               // I/O buffer
         __u32       nRegisterSize;          // Register size
         __u32       nNumBytes;              // Bytes to read
+    };
+    
+    struct v4l2_stats_t
+    {
+        __u64    FramesCount;           // Total number of frames received
+        __u64    PacketCRCError;        // Number of packets with CRC errors
+        __u64    FramesUnderrun;        // Number of frames dropped because of buffer underrun
+        __u64    FramesIncomplete;      // Number of frames that were not completed
+        __u64    CurrentFrameCount;     // Number of frames received within CurrentFrameInterval (nec. to calculate fps value)
+        __u64    CurrentFrameInterval;  // Time interval between frames in µs
     };
 
     CameraObserver                  m_DeviceDiscoveryCallbacks;

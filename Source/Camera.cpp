@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <sstream>
 
+#include <algorithm>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -46,6 +47,7 @@
 #include "FrameObserverUSER.h"
 
 #include <QStringList>
+#include <QSysInfo>
 
 namespace AVT {
 namespace Tools {
@@ -2159,48 +2161,19 @@ std::string Camera::getAvtDeviceFirmwareVersion()
         {
             const int CCI_BCRM_REG = 0x0014;
             const int BCRM_DEV_FW_VERSION = 0x0010;
-            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
          
-            uint16_t nBCRMAddress;
-            char pBuffer[2];
-            memset(pBuffer, 0, sizeof(pBuffer));   
-     
-            // get BCRM address offset
-            struct v4l2_i2c i2c_reg;
-            i2c_reg.nRegisterAddress = (__u32)CCI_BCRM_REG;
-            i2c_reg.nRegisterSize = (__u32)2;
-            i2c_reg.nNumBytes = (__u32)sizeof(pBuffer);
-            i2c_reg.pBuffer = pBuffer;
-
-            int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+            uint16_t nBCRMAddress = 0;  
             
+            int res = ReadRegister(CCI_BCRM_REG, &nBCRMAddress, sizeof(nBCRMAddress));
+     
             if (res >= 0)
-            {
-                nBCRMAddress = ( (((uint16_t)pBuffer[0] << 8) & 0xFF00) | ((uint16_t)pBuffer[1] & 0x00FF) );
-                
+            {                
                 uint64_t deviceFirmwareVersion = 0;
-                char pBuf[8];
-                memset(pBuf, 0, sizeof(pBuf));   
                 
-                i2c_reg.nRegisterAddress = (__u32)nBCRMAddress + BCRM_DEV_FW_VERSION;
-                i2c_reg.nRegisterSize = (__u32)2;
-                i2c_reg.nNumBytes = (__u32)sizeof(pBuf);
-                i2c_reg.pBuffer = pBuf;
-                
-                res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+                res = ReadRegister((__u32)nBCRMAddress + BCRM_DEV_FW_VERSION, &deviceFirmwareVersion, sizeof(deviceFirmwareVersion));
                 
                 if (res >= 0)
-                {
-                    deviceFirmwareVersion = (  (((uint64_t)pBuf[0] << 56) & 0xFF00000000000000) | 
-                                (((uint64_t)pBuf[1] << 48) & 0x00FF000000000000) | 
-                                (((uint64_t)pBuf[2] << 40) & 0x0000FF0000000000) | 
-                                (((uint64_t)pBuf[3] << 32) & 0x000000FF00000000) | 
-                                (((uint64_t)pBuf[4] << 24) & 0x00000000FF000000) | 
-                                (((uint64_t)pBuf[5] << 16) & 0x0000000000FF0000) |
-                                (((uint64_t)pBuf[6] <<  8) & 0x000000000000FF00) |
-                                ((uint64_t)pBuf[7]        & 0x00000000000000FF) );
-                   
-                                      
+                {                                      
                     uint32_t patchVersion = (deviceFirmwareVersion >> 32) & 0xFFFFFFFF;
                     uint16_t minorVersion = (deviceFirmwareVersion >> 16) & 0xFFFF;                    
                     uint8_t majorVersion = (deviceFirmwareVersion >> 8) & 0xFF;
@@ -2220,7 +2193,7 @@ std::string Camera::getAvtDeviceFirmwareVersion()
 
 std::string Camera::getAvtDeviceTemperature()
 {
-  std::string result = "";
+    std::string result = "";
     
     if(m_StreamCallbacks)
     {        
@@ -2232,40 +2205,17 @@ std::string Camera::getAvtDeviceTemperature()
         {
             const int CCI_BCRM_REG = 0x0014;
             const int BCRM_DEV_TEMPERATURE = 0x0310;
-            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
          
-            uint16_t nBCRMAddress;
-            char pBuffer[2];
-            memset(pBuffer, 0, sizeof(pBuffer));   
-     
-            // get BCRM address offset
-            struct v4l2_i2c i2c_reg;
-            i2c_reg.nRegisterAddress = (__u32)CCI_BCRM_REG;
-            i2c_reg.nRegisterSize = (__u32)2;
-            i2c_reg.nNumBytes = (__u32)sizeof(pBuffer);
-            i2c_reg.pBuffer = pBuffer;
-
-            int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+            uint16_t nBCRMAddress = 0;
+            int res = ReadRegister(CCI_BCRM_REG, &nBCRMAddress, sizeof(nBCRMAddress));
             
             if (res >= 0)
-            {
-                nBCRMAddress = ( (((uint16_t)pBuffer[0] << 8) & 0xFF00) | ((uint16_t)pBuffer[1] & 0x00FF) );
-                
+            {                
                 int32_t deviceTemperture = 0;
-                char pBuf[4];
-                memset(pBuf, 0, sizeof(pBuf));   
-                
-                i2c_reg.nRegisterAddress = (__u32)nBCRMAddress + BCRM_DEV_TEMPERATURE;
-                i2c_reg.nRegisterSize = (__u32)2;
-                i2c_reg.nNumBytes = (__u32)sizeof(pBuf);
-                i2c_reg.pBuffer = pBuf;
-                
-                res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+                res = ReadRegister((__u32)nBCRMAddress + BCRM_DEV_TEMPERATURE, &deviceTemperture, sizeof(deviceTemperture));
                 
                 if (res >= 0)
-                {
-                    deviceTemperture = *(int32_t*)pBuf;
-               
+                {               
                     std::stringstream ss;
                     ss << (signed)deviceTemperture;
                     result = ss.str();
@@ -2290,25 +2240,23 @@ std::string Camera::getAvtDeviceSerialNumber()
         
         if(m_isAvtCamera)
         {
-            const int CCI_BCRM_REG = 0x0014;
             const int DEVICE_SERIAL_NUMBER = 0x0198;
-            const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
-
             char pBuf[64];
-            memset(pBuf, 0, sizeof(pBuf));   
-            
-            struct v4l2_i2c i2c_reg;    
-            i2c_reg.nRegisterAddress = (__u32)DEVICE_SERIAL_NUMBER;
-            i2c_reg.nRegisterSize = (__u32)2;
-            i2c_reg.nNumBytes = (__u32)sizeof(pBuf);
-            i2c_reg.pBuffer = pBuf;
                 
-            int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+            int res = ReadRegister(DEVICE_SERIAL_NUMBER, &pBuf, sizeof(pBuf));
                 
             if (res >= 0)
             {
                 std::stringstream ss;
-                ss << pBuf;
+                
+                // buffer may contain trailing null terminators
+                for(int i=0; i<sizeof(pBuf); i++)
+                {
+                    char c = pBuf[i];
+                    if(c != 0)
+                        ss << pBuf[i];
+                }
+               
                 result = ss.str();
             }
         }
@@ -2317,19 +2265,52 @@ std::string Camera::getAvtDeviceSerialNumber()
     return result;
 }
 
+bool Camera::getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError, uint64_t &FramesUnderrun, uint64_t &FramesIncomplete, double &CurrentFrameRate)
+{
+    bool result = false;
+    
+    if(m_StreamCallbacks)
+    {        
+        // dummy call to set m_isAvtCamera
+        std::string dummy;
+        GetCameraCapabilities(dummy);
+        
+        if(m_isAvtCamera)
+        {
+            v4l2_stats_t stream_stats;
+            memset(&stream_stats, 0, sizeof(v4l2_stats_t));
+            if (ioctl(m_nFileDescriptor, VIDIOC_STREAMSTAT, &stream_stats) >= 0)
+            {
+                FramesCount = stream_stats.FramesCount;
+                PacketCRCError = stream_stats.PacketCRCError;
+                FramesUnderrun = stream_stats.FramesUnderrun;
+                FramesIncomplete = stream_stats.FramesIncomplete;
+                CurrentFrameRate = (double)1000000.0 / stream_stats.CurrentFrameInterval;
+                result = true;
+            }
+        }
+    }
+    
+    return result;
+}
 
 
+void reverseBytes(void* start, int size)
+{
+    char *istart = (char*)start, *iend = istart + size;
+    std::reverse(istart, iend);
+}
 
-int Camera::ReadRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize)
+
+int Camera::ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize)
 {
     int iRet = -1;
-    const int VIDIOC_R_I2C = _IOWR('V', 104, struct v4l2_i2c);
 
     struct v4l2_i2c i2c_reg;
     i2c_reg.nRegisterAddress = (__u32)nRegAddr;
     i2c_reg.nRegisterSize = (__u32)2;
     i2c_reg.nNumBytes = (__u32)nBufferSize;
-    i2c_reg.pBuffer = pBuffer;
+    i2c_reg.pBuffer = (char*)pBuffer;
 
     int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);    
     
@@ -2338,20 +2319,30 @@ int Camera::ReadRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize)
         iRet = 0;
     }
     
+    // Values in BCM register are Big Endian -> swap bytes
+    if(QSysInfo::ByteOrder == QSysInfo::LittleEndian)
+    {
+        reverseBytes(pBuffer, nBufferSize);
+    }
+    
     return iRet;
 }
 
-int Camera::WriteRegister(uint16_t nRegAddr, char* pBuffer, uint32_t nBufferSize)
+int Camera::WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize)
 {
     int iRet = -1;
-
-    const int VIDIOC_W_I2C = _IOWR('V', 105, struct v4l2_i2c);
+    
+    // Values in BCM register are Big Endian -> swap bytes
+    if(QSysInfo::ByteOrder == QSysInfo::LittleEndian)
+    {
+        reverseBytes(pBuffer, nBufferSize);
+    }
     
     struct v4l2_i2c i2c_reg;
     i2c_reg.nRegisterAddress = (__u32)nRegAddr;
     i2c_reg.nRegisterSize = (__u32)2;
     i2c_reg.nNumBytes = (__u32)nBufferSize;
-    i2c_reg.pBuffer = pBuffer;
+    i2c_reg.pBuffer = (char*)pBuffer;
 
     int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_W_I2C, &i2c_reg);    
     
