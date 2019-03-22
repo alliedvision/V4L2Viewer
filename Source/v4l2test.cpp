@@ -2461,6 +2461,14 @@ void v4l2test::OnExposure()
 	}
 	else
 		ui.m_edExposureAbs->setEnabled(false);
+    
+    if (m_Camera.ReadAutoExposure(autoexposure) != -2)
+    {
+        ui.m_chkAutoExposure->setEnabled(true);
+        ui.m_chkAutoExposure->setChecked(autoexposure);
+    }
+    else
+        ui.m_chkAutoExposure->setEnabled(false);
 }
 
 void v4l2test::OnExposureAbs()
@@ -2485,6 +2493,14 @@ void v4l2test::OnExposureAbs()
 	}
 	else
 		ui.m_edExposure->setEnabled(false);
+    
+    if (m_Camera.ReadAutoExposure(autoexposure) != -2)
+    {
+        ui.m_chkAutoExposure->setEnabled(true);
+        ui.m_chkAutoExposure->setChecked(autoexposure);
+    }
+    else
+        ui.m_chkAutoExposure->setEnabled(false);
 }
 
 void v4l2test::OnAutoExposure()
