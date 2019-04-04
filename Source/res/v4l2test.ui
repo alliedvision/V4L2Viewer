@@ -454,8 +454,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>825</width>
-              <height>286</height>
+              <width>837</width>
+              <height>293</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -513,7 +513,7 @@
          <enum>QTabWidget::South</enum>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="m_ChunkDataTab">
          <attribute name="title">
@@ -528,6 +528,9 @@
             <height>16</height>
            </rect>
           </property>
+          <property name="maxLength">
+           <number>10</number>
+          </property>
          </widget>
          <widget class="QLineEdit" name="m_edHeight">
           <property name="geometry">
@@ -537,6 +540,9 @@
             <width>91</width>
             <height>16</height>
            </rect>
+          </property>
+          <property name="maxLength">
+           <number>10</number>
           </property>
          </widget>
          <widget class="QLabel" name="label">
@@ -590,6 +596,9 @@
             <height>16</height>
            </rect>
           </property>
+          <property name="maxLength">
+           <number>10</number>
+          </property>
           <property name="readOnly">
            <bool>true</bool>
           </property>
@@ -602,6 +611,9 @@
             <width>271</width>
             <height>16</height>
            </rect>
+          </property>
+          <property name="maxLength">
+           <number>10</number>
           </property>
          </widget>
          <widget class="QLabel" name="label_6">
@@ -625,6 +637,9 @@
             <width>91</width>
             <height>16</height>
            </rect>
+          </property>
+          <property name="maxLength">
+           <number>10</number>
           </property>
          </widget>
          <widget class="QListWidget" name="m_liFramesizes">
@@ -695,6 +710,9 @@
             <height>16</height>
            </rect>
           </property>
+          <property name="maxLength">
+           <number>10</number>
+          </property>
          </widget>
          <widget class="QLabel" name="label_8">
           <property name="geometry">
@@ -750,6 +768,9 @@
             <height>16</height>
            </rect>
           </property>
+          <property name="maxLength">
+           <number>10</number>
+          </property>
          </widget>
          <widget class="QLabel" name="label_10">
           <property name="geometry">
@@ -786,6 +807,9 @@
             <height>16</height>
            </rect>
           </property>
+          <property name="maxLength">
+           <number>10</number>
+          </property>
          </widget>
          <widget class="QLabel" name="label_12">
           <property name="geometry">
@@ -809,6 +833,9 @@
             <height>16</height>
            </rect>
           </property>
+          <property name="maxLength">
+           <number>10</number>
+          </property>
          </widget>
          <widget class="QLineEdit" name="m_edHue">
           <property name="geometry">
@@ -818,6 +845,9 @@
             <width>91</width>
             <height>16</height>
            </rect>
+          </property>
+          <property name="maxLength">
+           <number>10</number>
           </property>
          </widget>
          <widget class="QLabel" name="label_13">
@@ -914,6 +944,9 @@
             <height>16</height>
            </rect>
           </property>
+          <property name="maxLength">
+           <number>10</number>
+          </property>
          </widget>
          <widget class="QLineEdit" name="m_edReverseX">
           <property name="geometry">
@@ -923,6 +956,9 @@
             <width>91</width>
             <height>16</height>
            </rect>
+          </property>
+          <property name="maxLength">
+           <number>10</number>
           </property>
          </widget>
          <widget class="QLabel" name="label_17">
@@ -959,6 +995,9 @@
             <width>91</width>
             <height>16</height>
            </rect>
+          </property>
+          <property name="maxLength">
+           <number>10</number>
           </property>
          </widget>
          <widget class="QLabel" name="label_19">
@@ -1042,6 +1081,9 @@
             <height>16</height>
            </rect>
           </property>
+          <property name="maxLength">
+           <number>10</number>
+          </property>
          </widget>
          <widget class="QGroupBox" name="groupBox_4">
           <property name="geometry">
@@ -1083,6 +1125,9 @@
              <height>16</height>
             </rect>
            </property>
+           <property name="maxLength">
+            <number>10</number>
+           </property>
           </widget>
           <widget class="QLabel" name="label_23">
            <property name="geometry">
@@ -1106,6 +1151,9 @@
              <height>16</height>
             </rect>
            </property>
+           <property name="maxLength">
+            <number>10</number>
+           </property>
           </widget>
           <widget class="QLabel" name="label_24">
            <property name="geometry">
@@ -1128,6 +1176,9 @@
              <width>81</width>
              <height>16</height>
             </rect>
+           </property>
+           <property name="maxLength">
+            <number>10</number>
            </property>
           </widget>
           <widget class="QLabel" name="label_25">
@@ -2243,7 +2294,7 @@
      <x>0</x>
      <y>0</y>
      <width>1224</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="m_MenuFile">
