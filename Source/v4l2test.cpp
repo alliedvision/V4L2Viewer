@@ -855,14 +855,29 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
 // The event handler for stream statistics
 void v4l2test::OnGetStreamStatisticsButtonClicked()
 {
-	std::string tmp;
-
-	OnLog("---------------------------------------------");
-	OnLog("---- Stream Statistics ");
-	OnLog("---------------------------------------------");
-
-	//TODO m_Camera.GetStreamStatistics(tmp);
-	OnLog("Not implemented");
+    OnLog("---------------------------------------------");
+    OnLog("---- Stream Statistics ");
+    OnLog("---------------------------------------------");
+    
+    uint64_t FramesCount;
+    uint64_t PacketCRCError;
+    uint64_t FramesUnderrun;
+    uint64_t FramesIncomplete;
+    double CurrentFrameRate;
+    
+	if( m_Camera.getDriverStreamStat(FramesCount, PacketCRCError, FramesUnderrun, FramesIncomplete, CurrentFrameRate) )
+    {
+        OnLog("Stream statistics as reported from kernel driver:");
+        OnLog(QString("FramesCount=%1").arg(FramesCount));
+        OnLog(QString("PacketCRCError=%1").arg(PacketCRCError));
+        OnLog(QString("FramesUnderrun=%1").arg(FramesUnderrun));
+        OnLog(QString("FramesIncomplete=%1").arg(FramesIncomplete));
+        OnLog(QString("CurrentFrameRate=%1").arg(CurrentFrameRate));        
+    }
+    else
+    {
+        OnLog("Driver does not support stream statistics custom ioctl VIDIOC_STREAMSTAT.");
+    }
 
 	OnLog("---------------------------------------------");
 }
@@ -2456,6 +2471,14 @@ void v4l2test::OnExposure()
 	}
 	else
 		ui.m_edExposureAbs->setEnabled(false);
+    
+    if (m_Camera.ReadAutoExposure(autoexposure) != -2)
+    {
+        ui.m_chkAutoExposure->setEnabled(true);
+        ui.m_chkAutoExposure->setChecked(autoexposure);
+    }
+    else
+        ui.m_chkAutoExposure->setEnabled(false);
 }
 
 void v4l2test::OnExposureAbs()
@@ -2484,6 +2507,14 @@ void v4l2test::OnExposureAbs()
 	}
 	else
 		ui.m_edExposure->setEnabled(false);
+    
+    if (m_Camera.ReadAutoExposure(autoexposure) != -2)
+    {
+        ui.m_chkAutoExposure->setEnabled(true);
+        ui.m_chkAutoExposure->setChecked(autoexposure);
+    }
+    else
+        ui.m_chkAutoExposure->setEnabled(false);
 }
 
 void v4l2test::OnAutoExposure()
