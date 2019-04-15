@@ -34,10 +34,6 @@
 #include "FrameObserver.h"
 #include "CameraObserver.h"
 
-#define VIDIOC_R_I2C _IOWR('V', 104, struct v4l2_i2c)
-#define VIDIOC_W_I2C _IOWR('V', 105, struct v4l2_i2c)
-#define VIDIOC_STREAMSTAT _IOWR('V', 111, struct v4l2_stats_t)
-
 namespace AVT {
 namespace Tools {
 namespace Examples {
@@ -184,25 +180,6 @@ private:
     bool                m_Recording;
     bool                m_isAvtCamera;
     
-    struct v4l2_i2c
-    {
-        __u32       nRegisterAddress;       // Register
-        __u32       nTimeout;               // Timeout value
-        const char  *pBuffer;               // I/O buffer
-        __u32       nRegisterSize;          // Register size
-        __u32       nNumBytes;              // Bytes to read
-    };
-    
-    struct v4l2_stats_t
-    {
-        __u64    FramesCount;           // Total number of frames received
-        __u64    PacketCRCError;        // Number of packets with CRC errors
-        __u64    FramesUnderrun;        // Number of frames dropped because of buffer underrun
-        __u64    FramesIncomplete;      // Number of frames that were not completed
-        __u64    CurrentFrameCount;     // Number of frames received within CurrentFrameInterval (nec. to calculate fps value)
-        __u64    CurrentFrameInterval;  // Time interval between frames in µs
-    };
-
     CameraObserver                  m_DeviceDiscoveryCallbacks;
     QSharedPointer<FrameObserver>   m_StreamCallbacks;
 
