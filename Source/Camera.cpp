@@ -45,6 +45,7 @@
 #include "FrameObserverRead.h"
 #include "FrameObserverMMAP.h"
 #include "FrameObserverUSER.h"
+#include "avt_ioctls.h"
 
 #include <QStringList>
 #include <QSysInfo>
@@ -2277,7 +2278,7 @@ bool Camera::getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError
         {
             v4l2_stats_t stream_stats;
             memset(&stream_stats, 0, sizeof(v4l2_stats_t));
-            if (ioctl(m_nFileDescriptor, VIDIOC_STREAMSTAT, &stream_stats) >= 0)
+            if (ioctl(m_nFileDescriptor, VIDIOC_STREAM_STAT, &stream_stats) >= 0)
             {
                 FramesCount = stream_stats.FramesCount;
                 PacketCRCError = stream_stats.PacketCRCError;
