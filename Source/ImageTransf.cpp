@@ -612,6 +612,23 @@ void v4lconvert_rgb565_to_rgb24(const unsigned char *src, unsigned char *dest,
 	}
 }
 
+void v4lconvert_xrgb32_to_rgb32(const unsigned char *src, unsigned char *dest, int width, int height)
+{
+    // iterate every pixel
+    for(int w = 0; w < width; ++w)
+    {
+        for(int h = 0; h < height; ++h)
+        {
+            // skip first byte
+            src++; 
+            
+            // copy r, g, b
+            *dest++ = *src++;
+            *dest++ = *src++;
+            *dest++ = *src++;
+        }
+    }
+}
 
 int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length, 
 							  uint32_t width, uint32_t height, uint32_t pixelformat,
@@ -624,6 +641,7 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
 	
     switch(pixelformat)
     {
+    case V4L2_PIX_FMT_XBGR32:
 	case V4L2_PIX_FMT_ABGR32:
 	{
 		convertedImage = QImage(width,height,QImage::Format_ARGB32);
@@ -631,7 +649,14 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
 		memcpy(dst, pBuffer, length);
 	}
 	break;
-
+    
+    case V4L2_PIX_FMT_XRGB32:
+    {
+        convertedImage = QImage(width, height, QImage::Format_RGB888);
+        v4lconvert_xrgb32_to_rgb32(pBuffer, convertedImage.bits(), width, height);
+    }
+    break;
+    
 	case V4L2_PIX_FMT_JPEG:
 	case V4L2_PIX_FMT_MJPEG:
         {	
