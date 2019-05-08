@@ -1118,12 +1118,12 @@ int Camera::SetExtControl(int32_t value, uint32_t controlID, const char *functio
 }
 
 
-int Camera::ReadExposureAbs(uint32_t &value)
+int Camera::ReadExposureAbs(int32_t &value)
 {
     return ReadExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
 }
 
-int Camera::SetExposureAbs(uint32_t value)
+int Camera::SetExposureAbs(int32_t value)
 {
     return SetExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "SetExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
 }
@@ -1232,6 +1232,15 @@ int Camera::ReadControl(int32_t &value, uint32_t controlID, const char *function
 	
     if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
     {
+     
+    // check if control is disbled V4L2_CTRL_FLAG_DISABLED
+    if(ctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s is not supported!", functionName, controlName);
+        emit OnCameraMessage_Signal(QString("Camera::%1 VIDIOC_QUERYCTRL %2 is not supported!").arg(functionName).arg(controlName));        
+        return -2;
+    }        
+        
 	v4l2_control fmt;
 	
 	Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
@@ -1290,7 +1299,7 @@ int Camera::SetControl(int32_t value, uint32_t controlID, const char *functionNa
     return result;
 }
 
-int Camera::ReadGain(uint32_t &value)
+int Camera::ReadGain(int32_t &value)
 {
     if (m_UseExtendedControls)
 		return ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
@@ -1298,7 +1307,7 @@ int Camera::ReadGain(uint32_t &value)
 		return ReadControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN");
 }
 
-int Camera::SetGain(uint32_t value)
+int Camera::SetGain(int32_t value)
 {
     if (m_UseExtendedControls)
 		return SetExtControl(value, V4L2_CID_GAIN, "SetGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
@@ -1328,7 +1337,7 @@ int Camera::SetAutoGain(bool value)
 		return SetControl(value, V4L2_CID_AUTOGAIN, "SetAutoGain", "V4L2_CID_AUTOGAIN");
 }
 
-int Camera::ReadExposure(uint32_t &value)
+int Camera::ReadExposure(int32_t &value)
 {
     if (m_UseExtendedControls)
     	return ReadExtControl(value, V4L2_CID_EXPOSURE, "ReadExposure", "V4L2_CID_EXPOSURE", V4L2_CTRL_CLASS_USER);
@@ -1336,7 +1345,7 @@ int Camera::ReadExposure(uint32_t &value)
 		return ReadControl(value, V4L2_CID_EXPOSURE, "ReadExposure", "V4L2_CID_EXPOSURE");
 }
 
-int Camera::SetExposure(uint32_t value)
+int Camera::SetExposure(int32_t value)
 {
     if (m_UseExtendedControls)
     	return SetExtControl(value, V4L2_CID_EXPOSURE, "SetExposure", "V4L2_CID_EXPOSURE", V4L2_CTRL_CLASS_USER);
@@ -1344,7 +1353,7 @@ int Camera::SetExposure(uint32_t value)
 		return SetControl(value, V4L2_CID_EXPOSURE, "SetExposure", "V4L2_CID_EXPOSURE");
 }
 
-int Camera::ReadGamma(uint32_t &value)
+int Camera::ReadGamma(int32_t &value)
 {
     if (m_UseExtendedControls)
     	return ReadExtControl(value, V4L2_CID_GAMMA, "ReadGamma", "V4L2_CID_GAMMA", V4L2_CTRL_CLASS_USER);
@@ -1352,7 +1361,7 @@ int Camera::ReadGamma(uint32_t &value)
 		return ReadControl(value, V4L2_CID_GAMMA, "ReadGamma", "V4L2_CID_GAMMA");
 }
 
-int Camera::SetGamma(uint32_t value)
+int Camera::SetGamma(int32_t value)
 {
     if (m_UseExtendedControls)
     	return SetExtControl(value, V4L2_CID_GAMMA, "SetGamma", "V4L2_CID_GAMMA", V4L2_CTRL_CLASS_USER);
@@ -1360,7 +1369,7 @@ int Camera::SetGamma(uint32_t value)
 		return SetControl(value, V4L2_CID_GAMMA, "SetGamma", "V4L2_CID_GAMMA");
 }
 
-int Camera::ReadReverseX(uint32_t &value)
+int Camera::ReadReverseX(int32_t &value)
 {
     if (m_UseExtendedControls)
     	return ReadExtControl(value, V4L2_CID_HFLIP, "ReadReverseX", "V4L2_CID_HFLIP", V4L2_CTRL_CLASS_USER);
@@ -1368,7 +1377,7 @@ int Camera::ReadReverseX(uint32_t &value)
 		return ReadControl(value, V4L2_CID_HFLIP, "ReadReverseX", "V4L2_CID_HFLIP");
 }
 
-int Camera::SetReverseX(uint32_t value)
+int Camera::SetReverseX(int32_t value)
 {
     if (m_UseExtendedControls)
     	return SetExtControl(value, V4L2_CID_HFLIP, "SetReverseX", "V4L2_CID_HFLIP", V4L2_CTRL_CLASS_USER);
@@ -1376,7 +1385,7 @@ int Camera::SetReverseX(uint32_t value)
 		return SetControl(value, V4L2_CID_HFLIP, "SetReverseX", "V4L2_CID_HFLIP");
 }
 
-int Camera::ReadReverseY(uint32_t &value)
+int Camera::ReadReverseY(int32_t &value)
 {
     if (m_UseExtendedControls)
     	return ReadExtControl(value, V4L2_CID_VFLIP, "ReadReverseY", "V4L2_CID_VFLIP", V4L2_CTRL_CLASS_USER);
@@ -1384,7 +1393,7 @@ int Camera::ReadReverseY(uint32_t &value)
 		return ReadControl(value, V4L2_CID_VFLIP, "ReadReverseY", "V4L2_CID_VFLIP");
 }
 
-int Camera::SetReverseY(uint32_t value)
+int Camera::SetReverseY(int32_t value)
 {
     if (m_UseExtendedControls)
     	return SetExtControl(value, V4L2_CID_VFLIP, "SetReverseY", "V4L2_CID_VFLIP", V4L2_CTRL_CLASS_USER);
@@ -1408,7 +1417,7 @@ int Camera::SetSharpness(int32_t value)
 		return SetControl(value, V4L2_CID_SHARPNESS, "SetSharpness", "V4L2_CID_SHARPNESS");
 }
 
-int Camera::ReadBrightness(uint32_t &value)
+int Camera::ReadBrightness(int32_t &value)
 {
     if (m_UseExtendedControls)
     	return ReadExtControl(value, V4L2_CID_BRIGHTNESS, "ReadBrightness", "V4L2_CID_BRIGHTNESS", V4L2_CTRL_CLASS_USER);
@@ -1416,7 +1425,7 @@ int Camera::ReadBrightness(uint32_t &value)
 		return ReadControl(value, V4L2_CID_BRIGHTNESS, "ReadBrightness", "V4L2_CID_BRIGHTNESS");
 }
 
-int Camera::SetBrightness(uint32_t value)
+int Camera::SetBrightness(int32_t value)
 {
     if (m_UseExtendedControls)
     	return SetExtControl(value, V4L2_CID_BRIGHTNESS, "SetBrightness", "V4L2_CID_BRIGHTNESS", V4L2_CTRL_CLASS_USER);
@@ -1424,7 +1433,7 @@ int Camera::SetBrightness(uint32_t value)
 		return SetControl(value, V4L2_CID_BRIGHTNESS, "SetBrightness", "V4L2_CID_BRIGHTNESS");
 }
 
-int Camera::ReadContrast(uint32_t &value)
+int Camera::ReadContrast(int32_t &value)
 {
     if (m_UseExtendedControls)
     	return ReadExtControl(value, V4L2_CID_CONTRAST, "ReadContrast", "V4L2_CID_CONTRAST", V4L2_CTRL_CLASS_USER);
@@ -1432,7 +1441,7 @@ int Camera::ReadContrast(uint32_t &value)
 		return ReadControl(value, V4L2_CID_CONTRAST, "ReadContrast", "V4L2_CID_CONTRAST");
 }
 
-int Camera::SetContrast(uint32_t value)
+int Camera::SetContrast(int32_t value)
 {
     if (m_UseExtendedControls)
     	return SetExtControl(value, V4L2_CID_CONTRAST, "SetContrast", "V4L2_CID_CONTRAST", V4L2_CTRL_CLASS_USER);
@@ -1440,7 +1449,7 @@ int Camera::SetContrast(uint32_t value)
 		return SetControl(value, V4L2_CID_CONTRAST, "SetContrast", "V4L2_CID_CONTRAST");
 }
 
-int Camera::ReadSaturation(uint32_t &value)
+int Camera::ReadSaturation(int32_t &value)
 {
     if (m_UseExtendedControls)
     	return ReadExtControl(value, V4L2_CID_SATURATION, "ReadSaturation", "V4L2_CID_SATURATION", V4L2_CTRL_CLASS_USER);
@@ -1448,7 +1457,7 @@ int Camera::ReadSaturation(uint32_t &value)
 		return ReadControl(value, V4L2_CID_SATURATION, "ReadSaturation", "V4L2_CID_SATURATION");
 }
 
-int Camera::SetSaturation(uint32_t value)
+int Camera::SetSaturation(int32_t value)
 {
     if (m_UseExtendedControls)
     	return SetExtControl(value, V4L2_CID_SATURATION, "SetSaturation", "V4L2_CID_SATURATION", V4L2_CTRL_CLASS_USER);
@@ -1532,7 +1541,7 @@ int Camera::DoWhiteBalanceOnce()
 	return SetControl(0, V4L2_CID_DO_WHITE_BALANCE, "DoWhiteBalanceOnce", "V4L2_CID_DO_WHITE_BALANCE");
 }
 
-int Camera::ReadRedBalance(uint32_t &value)
+int Camera::ReadRedBalance(int32_t &value)
 {
     if (m_UseExtendedControls)
     	return ReadExtControl(value, V4L2_CID_RED_BALANCE, "ReadRedBalance", "V4L2_CID_RED_BALANCE", V4L2_CTRL_CLASS_USER);
@@ -1540,7 +1549,7 @@ int Camera::ReadRedBalance(uint32_t &value)
 	return ReadControl(value, V4L2_CID_RED_BALANCE, "ReadRedBalance", "V4L2_CID_RED_BALANCE");
 }
 
-int Camera::SetRedBalance(uint32_t value)
+int Camera::SetRedBalance(int32_t value)
 {
     if (m_UseExtendedControls)
     	return SetExtControl(value, V4L2_CID_RED_BALANCE, "SetRedBalance", "V4L2_CID_RED_BALANCE", V4L2_CTRL_CLASS_USER);
@@ -1548,7 +1557,7 @@ int Camera::SetRedBalance(uint32_t value)
 	return SetControl(value, V4L2_CID_RED_BALANCE, "SetRedBalance", "V4L2_CID_RED_BALANCE");
 }
 
-int Camera::ReadBlueBalance(uint32_t &value)
+int Camera::ReadBlueBalance(int32_t &value)
 {
     if (m_UseExtendedControls)
     	return ReadExtControl(value, V4L2_CID_BLUE_BALANCE, "ReadBlueBalance", "V4L2_CID_BLUE_BALANCE", V4L2_CTRL_CLASS_USER);
@@ -1556,7 +1565,7 @@ int Camera::ReadBlueBalance(uint32_t &value)
 	return ReadControl(value, V4L2_CID_BLUE_BALANCE, "ReadBlueBalance", "V4L2_CID_BLUE_BALANCE");
 }
 
-int Camera::SetBlueBalance(uint32_t value)
+int Camera::SetBlueBalance(int32_t value)
 {
     if (m_UseExtendedControls)
     	return SetExtControl(value, V4L2_CID_BLUE_BALANCE, "SetBlueBalance", "V4L2_CID_BLUE_BALANCE", V4L2_CTRL_CLASS_USER);

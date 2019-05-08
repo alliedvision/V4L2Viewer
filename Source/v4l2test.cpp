@@ -149,6 +149,18 @@ static const QString GetImageFormatString()
 	return formatString;
 }
 
+static int32_t int64_2_int32(const int64_t value)
+{
+    if (value > 0)
+    {
+        return std::min(value, (int64_t)std::numeric_limits<int32_t>::max());
+    }
+    else
+    {
+        return std::max(value, (int64_t)std::numeric_limits<int32_t>::min());
+    }
+}
+
 v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 	: QMainWindow(parent, flags)
 	, m_nViewerNumber(viewerNumber)
@@ -2409,16 +2421,16 @@ void v4l2test::OnPixelformat()
 	OnReadAllValues();
 }
 
+
+
 void v4l2test::OnGain()
 {
-	uint32_t gain = 0;
+	int32_t gain = 0;
 	bool autogain = false;
 
-	uint64_t nVal = ui.m_edGain->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();	
+	int32_t nVal = int64_2_int32(ui.m_edGain->text().toLongLong());
 	
-	m_Camera.SetGain((uint32_t)nVal);
+	m_Camera.SetGain(nVal);
 
 	if (m_Camera.ReadGain(gain) != -2)
 	{
@@ -2431,7 +2443,7 @@ void v4l2test::OnGain()
 
 void v4l2test::OnAutoGain()
 {
-	uint32_t gain = 0;
+	int32_t gain = 0;
 	bool autogain = false;
 
 	m_Camera.SetAutoGain(ui.m_chkAutoGain->isChecked());
@@ -2447,15 +2459,13 @@ void v4l2test::OnAutoGain()
 
 void v4l2test::OnExposure()
 {
-	uint32_t exposure = 0;
-	uint32_t exposureAbs = 0;
+	int32_t exposure = 0;
+	int32_t exposureAbs = 0;
 	bool autoexposure = false;
 
-	uint64_t nVal = ui.m_edExposure->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();
+	int32_t nVal = int64_2_int32(ui.m_edExposure->text().toLongLong());
 	
-	m_Camera.SetExposure((uint32_t)nVal);
+	m_Camera.SetExposure(nVal);
 
 	if (m_Camera.ReadExposure(exposure) != -2)
 	{
@@ -2483,15 +2493,13 @@ void v4l2test::OnExposure()
 
 void v4l2test::OnExposureAbs()
 {
-	uint32_t exposure = 0;
-	uint32_t exposureAbs = 0;
+	int32_t exposure = 0;
+	int32_t exposureAbs = 0;
 	bool autoexposure = false;
 
-	uint64_t nVal = ui.m_edExposureAbs->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();	
+	int32_t nVal = int64_2_int32(ui.m_edExposureAbs->text().toLongLong());
 	
-	m_Camera.SetExposureAbs((uint32_t)nVal);
+	m_Camera.SetExposureAbs(nVal);
 
 	if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
 	{
@@ -2519,7 +2527,7 @@ void v4l2test::OnExposureAbs()
 
 void v4l2test::OnAutoExposure()
 {
-	uint32_t exposure = 0;
+	int32_t exposure = 0;
 	bool autoexposure = false;
 
 	m_Camera.SetAutoExposure(ui.m_chkAutoExposure->isChecked());
@@ -2563,20 +2571,18 @@ void v4l2test::OnFramesizesDBLClick(QListWidgetItem *item)
 
 void v4l2test::OnGamma()
 {
-	uint64_t nVal = ui.m_edGamma->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();		
+	int32_t nVal = int64_2_int32(ui.m_edGamma->text().toLongLong());
 	
-	if (m_Camera.SetGamma((uint32_t)nVal) < 0)
+	if (m_Camera.SetGamma(nVal) < 0)
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Gamma!") );
 		m_Camera.ReadGamma(tmp);
 		ui.m_edGamma->setText(QString("%1").arg(tmp));
 	}
 	else
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		OnLog(QString("Gamma set to %1").arg(nVal));
 
 		m_Camera.ReadGamma(tmp);
@@ -2586,20 +2592,18 @@ void v4l2test::OnGamma()
 
 void v4l2test::OnReverseX()
 {
-	uint64_t nVal = ui.m_edReverseX->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();		
+	int32_t nVal = int64_2_int32(ui.m_edReverseX->text().toLongLong());
 	
-	if (m_Camera.SetReverseX((uint32_t)nVal) < 0)
+	if (m_Camera.SetReverseX(nVal) < 0)
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ReverseX!") );
 		m_Camera.ReadReverseX(tmp);
 		ui.m_edReverseX->setText(QString("%1").arg(tmp));
 	}
 	else
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		OnLog(QString("ReverseX set to %1").arg(nVal));
 
 		m_Camera.ReadReverseX(tmp);
@@ -2609,20 +2613,18 @@ void v4l2test::OnReverseX()
 
 void v4l2test::OnReverseY()
 {
-	uint64_t nVal = ui.m_edReverseY->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();	
+	int32_t nVal = int64_2_int32(ui.m_edReverseY->text().toLongLong());
 	
-	if (m_Camera.SetReverseY((uint32_t)nVal) < 0)
+	if (m_Camera.SetReverseY(nVal) < 0)
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ReverseY!") );
 		m_Camera.ReadReverseY(tmp);
 		ui.m_edReverseY->setText(QString("%1").arg(tmp));
 	}
 	else
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		OnLog(QString("ReverseY set to %1").arg(nVal));
 
 		m_Camera.ReadReverseY(tmp);
@@ -2632,11 +2634,9 @@ void v4l2test::OnReverseY()
 
 void v4l2test::OnSharpness()
 {
-	uint64_t nVal = ui.m_edSharpness->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();	
+	int32_t nVal = int64_2_int32(ui.m_edSharpness->text().toLongLong());
 	
-	if (m_Camera.SetSharpness((uint32_t)nVal) < 0)
+	if (m_Camera.SetSharpness(nVal) < 0)
 	{
 		int32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Sharpness!") );
@@ -2655,20 +2655,18 @@ void v4l2test::OnSharpness()
 
 void v4l2test::OnBrightness()
 {
-	uint64_t nVal = ui.m_edBrightness->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();	
+	int32_t nVal = int64_2_int32(ui.m_edBrightness->text().toLongLong());
 	
-	if (m_Camera.SetBrightness((uint32_t)nVal) < 0)
+	if (m_Camera.SetBrightness(nVal) < 0)
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Brightness!") );
 		m_Camera.ReadBrightness(tmp);
 		ui.m_edBrightness->setText(QString("%1").arg(tmp));
 	}
 	else
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		OnLog(QString("Brightness set to %1").arg(nVal));
 
 		m_Camera.ReadBrightness(tmp);
@@ -2678,20 +2676,18 @@ void v4l2test::OnBrightness()
 
 void v4l2test::OnContrast()
 {
-	uint64_t nVal = ui.m_edContrast->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();	
+	int32_t nVal = int64_2_int32(ui.m_edContrast->text().toLongLong());
 	
-	if (m_Camera.SetContrast((uint32_t)nVal) < 0)
+	if (m_Camera.SetContrast(nVal) < 0)
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Contrast!") );
 		m_Camera.ReadContrast(tmp);
 		ui.m_edContrast->setText(QString("%1").arg(tmp));
 	}
 	else
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		OnLog(QString("Contrast set to %1").arg(nVal));
 
 		m_Camera.ReadContrast(tmp);
@@ -2701,20 +2697,18 @@ void v4l2test::OnContrast()
 
 void v4l2test::OnSaturation()
 {
-	uint64_t nVal = ui.m_edSaturation->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();	
+	int32_t nVal = int64_2_int32(ui.m_edSaturation->text().toLongLong());
 	
-	if (m_Camera.SetSaturation((uint32_t)nVal) < 0)
+	if (m_Camera.SetSaturation(nVal) < 0)
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Saturation!") );
 		m_Camera.ReadSaturation(tmp);
 		ui.m_edSaturation->setText(QString("%1").arg(tmp));
 	}
 	else
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		OnLog(QString("Saturation set to %1").arg(nVal));
 
 		m_Camera.ReadSaturation(tmp);
@@ -2724,11 +2718,9 @@ void v4l2test::OnSaturation()
 
 void v4l2test::OnHue()
 {
-	uint64_t nVal = ui.m_edHue->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();	
+	int32_t nVal = int64_2_int32(ui.m_edHue->text().toLongLong());
 	
-	if (m_Camera.SetHue(ui.m_edHue->text().toInt()) < 0)
+	if (m_Camera.SetHue(nVal) < 0)
 	{
 		int32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Hue!") );
@@ -2738,7 +2730,7 @@ void v4l2test::OnHue()
 	else
 	{
 		int32_t tmp = 0;
-		OnLog(QString("Hue set to %1").arg(ui.m_edHue->text().toInt()));
+		OnLog(QString("Hue set to %1").arg(nVal));
 
 		m_Camera.ReadHue(tmp);
 		ui.m_edHue->setText(QString("%1").arg(tmp));
@@ -2757,20 +2749,18 @@ void v4l2test::OnWhiteBalanceOnce()
 
 void v4l2test::OnRedBalance()
 {
-	uint64_t nVal = ui.m_edRedBalance->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();		
+	int32_t nVal = int64_2_int32(ui.m_edRedBalance->text().toLongLong());
 	
 	if (m_Camera.SetRedBalance((uint32_t)nVal) < 0)
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE RedBalance!") );
 		m_Camera.ReadRedBalance(tmp);
 		ui.m_edRedBalance->setText(QString("%1").arg(tmp));
 	}
 	else
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		OnLog(QString("RedBalance set to %1").arg(nVal));
 
 		m_Camera.ReadRedBalance(tmp);
@@ -2780,20 +2770,18 @@ void v4l2test::OnRedBalance()
 
 void v4l2test::OnBlueBalance()
 {
-	uint64_t nVal = ui.m_edBlueBalance->text().toLongLong();
-	if (nVal > std::numeric_limits<int32_t>::max())
-		nVal = std::numeric_limits<int32_t>::max();	
+	int32_t nVal = int64_2_int32(ui.m_edBlueBalance->text().toLongLong());
 	
 	if (m_Camera.SetBlueBalance((uint32_t)nVal) < 0)
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE BlueBalance!") );
 		m_Camera.ReadBlueBalance(tmp);
 		ui.m_edBlueBalance->setText(QString("%1").arg(tmp));
 	}
 	else
 	{
-		uint32_t tmp = 0;
+		int32_t tmp = 0;
 		OnLog(QString("BlueBalance set to %1").arg(nVal));
 
 		m_Camera.ReadBlueBalance(tmp);
@@ -3047,10 +3035,10 @@ void v4l2test::GetImageInformation()
 	uint32_t height = 0;
 	uint32_t xOffset = 0;
 	uint32_t yOffset = 0;
-	uint32_t gain = 0;
+	int32_t gain = 0;
 	bool autogain = false;
-	uint32_t exposure = 0;
-	uint32_t exposureAbs = 0;
+	int32_t exposure = 0;
+	int32_t exposureAbs = 0;
 	bool autoexposure = false;
 	int result = 0;
 	uint32_t nUVal;
@@ -3110,29 +3098,29 @@ void v4l2test::GetImageInformation()
 	else
 		ui.m_chkAutoExposure->setEnabled(false);
 
-	nUVal = 0;
-	if (m_Camera.ReadGamma(nUVal) != -2)
+	nSVal = 0;
+	if (m_Camera.ReadGamma(nSVal) != -2)
 	{
 		ui.m_edGamma->setEnabled(true);
-		ui.m_edGamma->setText(QString("%1").arg(nUVal));
+		ui.m_edGamma->setText(QString("%1").arg(nSVal));
 	}
 	else
 		ui.m_edGamma->setEnabled(false);
 
-	nUVal = 0;
-	if (m_Camera.ReadReverseX(nUVal) != -2)
+	nSVal = 0;
+	if (m_Camera.ReadReverseX(nSVal) != -2)
 	{
 		ui.m_edReverseX->setEnabled(true);
-		ui.m_edReverseX->setText(QString("%1").arg(nUVal));
+		ui.m_edReverseX->setText(QString("%1").arg(nSVal));
 	}
 	else
 		ui.m_edReverseX->setEnabled(false);
 
-	nUVal = 0;
-	if (m_Camera.ReadReverseY(nUVal) != -2)
+	nSVal = 0;
+	if (m_Camera.ReadReverseY(nSVal) != -2)
 	{
 		ui.m_edReverseY->setEnabled(true);
-		ui.m_edReverseY->setText(QString("%1").arg(nUVal));
+		ui.m_edReverseY->setText(QString("%1").arg(nSVal));
 	}
 	else
 		ui.m_edReverseY->setEnabled(false);
@@ -3146,29 +3134,29 @@ void v4l2test::GetImageInformation()
 	else
 		ui.m_edSharpness->setEnabled(false);
 
-	nUVal = 0;
-	if (m_Camera.ReadBrightness(nUVal) != -2)
+	nSVal = 0;
+	if (m_Camera.ReadBrightness(nSVal) != -2)
 	{
 		ui.m_edBrightness->setEnabled(true);
-		ui.m_edBrightness->setText(QString("%1").arg(nUVal));
+		ui.m_edBrightness->setText(QString("%1").arg(nSVal));
 	}
 	else
 		ui.m_edBrightness->setEnabled(false);
 
-	nUVal = 0;
-	if (m_Camera.ReadContrast(nUVal) != -2)
+	nSVal = 0;
+	if (m_Camera.ReadContrast(nSVal) != -2)
 	{
 		ui.m_edContrast->setEnabled(true);
-		ui.m_edContrast->setText(QString("%1").arg(nUVal));
+		ui.m_edContrast->setText(QString("%1").arg(nSVal));
 	}
 	else
 		ui.m_edContrast->setEnabled(false);
 
-	nUVal = 0;
-	if (m_Camera.ReadSaturation(nUVal) != -2)
+	nSVal = 0;
+	if (m_Camera.ReadSaturation(nSVal) != -2)
 	{
 		ui.m_edSaturation->setEnabled(true);
-		ui.m_edSaturation->setText(QString("%1").arg(nUVal));
+		ui.m_edSaturation->setText(QString("%1").arg(nSVal));
 	}
 	else
 		ui.m_edSaturation->setEnabled(false);
@@ -3182,20 +3170,20 @@ void v4l2test::GetImageInformation()
 	else
 		ui.m_edHue->setEnabled(false);
 
-	nUVal = 0;
-	if (m_Camera.ReadRedBalance(nUVal) != -2)
+	nSVal = 0;
+	if (m_Camera.ReadRedBalance(nSVal) != -2)
 	{
 		ui.m_edRedBalance->setEnabled(true);
-		ui.m_edRedBalance->setText(QString("%1").arg(nUVal));
+		ui.m_edRedBalance->setText(QString("%1").arg(nSVal));
 	}
 	else
 		ui.m_edRedBalance->setEnabled(false);
 
-	nUVal = 0;
-	if (m_Camera.ReadBlueBalance(nUVal) != -2)
+	nSVal = 0;
+	if (m_Camera.ReadBlueBalance(nSVal) != -2)
 	{
 		ui.m_edBlueBalance->setEnabled(true);
-		ui.m_edBlueBalance->setText(QString("%1").arg(nUVal));
+		ui.m_edBlueBalance->setText(QString("%1").arg(nSVal));
 	}
 	else
 		ui.m_edBlueBalance->setEnabled(false);
