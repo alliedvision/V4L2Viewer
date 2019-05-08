@@ -1472,6 +1472,40 @@ int Camera::SetHue(int32_t value)
 		return SetControl(value, V4L2_CID_HUE, "SetHue", "V4L2_CID_HUE");
 }
 
+bool Camera::IsAutoWhiteBalanceSupported()
+{
+    v4l2_queryctrl qctrl;
+    
+    CLEAR(qctrl);
+    qctrl.id = V4L2_CID_AUTO_WHITE_BALANCE;
+    
+    if( V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl) == 0)
+    {
+        return !(qctrl.flags & V4L2_CTRL_FLAG_DISABLED);
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool Camera::IsWhiteBalanceOnceSupported()
+{
+    v4l2_queryctrl qctrl;
+    
+    CLEAR(qctrl);
+    qctrl.id = V4L2_CID_DO_WHITE_BALANCE;
+    
+    if( V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl) == 0)
+    {
+        return !(qctrl.flags & V4L2_CTRL_FLAG_DISABLED);
+    }
+    else
+    {
+        return false;
+    }
+}
+
 int Camera::SetContinousWhiteBalance(bool flag)
 {
     if (m_UseExtendedControls)

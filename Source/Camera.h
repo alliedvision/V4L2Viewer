@@ -104,6 +104,8 @@ public:
     int ReadHue(int32_t &value);
     int SetHue(int32_t value);
     int SetContinousWhiteBalance(bool flag);
+    bool IsAutoWhiteBalanceSupported();
+    bool IsWhiteBalanceOnceSupported();
     int DoWhiteBalanceOnce();
     int ReadRedBalance(uint32_t &value);
     int SetRedBalance(uint32_t value);

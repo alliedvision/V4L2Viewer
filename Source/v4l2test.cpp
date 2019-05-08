@@ -3067,6 +3067,9 @@ void v4l2test::GetImageInformation()
 
 	UpdateCameraFormat();
 
+    ui.m_butWhiteBalanceOnce->setEnabled(m_Camera.IsWhiteBalanceOnceSupported());
+    ui.m_chkContWhiteBalance->setEnabled(m_Camera.IsAutoWhiteBalanceSupported());
+    
 	if (m_Camera.ReadGain(gain) != -2)
 	{
 		ui.m_edGain->setEnabled(true);
