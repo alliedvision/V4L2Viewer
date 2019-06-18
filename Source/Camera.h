@@ -125,8 +125,8 @@ public:
     int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
-    int ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize);
-    int WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize);
+    int ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
+    int WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
     
 
     int EnumAllControlNewStyle();
@@ -189,7 +189,8 @@ private:
 
     size_t fsize(const char *filename);
     int ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData);
-
+	void reverseBytes(void* start, int size);
+	
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
     void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);

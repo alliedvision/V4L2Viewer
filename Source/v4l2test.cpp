@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MANUF_NAME_AV       "Allied Vision"
 #define APP_NAME            "Video4Linux2 Testtool"
 #define APP_VERSION_MAJOR   1
-#define APP_VERSION_MINOR   38
+#define APP_VERSION_MINOR   39
 #define APP_VERSION_PATCH   0
 #ifndef SCM_REVISION
 #define SCM_REVISION        0
@@ -115,6 +115,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		Fixed some code indention
 * 1.37  Added direct register access functionality
 * 1.38  Fixed limits for misc controls
+* 1.39  Fixed false endianess conversion for strings
 */
 
 static const QStringList GetImageFormats()
@@ -1622,7 +1623,7 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
         
         pBuffer = (char*)malloc(nSize+1);
         memset(pBuffer, 0, nSize+1);
-        int iRet = m_Camera.ReadRegister(address, pBuffer, nSize);
+        int iRet = m_Camera.ReadRegister(address, pBuffer, nSize, true);
         QString strValue("");
 
         if (iRet == 0)
@@ -1847,7 +1848,7 @@ void v4l2test::OnDirectRegisterAccessWriteButtonClicked()
         
         if (bValid && converted)
         {
-            int iRet = m_Camera.WriteRegister(address, pBuffer, nSize);      
+            int iRet = m_Camera.WriteRegister(address, pBuffer, nSize, true);      
             if (iRet == 0)
             {
                 OnLog(QString("Register '0x%1' set to %2.").arg(address, 4, 16, QChar('0')).arg(pBuffer));

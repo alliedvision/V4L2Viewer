@@ -2208,22 +2208,22 @@ std::string Camera::getAvtDeviceFirmwareVersion()
          
             uint16_t nBCRMAddress = 0;  
             
-            int res = ReadRegister(CCI_BCRM_REG, &nBCRMAddress, sizeof(nBCRMAddress));
+            int res = ReadRegister(CCI_BCRM_REG, &nBCRMAddress, sizeof(nBCRMAddress), true);
      
             if (res >= 0)
             {                
                 uint64_t deviceFirmwareVersion = 0;
                 
-                res = ReadRegister((__u32)nBCRMAddress + BCRM_DEV_FW_VERSION, &deviceFirmwareVersion, sizeof(deviceFirmwareVersion));
+                res = ReadRegister((__u32)nBCRMAddress + BCRM_DEV_FW_VERSION, &deviceFirmwareVersion, sizeof(deviceFirmwareVersion), true);
                 
                 if (res >= 0)
-                {                                      
-                    uint32_t patchVersion = (deviceFirmwareVersion >> 32) & 0xFFFFFFFF;
-                    uint16_t minorVersion = (deviceFirmwareVersion >> 16) & 0xFFFF;                    
-                    uint8_t majorVersion = (deviceFirmwareVersion >> 8) & 0xFF;
+                {   
                     uint8_t specialVersion = (deviceFirmwareVersion & 0xFF);      
+					uint8_t majorVersion = (deviceFirmwareVersion >> 8) & 0xFF;
+					uint16_t minorVersion = (deviceFirmwareVersion >> 16) & 0xFFFF;                    
+                    uint32_t patchVersion = (deviceFirmwareVersion >> 32) & 0xFFFFFFFF;
                     
-                    std::stringstream ss;
+					std::stringstream ss;
                     ss << (unsigned)specialVersion << "." << (unsigned)majorVersion << "." << (unsigned)minorVersion << "." << (unsigned)patchVersion;
                     result = ss.str();
                 }
@@ -2251,12 +2251,12 @@ std::string Camera::getAvtDeviceTemperature()
             const int BCRM_DEV_TEMPERATURE = 0x0310;
          
             uint16_t nBCRMAddress = 0;
-            int res = ReadRegister(CCI_BCRM_REG, &nBCRMAddress, sizeof(nBCRMAddress));
+            int res = ReadRegister(CCI_BCRM_REG, &nBCRMAddress, sizeof(nBCRMAddress), true);
             
             if (res >= 0)
             {                
                 int32_t deviceTemperture = 0;
-                res = ReadRegister((__u32)nBCRMAddress + BCRM_DEV_TEMPERATURE, &deviceTemperture, sizeof(deviceTemperture));
+                res = ReadRegister((__u32)nBCRMAddress + BCRM_DEV_TEMPERATURE, &deviceTemperture, sizeof(deviceTemperture), true);
                 
                 if (res >= 0)
                 {               
@@ -2287,7 +2287,7 @@ std::string Camera::getAvtDeviceSerialNumber()
             const int DEVICE_SERIAL_NUMBER = 0x0198;
             char pBuf[64];
                 
-            int res = ReadRegister(DEVICE_SERIAL_NUMBER, &pBuf, sizeof(pBuf));
+            int res = ReadRegister(DEVICE_SERIAL_NUMBER, &pBuf, sizeof(pBuf), false);		// String Reg! NO endianess conversion!
                 
             if (res >= 0)
             {
@@ -2339,14 +2339,14 @@ bool Camera::getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError
 }
 
 
-void reverseBytes(void* start, int size)
+void Camera::reverseBytes(void* start, int size)
 {
     char *istart = (char*)start, *iend = istart + size;
     std::reverse(istart, iend);
 }
 
 
-int Camera::ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize)
+int Camera::ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess)
 {
     int iRet = -1;
 
@@ -2364,7 +2364,7 @@ int Camera::ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize)
     }
     
     // Values in BCM register are Big Endian -> swap bytes
-    if(QSysInfo::ByteOrder == QSysInfo::LittleEndian)
+    if(bConvertEndianess && (QSysInfo::ByteOrder == QSysInfo::LittleEndian))
     {
         reverseBytes(pBuffer, nBufferSize);
     }
@@ -2372,12 +2372,12 @@ int Camera::ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize)
     return iRet;
 }
 
-int Camera::WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize)
+int Camera::WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess)
 {
     int iRet = -1;
     
     // Values in BCM register are Big Endian -> swap bytes
-    if(QSysInfo::ByteOrder == QSysInfo::LittleEndian)
+    if(bConvertEndianess && (QSysInfo::ByteOrder == QSysInfo::LittleEndian))
     {
         reverseBytes(pBuffer, nBufferSize);
     }
