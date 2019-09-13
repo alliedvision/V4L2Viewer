@@ -28,6 +28,7 @@
 
 #include <sstream>
 
+#include <cstring>
 #include "ImageTransf.h"
 #include "Logger.h"
 #include <QPixmap>
@@ -630,6 +631,34 @@ void v4lconvert_xrgb32_to_rgb32(const unsigned char *src, unsigned char *dest, i
     }
 }
 
+
+void v4lconvert_remove_padding(const uint8_t** src, std::vector<uint8_t> *conversionBuffer, int width, int height, int bytesPerPixel, int bytesPerLine)
+{
+    if(width * bytesPerPixel == bytesPerLine)
+    {
+        // nothing to do
+        return;
+    }
+    
+    const uint8_t *data = *src;    
+    conversionBuffer->resize(width * height * bytesPerPixel);
+    uint8_t *dst = conversionBuffer->data();
+    size_t payloadPerLine = width*bytesPerPixel;
+    
+    // iterate every line
+    for(int y=0; y<height; y++)
+    {
+        // copy payload to buffer without padding
+        std::memcpy(dst, data, payloadPerLine);
+        dst += payloadPerLine;
+        data += bytesPerLine;
+    }
+    
+    *src = conversionBuffer->data();
+}
+
+
+
 int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length, 
 							  uint32_t width, uint32_t height, uint32_t pixelformat,
 							  uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage)
@@ -639,19 +668,25 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
 	if (NULL == pBuffer || 0 == length)
 	    return -1;
 	
+    std::vector<uint8_t> conversionBuffer;
+        
+      
     switch(pixelformat)
     {
     case V4L2_PIX_FMT_XBGR32:
 	case V4L2_PIX_FMT_ABGR32:
 	{
+        int bytesPerPixel = 4;
+        v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, bytesPerPixel, bytesPerLine);
 		convertedImage = QImage(width,height,QImage::Format_ARGB32);
 		unsigned char* dst = convertedImage.bits();
-		memcpy(dst, pBuffer, length);
+		memcpy(dst, pBuffer, width*height*bytesPerPixel);
 	}
 	break;
     
     case V4L2_PIX_FMT_XRGB32:
     {
+        v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 4, bytesPerLine);
         convertedImage = QImage(width, height, QImage::Format_RGB888);
         v4lconvert_xrgb32_to_rgb32(pBuffer, convertedImage.bits(), width, height);
     }
@@ -711,6 +746,7 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
         break;
     case V4L2_PIX_FMT_GREY:
         {
+            v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 1, bytesPerLine);
             convertedImage = QImage(width, height, QImage::Format_RGB888);
 	        v4lconvert_grey_to_rgb24(pBuffer, convertedImage.bits(), width, height);
         }
