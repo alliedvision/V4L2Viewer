@@ -756,6 +756,7 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
     case V4L2_PIX_FMT_SGRBG8:
     case V4L2_PIX_FMT_SRGGB8:
     {
+        v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 1, bytesPerLine);
         convertedImage = QImage(width, height, QImage::Format_RGB888);
         v4lconvert_bayer8_to_rgb24(pBuffer, convertedImage.bits(), width, height, width/*bytesPerLine*/, pixelformat);
     }
