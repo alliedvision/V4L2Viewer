@@ -488,26 +488,39 @@ void v4lconvert_swap_rgb(const unsigned char *src, unsigned char *dst,
 }
 
 void v4lconvert_uyvy_to_rgb24(const unsigned char *src, unsigned char *dest,
-		int width, int height, int stride)
+		int width, int height, int stride, unsigned int pixfmt)
 {
 	int j;
 
 	while (--height >= 0) {
 		for (j = 0; j + 1 < width; j += 2) {
-			int u = src[0];
-			int v = src[2];
+			
+            int u, v;
+            
+            if(pixfmt == V4L2_PIX_FMT_UYVY)
+            {
+                u = src[0];
+                v = src[2];
+            }
+            else if(pixfmt == V4L2_PIX_FMT_VYUY)
+            {
+                u = src[2];
+                v = src[0];
+            }
+            
 			int u1 = (((u - 128) << 7) +  (u - 128)) >> 6;
 			int rg = (((u - 128) << 1) +  (u - 128) +
 					((v - 128) << 2) + ((v - 128) << 1)) >> 3;
 			int v1 = (((v - 128) << 1) +  (v - 128)) >> 1;
 
-			*dest++ = CLIP(src[1] + v1);
-			*dest++ = CLIP(src[1] - rg);
-			*dest++ = CLIP(src[1] + u1);
+            *dest++ = CLIP(src[1] + v1);
+            *dest++ = CLIP(src[1] - rg);
+            *dest++ = CLIP(src[1] + u1);
 
-			*dest++ = CLIP(src[3] + v1);
-			*dest++ = CLIP(src[3] - rg);
-			*dest++ = CLIP(src[3] + u1);
+            *dest++ = CLIP(src[3] + v1);
+            *dest++ = CLIP(src[3] - rg);
+            *dest++ = CLIP(src[3] + u1);
+            
 			src += 4;
 		}
 		src += stride - width * 2;
@@ -716,7 +729,7 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
 	case V4L2_PIX_FMT_UYVY:
         {	
             convertedImage = QImage(width, height, QImage::Format_RGB888);
-            v4lconvert_uyvy_to_rgb24(pBuffer, convertedImage.bits(), width, height, bytesPerLine);
+            v4lconvert_uyvy_to_rgb24(pBuffer, convertedImage.bits(), width, height, bytesPerLine, pixelformat);
         }
         break;
 	case V4L2_PIX_FMT_YUYV:
