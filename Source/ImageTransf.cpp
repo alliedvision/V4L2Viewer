@@ -28,6 +28,7 @@
 
 #include <sstream>
 
+#include <cstring>
 #include "ImageTransf.h"
 #include "Logger.h"
 #include <QPixmap>
@@ -487,26 +488,39 @@ void v4lconvert_swap_rgb(const unsigned char *src, unsigned char *dst,
 }
 
 void v4lconvert_uyvy_to_rgb24(const unsigned char *src, unsigned char *dest,
-		int width, int height, int stride)
+		int width, int height, int stride, unsigned int pixfmt)
 {
 	int j;
 
 	while (--height >= 0) {
 		for (j = 0; j + 1 < width; j += 2) {
-			int u = src[0];
-			int v = src[2];
+			
+            int u, v;
+            
+            if(pixfmt == V4L2_PIX_FMT_UYVY)
+            {
+                u = src[0];
+                v = src[2];
+            }
+            else if(pixfmt == V4L2_PIX_FMT_VYUY)
+            {
+                u = src[2];
+                v = src[0];
+            }
+            
 			int u1 = (((u - 128) << 7) +  (u - 128)) >> 6;
 			int rg = (((u - 128) << 1) +  (u - 128) +
 					((v - 128) << 2) + ((v - 128) << 1)) >> 3;
 			int v1 = (((v - 128) << 1) +  (v - 128)) >> 1;
 
-			*dest++ = CLIP(src[1] + v1);
-			*dest++ = CLIP(src[1] - rg);
-			*dest++ = CLIP(src[1] + u1);
+            *dest++ = CLIP(src[1] + v1);
+            *dest++ = CLIP(src[1] - rg);
+            *dest++ = CLIP(src[1] + u1);
 
-			*dest++ = CLIP(src[3] + v1);
-			*dest++ = CLIP(src[3] - rg);
-			*dest++ = CLIP(src[3] + u1);
+            *dest++ = CLIP(src[3] + v1);
+            *dest++ = CLIP(src[3] - rg);
+            *dest++ = CLIP(src[3] + u1);
+            
 			src += 4;
 		}
 		src += stride - width * 2;
@@ -612,6 +626,51 @@ void v4lconvert_rgb565_to_rgb24(const unsigned char *src, unsigned char *dest,
 	}
 }
 
+void v4lconvert_xrgb32_to_rgb32(const unsigned char *src, unsigned char *dest, int width, int height)
+{
+    // iterate every pixel
+    for(int w = 0; w < width; ++w)
+    {
+        for(int h = 0; h < height; ++h)
+        {
+            // skip first byte
+            src++; 
+            
+            // copy r, g, b
+            *dest++ = *src++;
+            *dest++ = *src++;
+            *dest++ = *src++;
+        }
+    }
+}
+
+
+void v4lconvert_remove_padding(const uint8_t** src, std::vector<uint8_t> *conversionBuffer, int width, int height, int bytesPerPixel, int bytesPerLine)
+{
+    if(width * bytesPerPixel == bytesPerLine)
+    {
+        // nothing to do
+        return;
+    }
+    
+    const uint8_t *data = *src;    
+    conversionBuffer->resize(width * height * bytesPerPixel);
+    uint8_t *dst = conversionBuffer->data();
+    size_t payloadPerLine = width*bytesPerPixel;
+    
+    // iterate every line
+    for(int y=0; y<height; y++)
+    {
+        // copy payload to buffer without padding
+        std::memcpy(dst, data, payloadPerLine);
+        dst += payloadPerLine;
+        data += bytesPerLine;
+    }
+    
+    *src = conversionBuffer->data();
+}
+
+
 
 int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length, 
 							  uint32_t width, uint32_t height, uint32_t pixelformat,
@@ -622,8 +681,30 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
 	if (NULL == pBuffer || 0 == length)
 	    return -1;
 	
+    std::vector<uint8_t> conversionBuffer;
+        
+      
     switch(pixelformat)
     {
+    case V4L2_PIX_FMT_XBGR32:
+	case V4L2_PIX_FMT_ABGR32:
+	{
+        int bytesPerPixel = 4;
+        v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, bytesPerPixel, bytesPerLine);
+		convertedImage = QImage(width,height,QImage::Format_ARGB32);
+		unsigned char* dst = convertedImage.bits();
+		memcpy(dst, pBuffer, width*height*bytesPerPixel);
+	}
+	break;
+    
+    case V4L2_PIX_FMT_XRGB32:
+    {
+        v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 4, bytesPerLine);
+        convertedImage = QImage(width, height, QImage::Format_RGB888);
+        v4lconvert_xrgb32_to_rgb32(pBuffer, convertedImage.bits(), width, height);
+    }
+    break;
+    
 	case V4L2_PIX_FMT_JPEG:
 	case V4L2_PIX_FMT_MJPEG:
         {	
@@ -644,10 +725,11 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
             v4lconvert_swap_rgb(pBuffer, convertedImage.bits(), width, height);
         }
         break;
+	case V4L2_PIX_FMT_VYUY:
 	case V4L2_PIX_FMT_UYVY:
         {	
             convertedImage = QImage(width, height, QImage::Format_RGB888);
-            v4lconvert_uyvy_to_rgb24(pBuffer, convertedImage.bits(), width, height, bytesPerLine);
+            v4lconvert_uyvy_to_rgb24(pBuffer, convertedImage.bits(), width, height, bytesPerLine, pixelformat);
         }
         break;
 	case V4L2_PIX_FMT_YUYV:
@@ -677,6 +759,7 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
         break;
     case V4L2_PIX_FMT_GREY:
         {
+            v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 1, bytesPerLine);
             convertedImage = QImage(width, height, QImage::Format_RGB888);
 	        v4lconvert_grey_to_rgb24(pBuffer, convertedImage.bits(), width, height);
         }
@@ -686,6 +769,7 @@ int ImageTransf::ConvertFrame(const uint8_t* pBuffer, uint32_t length,
     case V4L2_PIX_FMT_SGRBG8:
     case V4L2_PIX_FMT_SRGGB8:
     {
+        v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 1, bytesPerLine);
         convertedImage = QImage(width, height, QImage::Format_RGB888);
         v4lconvert_bayer8_to_rgb24(pBuffer, convertedImage.bits(), width, height, width/*bytesPerLine*/, pixelformat);
     }

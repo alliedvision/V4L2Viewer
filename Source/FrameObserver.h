@@ -100,8 +100,10 @@ public:
 	// Set the number of uncompleted frames
 	void ResetDroppedFramesCount();
 
-	// Recording
-	void SetRecording(bool start);
+    // Recording
+    void SetRecording(bool start);
+    
+    void setFileDescriptor(int fd);
     
     // Live Deviation Calc
     void SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame);
@@ -139,7 +141,6 @@ protected:
 	// Counter to count the received uncompleted images
 	unsigned int m_nDroppedFramesCounter;
 
-	// Variable to abort the running thread
 	int m_nFileDescriptor;
 	uint32_t m_Pixelformat;
 	uint32_t m_nWidth;

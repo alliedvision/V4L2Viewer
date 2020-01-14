@@ -63,7 +63,7 @@ Camera::Camera()
     , m_BlockingMode(false)
     , m_ShowFrames(true)
     , m_useV4l2TryFmt(true)
-    , m_isAvtCamera(false)
+    , m_isAvtCamera(true)
 {
     connect(&m_DeviceDiscoveryCallbacks, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
 }
@@ -1760,11 +1760,9 @@ int Camera::SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t
 
 int Camera::CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
 {
-    int result = -1;
+    m_StreamCallbacks->setFileDescriptor(m_nFileDescriptor);
 
-    result = m_StreamCallbacks->CreateAllUserBuffer(bufferCount, bufferSize);
-
-    return result;
+    return m_StreamCallbacks->CreateAllUserBuffer(bufferCount, bufferSize);
 }
 
 int Camera::QueueAllUserBuffer()

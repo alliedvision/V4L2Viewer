@@ -171,11 +171,6 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
 
 	start();
 
-	{
-		AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
-		m_UserBufferContainerList.resize(0);
-	}
-
 	return nResult;
 }
 
@@ -543,6 +538,10 @@ void FrameObserver::SwitchFrameTransfer2GUI(bool showFrames)
 	m_ShowFrames = showFrames;
 }
 
+
+void FrameObserver::setFileDescriptor(int fd)
+{
+	m_nFileDescriptor = fd;
 }
-}
-} // namespace AVT::Tools::Examples
+
+}}} // namespace AVT::Tools::Examples
