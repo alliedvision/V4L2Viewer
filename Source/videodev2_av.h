@@ -19,4 +19,16 @@
 #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
 #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
 
+#ifndef V4L2_PIX_FMT_XBGR32
+#define V4L2_PIX_FMT_XBGR32 v4l2_fourcc('X', 'R', '2', '4')
+#endif
+
+#ifndef V4L2_PIX_FMT_ABGR32
+#define V4L2_PIX_FMT_ABGR32 v4l2_fourcc('A', 'R', '2', '4')
+#endif
+
+#ifndef V4L2_PIX_FMT_XRGB32
+#define V4L2_PIX_FMT_XRGB32 v4l2_fourcc('B', 'X', '2', '4')
+#endif
+
 #endif // VIDEODEV2_AV_H
