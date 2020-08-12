@@ -1232,6 +1232,13 @@ void v4l2test::UpdateRecordTableWidget()
 // The event handler for stopping acquisition
 void v4l2test::OnStopButtonClicked()
 {
+	// disable the stop button to show that the stop acquisition is in process
+	ui.m_StopButton->setEnabled(false);
+
+	int err = m_Camera.StopStreamChannel();
+	if (0 != err)
+		OnLog("Stop stream channel failed.");
+
 	m_StreamToggleTimer.stop();
 
 	OnLog("Stopping Stream...");
@@ -1244,12 +1251,6 @@ void v4l2test::OnStopButtonClicked()
 		OnLog("Stop Stream failed.");
 	}
 
-	// disable the stop button to show that the stop acquisition is in process
-	ui.m_StopButton->setEnabled(false);
-
-	int err = m_Camera.StopStreamChannel();
-	if (0 != err)
-		OnLog("Stop stream channel failed.");
 
 	QApplication::processEvents();
 
