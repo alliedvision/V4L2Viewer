@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MANUF_NAME_AV       "Allied Vision"
 #define APP_NAME            "Video4Linux2 Testtool"
 #define APP_VERSION_MAJOR   1
-#define APP_VERSION_MINOR   39
+#define APP_VERSION_MINOR   40
 #define APP_VERSION_PATCH   0
 #ifndef SCM_REVISION
 #define SCM_REVISION        0
@@ -116,6 +116,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 1.37  Added direct register access functionality
 * 1.38  Fixed limits for misc controls
 * 1.39  Fixed false endianess conversion for strings
+* 1.40  Fixed stream stop issue: Moved clearing buffer queue before stream stop
 */
 
 static const QStringList GetImageFormats()
