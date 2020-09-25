@@ -2826,17 +2826,17 @@ void v4l2test::OnFramerate()
 
 	if (m_Camera.SetFramerate(numerator, denominator) < 0)
 	{
-		uint32_t denominator = 0;
-		uint32_t numerator = 0;
+//		uint32_t denominator = 0;
+//		uint32_t numerator = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framerate!") );
 		m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat);
 		ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
 	}
 	else
 	{
-		uint32_t denominator = 0;
-		uint32_t numerator = 0;
-		OnLog(QString("Framerate set to %1").arg(ui.m_edFramerate->text().toInt()));
+//		uint32_t denominator = 0;
+//		uint32_t numerator = 0;
+		OnLog(QString("Framerate set to %1").arg(ui.m_edFramerate->text() + QString(" (") + QString::number((double)numerator/(double)denominator, 'f', 3) + QString(")") ));
 
 		m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat);
 		ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));

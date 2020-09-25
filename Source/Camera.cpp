@@ -1635,24 +1635,26 @@ int Camera::SetFramerate(uint32_t numerator, uint32_t denominator)
 	
     CLEAR(parm);
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    
-    if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
+    if (denominator != 0)
     {
-        parm.parm.capture.timeperframe.numerator = numerator;
-        parm.parm.capture.timeperframe.denominator = denominator;
-        if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_PARM, &parm))
-        {                
-            Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM to %d/%d OK", numerator, denominator);
-            emit OnCameraMessage_Signal(QString("SetFramerate VIDIOC_S_PARM: %1/%2 OK.").arg(numerator).arg(denominator));
-            result = 0;
-        }
-        else
+        if (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
         {
-            Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
-            emit OnCameraError_Signal(QString("SetFramerate VIDIOC_S_PARM: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+            parm.parm.capture.timeperframe.numerator = numerator;
+            parm.parm.capture.timeperframe.denominator = denominator;
+            if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_PARM, &parm))
+            {                
+                Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM to %d/%d (%.2f) OK", numerator, denominator, numerator/denominator);
+                emit OnCameraMessage_Signal(QString("SetFramerate VIDIOC_S_PARM: %1/%2 OK.").arg(numerator).arg(denominator));
+                result = 0;
+            }
+            else
+            {
+                Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM failed errno=%d=%s", errno, V4l2Helper::ConvertErrno2String(errno).c_str());
+                emit OnCameraError_Signal(QString("SetFramerate VIDIOC_S_PARM: failed errno=%1=%2.").arg(errno).arg(V4l2Helper::ConvertErrno2String(errno).c_str()));
+            }
         }
     }
-    
+
     return result;
 }
 
@@ -2327,7 +2329,6 @@ bool Camera::getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError
                 PacketCRCError = stream_stats.packet_crc_error;
                 FramesUnderrun = stream_stats.frames_underrun;
                 FramesIncomplete = stream_stats.frames_incomplete;
-
                 CurrentFrameRate = (stream_stats.current_frame_interval > 0) ? (double)stream_stats.current_frame_count / ((double)stream_stats.current_frame_interval / 1000000.0)
                                                                             : 0;
                 result = true;
