@@ -45,7 +45,7 @@
 #include "FrameObserverRead.h"
 #include "FrameObserverMMAP.h"
 #include "FrameObserverUSER.h"
-#include "avt_ioctls.h"
+#include "libcsi_ioctl.h"
 
 #include <QStringList>
 #include <QSysInfo>
@@ -2321,13 +2321,15 @@ bool Camera::getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError
         {
             v4l2_stats_t stream_stats;
             memset(&stream_stats, 0, sizeof(v4l2_stats_t));
-            if (ioctl(m_nFileDescriptor, VIDIOC_STREAM_STAT, &stream_stats) >= 0)
+            if (ioctl(m_nFileDescriptor, VIDIOC_STREAMSTAT, &stream_stats) >= 0)
             {
-                FramesCount = stream_stats.FramesCount;
-                PacketCRCError = stream_stats.PacketCRCError;
-                FramesUnderrun = stream_stats.FramesUnderrun;
-                FramesIncomplete = stream_stats.FramesIncomplete;
-                CurrentFrameRate = (double)1000000.0 / stream_stats.CurrentFrameInterval;
+                FramesCount = stream_stats.frames_count;
+                PacketCRCError = stream_stats.packet_crc_error;
+                FramesUnderrun = stream_stats.frames_underrun;
+                FramesIncomplete = stream_stats.frames_incomplete;
+
+                CurrentFrameRate = (stream_stats.current_frame_interval > 0) ? (double)stream_stats.current_frame_count / ((double)stream_stats.current_frame_interval / 1000000.0)
+                                                                            : 0;
                 result = true;
             }
         }
@@ -2335,7 +2337,6 @@ bool Camera::getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError
     
     return result;
 }
-
 
 void Camera::reverseBytes(void* start, int size)
 {
@@ -2349,10 +2350,10 @@ int Camera::ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize,
     int iRet = -1;
 
     struct v4l2_i2c i2c_reg;
-    i2c_reg.nRegisterAddress = (__u32)nRegAddr;
-    i2c_reg.nRegisterSize = (__u32)2;
-    i2c_reg.nNumBytes = (__u32)nBufferSize;
-    i2c_reg.pBuffer = (char*)pBuffer;
+    i2c_reg.register_address = (__u32)nRegAddr;
+    i2c_reg.register_size = (__u32)2;
+    i2c_reg.num_bytes = (__u32)nBufferSize;
+    i2c_reg.ptr_buffer = (char*)pBuffer;
 
     int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_R_I2C, &i2c_reg);    
     
@@ -2381,10 +2382,10 @@ int Camera::WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize
     }
     
     struct v4l2_i2c i2c_reg;
-    i2c_reg.nRegisterAddress = (__u32)nRegAddr;
-    i2c_reg.nRegisterSize = (__u32)2;
-    i2c_reg.nNumBytes = (__u32)nBufferSize;
-    i2c_reg.pBuffer = (char*)pBuffer;
+    i2c_reg.register_address = (__u32)nRegAddr;
+    i2c_reg.register_size = (__u32)2;
+    i2c_reg.num_bytes = (__u32)nBufferSize;
+    i2c_reg.ptr_buffer = (char*)pBuffer;
 
     int res = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_W_I2C, &i2c_reg);    
     
