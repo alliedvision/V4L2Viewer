@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "v4l2test.h"
 #include "V4l2Helper.h"
+#include "alvium_regs.h"
 
 #include "Logger.h"
 #include <ctime>
@@ -118,6 +119,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 1.39  Fixed false endianess conversion for strings
 * 1.40  Fixed stream stop issue: Moved clearing buffer queue before stream stop
 * 1.41  Fixed stream statistics
+        Fixed temperature display
+        Fixed direct register access
 */
 
 static const QStringList GetImageFormats()
@@ -845,7 +848,7 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
 		OnLog("---------------------------------------------");
 
         OnLog(QString("Camera FW Version = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion())));
-        OnLog(QString("Camera Device Temperature = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceTemperature())));
+        OnLog(QString("Camera Device Temperature = %1C").arg(QString::fromStdString(m_Camera.getAvtDeviceTemperature())));
         OnLog(QString("Camera Serial Number = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceSerialNumber())));
         
         
@@ -1378,11 +1381,11 @@ void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, u
 
 		std::string manuName;
 		std::string devName = deviceName.toAscii().data();
-		OnLog(QString("Camera list changed. A new camera was discovered, number=%1, deviceID=%2, ManufName=%3.").arg(cardNumber).arg(deviceID).arg(manuName.c_str()));
+		OnLog(QString("Camera list changed. A new camera was discovered, cardNumber=%1, deviceID=%2, cardName=%3.").arg(cardNumber).arg(deviceID).arg(info));
 	}
 	else if (UpdateTriggerPluggedOut == reason)
 	{
-		OnLog(QString("Camera list changed. A camera was disconnected, number=%1, deviceID=%2.").arg(cardNumber).arg(deviceID));
+		OnLog(QString("Camera list changed. A camera was disconnected, cardNumber=%1, deviceID=%2.").arg(cardNumber).arg(deviceID));
 		if ( true == m_bIsOpen )
 		{
 			OnOpenCloseButtonClicked();
@@ -1522,12 +1525,37 @@ int v4l2test::OpenAndSetupCamera(const uint32_t cardNumber, const QString &devic
 	std::string devName = deviceName.toStdString();
 	err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
 
-	if (0 != err)
+    if (0 != err)
 		OnLog("Open device failed");
 	else
+    {
 		m_nStreamNumber = 0;
 
-	return err;
+        char buff[32];
+        memset(buff, 0, sizeof(buff));
+
+        if (m_Camera.ReadRegister(CCI_GCPRM_16R, buff, 2, true) >= 0)
+        {
+            uint16_t val = *(uint16_t*)buff;
+            ui.m_GCPRMOffset->setText( QString("0x%1").arg(val, 4, 16, QChar('0')));
+        }
+        else
+        {
+            ui.m_GCPRMOffset->setText("-");
+        }
+
+        if (m_Camera.ReadRegister(CCI_BCRM_16R, buff, 2, true) >= 0)
+        {
+            uint16_t val = *(uint16_t*)buff;
+            ui.m_BCRMOffset->setText( QString("0x%1").arg(val, 4, 16, QChar('0')));
+        }
+        else
+        {
+            ui.m_BCRMOffset->setText("-");
+        }
+    }
+    
+    return err;
 }
 
 int v4l2test::CloseCamera(const uint32_t cardNumber)
@@ -1562,8 +1590,6 @@ void v4l2test::OnControllerResponseTimeout()
 // The event handler to read a register per direct access
 void v4l2test::OnDirectRegisterAccessReadButtonClicked()
 {
-  // TODO 
-  /*
 	// define the base of the given string
 	int base = 10;
 	if (0 <= ui.m_DirectRegisterAccessAddressLineEdit->text().indexOf("x"))
@@ -1578,7 +1604,7 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
 	{
         char *pBuffer = NULL;
         uint32_t nSize = 0;
-        
+       
         if (ui.m_DataTypeCombo->currentText() == "Int8")
         {
             nSize = 1;
@@ -1627,7 +1653,7 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
             // Error
             return;
         }
-        
+      
         pBuffer = (char*)malloc(nSize+1);
         memset(pBuffer, 0, nSize+1);
         int iRet = m_Camera.ReadRegister(address, pBuffer, nSize, true);
@@ -1701,7 +1727,7 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
             else
             if (ui.m_DataTypeCombo->currentText() == "Int64")
             {
-                int64_t nVal = *(int64_t*)pBuffer;
+                qint64 nVal = *(qint64*)pBuffer;
 
                 if (ui.m_BigEndianessRadio->isChecked())
                     nVal = qToBigEndian(nVal);
@@ -1713,7 +1739,7 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
             else
             if (ui.m_DataTypeCombo->currentText() == "UInt64")
             {
-                uint64_t nVal = *(uint64_t*)pBuffer;
+                quint64 nVal = *(quint64*)pBuffer;
 
                 if (ui.m_BigEndianessRadio->isChecked())
                     nVal = qToBigEndian(nVal);
@@ -1726,8 +1752,8 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
             if (ui.m_DataTypeCombo->currentText() == "String64")
             {
                 strValue = QString("%1").arg(pBuffer); 
-            }        
-            
+            }
+
             OnLog(QString("Register '0x%1' read returned %2.").arg(address, 4, 16, QChar('0')).arg(strValue));
         }
         else
@@ -1736,7 +1762,7 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
         }
 
         ui.m_DirectRegisterAccessDataLineEdit->setText(strValue);
-        
+       
         free(pBuffer);
         pBuffer = NULL;
 	}
@@ -1744,15 +1770,12 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
 	{
 		OnLog("Could not convert the register address from the given string.");
 	}
-	*/
 }
 
 
 // The event handler to write a register per direct access
 void v4l2test::OnDirectRegisterAccessWriteButtonClicked()
 {
-      // TODO
-  /*
 	// define the base of the given strings
 	int base = 10;
 	if (0 <= ui.m_DirectRegisterAccessAddressLineEdit->text().indexOf("x"))
@@ -1841,7 +1864,7 @@ void v4l2test::OnDirectRegisterAccessWriteButtonClicked()
         if (ui.m_DataTypeCombo->currentText() == "Int64")
         {
             if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((int64_t)nVal);            
+                nVal = qToBigEndian((qint64)nVal);            
             memcpy(pBuffer, (char*)&nVal, 8);
             nSize = 8;
             bValid = true;
@@ -1850,7 +1873,7 @@ void v4l2test::OnDirectRegisterAccessWriteButtonClicked()
         if (ui.m_DataTypeCombo->currentText() == "UInt64")
         {
             if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((uint64_t)nVal);            
+                nVal = qToBigEndian((quint64)nVal);            
             memcpy(pBuffer, (char*)&nVal, 8);
             nSize = 8;
             bValid = true;
@@ -1876,8 +1899,6 @@ void v4l2test::OnDirectRegisterAccessWriteButtonClicked()
 	{
 		OnLog("Could not convert the register address from the given string.");
 	}
-	
-	*/
 }
 
 // The event handler to update the direct register access value
@@ -2826,18 +2847,13 @@ void v4l2test::OnFramerate()
 
 	if (m_Camera.SetFramerate(numerator, denominator) < 0)
 	{
-//		uint32_t denominator = 0;
-//		uint32_t numerator = 0;
 		QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framerate!") );
 		m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat);
 		ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
 	}
 	else
 	{
-//		uint32_t denominator = 0;
-//		uint32_t numerator = 0;
 		OnLog(QString("Framerate set to %1").arg(ui.m_edFramerate->text() + QString(" (") + QString::number((double)numerator/(double)denominator, 'f', 3) + QString(")") ));
-
 		m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat);
 		ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
 	}

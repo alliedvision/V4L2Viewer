@@ -2260,9 +2260,9 @@ std::string Camera::getAvtDeviceTemperature()
                 
                 if (res >= 0)
                 {               
-                    std::stringstream ss;
-                    ss << (signed)deviceTemperture;
-                    result = ss.str();
+                    char buff[32];
+                    snprintf(buff, sizeof(buff), "%.1f", (double)deviceTemperture/10);
+                    result = std::string(buff);
                 }
             }
         }
