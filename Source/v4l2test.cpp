@@ -188,7 +188,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 {
 	srand((unsigned)time(0));
 
-	Logger::SetPCIeLogger("v4l2testLog.log");
+	Logger::SetV4L2Logger("v4l2testLog.log");
 
 	ui.setupUi(this);
 
@@ -2591,6 +2591,8 @@ void v4l2test::OnPixelformatDBLClick(QListWidgetItem *item)
 
 	ui.m_edPixelformat->setText(QString("%1").arg(result));
 	ui.m_edPixelformatText->setText(QString("%1").arg(V4l2Helper::ConvertPixelformat2EnumString(result).c_str()));
+    
+    OnPixelformat();
 }
 
 void v4l2test::OnFramesizesDBLClick(QListWidgetItem *item)
