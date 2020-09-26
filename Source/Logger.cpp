@@ -21,12 +21,12 @@ Logger::~Logger(void)
 // PCIe Logging
 //////////////////////////////////////////////////////////////////////////////////////
     
-void Logger::SetPCIeLogger(const std::string &rLogFileName)
+void Logger::SetV4L2Logger(const std::string &rLogFileName)
 {
     if (NULL == m_pLogger)
     {
         m_pLogger = QSharedPointer<AVT::BaseTools::Logger>(new AVT::BaseTools::Logger(rLogFileName));
-	m_LogSwitch = true;
+        m_LogSwitch = true;
     }
 }
 
@@ -74,8 +74,8 @@ void Logger::LogEx(const char *text, ...)
             
     if (m_pLogger == NULL)
     {
-	m_LogSwitch = true;
-        Logger::SetPCIeLogger("Noname.log");
+        m_LogSwitch = true;
+        Logger::SetV4L2Logger("Noname.log");
     }
 
     if (m_LogSwitch)

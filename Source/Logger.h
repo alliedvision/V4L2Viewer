@@ -12,7 +12,7 @@ public:
     Logger(void);
     ~Logger(void);
 
-    static void SetPCIeLogger(const std::string &rLogFileName);
+    static void SetV4L2Logger(const std::string &rLogFileName);
     static void Log(const std::string &rMessage);
     static void LogEx(const char *text, ...);
     static void LogDump(const std::string &rMessage, uint8_t *buffer, uint32_t length);
