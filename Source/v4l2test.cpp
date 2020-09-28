@@ -121,6 +121,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 1.41  Fixed stream statistics
         Fixed temperature display
         Fixed direct register access
+        Double click on pixelformat list entry now set the format
 */
 
 static const QStringList GetImageFormats()
