@@ -2592,7 +2592,7 @@ void v4l2test::OnPixelformatDBLClick(QListWidgetItem *item)
 
 	ui.m_edPixelformat->setText(QString("%1").arg(result));
 	ui.m_edPixelformatText->setText(QString("%1").arg(V4l2Helper::ConvertPixelformat2EnumString(result).c_str()));
-    
+
     OnPixelformat();
 }
 
