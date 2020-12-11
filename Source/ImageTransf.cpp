@@ -1056,38 +1056,71 @@ int ImageTransf::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
     /* TX2 and Nano */
     case V4L2_PIX_FMT_TX2_Y10:
     case V4L2_PIX_FMT_TX2_Y12:
-    case V4L2_PIX_FMT_NANO_Y10:
-    case V4L2_PIX_FMT_NANO_Y12:
         ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 6);
         break;
 
     case V4L2_PIX_FMT_TX2_SGRBG10:
     case V4L2_PIX_FMT_TX2_SGRBG12:
-    case V4L2_PIX_FMT_NANO_SGRBG10:
-    case V4L2_PIX_FMT_NANO_SGRBG12:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SGRBG8);
         break;
 
     case V4L2_PIX_FMT_TX2_SRGGB10:
     case V4L2_PIX_FMT_TX2_SRGGB12:
-    case V4L2_PIX_FMT_NANO_SRGGB10:
-    case V4L2_PIX_FMT_NANO_SRGGB12:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SRGGB8);
         break;
 
     case V4L2_PIX_FMT_TX2_SGBRG10:
     case V4L2_PIX_FMT_TX2_SGBRG12:
-    case V4L2_PIX_FMT_NANO_SGBRG10:
-    case V4L2_PIX_FMT_NANO_SGBRG12:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SGBRG8);
         break;
 
     case V4L2_PIX_FMT_TX2_SBGGR10:
     case V4L2_PIX_FMT_TX2_SBGGR12:
-    case V4L2_PIX_FMT_NANO_SBGGR10:
-    case V4L2_PIX_FMT_NANO_SBGGR12:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SBGGR8);
         break;
+
+    /* Nano 12 Bit */
+    case V4L2_PIX_FMT_NANO_Y12:
+        ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 4);
+        break;
+
+    case V4L2_PIX_FMT_NANO_SGRBG12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SGRBG8);
+        break;
+
+    case V4L2_PIX_FMT_NANO_SRGGB12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SRGGB8);
+        break;
+
+    case V4L2_PIX_FMT_NANO_SGBRG12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SGBRG8);
+        break;
+
+    case V4L2_PIX_FMT_NANO_SBGGR12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SBGGR8);
+        break;
+
+    /* Nano 10 Bit */
+    case V4L2_PIX_FMT_NANO_Y10:
+        ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 2);
+        break;
+
+    case V4L2_PIX_FMT_NANO_SGRBG10:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SGRBG8);
+        break;
+
+    case V4L2_PIX_FMT_NANO_SRGGB10:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SRGGB8);
+        break;
+
+    case V4L2_PIX_FMT_NANO_SGBRG10:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SGBRG8);
+        break;
+
+    case V4L2_PIX_FMT_NANO_SBGGR10:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SBGGR8);
+        break;
+
 
     default:
         return -1;
