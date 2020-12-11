@@ -1025,6 +1025,9 @@ int ImageTransf::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
         break;
     }
 
+    /* Special 10 and 12 bit pixel formats for NVidia Jetson */
+
+    /* AGX Xavier and Xavier NX */
     case V4L2_PIX_FMT_XAVIER_Y10:
     case V4L2_PIX_FMT_XAVIER_Y12:
         ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 7);
@@ -1049,6 +1052,34 @@ int ImageTransf::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
     case V4L2_PIX_FMT_XAVIER_SBGGR12:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SBGGR8);
         break;
+
+    /* TX2 */
+    case V4L2_PIX_FMT_TX2_Y10:
+    case V4L2_PIX_FMT_TX2_Y12:
+        ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 6);
+        break;
+
+    case V4L2_PIX_FMT_TX2_SGRBG10:
+    case V4L2_PIX_FMT_TX2_SGRBG12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SGRBG8);
+        break;
+
+    case V4L2_PIX_FMT_TX2_SRGGB10:
+    case V4L2_PIX_FMT_TX2_SRGGB12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SRGGB8);
+        break;
+
+    case V4L2_PIX_FMT_TX2_SGBRG10:
+    case V4L2_PIX_FMT_TX2_SGBRG12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SGBRG8);
+        break;
+
+    case V4L2_PIX_FMT_TX2_SBGGR10:
+    case V4L2_PIX_FMT_TX2_SBGGR12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SBGGR8);
+        break;
+
+
 
     default:
         return -1;
