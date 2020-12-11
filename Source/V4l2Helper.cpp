@@ -59,176 +59,204 @@ namespace Examples {
 	
 	std::string V4l2Helper::ConvertPixelformat2EnumString(int pixelformat)
 	{
-		std:: string result;
-		
 		switch(pixelformat)
 		{
-			case V4L2_PIX_FMT_ABGR32: result = "V4L2_PIX_FMT_ABGR32"; break;
-            case V4L2_PIX_FMT_XBGR32: result = "V4L2_PIX_FMT_XBGR32"; break;
-            case V4L2_PIX_FMT_XRGB32: result = "V4L2_PIX_FMT_XRGB32"; break;
+			case V4L2_PIX_FMT_ABGR32: return "V4L2_PIX_FMT_ABGR32";
+            case V4L2_PIX_FMT_XBGR32: return "V4L2_PIX_FMT_XBGR32";
+            case V4L2_PIX_FMT_XRGB32: return "V4L2_PIX_FMT_XRGB32";
 
 			/* RGB formats */
-			case V4L2_PIX_FMT_RGB332: result = "V4L2_PIX_FMT_RGB332"; break;
-			case V4L2_PIX_FMT_RGB444: result = "V4L2_PIX_FMT_RGB444"; break;
-			case V4L2_PIX_FMT_RGB555: result = "V4L2_PIX_FMT_RGB555"; break;
-			case V4L2_PIX_FMT_RGB565: result = "V4L2_PIX_FMT_RGB565"; break;
-			case V4L2_PIX_FMT_RGB555X: result = "V4L2_PIX_FMT_RGB555X"; break;
-			case V4L2_PIX_FMT_RGB565X: result = "V4L2_PIX_FMT_RGB565X"; break;
-			case V4L2_PIX_FMT_BGR666: result = "V4L2_PIX_FMT_BGR666"; break;
-			case V4L2_PIX_FMT_BGR24: result = "V4L2_PIX_FMT_BGR24"; break;
-			case V4L2_PIX_FMT_RGB24: result = "V4L2_PIX_FMT_RGB24"; break;
-			case V4L2_PIX_FMT_BGR32: result = "V4L2_PIX_FMT_BGR32"; break;
-			case V4L2_PIX_FMT_RGB32: result = "V4L2_PIX_FMT_RGB32"; break;
+			case V4L2_PIX_FMT_RGB332: return "V4L2_PIX_FMT_RGB332";
+			case V4L2_PIX_FMT_RGB444: return "V4L2_PIX_FMT_RGB444";
+			case V4L2_PIX_FMT_RGB555: return "V4L2_PIX_FMT_RGB555";
+			case V4L2_PIX_FMT_RGB565: return "V4L2_PIX_FMT_RGB565";
+			case V4L2_PIX_FMT_RGB555X: return "V4L2_PIX_FMT_RGB555X";
+			case V4L2_PIX_FMT_RGB565X: return "V4L2_PIX_FMT_RGB565X";
+			case V4L2_PIX_FMT_BGR666: return "V4L2_PIX_FMT_BGR666";
+			case V4L2_PIX_FMT_BGR24: return "V4L2_PIX_FMT_BGR24";
+			case V4L2_PIX_FMT_RGB24: return "V4L2_PIX_FMT_RGB24";
+			case V4L2_PIX_FMT_BGR32: return "V4L2_PIX_FMT_BGR32";
+			case V4L2_PIX_FMT_RGB32: return "V4L2_PIX_FMT_RGB32";
 
 			/* Grey formats */
-			case V4L2_PIX_FMT_GREY: result = "V4L2_PIX_FMT_GREY"; break;
-			case V4L2_PIX_FMT_Y4: result = "V4L2_PIX_FMT_Y4"; break;
-			case V4L2_PIX_FMT_Y6: result = "V4L2_PIX_FMT_Y6"; break;
-			case V4L2_PIX_FMT_Y10: result = "V4L2_PIX_FMT_Y10"; break;
-			case V4L2_PIX_FMT_Y12: result = "V4L2_PIX_FMT_Y12"; break;
-			case V4L2_PIX_FMT_Y16: result = "V4L2_PIX_FMT_Y16"; break;
+			case V4L2_PIX_FMT_GREY: return "V4L2_PIX_FMT_GREY";
+			case V4L2_PIX_FMT_Y4: return "V4L2_PIX_FMT_Y4";
+			case V4L2_PIX_FMT_Y6: return "V4L2_PIX_FMT_Y6";
+			case V4L2_PIX_FMT_Y10: return "V4L2_PIX_FMT_Y10";
+			case V4L2_PIX_FMT_Y12: return "V4L2_PIX_FMT_Y12";
+			case V4L2_PIX_FMT_Y16: return "V4L2_PIX_FMT_Y16";
 
 			/* Grey bit-packed formats */
-			case V4L2_PIX_FMT_Y10BPACK: result = "V4L2_PIX_FMT_Y10BPACK"; break;
+			case V4L2_PIX_FMT_Y10BPACK: return "V4L2_PIX_FMT_Y10BPACK";
 
 			/* Palette formats */
-			case V4L2_PIX_FMT_PAL8: result = "V4L2_PIX_FMT_PAL8"; break;
+			case V4L2_PIX_FMT_PAL8: return "V4L2_PIX_FMT_PAL8";
 
 			/* Chrominance formats */
-			case V4L2_PIX_FMT_UV8: result = "V4L2_PIX_FMT_UV8"; break;
+			case V4L2_PIX_FMT_UV8: return "V4L2_PIX_FMT_UV8";
 
 			/* Luminance+Chrominance formats */
-			case V4L2_PIX_FMT_YVU410: result = "V4L2_PIX_FMT_YVU410"; break;
-			case V4L2_PIX_FMT_YVU420: result = "V4L2_PIX_FMT_YVU420"; break;
-			case V4L2_PIX_FMT_YUYV: result = "V4L2_PIX_FMT_YUYV"; break;
-			case V4L2_PIX_FMT_YYUV: result = "V4L2_PIX_FMT_YYUV"; break;
-			case V4L2_PIX_FMT_YVYU: result = "V4L2_PIX_FMT_YVYU"; break;
-			case V4L2_PIX_FMT_UYVY: result = "V4L2_PIX_FMT_UYVY"; break;
-			case V4L2_PIX_FMT_VYUY: result = "V4L2_PIX_FMT_VYUY"; break;
-			case V4L2_PIX_FMT_YUV422P: result = "V4L2_PIX_FMT_YUV422P"; break;
-			case V4L2_PIX_FMT_YUV411P: result = "V4L2_PIX_FMT_YUV411P"; break;
-			case V4L2_PIX_FMT_Y41P: result = "V4L2_PIX_FMT_Y41P"; break;
-			case V4L2_PIX_FMT_YUV444: result = "V4L2_PIX_FMT_YUV444"; break;
-			case V4L2_PIX_FMT_YUV555: result = "V4L2_PIX_FMT_YUV555"; break;
-			case V4L2_PIX_FMT_YUV565: result = "V4L2_PIX_FMT_YUV565"; break;
-			case V4L2_PIX_FMT_YUV32: result = "V4L2_PIX_FMT_YUV32"; break;
-			case V4L2_PIX_FMT_YUV410: result = "V4L2_PIX_FMT_YUV410"; break;
-			case V4L2_PIX_FMT_YUV420: result = "V4L2_PIX_FMT_YUV420"; break;
-			case V4L2_PIX_FMT_HI240: result = "V4L2_PIX_FMT_HI240"; break;
-			case V4L2_PIX_FMT_HM12: result = "V4L2_PIX_FMT_HM12"; break;
-			case V4L2_PIX_FMT_M420: result = "V4L2_PIX_FMT_M420"; break;
+			case V4L2_PIX_FMT_YVU410: return "V4L2_PIX_FMT_YVU410";
+			case V4L2_PIX_FMT_YVU420: return "V4L2_PIX_FMT_YVU420";
+			case V4L2_PIX_FMT_YUYV: return "V4L2_PIX_FMT_YUYV";
+			case V4L2_PIX_FMT_YYUV: return "V4L2_PIX_FMT_YYUV";
+			case V4L2_PIX_FMT_YVYU: return "V4L2_PIX_FMT_YVYU";
+			case V4L2_PIX_FMT_UYVY: return "V4L2_PIX_FMT_UYVY";
+			case V4L2_PIX_FMT_VYUY: return "V4L2_PIX_FMT_VYUY";
+			case V4L2_PIX_FMT_YUV422P: return "V4L2_PIX_FMT_YUV422P";
+			case V4L2_PIX_FMT_YUV411P: return "V4L2_PIX_FMT_YUV411P";
+			case V4L2_PIX_FMT_Y41P: return "V4L2_PIX_FMT_Y41P";
+			case V4L2_PIX_FMT_YUV444: return "V4L2_PIX_FMT_YUV444";
+			case V4L2_PIX_FMT_YUV555: return "V4L2_PIX_FMT_YUV555";
+			case V4L2_PIX_FMT_YUV565: return "V4L2_PIX_FMT_YUV565";
+			case V4L2_PIX_FMT_YUV32: return "V4L2_PIX_FMT_YUV32";
+			case V4L2_PIX_FMT_YUV410: return "V4L2_PIX_FMT_YUV410";
+			case V4L2_PIX_FMT_YUV420: return "V4L2_PIX_FMT_YUV420";
+			case V4L2_PIX_FMT_HI240: return "V4L2_PIX_FMT_HI240";
+			case V4L2_PIX_FMT_HM12: return "V4L2_PIX_FMT_HM12";
+			case V4L2_PIX_FMT_M420: return "V4L2_PIX_FMT_M420";
 
 			/* two planes -- one Y, one Cr + Cb interleaved  */
-			case V4L2_PIX_FMT_NV12: result = "V4L2_PIX_FMT_NV12"; break;
-			case V4L2_PIX_FMT_NV21: result = "V4L2_PIX_FMT_NV21"; break;
-			case V4L2_PIX_FMT_NV16: result = "V4L2_PIX_FMT_NV16"; break;
-			case V4L2_PIX_FMT_NV61: result = "V4L2_PIX_FMT_NV61"; break;
-			case V4L2_PIX_FMT_NV24: result = "V4L2_PIX_FMT_NV24"; break;
-			case V4L2_PIX_FMT_NV42: result = "V4L2_PIX_FMT_NV42"; break;
+			case V4L2_PIX_FMT_NV12: return "V4L2_PIX_FMT_NV12";
+			case V4L2_PIX_FMT_NV21: return "V4L2_PIX_FMT_NV21";
+			case V4L2_PIX_FMT_NV16: return "V4L2_PIX_FMT_NV16";
+			case V4L2_PIX_FMT_NV61: return "V4L2_PIX_FMT_NV61";
+			case V4L2_PIX_FMT_NV24: return "V4L2_PIX_FMT_NV24";
+			case V4L2_PIX_FMT_NV42: return "V4L2_PIX_FMT_NV42";
 
 			/* two non contiguous planes - one Y, one Cr + Cb interleaved  */
-			case V4L2_PIX_FMT_NV12M: result = "V4L2_PIX_FMT_NV12M"; break;
-			case V4L2_PIX_FMT_NV21M: result = "V4L2_PIX_FMT_NV21M"; break;
-			case V4L2_PIX_FMT_NV16M: result = "V4L2_PIX_FMT_NV16M"; break;
-			case V4L2_PIX_FMT_NV61M: result = "V4L2_PIX_FMT_NV61M"; break;
-			case V4L2_PIX_FMT_NV12MT: result = "V4L2_PIX_FMT_NV12MT"; break;
-			case V4L2_PIX_FMT_NV12MT_16X16: result = "V4L2_PIX_FMT_NV12MT_16X16"; break;
+			case V4L2_PIX_FMT_NV12M: return "V4L2_PIX_FMT_NV12M";
+			case V4L2_PIX_FMT_NV21M: return "V4L2_PIX_FMT_NV21M";
+			case V4L2_PIX_FMT_NV16M: return "V4L2_PIX_FMT_NV16M";
+			case V4L2_PIX_FMT_NV61M: return "V4L2_PIX_FMT_NV61M";
+			case V4L2_PIX_FMT_NV12MT: return "V4L2_PIX_FMT_NV12MT";
+			case V4L2_PIX_FMT_NV12MT_16X16: return "V4L2_PIX_FMT_NV12MT_16X16";
 
 			/* three non contiguous planes - Y, Cb, Cr */
-			case V4L2_PIX_FMT_YUV420M: result = "V4L2_PIX_FMT_YUV420M"; break;
-			case V4L2_PIX_FMT_YVU420M: result = "V4L2_PIX_FMT_YVU420M"; break;
+			case V4L2_PIX_FMT_YUV420M: return "V4L2_PIX_FMT_YUV420M";
+			case V4L2_PIX_FMT_YVU420M: return "V4L2_PIX_FMT_YVU420M";
 
 			/* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
-			case V4L2_PIX_FMT_SBGGR8: result = "V4L2_PIX_FMT_SBGGR8"; break;
-			case V4L2_PIX_FMT_SGBRG8: result = "V4L2_PIX_FMT_SGBRG8"; break;
-			case V4L2_PIX_FMT_SGRBG8: result = "V4L2_PIX_FMT_SGRBG8"; break;
-			case V4L2_PIX_FMT_SRGGB8: result = "V4L2_PIX_FMT_SRGGB8"; break;
-			case V4L2_PIX_FMT_SBGGR10: result = "V4L2_PIX_FMT_SBGGR10"; break;
-			case V4L2_PIX_FMT_SGBRG10: result = "V4L2_PIX_FMT_SGBRG10"; break;
-			case V4L2_PIX_FMT_SGRBG10: result = "V4L2_PIX_FMT_SGRBG10"; break;
-			case V4L2_PIX_FMT_SRGGB10: result = "V4L2_PIX_FMT_SRGGB10"; break;
-			case V4L2_PIX_FMT_SBGGR12: result = "V4L2_PIX_FMT_SBGGR12"; break;
-			case V4L2_PIX_FMT_SGBRG12: result = "V4L2_PIX_FMT_SGBRG12"; break;
-			case V4L2_PIX_FMT_SGRBG12: result = "V4L2_PIX_FMT_SGRBG12"; break;
-			case V4L2_PIX_FMT_SRGGB12: result = "V4L2_PIX_FMT_SRGGB12"; break;
+			case V4L2_PIX_FMT_SBGGR8: return "V4L2_PIX_FMT_SBGGR8";
+			case V4L2_PIX_FMT_SGBRG8: return "V4L2_PIX_FMT_SGBRG8";
+			case V4L2_PIX_FMT_SGRBG8: return "V4L2_PIX_FMT_SGRBG8";
+			case V4L2_PIX_FMT_SRGGB8: return "V4L2_PIX_FMT_SRGGB8";
+			case V4L2_PIX_FMT_SBGGR10: return "V4L2_PIX_FMT_SBGGR10";
+			case V4L2_PIX_FMT_SGBRG10: return "V4L2_PIX_FMT_SGBRG10";
+			case V4L2_PIX_FMT_SGRBG10: return "V4L2_PIX_FMT_SGRBG10";
+			case V4L2_PIX_FMT_SRGGB10: return "V4L2_PIX_FMT_SRGGB10";
+			case V4L2_PIX_FMT_SBGGR12: return "V4L2_PIX_FMT_SBGGR12";
+			case V4L2_PIX_FMT_SGBRG12: return "V4L2_PIX_FMT_SGBRG12";
+			case V4L2_PIX_FMT_SGRBG12: return "V4L2_PIX_FMT_SGRBG12";
+			case V4L2_PIX_FMT_SRGGB12: return "V4L2_PIX_FMT_SRGGB12";
 				/* 10bit raw bayer a-law compressed to 8 bits */
-			case V4L2_PIX_FMT_SBGGR10ALAW8: result = "V4L2_PIX_FMT_SBGGR10ALAW8"; break;
-			case V4L2_PIX_FMT_SGBRG10ALAW8: result = "V4L2_PIX_FMT_SGBRG10ALAW8"; break;
-			case V4L2_PIX_FMT_SGRBG10ALAW8: result = "V4L2_PIX_FMT_SGRBG10ALAW8"; break;
-			case V4L2_PIX_FMT_SRGGB10ALAW8: result = "V4L2_PIX_FMT_SRGGB10ALAW8"; break;
+			case V4L2_PIX_FMT_SBGGR10ALAW8: return "V4L2_PIX_FMT_SBGGR10ALAW8";
+			case V4L2_PIX_FMT_SGBRG10ALAW8: return "V4L2_PIX_FMT_SGBRG10ALAW8";
+			case V4L2_PIX_FMT_SGRBG10ALAW8: return "V4L2_PIX_FMT_SGRBG10ALAW8";
+			case V4L2_PIX_FMT_SRGGB10ALAW8: return "V4L2_PIX_FMT_SRGGB10ALAW8";
 				/* 10bit raw bayer DPCM compressed to 8 bits */
-			case V4L2_PIX_FMT_SBGGR10DPCM8: result = "V4L2_PIX_FMT_SBGGR10DPCM8"; break;
-			case V4L2_PIX_FMT_SGBRG10DPCM8: result = "V4L2_PIX_FMT_SGBRG10DPCM8"; break;
-			case V4L2_PIX_FMT_SGRBG10DPCM8: result = "V4L2_PIX_FMT_SGRBG10DPCM8"; break;
-			case V4L2_PIX_FMT_SRGGB10DPCM8: result = "V4L2_PIX_FMT_SRGGB10DPCM8"; break;
+			case V4L2_PIX_FMT_SBGGR10DPCM8: return "V4L2_PIX_FMT_SBGGR10DPCM8";
+			case V4L2_PIX_FMT_SGBRG10DPCM8: return "V4L2_PIX_FMT_SGBRG10DPCM8";
+			case V4L2_PIX_FMT_SGRBG10DPCM8: return "V4L2_PIX_FMT_SGRBG10DPCM8";
+			case V4L2_PIX_FMT_SRGGB10DPCM8: return "V4L2_PIX_FMT_SRGGB10DPCM8";
 				
-			case V4L2_PIX_FMT_SBGGR16: result = "V4L2_PIX_FMT_SBGGR16"; break;
+			case V4L2_PIX_FMT_SBGGR16: return "V4L2_PIX_FMT_SBGGR16";
 
 			/* compressed formats */
-			case V4L2_PIX_FMT_MJPEG: result = "V4L2_PIX_FMT_MJPEG"; break;
-			case V4L2_PIX_FMT_JPEG: result = "V4L2_PIX_FMT_JPEG"; break;
-			case V4L2_PIX_FMT_DV: result = "V4L2_PIX_FMT_DV"; break;
-			case V4L2_PIX_FMT_MPEG: result = "V4L2_PIX_FMT_MPEG"; break;
-			case V4L2_PIX_FMT_H264: result = "V4L2_PIX_FMT_H264"; break;
-			case V4L2_PIX_FMT_H264_NO_SC: result = "V4L2_PIX_FMT_H264_NO_SC"; break;
-			case V4L2_PIX_FMT_H264_MVC: result = "V4L2_PIX_FMT_H264_MVC"; break;
-			case V4L2_PIX_FMT_H263: result = "V4L2_PIX_FMT_H263"; break;
-			case V4L2_PIX_FMT_MPEG1: result = "V4L2_PIX_FMT_MPEG1"; break;
-			case V4L2_PIX_FMT_MPEG2: result = "V4L2_PIX_FMT_MPEG2"; break;
-			case V4L2_PIX_FMT_MPEG4: result = "V4L2_PIX_FMT_MPEG4"; break;
-			case V4L2_PIX_FMT_XVID: result = "V4L2_PIX_FMT_XVID"; break;
-			case V4L2_PIX_FMT_VC1_ANNEX_G: result = "V4L2_PIX_FMT_VC1_ANNEX_G"; break;
-			case V4L2_PIX_FMT_VC1_ANNEX_L: result = "V4L2_PIX_FMT_VC1_ANNEX_L"; break;
-			case V4L2_PIX_FMT_VP8: result = "V4L2_PIX_FMT_VP8"; break;
+			case V4L2_PIX_FMT_MJPEG: return "V4L2_PIX_FMT_MJPEG";
+			case V4L2_PIX_FMT_JPEG: return "V4L2_PIX_FMT_JPEG";
+			case V4L2_PIX_FMT_DV: return "V4L2_PIX_FMT_DV";
+			case V4L2_PIX_FMT_MPEG: return "V4L2_PIX_FMT_MPEG";
+			case V4L2_PIX_FMT_H264: return "V4L2_PIX_FMT_H264";
+			case V4L2_PIX_FMT_H264_NO_SC: return "V4L2_PIX_FMT_H264_NO_SC";
+			case V4L2_PIX_FMT_H264_MVC: return "V4L2_PIX_FMT_H264_MVC";
+			case V4L2_PIX_FMT_H263: return "V4L2_PIX_FMT_H263";
+			case V4L2_PIX_FMT_MPEG1: return "V4L2_PIX_FMT_MPEG1";
+			case V4L2_PIX_FMT_MPEG2: return "V4L2_PIX_FMT_MPEG2";
+			case V4L2_PIX_FMT_MPEG4: return "V4L2_PIX_FMT_MPEG4";
+			case V4L2_PIX_FMT_XVID: return "V4L2_PIX_FMT_XVID";
+			case V4L2_PIX_FMT_VC1_ANNEX_G: return "V4L2_PIX_FMT_VC1_ANNEX_G";
+			case V4L2_PIX_FMT_VC1_ANNEX_L: return "V4L2_PIX_FMT_VC1_ANNEX_L";
+			case V4L2_PIX_FMT_VP8: return "V4L2_PIX_FMT_VP8";
 
 			/*  Vendor-specific formats   */
-			case V4L2_PIX_FMT_CPIA1: result = "V4L2_PIX_FMT_CPIA1"; break;
-			case V4L2_PIX_FMT_WNVA: result = "V4L2_PIX_FMT_WNVA"; break;
-			case V4L2_PIX_FMT_SN9C10X: result = "V4L2_PIX_FMT_SN9C10X"; break;
-			case V4L2_PIX_FMT_SN9C20X_I420: result = "V4L2_PIX_FMT_SN9C20X_I420"; break;
-			case V4L2_PIX_FMT_PWC1: result = "V4L2_PIX_FMT_PWC1"; break;
-			case V4L2_PIX_FMT_PWC2: result = "V4L2_PIX_FMT_PWC2"; break;
-			case V4L2_PIX_FMT_ET61X251: result = "V4L2_PIX_FMT_ET61X251"; break;
-			case V4L2_PIX_FMT_SPCA501: result = "V4L2_PIX_FMT_SPCA501"; break;
-			case V4L2_PIX_FMT_SPCA505: result = "V4L2_PIX_FMT_SPCA505"; break;
-			case V4L2_PIX_FMT_SPCA508: result = "V4L2_PIX_FMT_SPCA508"; break;
-			case V4L2_PIX_FMT_SPCA561: result = "V4L2_PIX_FMT_SPCA561"; break;
-			case V4L2_PIX_FMT_PAC207: result = "V4L2_PIX_FMT_PAC207"; break;
-			case V4L2_PIX_FMT_MR97310A: result = "V4L2_PIX_FMT_MR97310A"; break;
-			case V4L2_PIX_FMT_JL2005BCD: result = "V4L2_PIX_FMT_JL2005BCD"; break;
-			case V4L2_PIX_FMT_SN9C2028: result = "V4L2_PIX_FMT_SN9C2028"; break;
-			case V4L2_PIX_FMT_SQ905C: result = "V4L2_PIX_FMT_SQ905C"; break;
-			case V4L2_PIX_FMT_PJPG: result = "V4L2_PIX_FMT_PJPG"; break;
-			case V4L2_PIX_FMT_OV511: result = "V4L2_PIX_FMT_OV511"; break;
-			case V4L2_PIX_FMT_OV518: result = "V4L2_PIX_FMT_OV511"; break;
-			case V4L2_PIX_FMT_STV0680: result = "V4L2_PIX_FMT_STV0680"; break;
-			case V4L2_PIX_FMT_TM6000: result = "V4L2_PIX_FMT_TM6000"; break;
-			case V4L2_PIX_FMT_CIT_YYVYUY: result = "V4L2_PIX_FMT_CIT_YYVYUY"; break;
-			case V4L2_PIX_FMT_KONICA420: result = "V4L2_PIX_FMT_KONICA420"; break;
-			case V4L2_PIX_FMT_JPGL: result = "V4L2_PIX_FMT_JPGL"; break;
-			case V4L2_PIX_FMT_SE401: result = "V4L2_PIX_FMT_SE401"; break;
-			case V4L2_PIX_FMT_S5C_UYVY_JPG: result = "V4L2_PIX_FMT_S5C_UYVY_JPG"; break;
+			case V4L2_PIX_FMT_CPIA1: return "V4L2_PIX_FMT_CPIA1";
+			case V4L2_PIX_FMT_WNVA: return "V4L2_PIX_FMT_WNVA";
+			case V4L2_PIX_FMT_SN9C10X: return "V4L2_PIX_FMT_SN9C10X";
+			case V4L2_PIX_FMT_SN9C20X_I420: return "V4L2_PIX_FMT_SN9C20X_I420";
+			case V4L2_PIX_FMT_PWC1: return "V4L2_PIX_FMT_PWC1";
+			case V4L2_PIX_FMT_PWC2: return "V4L2_PIX_FMT_PWC2";
+			case V4L2_PIX_FMT_ET61X251: return "V4L2_PIX_FMT_ET61X251";
+			case V4L2_PIX_FMT_SPCA501: return "V4L2_PIX_FMT_SPCA501";
+			case V4L2_PIX_FMT_SPCA505: return "V4L2_PIX_FMT_SPCA505";
+			case V4L2_PIX_FMT_SPCA508: return "V4L2_PIX_FMT_SPCA508";
+			case V4L2_PIX_FMT_SPCA561: return "V4L2_PIX_FMT_SPCA561";
+			case V4L2_PIX_FMT_PAC207: return "V4L2_PIX_FMT_PAC207";
+			case V4L2_PIX_FMT_MR97310A: return "V4L2_PIX_FMT_MR97310A";
+			case V4L2_PIX_FMT_JL2005BCD: return "V4L2_PIX_FMT_JL2005BCD";
+			case V4L2_PIX_FMT_SN9C2028: return "V4L2_PIX_FMT_SN9C2028";
+			case V4L2_PIX_FMT_SQ905C: return "V4L2_PIX_FMT_SQ905C";
+			case V4L2_PIX_FMT_PJPG: return "V4L2_PIX_FMT_PJPG";
+			case V4L2_PIX_FMT_OV511: return "V4L2_PIX_FMT_OV511";
+			case V4L2_PIX_FMT_OV518: return "V4L2_PIX_FMT_OV511";
+			case V4L2_PIX_FMT_STV0680: return "V4L2_PIX_FMT_STV0680";
+			case V4L2_PIX_FMT_TM6000: return "V4L2_PIX_FMT_TM6000";
+			case V4L2_PIX_FMT_CIT_YYVYUY: return "V4L2_PIX_FMT_CIT_YYVYUY";
+			case V4L2_PIX_FMT_KONICA420: return "V4L2_PIX_FMT_KONICA420";
+			case V4L2_PIX_FMT_JPGL: return "V4L2_PIX_FMT_JPGL";
+			case V4L2_PIX_FMT_SE401: return "V4L2_PIX_FMT_SE401";
+			case V4L2_PIX_FMT_S5C_UYVY_JPG: return "V4L2_PIX_FMT_S5C_UYVY_JPG";
 
-                        /* 10bit and 12bit greyscale packed */
-			case V4L2_PIX_FMT_Y10P: result = "V4L2_PIX_FMT_Y10P"; break;
-			case V4L2_PIX_FMT_Y12P: result = "V4L2_PIX_FMT_Y12P"; break;
+			/* 10bit and 12bit greyscale packed */
+			case V4L2_PIX_FMT_Y10P: return "V4L2_PIX_FMT_Y10P";
+			case V4L2_PIX_FMT_Y12P: return "V4L2_PIX_FMT_Y12P";
 
 			/* 10bit raw bayer packed, 5 bytes for every 4 pixels */
-			case V4L2_PIX_FMT_SBGGR10P: result = "V4L2_PIX_FMT_SBGGR10P"; break;
-			case V4L2_PIX_FMT_SGBRG10P: result = "V4L2_PIX_FMT_SGBRG10P"; break;
-			case V4L2_PIX_FMT_SGRBG10P: result = "V4L2_PIX_FMT_SGRBG10P"; break;
-			case V4L2_PIX_FMT_SRGGB10P: result = "V4L2_PIX_FMT_SRGGB10P"; break;
+			case V4L2_PIX_FMT_SBGGR10P: return "V4L2_PIX_FMT_SBGGR10P";
+			case V4L2_PIX_FMT_SGBRG10P: return "V4L2_PIX_FMT_SGBRG10P";
+			case V4L2_PIX_FMT_SGRBG10P: return "V4L2_PIX_FMT_SGRBG10P";
+			case V4L2_PIX_FMT_SRGGB10P: return "V4L2_PIX_FMT_SRGGB10P";
 
 			/* 12bit raw bayer packed, 6 bytes for every 4 pixels */
-			case V4L2_PIX_FMT_SBGGR12P: result = "V4L2_PIX_FMT_SBGGR12P"; break;
-			case V4L2_PIX_FMT_SGBRG12P: result = "V4L2_PIX_FMT_SGBRG12P"; break;
-			case V4L2_PIX_FMT_SGRBG12P: result = "V4L2_PIX_FMT_SGRBG12P"; break;
-			case V4L2_PIX_FMT_SRGGB12P: result = "V4L2_PIX_FMT_SRGGB12P"; break;
+			case V4L2_PIX_FMT_SBGGR12P: return "V4L2_PIX_FMT_SBGGR12P";
+			case V4L2_PIX_FMT_SGBRG12P: return "V4L2_PIX_FMT_SGBRG12P";
+			case V4L2_PIX_FMT_SGRBG12P: return "V4L2_PIX_FMT_SGRBG12P";
+			case V4L2_PIX_FMT_SRGGB12P: return "V4L2_PIX_FMT_SRGGB12P";
 
-			default: result = "<unknown>"; break;
+			/* 10 and 12 bit jetson formats */
+			case V4L2_PIX_FMT_XAVIER_Y10: return "V4L2_PIX_FMT_XAVIER_Y10";
+			case V4L2_PIX_FMT_XAVIER_Y12: return "V4L2_PIX_FMT_XAVIER_Y12";
+			case V4L2_PIX_FMT_XAVIER_SGRBG10: return "V4L2_PIX_FMT_XAVIER_SGRBG10";
+			case V4L2_PIX_FMT_XAVIER_SGRBG12: return "V4L2_PIX_FMT_XAVIER_SGRBG12";
+			case V4L2_PIX_FMT_XAVIER_SRGGB10: return "V4L2_PIX_FMT_XAVIER_SRGGB10";
+			case V4L2_PIX_FMT_XAVIER_SRGGB12: return "V4L2_PIX_FMT_XAVIER_SRGGB12";
+			case V4L2_PIX_FMT_XAVIER_SGBRG10: return "V4L2_PIX_FMT_XAVIER_SGBRG10";
+			case V4L2_PIX_FMT_XAVIER_SGBRG12: return "V4L2_PIX_FMT_XAVIER_SGBRG12";
+			case V4L2_PIX_FMT_XAVIER_SBGGR10: return "V4L2_PIX_FMT_XAVIER_SBGGR10";
+			case V4L2_PIX_FMT_XAVIER_SBGGR12: return "V4L2_PIX_FMT_XAVIER_SBGGR12";
+			case V4L2_PIX_FMT_TX2_Y10: return "V4L2_PIX_FMT_TX2_Y10";
+			case V4L2_PIX_FMT_TX2_Y12: return "V4L2_PIX_FMT_TX2_Y12";
+			case V4L2_PIX_FMT_NANO_Y10: return "V4L2_PIX_FMT_NANO_Y10";
+			case V4L2_PIX_FMT_NANO_Y12: return "V4L2_PIX_FMT_NANO_Y12";
+			case V4L2_PIX_FMT_TX2_SGRBG10: return "V4L2_PIX_FMT_TX2_SGRBG10";
+			case V4L2_PIX_FMT_TX2_SGRBG12: return "V4L2_PIX_FMT_TX2_SGRBG12";
+			case V4L2_PIX_FMT_NANO_SGRBG10: return "V4L2_PIX_FMT_NANO_SGRBG10";
+			case V4L2_PIX_FMT_NANO_SGRBG12: return "V4L2_PIX_FMT_NANO_SGRBG12";
+			case V4L2_PIX_FMT_TX2_SRGGB10: return "V4L2_PIX_FMT_TX2_SRGGB10";
+			case V4L2_PIX_FMT_TX2_SRGGB12: return "V4L2_PIX_FMT_TX2_SRGGB12";
+			case V4L2_PIX_FMT_NANO_SRGGB10: return "V4L2_PIX_FMT_NANO_SRGGB10";
+			case V4L2_PIX_FMT_NANO_SRGGB12: return "V4L2_PIX_FMT_NANO_SRGGB12";
+			case V4L2_PIX_FMT_TX2_SGBRG10: return "V4L2_PIX_FMT_TX2_SGBRG10";
+			case V4L2_PIX_FMT_TX2_SGBRG12: return "V4L2_PIX_FMT_TX2_SGBRG12";
+			case V4L2_PIX_FMT_NANO_SGBRG10: return "V4L2_PIX_FMT_NANO_SGBRG10";
+			case V4L2_PIX_FMT_NANO_SGBRG12: return "V4L2_PIX_FMT_NANO_SGBRG12";
+			case V4L2_PIX_FMT_TX2_SBGGR10: return "V4L2_PIX_FMT_TX2_SBGGR10";
+			case V4L2_PIX_FMT_TX2_SBGGR12: return "V4L2_PIX_FMT_TX2_SBGGR12";
+			case V4L2_PIX_FMT_NANO_SBGGR10: return "V4L2_PIX_FMT_NANO_SBGGR10";
+			case V4L2_PIX_FMT_NANO_SBGGR12: return "V4L2_PIX_FMT_NANO_SBGGR12";
+
+			default: return "<unknown>";
 		}
-		
-		return result;
 	}
 
     
