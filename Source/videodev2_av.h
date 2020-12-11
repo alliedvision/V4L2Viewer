@@ -7,6 +7,44 @@
 #define V4L2_PIX_FMT_Y10P     v4l2_fourcc('Y', '1', '0', 'P')
 #define V4L2_PIX_FMT_Y12P     v4l2_fourcc('Y', '1', '2', 'P')
 
+/* Jetson TX2 pixel formats */
+#define V4L2_PIX_FMT_TX2_Y10     v4l2_fourcc('J', '2', 'Y', '0')
+#define V4L2_PIX_FMT_TX2_Y12     v4l2_fourcc('J', '2', 'Y', '2')
+#define V4L2_PIX_FMT_TX2_SRGGB10 v4l2_fourcc('J', '2', 'R', '0')
+#define V4L2_PIX_FMT_TX2_SGRBG10 v4l2_fourcc('J', '2', 'A', '0')
+#define V4L2_PIX_FMT_TX2_SGBRG10 v4l2_fourcc('J', '2', 'G', '0')
+#define V4L2_PIX_FMT_TX2_SBGGR10 v4l2_fourcc('J', '2', 'B', '0')
+#define V4L2_PIX_FMT_TX2_SRGGB12 v4l2_fourcc('J', '2', 'R', '2')
+#define V4L2_PIX_FMT_TX2_SGRBG12 v4l2_fourcc('J', '2', 'A', '2')
+#define V4L2_PIX_FMT_TX2_SGBRG12 v4l2_fourcc('J', '2', 'G', '2')
+#define V4L2_PIX_FMT_TX2_SBGGR12 v4l2_fourcc('J', '2', 'B', '2')
+
+/* Jetson AGX Xavier and Xavier NX pixel formats */
+#define V4L2_PIX_FMT_XAVIER_Y10     v4l2_fourcc('J', 'X', 'Y', '0')
+#define V4L2_PIX_FMT_XAVIER_Y12     v4l2_fourcc('J', 'X', 'Y', '2')
+#define V4L2_PIX_FMT_XAVIER_SRGGB10 v4l2_fourcc('J', 'X', 'R', '0')
+#define V4L2_PIX_FMT_XAVIER_SGRBG10 v4l2_fourcc('J', 'X', 'A', '0')
+#define V4L2_PIX_FMT_XAVIER_SGBRG10 v4l2_fourcc('J', 'X', 'G', '0')
+#define V4L2_PIX_FMT_XAVIER_SBGGR10 v4l2_fourcc('J', 'X', 'B', '0')
+#define V4L2_PIX_FMT_XAVIER_SRGGB12 v4l2_fourcc('J', 'X', 'R', '2')
+#define V4L2_PIX_FMT_XAVIER_SGRBG12 v4l2_fourcc('J', 'X', 'A', '2')
+#define V4L2_PIX_FMT_XAVIER_SGBRG12 v4l2_fourcc('J', 'X', 'G', '2')
+#define V4L2_PIX_FMT_XAVIER_SBGGR12 v4l2_fourcc('J', 'X', 'B', '2')
+
+/* Jetson Nano pixel formats */
+#define V4L2_PIX_FMT_NANO_Y10     v4l2_fourcc('J', 'N', 'Y', '0')
+#define V4L2_PIX_FMT_NANO_Y12     v4l2_fourcc('J', 'N', 'Y', '2')
+#define V4L2_PIX_FMT_NANO_SRGGB10 v4l2_fourcc('J', 'N', 'R', '0')
+#define V4L2_PIX_FMT_NANO_SGRBG10 v4l2_fourcc('J', 'N', 'A', '0')
+#define V4L2_PIX_FMT_NANO_SGBRG10 v4l2_fourcc('J', 'N', 'G', '0')
+#define V4L2_PIX_FMT_NANO_SBGGR10 v4l2_fourcc('J', 'N', 'B', '0')
+#define V4L2_PIX_FMT_NANO_SRGGB12 v4l2_fourcc('J', 'N', 'R', '2')
+#define V4L2_PIX_FMT_NANO_SGRBG12 v4l2_fourcc('J', 'N', 'A', '2')
+#define V4L2_PIX_FMT_NANO_SGBRG12 v4l2_fourcc('J', 'N', 'G', '2')
+#define V4L2_PIX_FMT_NANO_SBGGR12 v4l2_fourcc('J', 'N', 'B', '2')
+
+
+
 /* 10bit raw bayer packed, 5 bytes for every 4 pixels */
 #define V4L2_PIX_FMT_SBGGR10P v4l2_fourcc('p', 'B', 'A', 'A')
 #define V4L2_PIX_FMT_SGBRG10P v4l2_fourcc('p', 'G', 'A', 'A')
