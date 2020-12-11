@@ -181,7 +181,11 @@ void ConvertRAW10ToRAW8(const void *sourceBuffer, uint32_t width,
     // printf("counter= %d, count2=%d", count, count2);
 }
 
-void  ConvertJetsonMonoToRGB24(const void *sourceBuffer, uint32_t width, uint32_t height, QImage& dst, int shift)
+void v4lconvert_bayer8_to_rgb24(const unsigned char *bayer, unsigned char *bgr,
+                                int width, int height,
+                                const unsigned int stride, unsigned int pixfmt);
+
+void  ConvertJetsonMono16ToRGB24(const void *sourceBuffer, uint32_t width, uint32_t height, QImage& dst, int shift)
 {
     dst = QImage(width, height, QImage::Format_RGB888);
     uint8_t *destdata = dst.bits();
@@ -193,6 +197,21 @@ void  ConvertJetsonMonoToRGB24(const void *sourceBuffer, uint32_t width, uint32_
         *destdata++ = val;
         *destdata++ = val;
     }
+}
+
+
+
+void ConvertJetsonBayer16ToRGB24(const void *sourceBuffer, uint32_t width, uint32_t height, QImage& dst, int shift, unsigned int pixfmt) {
+    uint8_t *destdata = g_ConversionBuffer1;
+    uint16_t const *srcdata = reinterpret_cast<uint16_t const*>(sourceBuffer);
+
+    for(int px = 0; px < width*height; ++px) {
+        uint8_t const val = (srcdata[px] >> shift) & 0xFF;
+        *destdata++ = val;
+    }
+
+    dst = QImage(width, height, QImage::Format_RGB888);
+    v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, dst.bits(), width, height, width, pixfmt);
 }
 
 /* inspired by OpenCV's Bayer decoding */
@@ -1008,7 +1027,27 @@ int ImageTransf::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
 
     case V4L2_PIX_FMT_XAVIER_Y10:
     case V4L2_PIX_FMT_XAVIER_Y12:
-        ConvertJetsonMonoToRGB24(pBuffer, width, height, convertedImage, 7);
+        ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 7);
+        break;
+
+    case V4L2_PIX_FMT_XAVIER_SGRBG10:
+    case V4L2_PIX_FMT_XAVIER_SGRBG12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SGRBG8);
+        break;
+
+    case V4L2_PIX_FMT_XAVIER_SRGGB10:
+    case V4L2_PIX_FMT_XAVIER_SRGGB12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SRGGB8);
+        break;
+
+    case V4L2_PIX_FMT_XAVIER_SGBRG10:
+    case V4L2_PIX_FMT_XAVIER_SGBRG12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SGBRG8);
+        break;
+
+    case V4L2_PIX_FMT_XAVIER_SBGGR10:
+    case V4L2_PIX_FMT_XAVIER_SBGGR12:
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SBGGR8);
         break;
 
     default:
