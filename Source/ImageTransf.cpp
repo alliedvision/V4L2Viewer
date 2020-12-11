@@ -181,6 +181,20 @@ void ConvertRAW10ToRAW8(const void *sourceBuffer, uint32_t width,
     // printf("counter= %d, count2=%d", count, count2);
 }
 
+void  ConvertJetsonMonoToRGB24(const void *sourceBuffer, uint32_t width, uint32_t height, QImage& dst, int shift)
+{
+    dst = QImage(width, height, QImage::Format_RGB888);
+    uint8_t *destdata = dst.bits();
+    uint16_t const *srcdata = reinterpret_cast<uint16_t const*>(sourceBuffer);
+
+    for(int px = 0; px < width*height; ++px) {
+        uint8_t const val = (srcdata[px] >> shift) & 0xFF;
+        *destdata++ = val;
+        *destdata++ = val;
+        *destdata++ = val;
+    }
+}
+
 /* inspired by OpenCV's Bayer decoding */
 static void v4lconvert_border_bayer8_line_to_bgr24(
     const unsigned char *bayer, const unsigned char *adjacent_bayer,
@@ -991,6 +1005,11 @@ int ImageTransf::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
                                    V4L2_PIX_FMT_SRGGB8);
         break;
     }
+
+    case V4L2_PIX_FMT_XAVIER_Y10:
+    case V4L2_PIX_FMT_XAVIER_Y12:
+        ConvertJetsonMonoToRGB24(pBuffer, width, height, convertedImage, 7);
+        break;
 
     default:
         return -1;
