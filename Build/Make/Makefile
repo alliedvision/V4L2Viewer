@@ -55,8 +55,7 @@ LIBS = pthread
 SCMDEV:='SCM_REVISION="$(shell ./scm_version.sh ./../..)"'
 
 # require packages
-PACKAGES 	= 	QtCore \
-				QtSvg \
+PACKAGES 	= 	QtCore QtGui
 
 DEFINES		= $(SCMDEV)
 
