@@ -907,34 +907,6 @@ int ImageTransf::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
     }
     break;
 
-    // omnivision camera
-    case V4L2_PIX_FMT_SBGGR10:
-    case V4L2_PIX_FMT_SGBRG10:
-    case V4L2_PIX_FMT_SGRBG10:
-    case V4L2_PIX_FMT_SRGGB10:
-    {
-        ConvertRAW10ToRAW8(pBuffer, width, height, g_ConversionBuffer1);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
-                                   width, height, width /*bytesPerLine*/,
-                                   pixelformat);
-    }
-    break;
-
-    // omnivision camera
-    case V4L2_PIX_FMT_SBGGR12:
-    case V4L2_PIX_FMT_SGBRG12:
-    case V4L2_PIX_FMT_SGRBG12:
-    case V4L2_PIX_FMT_SRGGB12:
-    {
-        ConvertRAW10ToRAW8(pBuffer, width, height, g_ConversionBuffer1);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
-                                   width, height, width /*bytesPerLine*/,
-                                   pixelformat);
-    }
-    break;
-
     /* L&T */
     /* 10bit raw bayer packed, 5 bytes for every 4 pixels */
     case V4L2_PIX_FMT_Y10P:
@@ -1079,45 +1051,45 @@ int ImageTransf::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SBGGR8);
         break;
 
-    /* Nano 12 Bit */
-    case V4L2_PIX_FMT_NANO_Y12:
+    /* Nano/Generic 12 Bit */
+    case V4L2_PIX_FMT_Y12:
         ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 4);
         break;
 
-    case V4L2_PIX_FMT_NANO_SGRBG12:
+    case V4L2_PIX_FMT_SGRBG12:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SGRBG8);
         break;
 
-    case V4L2_PIX_FMT_NANO_SRGGB12:
+    case V4L2_PIX_FMT_SRGGB12:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SRGGB8);
         break;
 
-    case V4L2_PIX_FMT_NANO_SGBRG12:
+    case V4L2_PIX_FMT_SGBRG12:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SGBRG8);
         break;
 
-    case V4L2_PIX_FMT_NANO_SBGGR12:
+    case V4L2_PIX_FMT_SBGGR12:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SBGGR8);
         break;
 
-    /* Nano 10 Bit */
-    case V4L2_PIX_FMT_NANO_Y10:
+    /* Nano/Generic 10 Bit */
+    case V4L2_PIX_FMT_Y10:
         ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 2);
         break;
 
-    case V4L2_PIX_FMT_NANO_SGRBG10:
+    case V4L2_PIX_FMT_SGRBG10:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SGRBG8);
         break;
 
-    case V4L2_PIX_FMT_NANO_SRGGB10:
+    case V4L2_PIX_FMT_SRGGB10:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SRGGB8);
         break;
 
-    case V4L2_PIX_FMT_NANO_SGBRG10:
+    case V4L2_PIX_FMT_SGBRG10:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SGBRG8);
         break;
 
-    case V4L2_PIX_FMT_NANO_SBGGR10:
+    case V4L2_PIX_FMT_SBGGR10:
         ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SBGGR8);
         break;
 
