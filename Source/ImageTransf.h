@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2012 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -26,8 +26,8 @@
 
 =============================================================================*/
 
-#ifndef IMAGETRANSF_INCLUDE
-#define IMAGETRANSF_INCLUDE
+#ifndef IMAGETRANSF_H
+#define IMAGETRANSF_H
 
 #include <QObject>
 #include <QImage>
@@ -52,18 +52,18 @@ namespace Tools {
 class ImageTransf
 {
 public:
-    // 
-	ImageTransf();
-    //
-	virtual ~ImageTransf();
 
-	static int ConvertFrame(const uint8_t* pBuffer, uint32_t length, 
-							uint32_t width, uint32_t height, uint32_t pixelformat,
-						    uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage);
-    
+    ImageTransf();
+
+    virtual ~ImageTransf();
+
+    static int ConvertFrame(const uint8_t* pBuffer, uint32_t length,
+                            uint32_t width, uint32_t height, uint32_t pixelformat,
+                            uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage);
 };
 
-}} // namespace AVT::Tools
+} // namespace Tools
+} // namespace AVT
 
-#endif /* IMAGETRANSF_INCLUDE */
+#endif // IMAGETRANSF_H
 

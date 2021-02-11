@@ -1,5 +1,32 @@
-#ifndef PCIETOOLS_LOGGER_INCLUDE
-#define PCIETOOLS_LOGGER_INCLUDE
+/*=============================================================================
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
+
+  Redistribution of this file, in original or modified form, without
+  prior written consent of Allied Vision Technologies is prohibited.
+
+-------------------------------------------------------------------------------
+
+  File:        BaseLogger.h
+
+  Description:
+
+-------------------------------------------------------------------------------
+
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF TITLE,
+  NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR  PURPOSE ARE
+  DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+  AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+=============================================================================*/
+
+#ifndef BASELOGGER_H
+#define BASELOGGER_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -13,53 +40,53 @@
 namespace AVT {
 namespace BaseTools {
 
-    typedef struct _PACKET
-    {
-        std::string            Message;
-        std::vector<uint8_t>   Buffer;
-        uint32_t               Length;
-	std::string	       FileName;
-    } PACKET, *PPACKET;
+typedef struct _PACKET
+{
+    std::string Message;
+    std::vector<uint8_t> Buffer;
+    uint32_t Length;
+    std::string FileName;
+} PACKET, *PPACKET;
 
-    class Logger
-    {
-    public:
-        Logger(const std::string &fileName, bool bAppend = false);
-        virtual ~Logger();
+class Logger
+{
+public:
+    Logger(const std::string &fileName, bool bAppend = false);
+    virtual ~Logger();
 
-        void ThreadProc();
-        void DmpThreadProc();
-	void BufThreadProc();
+    void ThreadProc();
+    void DmpThreadProc();
+    void BufThreadProc();
 
-        void Log(const std::string &rStrMessage);
-        void LogDump(const std::string &rStrMessage, uint8_t *buffer, uint32_t length);
-	void LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t length);
-    
-    private:
-        void PrintStartMessage();
-        void PrintExitMessage();
-        void PrintDumpExitMessage();
-	void PrintBufferExitMessage();
+    void Log(const std::string &rStrMessage);
+    void LogDump(const std::string &rStrMessage, uint8_t *buffer, uint32_t length);
+    void LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t length);
 
-        FILE                                    *m_pFile;
-        LocalMutex                              m_Mutex;
-        LocalMutex                              m_DumpMutex;
-        LocalMutex                              m_BufferMutex;
-        Thread                                  m_pLogTextThread;
-        Thread                                  m_pDumpThread;
-        Thread                                  m_pBufferThread;
-        std::queue<std::string>                 m_OutputQueue;
-        std::queue<PPACKET>                     m_DumpQueue;
-        std::queue<PPACKET>                     m_BufferQueue;
-        bool                                    m_bThreadRunning;
-        bool                                    m_bThreadStopped;
-        bool                                    m_bDumpThreadRunning;
-        bool                                    m_bDumpThreadStopped;
-	bool                                    m_bBufferThreadRunning;
-        bool                                    m_bBufferThreadStopped;
-    };
+private:
+    void PrintStartMessage();
+    void PrintExitMessage();
+    void PrintDumpExitMessage();
+    void PrintBufferExitMessage();
 
-}} /* namespace AVT::BaseTools */
+    FILE                          *m_pFile;
+    LocalMutex                    m_Mutex;
+    LocalMutex                    m_DumpMutex;
+    LocalMutex                    m_BufferMutex;
+    Thread                        m_pLogTextThread;
+    Thread                        m_pDumpThread;
+    Thread                        m_pBufferThread;
+    std::queue<std::string>       m_OutputQueue;
+    std::queue<PPACKET>           m_DumpQueue;
+    std::queue<PPACKET>           m_BufferQueue;
+    bool                          m_bThreadRunning;
+    bool                          m_bThreadStopped;
+    bool                          m_bDumpThreadRunning;
+    bool                          m_bDumpThreadStopped;
+    bool                          m_bBufferThreadRunning;
+    bool                          m_bBufferThreadStopped;
+};
 
-#endif /* PCIETOOLS_LOGGER_INCLUDE */
+} // namespace BaseTools
+} // namespace AVT
 
+#endif // BASELOGGER_H

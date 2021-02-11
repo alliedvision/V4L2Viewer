@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2012 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -26,8 +26,8 @@
 
 =============================================================================*/
 
-#ifndef FRAMEOBSERVERUSER_INCLUDE
-#define FRAMEOBSERVERUSER_INCLUDE
+#ifndef FRAMEOBSERVERUSER_H
+#define FRAMEOBSERVERUSER_H
 
 #include "Helper.h"
 #include "V4l2Helper.h"
@@ -52,7 +52,7 @@ class FrameObserverUSER : public FrameObserver
   public:
     // We pass the camera that will deliver the frames to the constructor
     FrameObserverUSER(bool showFrames);
-    //
+
     virtual ~FrameObserverUSER();
 
     virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
@@ -63,12 +63,14 @@ class FrameObserverUSER : public FrameObserver
 protected:
     // v4l2
     virtual int ReadFrame(v4l2_buffer &buf);
-	virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
-	
+    virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
+
 private:
 };
 
-}}} // namespace AVT::Tools::Examples
+} // namespace Examples
+} // namespace Tools
+} // namespace AVT
 
-#endif /* FRAMEOBSERVERUSER_INCLUDE */
+#endif // FRAMEOBSERVERUSER_H
 

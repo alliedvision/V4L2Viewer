@@ -1,15 +1,14 @@
 /*=============================================================================
-  Copyright (C) 2012 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
 
 -------------------------------------------------------------------------------
 
-  File:        CameraObserver.h
+  File:        Camera.h
 
-  Description: The camera observer that is used for notifications
-               regarding a change in the camera list.
+  Description:
 
 -------------------------------------------------------------------------------
 
@@ -26,8 +25,8 @@
 
 =============================================================================*/
 
-#ifndef AVT_VMBAPI_EXAMPLES_CAMERA
-#define AVT_VMBAPI_EXAMPLES_CAMERA
+#ifndef CAMERA_H
+#define CAMERA_H
 
 #include <vector>
 #include <QObject>
@@ -127,7 +126,7 @@ public:
 
     int ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
     int WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
-    
+
 
     int EnumAllControlNewStyle();
     int EnumAllControlOldStyle();
@@ -161,13 +160,13 @@ public:
 
     // Recording
     void SetRecording(bool start);
-    
+
     // live deviation calc
     void SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame);
 
     // Misc
     void SwitchFrameTransfer2GUI(bool showFrames);
-    
+
     std::string getAvtDeviceFirmwareVersion();
     std::string getAvtDeviceTemperature();
     std::string getAvtDeviceSerialNumber();
@@ -181,7 +180,7 @@ private:
     bool                m_UseExtendedControls;
     bool                m_Recording;
     bool                m_isAvtCamera;
-    
+
     CameraObserver                  m_DeviceDiscoveryCallbacks;
     QSharedPointer<FrameObserver>   m_StreamCallbacks;
 
@@ -189,8 +188,8 @@ private:
 
     size_t fsize(const char *filename);
     int ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData);
-	void reverseBytes(void* start, int size);
-	
+    void reverseBytes(void* start, int size);
+
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
     void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);
@@ -234,8 +233,8 @@ private slots:
     void OnLiveDeviationCalc(int numberOfUnequalBytes);
 };
 
-}
-}
-} // namespace AVT::Tools::Examples
+} // namespace Examples
+} // namespace Tools
+} // namespace AVT
 
-#endif
+#endif // CAMERA_H

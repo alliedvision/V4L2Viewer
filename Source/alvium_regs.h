@@ -1,21 +1,28 @@
 /*=============================================================================
-  Copyright (C) 2020 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+  Redistribution of this file, in original or modified form, without
+  prior written consent of Allied Vision Technologies is prohibited.
 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+-------------------------------------------------------------------------------
 
-  -----------------------------------------------------------------------------
+  File:        alvium_regs.h
 
-File:        alvium_regs.h
+  Description:
 
-version:     1.7.11
+-------------------------------------------------------------------------------
+
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF TITLE,
+  NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR  PURPOSE ARE
+  DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+  AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 =============================================================================*/
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -333,7 +340,7 @@ enum CCI_STRING_ENC {
 ////////////////////////////////////////////////////////////////////////////////
 /* CCI_DEVICE_CAP_64R regsiter values */
 union cci_device_caps_reg {
-	struct {
+    struct {
         unsigned long long user_name:1;
         unsigned long long bcrm:1;
         unsigned long long gencp:1;
@@ -341,47 +348,47 @@ union cci_device_caps_reg {
         unsigned long long string_encoding:4;
         unsigned long long family_name:1;
         unsigned long long reserved2:55;
-	} caps;
+    } caps;
 
-	unsigned long long value;
+    unsigned long long value;
 };
 
 /* BCRM_VERSION_32R register values */
 union bcrm_version_reg {
-	struct {
+    struct {
         unsigned long minor:16;
         unsigned long major:16;
-	} handshake;
+    } handshake;
 
-	unsigned long value;
+    unsigned long value;
 };
 
 /* BCRM_DEVICE_FIRMWARE_VERSION_64R register values */
 union bcrm_device_firmware_version_reg {
-	struct {
+    struct {
         unsigned long long special:8;
         unsigned long long major:8;
         unsigned long long minor:16;
         unsigned long long patch:32;
-	} handshake;
+    } handshake;
 
-	unsigned long long value;
+    unsigned long long value;
 };
 
 /* BCRM_WRITE_HANDSHAKE_8RW register values */
 union bcrm_write_done_handshake_reg {
-	struct {
+    struct {
         unsigned char finished:1;
         unsigned char reserved:6;
         unsigned char handshake_supported:1;
-	} handshake;
+    } handshake;
 
-	unsigned char value;
+    unsigned char value;
 };
 
 /* BCRM_FEATURE_INQUIRY_64R register values */
 union bcrm_feature_reg {
-	struct {
+    struct {
         unsigned long long reverse_x_avail:1;
         unsigned long long reverse_y_avail:1;
         unsigned long long intensity_auto_prcedence_avail:1;
@@ -402,27 +409,27 @@ union bcrm_feature_reg {
         unsigned long long frame_trigger:1;
         unsigned long long exposure_active_line_avail:1;
         unsigned long long reserved:45;
-	} feature_inq;
+    } feature_inq;
 
-	unsigned long long value;
+    unsigned long long value;
 };
 
 /* BCRM_SUPPORTED_CSI2_LANE_COUNTS_8R register values */
 union bcrm_supported_lanecount_reg {
-	struct {
+    struct {
         unsigned char one_lane_avail:1;
         unsigned char two_lane_avail:1;
         unsigned char three_lane_avail:1;
         unsigned char four_lane_avail:1;
         unsigned char reserved:4;
-	} lane_count;
+    } lane_count;
 
-	unsigned char value;
+    unsigned char value;
 };
 
 /* BCRM_IMG_AVAILABLE_MIPI_DATA_FORMATS_64R register values */
 union bcrm_avail_mipi_reg {
-	struct {
+    struct {
         unsigned long long yuv420_8_leg_avail:1;
         unsigned long long yuv420_8_avail:1;
         unsigned long long yuv420_10_avail:1;
@@ -443,23 +450,24 @@ union bcrm_avail_mipi_reg {
         unsigned long long raw14_avail:1;
         unsigned long long jpeg_avail:1;
         unsigned long long reserved:45;
-	} avail_mipi;
+    } avail_mipi;
 
-	unsigned long long value;
+    unsigned long long value;
 };
 
 /* BCRM_IMG_BAYER_PATTERN_INQUIRY_8R register values */
 union bcrm_bayer_inquiry_reg {
-	struct {
+    struct {
         unsigned char monochrome_avail:1;
         unsigned char bayer_GR_avail:1;
         unsigned char bayer_RG_avail:1;
         unsigned char bayer_GB_avail:1;
         unsigned char bayer_BG_avail:1;
         unsigned char reserved:3;
-	} bayer_pattern;
+    } bayer_pattern;
 
-	unsigned char value;
+    unsigned char value;
 };
 
-#endif /* ALVIUM_REGS_H */
+#endif // ALVIUM_REGS_H
+

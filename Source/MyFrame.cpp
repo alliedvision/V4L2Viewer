@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2015 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -8,7 +8,7 @@
 
   File:        MyFrame.cpp
 
-  Description: 
+  Description:
 
 -------------------------------------------------------------------------------
 
@@ -28,16 +28,16 @@
 #include <string.h>
 #include "MyFrame.h"
 
-MyFrame::MyFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
-		 uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-		 uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
-	: m_FrameId(0)
+MyFrame::MyFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
+         uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+         uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+    : m_FrameId(0)
 {
     // this constructor is used by the ImageProc thread
 
     m_FrameId = frameID;
     m_bufferPtr = buffer;
-    m_bufferlength = length; 
+    m_bufferlength = length;
     m_Width = width;
     m_Height = height;
     m_Pixelformat = pixelformat;
@@ -47,7 +47,7 @@ MyFrame::MyFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
 }
 
 
-MyFrame::MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
+MyFrame::MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
      uint32_t &width, uint32_t &height, uint32_t &pixelformat,
      uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
   : m_FrameId(0)
@@ -58,7 +58,7 @@ MyFrame::MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_
     memcpy(m_buffer.data(), buffer, length);
     m_Image = image;
     m_FrameId = frameID;
-    m_bufferlength = length; 
+    m_bufferlength = length;
     m_Width = width;
     m_Height = height;
     m_Pixelformat = pixelformat;
@@ -68,15 +68,15 @@ MyFrame::MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_
     m_bufferPtr = m_buffer.data();
 }
 
-MyFrame::MyFrame(QImage &image, unsigned long long frameID) 
-	: m_FrameId(0)
+MyFrame::MyFrame(QImage &image, unsigned long long frameID)
+    : m_FrameId(0)
 {
     m_FrameId = frameID;
     m_Image = image;
 }
 
-MyFrame::MyFrame(const MyFrame *pFrame) 
-	: m_FrameId(0)
+MyFrame::MyFrame(const MyFrame *pFrame)
+    : m_FrameId(0)
 {
     m_FrameId = pFrame->m_FrameId;
     m_Image = pFrame->m_Image;
@@ -97,7 +97,7 @@ uint8_t *MyFrame::GetBuffer()
     return m_bufferPtr;
 }
 
-uint32_t MyFrame::GetBufferlength() 
+uint32_t MyFrame::GetBufferlength()
 {
     return m_bufferlength;
 }

@@ -1,12 +1,12 @@
 /*=============================================================================
-  Copyright (C) 2012 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
 
 -------------------------------------------------------------------------------
 
-  File:        FrameObserver.h
+  File:        FrameObserverMMAP.h
 
   Description: The frame observer that is used for notifications
                regarding the arrival of a newly acquired frame.
@@ -26,8 +26,8 @@
 
 =============================================================================*/
 
-#ifndef FRAMEOBSERVERMMAP_INCLUDE
-#define FRAMEOBSERVERMMAP_INCLUDE
+#ifndef FRAMEOBSERVERMMAP_H
+#define FRAMEOBSERVERMMAP_H
 
 #include "Helper.h"
 #include "V4l2Helper.h"
@@ -53,24 +53,26 @@ class FrameObserverMMAP : public FrameObserver
   public:
     // We pass the camera that will deliver the frames to the constructor
     FrameObserverMMAP(bool showFrames);
-    //
+
     virtual ~FrameObserverMMAP();
 
     virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
     virtual int QueueAllUserBuffer();
     virtual int QueueSingleUserBuffer(const int index);
     virtual int DeleteAllUserBuffer();
-    
+
 protected:
     // v4l2
     virtual int ReadFrame(v4l2_buffer &buf);
-	virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
-	
+    virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
+
 private:
 
 };
 
-}}} // namespace AVT::Tools::Examples
+} // namespace Examples
+} // namespace Tools
+} // namespace AVT
 
-#endif /* FRAMEOBSERVERMMAP_INCLUDE */
+#endif // FRAMEOBSERVERMMAP_H
 

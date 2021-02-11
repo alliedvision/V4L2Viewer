@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2015 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -8,7 +8,7 @@
 
   File:        ImageProcessingThread.h
 
-  Description: 
+  Description:
 
 -------------------------------------------------------------------------------
 
@@ -36,54 +36,50 @@
 #include <MyFrame.h>
 #include <MyFrameQueue.h>
 
-//#include <opencv2/opencv.hpp>
-
 class ImageProcessingThread : public QThread
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	ImageProcessingThread();
-	~ImageProcessingThread(void);
+    ImageProcessingThread();
+    ~ImageProcessingThread(void);
 
-	// Queue the frame for the thread to work with
-	int QueueFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
-		       uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-		       uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
-	
-	// Queue the frame for the thread to work with
-	int QueueFrame(QImage &image, uint64_t &frameID);
+    // Queue the frame for the thread to work with
+    int QueueFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
+               uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+               uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
 
-	// Queue the frame for the thread to work with
-	int QueueFrame(QSharedPointer<MyFrame> pFrame);
+    // Queue the frame for the thread to work with
+    int QueueFrame(QImage &image, uint64_t &frameID);
 
-	//int Try2ConvertV4l2Pixelformat2Vimba(uint32_t pixelformat, uint32_t &resPixelformat);
-	//int Try2ConvertV4l2Pixelformat2OpenCV(uint32_t pixelformat, uint32_t width, uint32_t height, const void *pBuffer, cv::Mat &destMat);
-	
-	// start thread
-	void StartThread();
-	// stop the internal processing thread and wait until the thread is really stopped
-	void StopThread();
+    // Queue the frame for the thread to work with
+    int QueueFrame(QSharedPointer<MyFrame> pFrame);
+
+    // start thread
+    void StartThread();
+
+    // stop the internal processing thread and wait until the thread is really stopped
+    void StopThread();
 
 protected:
-	// Do the work within this thread
-	virtual void run();
+    // Do the work within this thread
+    virtual void run();
 
 private:
     const static int MAX_QUEUE_SIZE = 1;
-	
-	// Frame queue
-	MyFrameQueue m_FrameQueue;
 
-	// Variable to abort the running thread
-	bool m_bAbort;
+    // Frame queue
+    MyFrameQueue m_FrameQueue;
+
+    // Variable to abort the running thread
+    bool m_bAbort;
 
 signals:
-	// Event will be called when an image is processed by the thread
-	void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId, const int &bufIndex);
-	// Event will be called when message should be displayed
-	void OnMessage_Signal(const QString &msg);
+    // Event will be called when an image is processed by the thread
+    void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId, const int &bufIndex);
 
+    // Event will be called when message should be displayed
+    void OnMessage_Signal(const QString &msg);
 };
 
 #endif // IMAGEPORCESSINGTHREAD_H

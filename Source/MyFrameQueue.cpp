@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2015 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -61,37 +61,37 @@ void MyFrameQueue::Clear()
     m_FrameQueueMutex.unlock();
 }
 
-void MyFrameQueue::Enqueue(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
-			   uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-			   uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+void MyFrameQueue::Enqueue(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
+               uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+               uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
 {
     m_FrameQueueMutex.lock();
 
-    QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(bufferIndex, 
-									   buffer, 
-									   length, 
-									   width, 
-									   height, 
-									   pixelformat, 
-									   payloadSize, 
-									   bytesPerLine, 
-									   frameID));
-		
+    QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(bufferIndex,
+                                       buffer,
+                                       length,
+                                       width,
+                                       height,
+                                       pixelformat,
+                                       payloadSize,
+                                       bytesPerLine,
+                                       frameID));
+
     m_FrameQueue.enqueue(newFrame);
-	
+
     m_FrameQueueMutex.unlock();
 }
 
 // Add a new frame
-void MyFrameQueue::Enqueue( QImage &image, 
+void MyFrameQueue::Enqueue( QImage &image,
                             uint64_t frameID)
 {
     m_FrameQueueMutex.lock();
 
     QSharedPointer<MyFrame> newFrame = QSharedPointer<MyFrame>(new MyFrame(image, frameID));
-		
+
     m_FrameQueue.enqueue(newFrame);
-	
+
     m_FrameQueueMutex.unlock();
 }
 
@@ -101,7 +101,7 @@ void MyFrameQueue::Enqueue(QSharedPointer<MyFrame> pFrame)
     m_FrameQueueMutex.lock();
 
     m_FrameQueue.enqueue(pFrame);
-	
+
     m_FrameQueueMutex.unlock();
 }
 
@@ -113,7 +113,7 @@ QSharedPointer<MyFrame> MyFrameQueue::Dequeue()
     m_FrameQueueMutex.lock();
 
     if (m_FrameQueue.size() > 0)
-	queuedFrame = m_FrameQueue.dequeue();
+        queuedFrame = m_FrameQueue.dequeue();
 
     m_FrameQueueMutex.unlock();
 
@@ -161,9 +161,3 @@ QSharedPointer<MyFrame> MyFrameQueue::GetNext()
 
     return queuedFrame;
 }
-/*
-MyFrameQueue& MyFrameQueue::GetQueue()
-{
-    return this;
-}
-*/

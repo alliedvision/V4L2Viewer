@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2015 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -8,7 +8,7 @@
 
   File:        MyFrame.h
 
-  Description: 
+  Description:
 
 -------------------------------------------------------------------------------
 
@@ -39,43 +39,43 @@
 class MyFrame
 {
 public:
-	// Copy the of the given frame
+    // Copy the of the given frame
     MyFrame(const MyFrame *pFrame);
     MyFrame(QImage &image, unsigned long long frameID);
-    MyFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
-	    uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-	    uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
-    MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
+    MyFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
+        uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+        uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
+    MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
       uint32_t &width, uint32_t &height, uint32_t &pixelformat,
       uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
     ~MyFrame(void);
 
     // Get the frame buffer
     QImage &GetImage();
-	
+
     // get the id of the frame
-    unsigned long long		GetFrameId();
-    uint8_t *			GetBuffer();
-    uint32_t 			GetBufferlength();
-    uint32_t 			GetWidth();
-    uint32_t 			GetHeight();
-    uint32_t 			GetPixelformat();
-    uint32_t 			GetPayloadSize();
-    uint32_t 			GetBytesPerLine();
-    uint32_t 			GetBufferIndex();
+    unsigned long long   GetFrameId();
+    uint8_t *            GetBuffer();
+    uint32_t             GetBufferlength();
+    uint32_t             GetWidth();
+    uint32_t             GetHeight();
+    uint32_t             GetPixelformat();
+    uint32_t             GetPayloadSize();
+    uint32_t             GetBytesPerLine();
+    uint32_t             GetBufferIndex();
 
 private:
-    QImage		    m_Image;
+    QImage               m_Image;
     std::vector<uint8_t> m_buffer;
-    uint8_t *           m_bufferPtr;
-    uint64_t			m_FrameId;	
-    uint32_t      m_Width;
-    uint32_t 			m_Height;
-    uint32_t 			m_Pixelformat;
-    uint32_t 			m_PayloadSize;
-    uint32_t 			m_BytesPerLine;
-    uint32_t 			m_bufferlength;
-    uint32_t 			m_bufferIndex;
+    uint8_t *            m_bufferPtr;
+    uint64_t             m_FrameId;
+    uint32_t             m_Width;
+    uint32_t             m_Height;
+    uint32_t             m_Pixelformat;
+    uint32_t             m_PayloadSize;
+    uint32_t             m_BytesPerLine;
+    uint32_t             m_bufferlength;
+    uint32_t             m_bufferIndex;
 };
 
 #endif // MYFRAME_H

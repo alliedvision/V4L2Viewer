@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2015 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -48,10 +48,10 @@ public:
     void Clear();
 
     // Add a new frame
-    void Enqueue(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length, 
-		 uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-		 uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
-	
+    void Enqueue(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
+         uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+         uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
+
     // Add a new frame
     void Enqueue(QImage &image, uint64_t frameID);
 
@@ -66,8 +66,6 @@ public:
 
     // Get the frame at the next index
     QSharedPointer<MyFrame> GetNext();
-
-  //  MyFrameQueue& GetQueue();
 
 private:
     QQueue< QSharedPointer<MyFrame> > m_FrameQueue;

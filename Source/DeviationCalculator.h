@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2015 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -25,8 +25,8 @@
 
 =============================================================================*/
 
-#ifndef DEVIATION_CALCULATOR_H
-#define DEVIATION_CALCULATOR_H
+#ifndef DEVIATIONCALCULATOR_H
+#define DEVIATIONCALCULATOR_H
 
 #include <QObject>
 #include <QThread>
@@ -47,7 +47,7 @@ public:
 
     // return -1 if bytearrays have different size, else return number of unequal bytes
     static int CountUnequalBytes(QSharedPointer<QByteArray> reference, QSharedPointer<QByteArray> compareFrame);
-    
+
 protected:
     void run();
 
@@ -55,4 +55,5 @@ signals:
     void OnCalcDeviationReady_Signal(unsigned int tableRow, int unequalBytes, bool done);
 };
 
-#endif // DEVIATION_CALCULATOR_H
+#endif // DEVIATIONCALCULATOR_H
+

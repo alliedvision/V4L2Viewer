@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2012 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -45,11 +45,11 @@ namespace Examples {
 
 ////////////////////////////////////////////////////////////////////////////
 // Implementation
-////////////////////////////////////////////////////////////////////////////    
+////////////////////////////////////////////////////////////////////////////
 
-FrameObserverRead::FrameObserverRead(bool showFrames) 
-	: FrameObserver(showFrames)
-	, m_nFrameBufferIndex(0)
+FrameObserverRead::FrameObserverRead(bool showFrames)
+    : FrameObserver(showFrames)
+    , m_nFrameBufferIndex(0)
 {
 }
 
@@ -65,14 +65,14 @@ int FrameObserverRead::ReadFrame(v4l2_buffer &buf)
 
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_USERPTR;
-	
+
     if (m_bStreamRunning)
-    {	
-	buf.m.userptr = (long unsigned int)m_UserBufferContainerList[m_nFrameBufferIndex]->pBuffer;
-	buf.length = m_UserBufferContainerList[m_nFrameBufferIndex]->nBufferlength;
-	result = read(m_nFileDescriptor, (uint8_t*)buf.m.userptr, buf.length);
-	if (0 == result)
-	    m_nFrameBufferIndex++;
+    {
+        buf.m.userptr = (long unsigned int)m_UserBufferContainerList[m_nFrameBufferIndex]->pBuffer;
+        buf.length = m_UserBufferContainerList[m_nFrameBufferIndex]->nBufferlength;
+        result = read(m_nFileDescriptor, (uint8_t*)buf.m.userptr, buf.length);
+        if (0 == result)
+            m_nFrameBufferIndex++;
     }
 
     return result;
@@ -82,17 +82,17 @@ int FrameObserverRead::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t
 {
     int result = -1;
 
-    if (m_bStreamRunning) 
+    if (m_bStreamRunning)
     {
-	length = buf.length;
-	buffer = (uint8_t*)buf.m.userptr;
-		
-	if (0 != buffer && 0 != length)
-	{  
-	    result = 0;
-	}
+        length = buf.length;
+        buffer = (uint8_t*)buf.m.userptr;
+
+        if (0 != buffer && 0 != length)
+        {
+            result = 0;
+        }
     }
-	
+
     return result;
 }
 
@@ -106,60 +106,60 @@ int FrameObserverRead::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
 
     if (bufferCount <= MAX_VIEWER_USER_BUFFER_COUNT)
     {
-    	// creates user defined buffer
+        // creates user defined buffer
 
-	AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
-	
-	Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS OK");
-	emit OnMessage_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS OK.");
-	
-	// create local buffer container
-	m_UserBufferContainerList.resize(bufferCount);
+        AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
 
-	if (m_UserBufferContainerList.size() != bufferCount) 
-	{
-	    Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer container error");
-	    emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: buffer container error.");
-	    return -1;
-	}
+        Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS OK");
+        emit OnMessage_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS OK.");
 
-	// get the length and start address of each of the 4 buffer structs and assign the user buffer addresses
-	for (int x = 0; x < m_UserBufferContainerList.size(); ++x) 
-	{
-	    PUSER_BUFFER pTmpBuffer = new USER_BUFFER;
-	    pTmpBuffer->nBufferlength = bufferSize;
-	    m_RealPayloadsize = pTmpBuffer->nBufferlength;
-	    pTmpBuffer->pBuffer = new uint8_t[bufferSize];
+        // create local buffer container
+        m_UserBufferContainerList.resize(bufferCount);
 
-	    if (!pTmpBuffer->pBuffer) 
-	    {
-		delete pTmpBuffer;
-		Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer creation error");
-		emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: buffer creation error.");
-		m_UserBufferContainerList.resize(0);
-		return -1;
-	    }
-	    else
-		m_UserBufferContainerList[x] = pTmpBuffer;
-	}
-		
-	result = 0;
+        if (m_UserBufferContainerList.size() != bufferCount)
+        {
+            Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer container error");
+            emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: buffer container error.");
+            return -1;
+        }
+
+        // get the length and start address of each of the 4 buffer structs and assign the user buffer addresses
+        for (int x = 0; x < m_UserBufferContainerList.size(); ++x)
+        {
+            PUSER_BUFFER pTmpBuffer = new USER_BUFFER;
+            pTmpBuffer->nBufferlength = bufferSize;
+            m_RealPayloadsize = pTmpBuffer->nBufferlength;
+            pTmpBuffer->pBuffer = new uint8_t[bufferSize];
+
+            if (!pTmpBuffer->pBuffer)
+            {
+                delete pTmpBuffer;
+                Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer creation error");
+                emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: buffer creation error.");
+                m_UserBufferContainerList.resize(0);
+                return -1;
+            }
+            else
+                m_UserBufferContainerList[x] = pTmpBuffer;
+        }
+
+        result = 0;
     }
-    
+
     return result;
 }
 
 int FrameObserverRead::QueueAllUserBuffer()
 {
     int result = 0;
-    
+
     return result;
 }
 
 int FrameObserverRead::QueueSingleUserBuffer(const int index)
 {
     int result = 0;
-    	    
+
     return result;
 }
 
@@ -169,23 +169,26 @@ int FrameObserverRead::DeleteAllUserBuffer()
 
     // free all internal buffers
     // creates user defined buffer
-    
+
     {
-	AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
-	
-	// delete all user buffer
-	for (int x = 0; x < m_UserBufferContainerList.size(); x++)
-	{
-	    if (0 != m_UserBufferContainerList[x]->pBuffer)
-		delete [] m_UserBufferContainerList[x]->pBuffer;
-	    if (0 != m_UserBufferContainerList[x])
-		delete m_UserBufferContainerList[x];
-	}
-    
-	m_UserBufferContainerList.resize(0);
+    AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+
+    // delete all user buffer
+    for (int x = 0; x < m_UserBufferContainerList.size(); x++)
+    {
+        if (0 != m_UserBufferContainerList[x]->pBuffer)
+            delete [] m_UserBufferContainerList[x]->pBuffer;
+        if (0 != m_UserBufferContainerList[x])
+            delete m_UserBufferContainerList[x];
     }
-	
+
+    m_UserBufferContainerList.resize(0);
+    }
+
     return result;
 }
 
-}}} // namespace AVT::Tools::Examples
+} // namespace Examples
+} // namespace Tools
+} // namespace AVT
+

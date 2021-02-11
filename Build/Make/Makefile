@@ -1,14 +1,14 @@
 #==============================================================================
-# Copyright (C) 2018 Allied Vision Technologies.  All Rights Reserved.
+# Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 #
 # Redistribution of this file, in original or modified form, without
 # prior written consent of Allied Vision Technologies is prohibited.
 #
 #------------------------------------------------------------------------------
 #
-# File:         -Makefile
+# File:         Makefile
 #
-# Description:  -makefile for compiling v4l2 test tool
+# Description:  makefile for compiling v4l2 test tool
 #
 #------------------------------------------------------------------------------
 #
@@ -32,8 +32,8 @@ OUTPUT                  = binary
 
 # path variables
 PROJECT_ROOT_DIR        = ../..
-EXTERNALS_DIR			= $(PROJECT_ROOT_DIR)/Externals
-MAKE_INCLUDE_DIR		= $(CURDIR)/$(EXTERNALS_DIR)/Makefiles
+EXTERNALS_DIR           = $(PROJECT_ROOT_DIR)/Externals
+MAKE_INCLUDE_DIR        = $(CURDIR)/$(EXTERNALS_DIR)/Makefiles
 PROJECT_DIR             = $(OS)_$(ARCH)_$(WORDSIZE)bit/$(CONFIG)
 BIN_DIR                 = $(OUTPUT)/$(PROJECT_DIR)
 OBJ_DIR                 = object/$(PROJECT_DIR)
@@ -55,39 +55,39 @@ LIBS = pthread
 SCMDEV:='SCM_REVISION="$(shell ./scm_version.sh ./../..)"'
 
 # require packages
-PACKAGES 	= 	QtCore QtGui
+PACKAGES     =     QtCore QtGui
 
-DEFINES		= $(SCMDEV)
+DEFINES        = $(SCMDEV)
 
 # object files
-OBJ_FILES	= 	$(OBJ_DIR)/BaseLogger.o \
-			  	$(OBJ_DIR)/Camera.o \
-			  	$(OBJ_DIR)/CameraObserver.o \
-				$(OBJ_DIR)/FrameObserver.o \
-			  	$(OBJ_DIR)/FrameObserverRead.o \
-			  	$(OBJ_DIR)/FrameObserverMMAP.o \
-			  	$(OBJ_DIR)/FrameObserverUSER.o \
-			  	$(OBJ_DIR)/ImageProcessingThread.o \
-			  	$(OBJ_DIR)/ImageTransf.o \
-			  	$(OBJ_DIR)/V4l2Helper.o \
-			  	$(OBJ_DIR)/Helper.o \
-			  	$(OBJ_DIR)/v4l2test.o \
-			  	$(OBJ_DIR)/DeviationCalculator.o \
-			  	$(OBJ_DIR)/Logger.o \
+OBJ_FILES   =   $(OBJ_DIR)/BaseLogger.o \
+                $(OBJ_DIR)/Camera.o \
+                $(OBJ_DIR)/CameraObserver.o \
+                $(OBJ_DIR)/FrameObserver.o \
+                $(OBJ_DIR)/FrameObserverRead.o \
+                $(OBJ_DIR)/FrameObserverMMAP.o \
+                $(OBJ_DIR)/FrameObserverUSER.o \
+                $(OBJ_DIR)/ImageProcessingThread.o \
+                $(OBJ_DIR)/ImageTransf.o \
+                $(OBJ_DIR)/V4l2Helper.o \
+                $(OBJ_DIR)/Helper.o \
+                $(OBJ_DIR)/v4l2test.o \
+                $(OBJ_DIR)/DeviationCalculator.o \
+                $(OBJ_DIR)/Logger.o \
                 $(OBJ_DIR)/main.o \
-				$(OBJ_DIR)/MyFrame.o \
-				$(OBJ_DIR)/MyFrameQueue.o \
-				$(OBJ_DIR)/Thread.o \
-				$(OBJ_DIR)/moc_DeviationCalculator.o \
-			  	$(OBJ_DIR)/moc_Camera.o \
-			  	$(OBJ_DIR)/moc_CameraObserver.o \
-				$(OBJ_DIR)/moc_FrameObserver.o \
-			  	$(OBJ_DIR)/moc_ImageProcessingThread.o \
-				$(OBJ_DIR)/moc_v4l2test.o \
-				$(OBJ_DIR)/qrc_v4l2test.o
+                $(OBJ_DIR)/MyFrame.o \
+                $(OBJ_DIR)/MyFrameQueue.o \
+                $(OBJ_DIR)/Thread.o \
+                $(OBJ_DIR)/moc_DeviationCalculator.o \
+                $(OBJ_DIR)/moc_Camera.o \
+                $(OBJ_DIR)/moc_CameraObserver.o \
+                $(OBJ_DIR)/moc_FrameObserver.o \
+                $(OBJ_DIR)/moc_ImageProcessingThread.o \
+                $(OBJ_DIR)/moc_v4l2test.o \
+                $(OBJ_DIR)/qrc_v4l2test.o
 
-# header files              
-GEN_HEADERS	= $(OBJ_DIR)/ui_v4l2test.h
+# header files
+GEN_HEADERS    = $(OBJ_DIR)/ui_v4l2test.h
 
 all: $(BIN_PATH)
 
@@ -121,7 +121,7 @@ $(BIN_PATH): $(DEPENDENCIES) $(OBJ_FILES) $(BIN_DIR)
 clean:
 	$(call MACRO_RM,$(OBJ_FILES) $(BIN_PATH))
 	$(call MACRO_RMDIR,$(OBJ_DIR) $(BIN_DIR))
-	
+
 $(OBJ_DIR):
 	$(call MACRO_MKDIR,$(OBJ_DIR))
 

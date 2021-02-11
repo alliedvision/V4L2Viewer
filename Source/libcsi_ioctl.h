@@ -1,24 +1,29 @@
 /*=============================================================================
-  Copyright (C) 2020 Allied Vision Technologies.  All Rights Reserved.
+Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+Redistribution of this file, in original or modified form, without
+prior written consent of Allied Vision Technologies is prohibited.
 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
-  -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 File:        libcsi_ioctl.h
 
-version:     1.7.10
+Description:
+
+-------------------------------------------------------------------------------
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR  PURPOSE ARE
+DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 =============================================================================*/
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // DEFINES
@@ -38,7 +43,7 @@ version:     1.7.10
 #define V4L2_BUF_FLAG_INVALID               0x80000000
 #define V4L2_BUF_FLAG_INVALIDINCOMPLETE     (V4L2_BUF_FLAG_INCOMPLETE | V4L2_BUF_FLAG_INVALID)
 /* Driver capabilities flags. See v4l2_csi_driver_info */
-#define AVT_DRVCAP_USRPTR                   0x00000001  
+#define AVT_DRVCAP_USRPTR                   0x00000001
 #define AVT_DRVCAP_MMAP                     0x00000002
 
 
@@ -75,40 +80,40 @@ enum manufacturer_id
 {
     MANUFACTURER_ID_NXP                 = 0x00,
     MANUFACTURER_ID_NVIDIA              = 0x01,
-};                                      
-                                        
-enum soc_family_id                      
-{                                       
+};
+
+enum soc_family_id
+{
     SOC_FAMILY_ID_IMX6                  = 0x00,
     SOC_FAMILY_ID_TEGRA                 = 0x01,
     SOC_FAMILY_ID_IMX8                  = 0x02,
     SOC_FAMILY_ID_IMX8M                 = 0x03,
     SOC_FAMILY_ID_IMX8X                 = 0x04,
-};                                      
-                                        
-enum imx6_driver_id                     
-{                                       
+};
+
+enum imx6_driver_id
+{
     IMX6_DRIVER_ID_NITROGEN             = 0x00,
     IMX6_DRIVER_ID_WANDBOARD            = 0x01,
-};                                      
-                                        
-enum tegra_driver_id                    
-{                                       
+};
+
+enum tegra_driver_id
+{
     TEGRA_DRIVER_ID_DEFAULT             = 0x00,
-};                                      
-                                        
-enum imx8_driver_id                     
-{                                       
+};
+
+enum imx8_driver_id
+{
     IMX8_DRIVER_ID_DEFAULT              = 0x00,
-};                                      
-                                        
-enum imx8m_driver_id                    
-{                                       
+};
+
+enum imx8m_driver_id
+{
     IMX8M_DRIVER_ID_DEFAULT             = 0x00,
-};                                      
-                                        
-enum imx8x_driver_id                    
-{                                       
+};
+
+enum imx8x_driver_id
+{
     IMX8X_DRIVER_ID_DEFAULT             = 0x00,
 };
 
@@ -227,11 +232,11 @@ struct v4l2_csi_driver_info
     union _id
     {
         __u32 board_id;                 // 32 Bit board id
-        struct 
+        struct
         {
             __u8 manufacturer_id;       // 0x00 = Boundary Devices, 0x01= NVIDIA
             __u8 soc_family_id;         // 0x00 = i.MX6, 0x01=TEGRA, 0x02=i.MX8, 0x03=i.MX8X
-            __u8 driver_id;             // Driver identifier for a certain soc family 
+            __u8 driver_id;             // Driver identifier for a certain soc family
             __u8 reserved;              //
         };
     }id;
@@ -249,15 +254,15 @@ struct v4l2_csi_config
 
 struct v4l2_trigger_status
 {
-    __u8 trigger_source;                // v4l2_triggersource enum value    
-    __u8 trigger_activation;            // v4l2_triggeractivation enum value  
+    __u8 trigger_source;                // v4l2_triggersource enum value
+    __u8 trigger_activation;            // v4l2_triggeractivation enum value
     __u8 trigger_mode_enabled;          // Enable (1) or disable (0) trigger mode
 };
 
 struct v4l2_trigger_rate
 {
-	__u64 frames_per_period;		    // Number of frames per period
-	__u64 period_sec;				    // Period in seconds
+    __u64 frames_per_period;            // Number of frames per period
+    __u64 period_sec;                   // Period in seconds
 };
 
 ////////////////////////////////////////////////////////////////////////////////

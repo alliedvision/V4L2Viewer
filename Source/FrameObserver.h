@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2012 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -53,7 +53,7 @@
 // TYPEDEFS
 ////////////////////////////////////////////////////////////////////////////////
 
-#define MAX_VIEWER_USER_BUFFER_COUNT	50
+#define MAX_VIEWER_USER_BUFFER_COUNT    50
 
 ////////////////////////////////////////////////////////////////////////////////
 // DEFINES
@@ -66,142 +66,140 @@ namespace Examples {
 
 typedef struct _USER_BUFFER
 {
-	uint8_t         *pBuffer;
-	size_t  		nBufferlength;
+    uint8_t         *pBuffer;
+    size_t          nBufferlength;
 } USER_BUFFER, *PUSER_BUFFER, **PPUSER_BUFFER;
 
 
 class FrameObserver : public QThread
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	// We pass the camera that will deliver the frames to the constructor
-	FrameObserver(bool showFrames);
-	//
-	virtual ~FrameObserver();
+    // We pass the camera that will deliver the frames to the constructor
+    FrameObserver(bool showFrames);
 
-	int StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat,
-	                uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
-	                uint32_t enableLogging, int32_t logFrameStart, int32_t logFrameEnd,
-	                int32_t dumpFrameStart, int32_t dumpFrameEnd, uint32_t enableRAW10Correction,
-	                std::vector<uint8_t> &rData);
-	int StopStream();
+    virtual ~FrameObserver();
 
-	// Get the number of frames
-	// This function will clear the counter of received frames
-	unsigned int GetReceivedFramesCount();
+    int StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat,
+                    uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
+                    uint32_t enableLogging, int32_t logFrameStart, int32_t logFrameEnd,
+                    int32_t dumpFrameStart, int32_t dumpFrameEnd, uint32_t enableRAW10Correction,
+                    std::vector<uint8_t> &rData);
+    int StopStream();
 
-	unsigned int GetRenderedFramesCount();
+    // Get the number of frames
+    // This function will clear the counter of received frames
+    unsigned int GetReceivedFramesCount();
 
-	// Get the number of uncompleted frames
-	unsigned int GetDroppedFramesCount();
+    unsigned int GetRenderedFramesCount();
 
-	// Set the number of uncompleted frames
-	void ResetDroppedFramesCount();
+    // Get the number of uncompleted frames
+    unsigned int GetDroppedFramesCount();
+
+    // Set the number of uncompleted frames
+    void ResetDroppedFramesCount();
 
     // Recording
     void SetRecording(bool start);
-    
+
     void setFileDescriptor(int fd);
-    
+
     // Live Deviation Calc
     void SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame);
 
-	virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
-	virtual int QueueAllUserBuffer();
-	virtual int QueueSingleUserBuffer(const int index);
-	virtual int DeleteAllUserBuffer();
+    virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
+    virtual int QueueAllUserBuffer();
+    virtual int QueueSingleUserBuffer(const int index);
+    virtual int DeleteAllUserBuffer();
 
-	//void FrameDone(const unsigned long long frameHandle);
-
-	void SwitchFrameTransfer2GUI(bool showFrames);
+    void SwitchFrameTransfer2GUI(bool showFrames);
 
 protected:
-	// v4l2
-	virtual int ReadFrame(v4l2_buffer &buf);
-	virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
-	int ProcessFrame(v4l2_buffer &buf);
-	void DequeueAndProcessFrame();
+    // v4l2
+    virtual int ReadFrame(v4l2_buffer &buf);
+    virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
+    int ProcessFrame(v4l2_buffer &buf);
+    void DequeueAndProcessFrame();
 
-	// Do the work within this thread
-	virtual void run();
+    // Do the work within this thread
+    virtual void run();
 
 protected:
-	bool m_bRecording;
-    
+    bool m_bRecording;
+
     QSharedPointer<QByteArray> m_bLiveDeviationCalc;
 
-	// Counter to count the received images
-	uint32_t m_nReceivedFramesCounter;
+    // Counter to count the received images
+    uint32_t m_nReceivedFramesCounter;
 
-	// Counter to coutn the rendered frames
-	uint32_t m_nRenderedFramesCounter;
+    // Counter to coutn the rendered frames
+    uint32_t m_nRenderedFramesCounter;
 
-	// Counter to count the received uncompleted images
-	unsigned int m_nDroppedFramesCounter;
+    // Counter to count the received uncompleted images
+    unsigned int m_nDroppedFramesCounter;
 
-	int m_nFileDescriptor;
-	uint32_t m_Pixelformat;
-	uint32_t m_nWidth;
-	uint32_t m_nHeight;
-	uint32_t m_PayloadSize;
-	uint32_t m_RealPayloadsize;
-	uint32_t m_BytesPerLine;
-	uint64_t m_FrameId;
-	uint32_t m_DQBUF_last_errno;
+    int m_nFileDescriptor;
+    uint32_t m_Pixelformat;
+    uint32_t m_nWidth;
+    uint32_t m_nHeight;
+    uint32_t m_PayloadSize;
+    uint32_t m_RealPayloadsize;
+    uint32_t m_BytesPerLine;
+    uint64_t m_FrameId;
+    uint32_t m_DQBUF_last_errno;
 
-	bool m_MessageSendFlag;
-	bool m_BlockingMode;
-	bool m_bStreamRunning;
-	bool m_bStreamStopped;
+    bool m_MessageSendFlag;
+    bool m_BlockingMode;
+    bool m_bStreamRunning;
+    bool m_bStreamStopped;
 
-	uint32_t m_EnableRAW10Correction;
-	uint32_t m_EnableLogging;
-	int32_t m_FrameCount;
-	int32_t m_LogFrameStart;
-	int32_t m_LogFrameEnd;
-	int32_t m_DumpFrameStart;
-	int32_t m_DumpFrameEnd;
+    uint32_t m_EnableRAW10Correction;
+    uint32_t m_EnableLogging;
+    int32_t m_FrameCount;
+    int32_t m_LogFrameStart;
+    int32_t m_LogFrameEnd;
+    int32_t m_DumpFrameStart;
+    int32_t m_DumpFrameEnd;
 
-	bool m_ShowFrames;
+    bool m_ShowFrames;
 
-	std::vector<PUSER_BUFFER>		    m_UserBufferContainerList;
-	AVT::BaseTools::LocalMutex                  m_UsedBufferMutex;
+    std::vector<PUSER_BUFFER>            m_UserBufferContainerList;
+    AVT::BaseTools::LocalMutex                  m_UsedBufferMutex;
 
-	// Shared pointer to a worker thread for the image processing
-	QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
+    // Shared pointer to a worker thread for the image processing
+    QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
 
-	std::vector<uint8_t> 			    m_rCSVData;
+    std::vector<uint8_t>                 m_rCSVData;
 
 private slots:
-	//Event handler for getting the processed frame to an image
-	void OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex);
-	//Event handler for sending messages to GUI
-	void OnMessageFromThread(const QString &msg);
+    //Event handler for getting the processed frame to an image
+    void OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex);
+    //Event handler for sending messages to GUI
+    void OnMessageFromThread(const QString &msg);
 
 signals:
-	// Event will be called when a frame is processed by the internal thread and ready to show
-	void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
-	// Event will be called when a frame is processed by the internal thread and ready to show
-	void OnFrameID_Signal(const unsigned long long &frameId);
-	// Event will be called when the frame processing is done and the frame can be returned to streaming engine
-	//void OnFrameDone_Signal(const unsigned long long frameHandle);
-	// Event will be called when the a frame is recorded
-	void OnRecordFrame_Signal(const QSharedPointer<MyFrame>&);
-	// Event will be called when the a frame is displayed
-	void OnDisplayFrame_Signal(const unsigned long long &);
-	// Event will be called when for text notification
-	void OnMessage_Signal(const QString &msg);
-	// Event will be called on error
-	void OnError_Signal(const QString &text);
-    
+    // Event will be called when a frame is processed by the internal thread and ready to show
+    void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
+    // Event will be called when a frame is processed by the internal thread and ready to show
+    void OnFrameID_Signal(const unsigned long long &frameId);
+    // Event will be called when the frame processing is done and the frame can be returned to streaming engine
+    //void OnFrameDone_Signal(const unsigned long long frameHandle);
+    // Event will be called when the a frame is recorded
+    void OnRecordFrame_Signal(const QSharedPointer<MyFrame>&);
+    // Event will be called when the a frame is displayed
+    void OnDisplayFrame_Signal(const unsigned long long &);
+    // Event will be called when for text notification
+    void OnMessage_Signal(const QString &msg);
+    // Event will be called on error
+    void OnError_Signal(const QString &text);
+
     void OnLiveDeviationCalc_Signal(int numberOfUnequalBytes);
 };
 
-}
-}
-} // namespace AVT::Tools::Examples
+} // namespace Examples
+} // namespace Tools
+} // namespace AVT
 
 #endif /* FRAMEOBSERVER_INCLUDE */
 

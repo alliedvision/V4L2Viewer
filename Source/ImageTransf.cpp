@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2012 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -109,7 +109,6 @@ void ConvertRAW12gToRAW8(const void *sourceBuffer, uint32_t width,
     unsigned char *destdata = (unsigned char *)destBuffer;
     unsigned char *srcdata = (unsigned char *)sourceBuffer;
     uint32_t count = 0;
-    // uint32_t count2 = 0;
     uint32_t bytesPerLine = width * 1.5;
 
     for (int i = 0; i < height; i++)
@@ -118,15 +117,12 @@ void ConvertRAW12gToRAW8(const void *sourceBuffer, uint32_t width,
         {
             if (((count + 1) % 3) != 0)
             {
-                // count2++;
                 *destdata++ = *srcdata;
             }
             count++;
             srcdata++;
         }
     }
-
-    // printf("counter= %d, count2=%d", count, count2);
 }
 
 void ConvertRAW10gToRAW8(const void *sourceBuffer, uint32_t width,
@@ -135,7 +131,6 @@ void ConvertRAW10gToRAW8(const void *sourceBuffer, uint32_t width,
     unsigned char *destdata = (unsigned char *)destBuffer;
     unsigned char *srcdata = (unsigned char *)sourceBuffer;
     uint32_t count = 0;
-    // uint32_t count2 = 0;
     uint32_t bytesPerLine = width * 1.25;
 
     for (int i = 0; i < height; i++)
@@ -144,15 +139,12 @@ void ConvertRAW10gToRAW8(const void *sourceBuffer, uint32_t width,
         {
             if (((count + 1) % 5) != 0)
             {
-                // count2++;
                 *destdata++ = *srcdata;
             }
             count++;
             srcdata++;
         }
     }
-
-    // printf("counter= %d, count2=%d", count, count2);
 }
 
 void ConvertRAW10ToRAW8(const void *sourceBuffer, uint32_t width,
@@ -161,7 +153,6 @@ void ConvertRAW10ToRAW8(const void *sourceBuffer, uint32_t width,
     unsigned char *destdata = (unsigned char *)destBuffer;
     unsigned char *srcdata = (unsigned char *)sourceBuffer;
     uint32_t count = 0;
-    // uint32_t count2 = 0;
     uint32_t bytesPerLine = width * 2;
 
     for (int i = 0; i < height; i++)
@@ -170,15 +161,12 @@ void ConvertRAW10ToRAW8(const void *sourceBuffer, uint32_t width,
         {
             if (((count + 1) % 2) != 0)
             {
-                // count2++;
                 *destdata++ = *srcdata;
             }
             count++;
             srcdata++;
         }
     }
-
-    // printf("counter= %d, count2=%d", count, count2);
 }
 
 void v4lconvert_bayer8_to_rgb24(const unsigned char *bayer, unsigned char *bgr,
@@ -810,192 +798,191 @@ int ImageTransf::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
     {
     case V4L2_PIX_FMT_XBGR32:
     case V4L2_PIX_FMT_ABGR32:
-    {
-        int bytesPerPixel = 4;
-        v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height,
-                                  bytesPerPixel, bytesPerLine);
-        convertedImage = QImage(width, height, QImage::Format_ARGB32);
-        unsigned char *dst = convertedImage.bits();
-        memcpy(dst, pBuffer, width * height * bytesPerPixel);
-    }
-    break;
+        {
+            int bytesPerPixel = 4;
+            v4lconvert_remove_padding (&pBuffer, &conversionBuffer, width, height, bytesPerPixel, bytesPerLine);
+            convertedImage = QImage (width, height, QImage::Format_ARGB32);
+            unsigned char *dst = convertedImage.bits ();
+            memcpy (dst, pBuffer, width * height * bytesPerPixel);
+        }
+        break;
 
     case V4L2_PIX_FMT_XRGB32:
-    {
-        v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 4,
-                                  bytesPerLine);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_xrgb32_to_rgb32(pBuffer, convertedImage.bits(), width,
-                                   height);
-    }
-    break;
+        {
+            v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 4,
+                                      bytesPerLine);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_xrgb32_to_rgb32(pBuffer, convertedImage.bits(), width,
+                                       height);
+        }
+        break;
 
     case V4L2_PIX_FMT_JPEG:
     case V4L2_PIX_FMT_MJPEG:
-    {
-        QPixmap pix;
-        pix.loadFromData(pBuffer, payloadSize, "JPG");
-        convertedImage = pix.toImage();
-    }
-    break;
+        {
+            QPixmap pix;
+            pix.loadFromData(pBuffer, payloadSize, "JPG");
+            convertedImage = pix.toImage();
+        }
+        break;
     case V4L2_PIX_FMT_RGB565:
-    {
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_rgb565_to_rgb24(pBuffer, convertedImage.bits(), width,
-                                   height);
-    }
-    break;
+        {
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_rgb565_to_rgb24(pBuffer, convertedImage.bits(), width,
+                                       height);
+        }
+        break;
     case V4L2_PIX_FMT_BGR24:
-    {
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_swap_rgb(pBuffer, convertedImage.bits(), width, height);
-    }
-    break;
+        {
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_swap_rgb(pBuffer, convertedImage.bits(), width, height);
+        }
+        break;
     case V4L2_PIX_FMT_VYUY:
     case V4L2_PIX_FMT_UYVY:
-    {
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_uyvy_to_rgb24(pBuffer, convertedImage.bits(), width, height,
-                                 bytesPerLine, pixelformat);
-    }
-    break;
+        {
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_uyvy_to_rgb24(pBuffer, convertedImage.bits(), width, height,
+                                     bytesPerLine, pixelformat);
+        }
+        break;
     case V4L2_PIX_FMT_YUYV:
-    {
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_yuyv_to_rgb24(pBuffer, convertedImage.bits(), width, height,
-                                 bytesPerLine);
-    }
-    break;
+        {
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_yuyv_to_rgb24(pBuffer, convertedImage.bits(), width, height,
+                                     bytesPerLine);
+        }
+        break;
     case V4L2_PIX_FMT_YUV420:
-    {
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_yuv420_to_rgb24(pBuffer, convertedImage.bits(), width,
-                                   height, 1);
-    }
-    break;
+        {
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_yuv420_to_rgb24(pBuffer, convertedImage.bits(), width,
+                                       height, 1);
+        }
+        break;
     case V4L2_PIX_FMT_RGB24:
-    {
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        memcpy(convertedImage.bits(), pBuffer, width * height * 3);
-    }
-    break;
+        {
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            memcpy(convertedImage.bits(), pBuffer, width * height * 3);
+        }
+        break;
     case V4L2_PIX_FMT_RGB32:
     case V4L2_PIX_FMT_BGR32:
-    {
-        convertedImage = QImage(width, height, QImage::Format_RGB32);
-        memcpy(convertedImage.bits(), pBuffer, width * height * 4);
-    }
-    break;
+        {
+            convertedImage = QImage(width, height, QImage::Format_RGB32);
+            memcpy(convertedImage.bits(), pBuffer, width * height * 4);
+        }
+        break;
     case V4L2_PIX_FMT_GREY:
-    {
-        v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 1,
-                                  bytesPerLine);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_grey_to_rgb24(pBuffer, convertedImage.bits(), width, height);
-    }
-    break;
+        {
+            v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 1,
+                                      bytesPerLine);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_grey_to_rgb24(pBuffer, convertedImage.bits(), width, height);
+        }
+        break;
     case V4L2_PIX_FMT_SBGGR8:
     case V4L2_PIX_FMT_SGBRG8:
     case V4L2_PIX_FMT_SGRBG8:
     case V4L2_PIX_FMT_SRGGB8:
-    {
-        v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 1,
-                                  bytesPerLine);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(pBuffer, convertedImage.bits(), width,
-                                   height, width /*bytesPerLine*/, pixelformat);
-    }
-    break;
+        {
+            v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 1,
+                                      bytesPerLine);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_bayer8_to_rgb24(pBuffer, convertedImage.bits(), width,
+                                       height, width /*bytesPerLine*/, pixelformat);
+        }
+        break;
 
     /* L&T */
     /* 10bit raw bayer packed, 5 bytes for every 4 pixels */
     case V4L2_PIX_FMT_Y10P:
-    {
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        ConvertMono10gToRGB24(pBuffer, width, height, convertedImage.bits());
-        break;
-    }
+        {
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            ConvertMono10gToRGB24(pBuffer, width, height, convertedImage.bits());
+            break;
+        }
     case V4L2_PIX_FMT_SBGGR10P:
-    {
-        ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
-                                   width, height, width /*bytesPerLine*/,
-                                   V4L2_PIX_FMT_SBGGR8);
-        break;
-    }
+        {
+            ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
+                                       width, height, width /*bytesPerLine*/,
+                                       V4L2_PIX_FMT_SBGGR8);
+            break;
+        }
     case V4L2_PIX_FMT_SGBRG10P:
-    {
-        ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
-                                   width, height, width /*bytesPerLine*/,
-                                   V4L2_PIX_FMT_SGBRG8);
-        break;
-    }
+        {
+            ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
+                                       width, height, width /*bytesPerLine*/,
+                                       V4L2_PIX_FMT_SGBRG8);
+            break;
+        }
     case V4L2_PIX_FMT_SGRBG10P:
-    {
-        ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
-                                   width, height, width /*bytesPerLine*/,
-                                   V4L2_PIX_FMT_SGRBG8);
-        break;
-    }
+        {
+            ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
+                                       width, height, width /*bytesPerLine*/,
+                                       V4L2_PIX_FMT_SGRBG8);
+            break;
+        }
     case V4L2_PIX_FMT_SRGGB10P:
-    {
-        ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
-                                   width, height, width /*bytesPerLine*/,
-                                   V4L2_PIX_FMT_SRGGB8);
-        break;
-    }
+        {
+            ConvertRAW10gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
+                                       width, height, width /*bytesPerLine*/,
+                                       V4L2_PIX_FMT_SRGGB8);
+            break;
+        }
 
     /* 12bit raw bayer packed, 6 bytes for every 4 pixels */
     case V4L2_PIX_FMT_GREY12P:
     case V4L2_PIX_FMT_Y12P:
-    {
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        ConvertMono12gToRGB24(pBuffer, width, height, convertedImage.bits());
-        break;
-    }
+        {
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            ConvertMono12gToRGB24(pBuffer, width, height, convertedImage.bits());
+            break;
+        }
     case V4L2_PIX_FMT_SBGGR12P:
-    {
-        ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
-                                   width, height, width /*bytesPerLine*/,
-                                   V4L2_PIX_FMT_SBGGR8);
-        break;
-    }
+        {
+            ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
+                                       width, height, width /*bytesPerLine*/,
+                                       V4L2_PIX_FMT_SBGGR8);
+            break;
+        }
     case V4L2_PIX_FMT_SGBRG12P:
-    {
-        ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
-                                   width, height, width /*bytesPerLine*/,
-                                   V4L2_PIX_FMT_SGBRG8);
-        break;
-    }
+        {
+            ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
+                                       width, height, width /*bytesPerLine*/,
+                                       V4L2_PIX_FMT_SGBRG8);
+            break;
+        }
     case V4L2_PIX_FMT_SGRBG12P:
-    {
-        ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
-                                   width, height, width /*bytesPerLine*/,
-                                   V4L2_PIX_FMT_SGRBG8);
-        break;
-    }
+        {
+            ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
+                                       width, height, width /*bytesPerLine*/,
+                                       V4L2_PIX_FMT_SGRBG8);
+            break;
+        }
     case V4L2_PIX_FMT_SRGGB12P:
-    {
-        ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
-        convertedImage = QImage(width, height, QImage::Format_RGB888);
-        v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
-                                   width, height, width /*bytesPerLine*/,
-                                   V4L2_PIX_FMT_SRGGB8);
-        break;
-    }
+        {
+            ConvertRAW12gToRAW8(pBuffer, width, height, g_ConversionBuffer1);
+            convertedImage = QImage(width, height, QImage::Format_RGB888);
+            v4lconvert_bayer8_to_rgb24(g_ConversionBuffer1, convertedImage.bits(),
+                                       width, height, width /*bytesPerLine*/,
+                                       V4L2_PIX_FMT_SRGGB8);
+            break;
+        }
 
     /* Special 10 and 12 bit pixel formats for NVidia Jetson */
 

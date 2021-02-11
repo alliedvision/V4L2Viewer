@@ -1,5 +1,32 @@
-#ifndef HELPER_INCLUDE
-#define HELPER_INCLUDE
+/*=============================================================================
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
+
+  Redistribution of this file, in original or modified form, without
+  prior written consent of Allied Vision Technologies is prohibited.
+
+-------------------------------------------------------------------------------
+
+  File:        Helper.h
+
+  Description:
+
+-------------------------------------------------------------------------------
+
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF TITLE,
+  NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR  PURPOSE ARE
+  DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+  AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+=============================================================================*/
+
+#ifndef HELPER_H
+#define HELPER_H
 
 #include <stdint.h>
 #include <string>
@@ -9,29 +36,30 @@
 namespace AVT {
 namespace BaseTools {
 
-    class Helper
-    {
-    public:
-        Helper(void);
-        virtual ~Helper(void);
+class Helper
+{
+public:
+    Helper (void);
+    virtual ~Helper (void);
 
-        static void SwapByteOrder(void *pData, size_t nSize);
+    static void SwapByteOrder (void *pData, size_t nSize);
 
-        static std::string ConvertCommandID2String(uint16_t command);
-        static std::string ConvertPixelformat2String(uint32_t nPixelFormat);
+    static std::string ConvertCommandID2String (uint16_t command);
+    static std::string ConvertPixelformat2String (uint32_t nPixelFormat);
 
-        static std::string ConvertPacket2String(uint8_t* buffer, uint32_t length);
-        
-        static void OutputDebugWindow(const char *text, ...);
+    static std::string ConvertPacket2String (uint8_t *buffer, uint32_t length);
 
-        static std::string VSPrint(const char *text, ...);
+    static void OutputDebugWindow (const char *text, ...);
 
-        static void uSleep(uint32_t msec);
+    static std::string VSPrint (const char *text, ...);
 
-        static std::string GetTimeStamp();
-	
-    };
+    static void uSleep (uint32_t msec);
 
-}} /* namespace AVT::BaseTools { */
+    static std::string GetTimeStamp ();
 
-#endif /* HELPER_INCLUDE */
+};
+
+} // namespace BaseTools
+} // namespace AVT
+
+#endif // HELPER_H

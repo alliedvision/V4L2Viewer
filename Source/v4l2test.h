@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (C) 2015 Allied Vision Technologies.  All Rights Reserved.
+  Copyright (C) 2021 Allied Vision Technologies.  All Rights Reserved.
 
   Redistribution of this file, in original or modified form, without
   prior written consent of Allied Vision Technologies is prohibited.
@@ -25,8 +25,8 @@
 
 =============================================================================*/
 
-#ifndef v4l2test_H
-#define v4l2test_H
+#ifndef V4L2TEST_H
+#define V4L2TEST_H
 
 #include <list>
 #include <QtGui>
@@ -330,4 +330,4 @@ private slots:
     void OnToggleStreamDelay();
 };
 
-#endif // v4l2test_H
+#endif // V4L2TEST_H
