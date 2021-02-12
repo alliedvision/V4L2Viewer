@@ -6,7 +6,7 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 -------------------------------------------------------------------------------
 
-File:        v4l2test.cpp
+File:        V4L2Viewer.cpp
 
 Description:
 
@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QStringList>
 #include <limits>
 
-#include "v4l2test.h"
+#include "V4L2Viewer.h"
 #include "V4l2Helper.h"
 #include "alvium_regs.h"
 
@@ -100,7 +100,7 @@ static int32_t int64_2_int32(const int64_t value)
     }
 }
 
-v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
+V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     : QMainWindow(parent, flags)
     , m_nViewerNumber(viewerNumber)
     , m_bIsOpen(false)
@@ -121,7 +121,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 {
     srand((unsigned)time(0));
 
-    Logger::SetV4L2Logger("v4l2testLog.log");
+    Logger::SetV4L2Logger("V4L2ViewerLog.log");
 
     ui.setupUi(this);
 
@@ -469,7 +469,7 @@ v4l2test::v4l2test(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     InitializeTableWidget();
 }
 
-v4l2test::~v4l2test()
+V4L2Viewer::~V4L2Viewer()
 {
     m_Camera.DeviceDiscoveryStop();
 
@@ -480,18 +480,18 @@ v4l2test::~v4l2test()
 }
 
 // The event handler to close the program
-void v4l2test::OnMenuCloseTriggered()
+void V4L2Viewer::OnMenuCloseTriggered()
 {
     close();
 }
 
-void v4l2test::OnBlockingMode(QAbstractButton* button)
+void V4L2Viewer::OnBlockingMode(QAbstractButton* button)
 {
     m_BLOCKING_MODE = ui.m_radioBlocking->isChecked();
     OnLog(QString("Use BLOCKING_MODE = %1").arg((m_BLOCKING_MODE) ? "TRUE" : "FALSE"));
 }
 
-void v4l2test::OnUseRead()
+void V4L2Viewer::OnUseRead()
 {
     m_MMAP_BUFFER = IO_METHOD_READ;
     OnLog(QString("Use IO Read"));
@@ -504,7 +504,7 @@ void v4l2test::OnUseRead()
     ui.m_TitleUseRead->setChecked(true);
 }
 
-void v4l2test::OnUseMMAP()
+void V4L2Viewer::OnUseMMAP()
 {
     m_MMAP_BUFFER = IO_METHOD_MMAP;
     OnLog(QString("Use IO MMAP"));
@@ -517,7 +517,7 @@ void v4l2test::OnUseMMAP()
     ui.m_TitleUseRead->setChecked(false);
 }
 
-void v4l2test::OnUseUSERPTR()
+void V4L2Viewer::OnUseUSERPTR()
 {
     m_MMAP_BUFFER = IO_METHOD_USERPTR;
     OnLog(QString("Use IO USERPTR"));
@@ -530,7 +530,7 @@ void v4l2test::OnUseUSERPTR()
     ui.m_TitleUseRead->setChecked(false);
 }
 
-void v4l2test::OnUseVIDIOC_TRY_FMT()
+void V4L2Viewer::OnUseVIDIOC_TRY_FMT()
 {
     m_VIDIOC_TRY_FMT = !m_VIDIOC_TRY_FMT;
     OnLog(QString("Use VIDIOC_TRY_FMT = %1").arg((m_VIDIOC_TRY_FMT) ? "TRUE" : "FALSE"));
@@ -538,7 +538,7 @@ void v4l2test::OnUseVIDIOC_TRY_FMT()
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked(m_VIDIOC_TRY_FMT);
 }
 
-void v4l2test::OnUseExtendedControls()
+void V4L2Viewer::OnUseExtendedControls()
 {
     m_ExtendedControls = !m_ExtendedControls;
     OnLog(QString("Use Extended Controls = %1").arg((m_ExtendedControls) ? "TRUE" : "FALSE"));
@@ -546,7 +546,7 @@ void v4l2test::OnUseExtendedControls()
     ui.m_TitleEnableExtendedControls->setChecked(m_ExtendedControls);
 }
 
-void v4l2test::OnShowFrames()
+void V4L2Viewer::OnShowFrames()
 {
     m_ShowFrames = !m_ShowFrames;
     OnLog(QString("Show Frames = %1").arg((m_ShowFrames) ? "TRUE" : "FALSE"));
@@ -554,38 +554,38 @@ void v4l2test::OnShowFrames()
     m_Camera.SwitchFrameTransfer2GUI(m_ShowFrames);
 }
 
-void v4l2test::OnClearOutputListbox()
+void V4L2Viewer::OnClearOutputListbox()
 {
     ui.m_LogTextEdit->clear();
 }
 
-void v4l2test::OnLogToFile()
+void V4L2Viewer::OnLogToFile()
 {
     Logger::LogSwitch(ui.m_TitleLogtofile->isChecked());
 }
 
-void v4l2test::RemoteClose()
+void V4L2Viewer::RemoteClose()
 {
     if ( true == m_bIsOpen )
         OnOpenCloseButtonClicked();
 }
 
 // The event handler to open a next viewer
-void v4l2test::OnMenuOpenNextViewer()
+void V4L2Viewer::OnMenuOpenNextViewer()
 {
-    QSharedPointer<v4l2test> viewer(new v4l2test(0, 0, (int)(m_pViewer.size() + 2)));
+    QSharedPointer<V4L2Viewer> viewer(new V4L2Viewer(0, 0, (int)(m_pViewer.size() + 2)));
     m_pViewer.push_back(viewer);
     viewer->show();
 }
 
-void v4l2test::closeEvent(QCloseEvent *event)
+void V4L2Viewer::closeEvent(QCloseEvent *event)
 {
     if (VIEWER_MASTER == m_nViewerNumber)
     {
-        std::list<QSharedPointer<v4l2test> >::iterator xIter;
+        std::list<QSharedPointer<V4L2Viewer> >::iterator xIter;
         for (xIter = m_pViewer.begin(); xIter != m_pViewer.end(); xIter++)
         {
-            QSharedPointer<v4l2test> viewer = *xIter;
+            QSharedPointer<V4L2Viewer> viewer = *xIter;
             viewer->RemoteClose();
             viewer->close();
         }
@@ -595,7 +595,7 @@ void v4l2test::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void v4l2test::wheelEvent(QWheelEvent *event)
+void V4L2Viewer::wheelEvent(QWheelEvent *event)
 {
     if (event->modifiers().testFlag(Qt::ControlModifier))
     {
@@ -609,7 +609,7 @@ void v4l2test::wheelEvent(QWheelEvent *event)
         event->ignore();
 }
 
-void v4l2test::mousePressEvent(QMouseEvent *event)
+void V4L2Viewer::mousePressEvent(QMouseEvent *event)
 {
     // Detect if the click is in the view.
     QPoint imageViewPoint = ui.m_ImageView->mapFrom( this, event->pos() );
@@ -638,7 +638,7 @@ void v4l2test::mousePressEvent(QMouseEvent *event)
 }
 
 // The event handler for open / close camera
-void v4l2test::OnOpenCloseButtonClicked()
+void V4L2Viewer::OnOpenCloseButtonClicked()
 {
     if (false == m_bIsOpen)
     {
@@ -740,7 +740,7 @@ void v4l2test::OnOpenCloseButtonClicked()
 }
 
 // The event handler for get device info
-void v4l2test::OnGetDeviceInfoButtonClicked()
+void V4L2Viewer::OnGetDeviceInfoButtonClicked()
 {
     int nRow = ui.m_CamerasListBox->currentRow();
 
@@ -784,7 +784,7 @@ void v4l2test::OnGetDeviceInfoButtonClicked()
 }
 
 // The event handler for stream statistics
-void v4l2test::OnGetStreamStatisticsButtonClicked()
+void V4L2Viewer::OnGetStreamStatisticsButtonClicked()
 {
     OnLog("---------------------------------------------");
     OnLog("---- Stream Statistics ");
@@ -814,7 +814,7 @@ void v4l2test::OnGetStreamStatisticsButtonClicked()
 }
 
 // The event handler for starting
-void v4l2test::OnStartButtonClicked()
+void V4L2Viewer::OnStartButtonClicked()
 {
     uint32_t payloadsize = 0;
     uint32_t width = 0;
@@ -837,7 +837,7 @@ void v4l2test::OnStartButtonClicked()
         StartStreaming(pixelformat, payloadsize, width, height, bytesPerLine);
 }
 
-void v4l2test::OnToggleButtonClicked()
+void V4L2Viewer::OnToggleButtonClicked()
 {
     uint32_t payloadsize = 0;
     int result = 0;
@@ -864,7 +864,7 @@ void v4l2test::OnToggleButtonClicked()
     }
 }
 
-void v4l2test::OnStreamToggleTimeout()
+void V4L2Viewer::OnStreamToggleTimeout()
 {
     int timeout = 1000;
     if (m_ToggleStreamDelayRandCheckBox->isChecked())
@@ -899,28 +899,28 @@ void v4l2test::OnStreamToggleTimeout()
     m_StreamToggleTimer.start(timeout);
 }
 
-void v4l2test::OnCameraRegisterValueReady(unsigned long long value)
+void V4L2Viewer::OnCameraRegisterValueReady(unsigned long long value)
 {
     OnLog(QString("Received value = %1").arg(value));
 }
 
-void v4l2test::OnCameraError(const QString &text)
+void V4L2Viewer::OnCameraError(const QString &text)
 {
     OnLog(QString("Error = %1").arg(text));
 }
 
-void v4l2test::OnCameraWarning(const QString &text)
+void V4L2Viewer::OnCameraWarning(const QString &text)
 {
     OnLog(QString("Warning = %1").arg(text));
 }
 
-void v4l2test::OnCameraMessage(const QString &text)
+void V4L2Viewer::OnCameraMessage(const QString &text)
 {
     OnLog(QString("Message = %1").arg(text));
 }
 
 // Event will be called when the a frame is recorded
-void v4l2test::OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame)
+void V4L2Viewer::OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame)
 {
     if(m_FrameRecordVector.size() >= 100)
     {
@@ -944,17 +944,17 @@ void v4l2test::OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame)
     UpdateRecordTableWidget();
 }
 
-void v4l2test::OnCameraPixelformat(const QString& format)
+void V4L2Viewer::OnCameraPixelformat(const QString& format)
 {
     ui.m_liPixelformats->addItem(format);
 }
 
-void v4l2test::OnCameraFramesize(const QString& size)
+void V4L2Viewer::OnCameraFramesize(const QString& size)
 {
     ui.m_liFramesizes->addItem(size);
 }
 
-void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
+void V4L2Viewer::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
     int err = 0;
     int nRow = ui.m_CamerasListBox->currentRow();
@@ -1051,7 +1051,7 @@ void v4l2test::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32
     }
 }
 
-void v4l2test::InitializeTableWidget()
+void V4L2Viewer::InitializeTableWidget()
 {
     // set number of columns and rows
     ui.m_FrameRecordTable->setRowCount(0);
@@ -1065,7 +1065,7 @@ void v4l2test::InitializeTableWidget()
 }
 
 // Returns the frame object that is selected in the gui table, or a null pointer if nothing is selected
-QSharedPointer<MyFrame> v4l2test::getSelectedRecordedFrame()
+QSharedPointer<MyFrame> V4L2Viewer::getSelectedRecordedFrame()
 {
     QSharedPointer<MyFrame> result;
     QList<QTableWidgetItem*> selectedItems = ui.m_FrameRecordTable->selectedItems();
@@ -1084,7 +1084,7 @@ QSharedPointer<MyFrame> v4l2test::getSelectedRecordedFrame()
     return result;
 }
 
-void v4l2test::UpdateRecordTableWidget()
+void V4L2Viewer::UpdateRecordTableWidget()
 {
     ui.m_FrameRecordTable->setRowCount(m_FrameRecordVector.size());
 
@@ -1148,7 +1148,7 @@ void v4l2test::UpdateRecordTableWidget()
 
 
 // The event handler for stopping acquisition
-void v4l2test::OnStopButtonClicked()
+void V4L2Viewer::OnStopButtonClicked()
 {
     // disable the stop button to show that the stop acquisition is in process
     ui.m_StopButton->setEnabled(false);
@@ -1182,7 +1182,7 @@ void v4l2test::OnStopButtonClicked()
 }
 
 // The event handler to resize the image to fit to window
-void v4l2test::OnZoomFitButtonClicked()
+void V4L2Viewer::OnZoomFitButtonClicked()
 {
     if (ui.m_ZoomFitButton->isChecked())
     {
@@ -1199,7 +1199,7 @@ void v4l2test::OnZoomFitButtonClicked()
 }
 
 // The event handler for resize the image
-void v4l2test::OnZoomInButtonClicked()
+void V4L2Viewer::OnZoomInButtonClicked()
 {
     m_dScaleFactor *= ZOOM_INCREMENT;
 
@@ -1211,7 +1211,7 @@ void v4l2test::OnZoomInButtonClicked()
 }
 
 // The event handler for resize the image
-void v4l2test::OnZoomOutButtonClicked()
+void V4L2Viewer::OnZoomOutButtonClicked()
 {
     m_dScaleFactor *= (1 / ZOOM_INCREMENT);
 
@@ -1223,7 +1223,7 @@ void v4l2test::OnZoomOutButtonClicked()
 }
 
 // The event handler to show the processed frame
-void v4l2test::OnFrameReady(const QImage &image, const unsigned long long &frameId)
+void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &frameId)
 {
     if (m_ShowFrames)
     {
@@ -1261,13 +1261,13 @@ void v4l2test::OnFrameReady(const QImage &image, const unsigned long long &frame
 }
 
 // The event handler to show the processed frame
-void v4l2test::OnFrameID(const unsigned long long &frameId)
+void V4L2Viewer::OnFrameID(const unsigned long long &frameId)
 {
     ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
 }
 
 // The event handler to show the event data
-void v4l2test::OnCameraEventReady(const QString &eventText)
+void V4L2Viewer::OnCameraEventReady(const QString &eventText)
 {
     OnLog("Event received.");
 
@@ -1276,13 +1276,13 @@ void v4l2test::OnCameraEventReady(const QString &eventText)
 }
 
 // The event handler to clear the event list
-void v4l2test::OnClearEventLogButtonClicked()
+void V4L2Viewer::OnClearEventLogButtonClicked()
 {
     ui.m_EventsLogEditWidget->clear();
 }
 
 // This event handler is triggered through a Qt signal posted by the camera observer
-void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info)
+void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info)
 {
     bool bUpdateList = false;
 
@@ -1324,13 +1324,13 @@ void v4l2test::OnCameraListChanged(const int &reason, unsigned int cardNumber, u
 }
 
 // The event handler to open a camera on double click event
-void v4l2test::OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item)
+void V4L2Viewer::OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item)
 {
     OnOpenCloseButtonClicked();
 }
 
 // Queries and lists all known camera
-void v4l2test::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info)
+void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info)
 {
     std::string strCameraName;
 
@@ -1361,13 +1361,13 @@ void v4l2test::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const
 }
 
 // Update the viewer range
-void v4l2test::UpdateViewerLayout()
+void V4L2Viewer::UpdateViewerLayout()
 {
     m_NumberOfUsedFramesWidgetAction->setEnabled(!m_bIsOpen);
 
     if (!m_bIsOpen)
     {
-        QPixmap pix(":/v4l2test/Viewer.png");
+        QPixmap pix(":/V4L2Viewer/Viewer.png");
 
         m_pScene->setSceneRect(0, 0, pix.width(), pix.height());
         m_PixmapItem->setPixmap(pix);
@@ -1389,7 +1389,7 @@ void v4l2test::UpdateViewerLayout()
 }
 
 // Update the zoom buttons
-void v4l2test::UpdateZoomButtons()
+void V4L2Viewer::UpdateZoomButtons()
 {
     ui.m_ZoomFitButton->setEnabled(m_bIsOpen);
 
@@ -1416,7 +1416,7 @@ void v4l2test::UpdateZoomButtons()
 }
 
 // Prints out some logging without error
-void v4l2test::OnLog(const QString &strMsg)
+void V4L2Viewer::OnLog(const QString &strMsg)
 {
     if (ui.m_TitleEnableMessageListbox->isChecked())
     {
@@ -1426,7 +1426,7 @@ void v4l2test::OnLog(const QString &strMsg)
 }
 
 // Open/Close the camera
-int v4l2test::OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName)
+int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName)
 {
     int err = 0;
 
@@ -1466,7 +1466,7 @@ int v4l2test::OpenAndSetupCamera(const uint32_t cardNumber, const QString &devic
     return err;
 }
 
-int v4l2test::CloseCamera(const uint32_t cardNumber)
+int V4L2Viewer::CloseCamera(const uint32_t cardNumber)
 {
     int err = 0;
 
@@ -1478,7 +1478,7 @@ int v4l2test::CloseCamera(const uint32_t cardNumber)
 }
 
 // The event handler to show the frames received
-void v4l2test::OnUpdateFramesReceived()
+void V4L2Viewer::OnUpdateFramesReceived()
 {
     unsigned int fpsReceived = m_Camera.GetReceivedFramesCount();
     unsigned int fpsRendered = m_Camera.GetRenderedFramesCount();
@@ -1488,7 +1488,7 @@ void v4l2test::OnUpdateFramesReceived()
 }
 
 // The event handler to show the frames received
-void v4l2test::OnControllerResponseTimeout()
+void V4L2Viewer::OnControllerResponseTimeout()
 {
     OnLog("Payload request timed out. Cannot start streaming.");
 
@@ -1496,7 +1496,7 @@ void v4l2test::OnControllerResponseTimeout()
 }
 
 // The event handler to read a register per direct access
-void v4l2test::OnDirectRegisterAccessReadButtonClicked()
+void V4L2Viewer::OnDirectRegisterAccessReadButtonClicked()
 {
     // define the base of the given string
     int base = 10;
@@ -1683,7 +1683,7 @@ void v4l2test::OnDirectRegisterAccessReadButtonClicked()
 
 
 // The event handler to write a register per direct access
-void v4l2test::OnDirectRegisterAccessWriteButtonClicked()
+void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
 {
     // define the base of the given strings
     int base = 10;
@@ -1811,7 +1811,7 @@ void v4l2test::OnDirectRegisterAccessWriteButtonClicked()
 }
 
 // The event handler to update the direct register access value
-void v4l2test::OnDirectRegisterAccessUpdateData()
+void V4L2Viewer::OnDirectRegisterAccessUpdateData()
 {
     QString strValue("");
     uint64_t value64u = m_DirectAccessData;
@@ -1825,7 +1825,7 @@ void v4l2test::OnDirectRegisterAccessUpdateData()
     }
 }
 
-void v4l2test::OnStartRecording()
+void V4L2Viewer::OnStartRecording()
 {
     m_Camera.SetRecording(true);
 
@@ -1837,7 +1837,7 @@ void v4l2test::OnStartRecording()
     ui.m_SaveFrameSeriesButton->setEnabled(false);
 }
 
-void v4l2test::OnStopRecording()
+void V4L2Viewer::OnStopRecording()
 {
     m_Camera.SetRecording(false);
 
@@ -1859,7 +1859,7 @@ void v4l2test::OnStopRecording()
     }
 }
 
-void v4l2test::OnDeleteRecording()
+void V4L2Viewer::OnDeleteRecording()
 {
     if(m_bIsStreaming)
     {
@@ -1883,7 +1883,7 @@ void v4l2test::OnDeleteRecording()
     }
 }
 
-void v4l2test::OnRecordTableSelectionChanged(const QItemSelection &, const QItemSelection &)
+void V4L2Viewer::OnRecordTableSelectionChanged(const QItemSelection &, const QItemSelection &)
 {
     QSharedPointer<MyFrame> selectedFrame = getSelectedRecordedFrame();
 
@@ -1907,7 +1907,7 @@ void v4l2test::OnRecordTableSelectionChanged(const QItemSelection &, const QItem
     }
 }
 
-void v4l2test::OnGetReferenceImage()
+void V4L2Viewer::OnGetReferenceImage()
 {
     // if dialog already exist, delete it
     if ( NULL != m_ReferenceImageDialog )
@@ -1966,7 +1966,7 @@ void v4l2test::OnGetReferenceImage()
 }
 
 
-void v4l2test::SaveFrame(QSharedPointer<MyFrame> frame, QString fileName, bool raw)
+void V4L2Viewer::SaveFrame(QSharedPointer<MyFrame> frame, QString fileName, bool raw)
 {
     // dump frame binary to file
     if (raw)
@@ -2003,7 +2003,7 @@ void v4l2test::SaveFrame(QSharedPointer<MyFrame> frame, QString fileName, bool r
 }
 
 
-void v4l2test::SaveFrameDialog(bool raw)
+void V4L2Viewer::SaveFrameDialog(bool raw)
 {
     QSharedPointer<MyFrame> selectedFrame = getSelectedRecordedFrame();
 
@@ -2048,12 +2048,12 @@ void v4l2test::SaveFrameDialog(bool raw)
     }
 }
 
-void v4l2test::OnSaveFrame()
+void V4L2Viewer::OnSaveFrame()
 {
     SaveFrameDialog(true);
 }
 
-void v4l2test::OnSaveFrameSeries()
+void V4L2Viewer::OnSaveFrameSeries()
 {
     QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"), m_SaveFileDir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
@@ -2080,13 +2080,13 @@ void v4l2test::OnSaveFrameSeries()
     }
 }
 
-void v4l2test::OnExportFrame()
+void V4L2Viewer::OnExportFrame()
 {
     SaveFrameDialog(false);
 }
 
 
-void v4l2test::OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBytes, bool done)
+void V4L2Viewer::OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBytes, bool done)
 {
     if(numberOfUnequalBytes < 0)
     {
@@ -2126,7 +2126,7 @@ void v4l2test::OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBy
     }
 }
 
-void v4l2test::OnCalcDeviation()
+void V4L2Viewer::OnCalcDeviation()
 {
     ui.m_StartRecordButton->setEnabled(false);
     ui.m_CalcDeviationButton->setEnabled(false);
@@ -2154,7 +2154,7 @@ void v4l2test::OnCalcDeviation()
     }
 
     // show loading animation
-    m_LoadingAnimation = new QMovie(":/v4l2test/loading-animation.gif");
+    m_LoadingAnimation = new QMovie(":/V4L2Viewer/loading-animation.gif");
     ui.m_meanDeviationLabel->setMovie(m_LoadingAnimation);
     ui.m_meanDeviationLabel->show();
     m_LoadingAnimation->start();
@@ -2168,7 +2168,7 @@ void v4l2test::OnCalcDeviation()
     m_CalcThread->start();
 }
 
-void v4l2test::OnCalcLiveDeviation()
+void V4L2Viewer::OnCalcLiveDeviation()
 {
     // start calc live deviation
     if(ui.m_CalcLiveDeviationButton->isChecked())
@@ -2212,7 +2212,7 @@ void v4l2test::OnCalcLiveDeviation()
     }
 }
 
-void v4l2test::OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes)
+void V4L2Viewer::OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes)
 {
     // invalid reference image
     if(numberOfUnequalBytes < 0)
@@ -2242,7 +2242,7 @@ void v4l2test::OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes)
 }
 
 
-void v4l2test::OnWidth()
+void V4L2Viewer::OnWidth()
 {
     if (m_Camera.SetFrameSize(ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt()) < 0)
     {
@@ -2263,7 +2263,7 @@ void v4l2test::OnWidth()
     }
 }
 
-void v4l2test::OnHeight()
+void V4L2Viewer::OnHeight()
 {
     uint32_t width = 0;
     uint32_t height = 0;
@@ -2286,7 +2286,7 @@ void v4l2test::OnHeight()
     ui.m_edHeight->setText(QString("%1").arg(height));
 }
 
-void v4l2test::OnPixelformat()
+void V4L2Viewer::OnPixelformat()
 {
     if (m_Camera.SetPixelformat(ui.m_edPixelformat->text().toInt(), "") < 0)
     {
@@ -2316,7 +2316,7 @@ void v4l2test::OnPixelformat()
 
 
 
-void v4l2test::OnGain()
+void V4L2Viewer::OnGain()
 {
     int32_t gain = 0;
     bool autogain = false;
@@ -2334,7 +2334,7 @@ void v4l2test::OnGain()
         ui.m_edGain->setEnabled(false);
 }
 
-void v4l2test::OnAutoGain()
+void V4L2Viewer::OnAutoGain()
 {
     int32_t gain = 0;
     bool autogain = false;
@@ -2350,7 +2350,7 @@ void v4l2test::OnAutoGain()
         ui.m_chkAutoGain->setEnabled(false);
 }
 
-void v4l2test::OnExposure()
+void V4L2Viewer::OnExposure()
 {
     int32_t exposure = 0;
     int32_t exposureAbs = 0;
@@ -2384,7 +2384,7 @@ void v4l2test::OnExposure()
         ui.m_chkAutoExposure->setEnabled(false);
 }
 
-void v4l2test::OnExposureAbs()
+void V4L2Viewer::OnExposureAbs()
 {
     int32_t exposure = 0;
     int32_t exposureAbs = 0;
@@ -2418,7 +2418,7 @@ void v4l2test::OnExposureAbs()
         ui.m_chkAutoExposure->setEnabled(false);
 }
 
-void v4l2test::OnAutoExposure()
+void V4L2Viewer::OnAutoExposure()
 {
     int32_t exposure = 0;
     bool autoexposure = false;
@@ -2434,7 +2434,7 @@ void v4l2test::OnAutoExposure()
         ui.m_chkAutoExposure->setEnabled(false);
 }
 
-void v4l2test::OnPixelformatDBLClick(QListWidgetItem *item)
+void V4L2Viewer::OnPixelformatDBLClick(QListWidgetItem *item)
 {
     std::string tmp = item->text().toStdString();
     char *s = (char*)tmp.c_str();
@@ -2454,7 +2454,7 @@ void v4l2test::OnPixelformatDBLClick(QListWidgetItem *item)
     OnPixelformat();
 }
 
-void v4l2test::OnFramesizesDBLClick(QListWidgetItem *item)
+void V4L2Viewer::OnFramesizesDBLClick(QListWidgetItem *item)
 {
     QString tmp = item->text();
     QStringList list1 = tmp.split('x').first().split(':');
@@ -2464,7 +2464,7 @@ void v4l2test::OnFramesizesDBLClick(QListWidgetItem *item)
     ui.m_edHeight->setText(QString("%1").arg(list2.at(1)));
 }
 
-void v4l2test::OnGamma()
+void V4L2Viewer::OnGamma()
 {
     int32_t nVal = int64_2_int32(ui.m_edGamma->text().toLongLong());
 
@@ -2485,7 +2485,7 @@ void v4l2test::OnGamma()
     }
 }
 
-void v4l2test::OnReverseX()
+void V4L2Viewer::OnReverseX()
 {
     int32_t nVal = int64_2_int32(ui.m_edReverseX->text().toLongLong());
 
@@ -2506,7 +2506,7 @@ void v4l2test::OnReverseX()
     }
 }
 
-void v4l2test::OnReverseY()
+void V4L2Viewer::OnReverseY()
 {
     int32_t nVal = int64_2_int32(ui.m_edReverseY->text().toLongLong());
 
@@ -2527,7 +2527,7 @@ void v4l2test::OnReverseY()
     }
 }
 
-void v4l2test::OnSharpness()
+void V4L2Viewer::OnSharpness()
 {
     int32_t nVal = int64_2_int32(ui.m_edSharpness->text().toLongLong());
 
@@ -2548,7 +2548,7 @@ void v4l2test::OnSharpness()
     }
 }
 
-void v4l2test::OnBrightness()
+void V4L2Viewer::OnBrightness()
 {
     int32_t nVal = int64_2_int32(ui.m_edBrightness->text().toLongLong());
 
@@ -2569,7 +2569,7 @@ void v4l2test::OnBrightness()
     }
 }
 
-void v4l2test::OnContrast()
+void V4L2Viewer::OnContrast()
 {
     int32_t nVal = int64_2_int32(ui.m_edContrast->text().toLongLong());
 
@@ -2590,7 +2590,7 @@ void v4l2test::OnContrast()
     }
 }
 
-void v4l2test::OnSaturation()
+void V4L2Viewer::OnSaturation()
 {
     int32_t nVal = int64_2_int32(ui.m_edSaturation->text().toLongLong());
 
@@ -2611,7 +2611,7 @@ void v4l2test::OnSaturation()
     }
 }
 
-void v4l2test::OnHue()
+void V4L2Viewer::OnHue()
 {
     int32_t nVal = int64_2_int32(ui.m_edHue->text().toLongLong());
 
@@ -2632,17 +2632,17 @@ void v4l2test::OnHue()
     }
 }
 
-void v4l2test::OnContinousWhiteBalance()
+void V4L2Viewer::OnContinousWhiteBalance()
 {
     m_Camera.SetContinousWhiteBalance(ui.m_chkContWhiteBalance->isChecked());
 }
 
-void v4l2test::OnWhiteBalanceOnce()
+void V4L2Viewer::OnWhiteBalanceOnce()
 {
     m_Camera.DoWhiteBalanceOnce();
 }
 
-void v4l2test::OnRedBalance()
+void V4L2Viewer::OnRedBalance()
 {
     int32_t nVal = int64_2_int32(ui.m_edRedBalance->text().toLongLong());
 
@@ -2663,7 +2663,7 @@ void v4l2test::OnRedBalance()
     }
 }
 
-void v4l2test::OnBlueBalance()
+void V4L2Viewer::OnBlueBalance()
 {
     int32_t nVal = int64_2_int32(ui.m_edBlueBalance->text().toLongLong());
 
@@ -2684,7 +2684,7 @@ void v4l2test::OnBlueBalance()
     }
 }
 
-void v4l2test::OnFramerate()
+void V4L2Viewer::OnFramerate()
 {
     uint32_t width = 0;
     uint32_t height = 0;
@@ -2720,7 +2720,7 @@ void v4l2test::OnFramerate()
     }
 }
 
-void v4l2test::OnCropXOffset()
+void V4L2Viewer::OnCropXOffset()
 {
     uint32_t xOffset;
     uint32_t yOffset;
@@ -2752,7 +2752,7 @@ void v4l2test::OnCropXOffset()
     }
 }
 
-void v4l2test::OnCropYOffset()
+void V4L2Viewer::OnCropYOffset()
 {
     uint32_t xOffset;
     uint32_t yOffset;
@@ -2782,7 +2782,7 @@ void v4l2test::OnCropYOffset()
     }
 }
 
-void v4l2test::OnCropWidth()
+void V4L2Viewer::OnCropWidth()
 {
     uint32_t xOffset;
     uint32_t yOffset;
@@ -2814,7 +2814,7 @@ void v4l2test::OnCropWidth()
     OnReadAllValues();
 }
 
-void v4l2test::OnCropHeight()
+void V4L2Viewer::OnCropHeight()
 {
     uint32_t xOffset;
     uint32_t yOffset;
@@ -2846,7 +2846,7 @@ void v4l2test::OnCropHeight()
     OnReadAllValues();
 }
 
-void v4l2test::OnCropCapabilities()
+void V4L2Viewer::OnCropCapabilities()
 {
     uint32_t boundsx;
     uint32_t boundsy;
@@ -2897,19 +2897,19 @@ void v4l2test::OnCropCapabilities()
     }
 }
 
-void v4l2test::OnReadAllValues()
+void V4L2Viewer::OnReadAllValues()
 {
     GetImageInformation();
     UpdateCameraFormat();
 }
 
-void v4l2test::OnToggleStreamDelayRand()
+void V4L2Viewer::OnToggleStreamDelayRand()
 {
     m_ToggleStreamDelayCheckBox->setChecked(false);
     m_ToggleStreamDelayRandCheckBox->setChecked(true);
 }
 
-void v4l2test::OnToggleStreamDelay()
+void V4L2Viewer::OnToggleStreamDelay()
 {
     m_ToggleStreamDelayCheckBox->setChecked(true);
     m_ToggleStreamDelayRandCheckBox->setChecked(false);
@@ -2919,7 +2919,7 @@ void v4l2test::OnToggleStreamDelay()
 // Tools
 ////////////////////////////////////////////////////////////////////////
 
-void v4l2test::GetImageInformation()
+void V4L2Viewer::GetImageInformation()
 {
     uint32_t width = 0;
     uint32_t height = 0;
@@ -3117,7 +3117,7 @@ void v4l2test::GetImageInformation()
     }
 }
 
-void v4l2test::UpdateCameraFormat()
+void V4L2Viewer::UpdateCameraFormat()
 {
     int result = -1;
     uint32_t payloadsize = 0;
@@ -3146,7 +3146,7 @@ void v4l2test::UpdateCameraFormat()
 }
 
 // Check if IO Read was checked and remove it when not capable
-void v4l2test::Check4IOReadAbility()
+void V4L2Viewer::Check4IOReadAbility()
 {
     int nRow = ui.m_CamerasListBox->currentRow();
 
@@ -3189,12 +3189,12 @@ void v4l2test::Check4IOReadAbility()
     }
 }
 
-void v4l2test::SetTitleText(QString additionalText)
+void V4L2Viewer::SetTitleText(QString additionalText)
 {
     if (VIEWER_MASTER == m_nViewerNumber)
-        setWindowTitle(QString("%1 V%2.%3.%4.%5 - master view  %6").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(SCM_REVISION).arg(additionalText));
+        setWindowTitle(QString("%1 V%2.%3.%4 - master view  %5").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(additionalText));
     else
-        setWindowTitle(QString("%1 V%2.%3.%4.%5 - %6. viewer %7").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(SCM_REVISION).arg(m_nViewerNumber).arg(additionalText));
+        setWindowTitle(QString("%1 V%2.%3.%4 - %5. viewer %6").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(m_nViewerNumber).arg(additionalText));
 }
 
 

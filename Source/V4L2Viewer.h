@@ -6,7 +6,7 @@
 
 -------------------------------------------------------------------------------
 
-  File:        v4l2test.h
+  File:        V4L2Viewer.h
 
   Description:
 
@@ -25,14 +25,14 @@
 
 =============================================================================*/
 
-#ifndef V4L2TEST_H
-#define V4L2TEST_H
+#ifndef V4L2VIEWER_H
+#define V4L2VIEWER_H
 
 #include <list>
 #include <QtGui>
 #include <QMainWindow>
 #include <QTimer>
-#include "ui_v4l2test.h"
+#include "ui_V4L2Viewer.h"
 
 #include <MyFrame.h>
 #include <Camera.h>
@@ -43,18 +43,18 @@ using namespace AVT::Tools::Examples;
 
 #define VIEWER_MASTER       0
 
-class v4l2test : public QMainWindow
+class V4L2Viewer : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    v4l2test( QWidget *parent = 0, Qt::WindowFlags flags = 0, int viewerNumber = VIEWER_MASTER );
-    ~v4l2test();
+    V4L2Viewer( QWidget *parent = 0, Qt::WindowFlags flags = 0, int viewerNumber = VIEWER_MASTER );
+    ~V4L2Viewer();
 
 private:
 
     // Graphics scene to show the image
-    std::list<QSharedPointer<v4l2test> > m_pViewer;
+    std::list<QSharedPointer<V4L2Viewer> > m_pViewer;
     int m_nViewerNumber;
 
     bool m_BLOCKING_MODE;
@@ -70,7 +70,7 @@ private:
     uint32_t m_nStreamNumber;
 
     // The Qt GUI
-    Ui::v4l2testTestClass ui;
+    Ui::V4L2ViewerClass ui;
     // The menu widget to setup the number of used frames
     QWidgetAction *m_NumberOfUsedFramesWidgetAction;
     // The line which holds the number of used frames
@@ -330,4 +330,4 @@ private slots:
     void OnToggleStreamDelay();
 };
 
-#endif // V4L2TEST_H
+#endif // V4L2VIEWER_H

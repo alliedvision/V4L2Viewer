@@ -256,7 +256,7 @@ void FrameObserver::DequeueAndProcessFrame()
                     if (m_FrameCount >= m_DumpFrameStart && m_FrameCount <=  m_DumpFrameEnd)
                     {
                         std::stringstream localFileName;
-                        localFileName << "v4l2test_Frame" << m_FrameCount << ".dmp";
+                        localFileName << "V4L2Viewer_Frame" << m_FrameCount << ".dmp";
                         Logger::LogBuffer(localFileName.str(), (uint8_t*)buffer, logPayloadSize);
                     }
                     m_FrameCount++;

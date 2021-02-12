@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="v4l2test">
+  <qresource prefix="V4L2Viewer">
     <file>loading-animation.gif</file>
     <file>calculate-live.png</file>
     <file>export.png</file>

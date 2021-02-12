@@ -8,7 +8,7 @@
 #
 # File:         Makefile
 #
-# Description:  makefile for compiling v4l2 test tool
+# Description:  makefile for compiling V4L2 Viewer
 #
 #------------------------------------------------------------------------------
 #
@@ -26,38 +26,33 @@
 #==============================================================================
 #
 # general information
+PROJECT_NAME            = V4L2Viewer
+
 OS                      = $(shell uname -s)
-PROJECT_NAME            = v4l2test
-OUTPUT                  = binary
+
+BIN_FILE = $(PROJECT_NAME)
 
 # path variables
-PROJECT_ROOT_DIR        = ../..
-EXTERNALS_DIR           = $(PROJECT_ROOT_DIR)/Externals
-MAKE_INCLUDE_DIR        = $(CURDIR)/$(EXTERNALS_DIR)/Makefiles
-PROJECT_DIR             = $(OS)_$(ARCH)_$(WORDSIZE)bit/$(CONFIG)
-BIN_DIR                 = $(OUTPUT)/$(PROJECT_DIR)
-OBJ_DIR                 = object/$(PROJECT_DIR)
-BIN_PATH                = $(BIN_DIR)/$(BIN_FILE)
-SOURCE_DIR              = $(PROJECT_ROOT_DIR)/Source
+PROJECT_DIR             = ../..
+MAKE_INCLUDE_DIR        = $(CURDIR)
+CONFIG_DIR              = $(OS)_$(ARCH)_$(WORDSIZE)bit/$(CONFIG)
+BIN_DIR                 = binary/$(CONFIG_DIR)
+OBJ_DIR                 = object/$(CONFIG_DIR)
+SOURCE_DIR              = $(PROJECT_DIR)/Source
 INCLUDE_DIRS            = $(SOURCE_DIR) \
-                          $(PROJECT_ROOT_DIR) \
                           $(OBJ_DIR)
-AVTIMAGETRANSFORM_DIR   = $(EXTERNALS_DIR)/AVTImageTransform
+BIN_PATH                = $(BIN_DIR)/$(BIN_FILE)
 
 # include OS dependent content
 include $(MAKE_INCLUDE_DIR)/$(OS).mk
 
-BIN_FILE = $($(call MACRO_TOUPPER,$(OUTPUT))_PREFIX)$(PROJECT_NAME)$($(call MACRO_TOUPPER,$(OUTPUT))_SUFFIX)
-
 # required libs
 LIBS = pthread
-
-SCMDEV:='SCM_REVISION="$(shell ./scm_version.sh ./../..)"'
 
 # require packages
 PACKAGES     =     QtCore QtGui
 
-DEFINES        = $(SCMDEV)
+DEFINES      =
 
 # object files
 OBJ_FILES   =   $(OBJ_DIR)/BaseLogger.o \
@@ -71,7 +66,7 @@ OBJ_FILES   =   $(OBJ_DIR)/BaseLogger.o \
                 $(OBJ_DIR)/ImageTransf.o \
                 $(OBJ_DIR)/V4l2Helper.o \
                 $(OBJ_DIR)/Helper.o \
-                $(OBJ_DIR)/v4l2test.o \
+                $(OBJ_DIR)/V4L2Viewer.o \
                 $(OBJ_DIR)/DeviationCalculator.o \
                 $(OBJ_DIR)/Logger.o \
                 $(OBJ_DIR)/main.o \
@@ -83,11 +78,11 @@ OBJ_FILES   =   $(OBJ_DIR)/BaseLogger.o \
                 $(OBJ_DIR)/moc_CameraObserver.o \
                 $(OBJ_DIR)/moc_FrameObserver.o \
                 $(OBJ_DIR)/moc_ImageProcessingThread.o \
-                $(OBJ_DIR)/moc_v4l2test.o \
-                $(OBJ_DIR)/qrc_v4l2test.o
+                $(OBJ_DIR)/moc_V4L2Viewer.o \
+                $(OBJ_DIR)/qrc_V4L2Viewer.o
 
 # header files
-GEN_HEADERS    = $(OBJ_DIR)/ui_v4l2test.h
+GEN_HEADERS    = $(OBJ_DIR)/ui_V4L2Viewer.h
 
 all: $(BIN_PATH)
 
@@ -116,11 +111,14 @@ $(OBJ_DIR)/%.o: $(OBJ_DIR)/%.cpp $(OBJ_DIR) $(GEN_HEADERS)
 	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
 
 $(BIN_PATH): $(DEPENDENCIES) $(OBJ_FILES) $(BIN_DIR)
-	$(call MACRO_LINK_$(call MACRO_TOUPPER,$(OUTPUT)),$(BIN_PATH),$(OBJ_FILES),$(LIBS),$(LIB_DIRS),$(PACKAGES),,'$$ORIGIN',$(BIN_DIR),,$(FRAMEWORKS))
+	$(call MACRO_LINK_BINARY,$(BIN_PATH),$(OBJ_FILES),$(LIBS),$(LIB_DIRS),$(PACKAGES),,'$$ORIGIN',$(BIN_DIR),,$(FRAMEWORKS))
 
 clean:
-	$(call MACRO_RM,$(OBJ_FILES) $(BIN_PATH))
-	$(call MACRO_RMDIR,$(OBJ_DIR) $(BIN_DIR))
+	$(call MACRO_RM,$(OBJ_FILES))
+	$(call MACRO_RM,$(BIN_PATH))
+	$(call MACRO_RMDIR,$(OBJ_DIR))
+	$(call MACRO_RMDIR,$(BIN_DIR))
+	$(call MACRO_RMDIR_FORCE,../gcc)
 
 $(OBJ_DIR):
 	$(call MACRO_MKDIR,$(OBJ_DIR))
