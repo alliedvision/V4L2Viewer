@@ -29,11 +29,8 @@
 #ifndef FRAMEOBSERVERMMAP_H
 #define FRAMEOBSERVERMMAP_H
 
-#include "Helper.h"
+#include "FrameObserver.h"
 #include "V4l2Helper.h"
-
-#include <FrameObserver.h>
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // TYPEDEFS
@@ -42,11 +39,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // DEFINES
 ////////////////////////////////////////////////////////////////////////////////
-
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
 
 class FrameObserverMMAP : public FrameObserver
 {
@@ -69,10 +61,6 @@ protected:
 private:
 
 };
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
 
 #endif // FRAMEOBSERVERMMAP_H
 

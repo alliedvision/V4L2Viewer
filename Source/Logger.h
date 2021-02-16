@@ -28,10 +28,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <string>
 #include "BaseLogger.h"
 
 #include <QSharedPointer>
+
+#include <string>
 
 class Logger
 {
@@ -39,7 +40,7 @@ public:
     Logger(void);
     ~Logger(void);
 
-    static void SetV4L2Logger(const std::string &rLogFileName);
+    static void InitializeLogger(const std::string &rLogFileName);
     static void Log(const std::string &rMessage);
     static void LogEx(const char *text, ...);
     static void LogDump(const std::string &rMessage, uint8_t *buffer, uint32_t length);
@@ -47,7 +48,7 @@ public:
     static void LogSwitch(bool flag);
 
 private:
-    static QSharedPointer<AVT::BaseTools::Logger> m_pLogger;
+    static QSharedPointer<base::BaseLogger> m_pBaseLogger;
     static bool m_LogSwitch;
 
 };

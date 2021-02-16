@@ -28,38 +28,6 @@
 #ifndef HELPER_H
 #define HELPER_H
 
-#include <stdint.h>
-#include <string>
-
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
-
-namespace AVT {
-namespace BaseTools {
-
-class Helper
-{
-public:
-    Helper (void);
-    virtual ~Helper (void);
-
-    static void SwapByteOrder (void *pData, size_t nSize);
-
-    static std::string ConvertCommandID2String (uint16_t command);
-    static std::string ConvertPixelformat2String (uint32_t nPixelFormat);
-
-    static std::string ConvertPacket2String (uint8_t *buffer, uint32_t length);
-
-    static void OutputDebugWindow (const char *text, ...);
-
-    static std::string VSPrint (const char *text, ...);
-
-    static void uSleep (uint32_t msec);
-
-    static std::string GetTimeStamp ();
-
-};
-
-} // namespace BaseTools
-} // namespace AVT
 
 #endif // HELPER_H

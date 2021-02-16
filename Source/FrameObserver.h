@@ -26,28 +26,26 @@
 
 =============================================================================*/
 
-#ifndef FRAMEOBSERVER_INCLUDE
-#define FRAMEOBSERVER_INCLUDE
-
-#include <vector>
-#include <queue>
-
-#include <QObject>
-#include <QThread>
-#include <QImage>
-#include <QSharedPointer>
+#ifndef FRAMEOBSERVER_H
+#define FRAMEOBSERVER_H
 
 #include "ImageProcessingThread.h"
-#include "Helper.h"
+#include "LocalMutex.h"
+#include "V4l2Helper.h"
+
+#include <QImage>
+#include <QObject>
+#include <QSharedPointer>
+#include <QThread>
 
 #include <fcntl.h>
+#include <linux/videodev2.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include "videodev2_av.h"
 
-#include "V4l2Helper.h"
-#include "LoggerMutex.h"
+#include <queue>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 // TYPEDEFS
@@ -58,11 +56,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // DEFINES
 ////////////////////////////////////////////////////////////////////////////////
-
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
 
 typedef struct _USER_BUFFER
 {
@@ -164,13 +157,13 @@ protected:
 
     bool m_ShowFrames;
 
-    std::vector<PUSER_BUFFER>            m_UserBufferContainerList;
-    AVT::BaseTools::LocalMutex                  m_UsedBufferMutex;
+    std::vector<PUSER_BUFFER>             m_UserBufferContainerList;
+    base::LocalMutex                      m_UsedBufferMutex;
 
     // Shared pointer to a worker thread for the image processing
     QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
 
-    std::vector<uint8_t>                 m_rCSVData;
+    std::vector<uint8_t>                  m_rCSVData;
 
 private slots:
     //Event handler for getting the processed frame to an image
@@ -197,9 +190,5 @@ signals:
     void OnLiveDeviationCalc_Signal(int numberOfUnequalBytes);
 };
 
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
-
-#endif /* FRAMEOBSERVER_INCLUDE */
+#endif /* FRAMEOBSERVER_H */
 

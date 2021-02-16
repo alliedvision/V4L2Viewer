@@ -28,12 +28,14 @@
 #ifndef MYFRAME_H
 #define MYFRAME_H
 
-#include <stdint.h>
 #include <QImage>
+
 #include <fcntl.h>
-#include <unistd.h>
+#include <stdint.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <unistd.h>
+
 #include <vector>
 
 class MyFrame

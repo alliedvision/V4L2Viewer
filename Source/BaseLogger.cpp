@@ -25,31 +25,34 @@
 
 =============================================================================*/
 
+#include "LocalMutexLockGuard.h"
 #include "Logger.h"
-#include "Helper.h"
-#include <sstream>
+
 #include <iomanip>
+#include <sstream>
+#include <unistd.h>
 
-namespace AVT {
-namespace BaseTools {
+#define MIN_DURATION_BETWEEN_LOG_WRITES_MS             3
+#define ALLOWED_DURATION_FOR_LOG_FILE_COMPLETION_MS   10
 
-void BufferThreadProc(Logger *threadParams)
+namespace base {
+
+void BufferThreadProc(BaseLogger *pBaseLogger)
 {
-    threadParams->BufThreadProc();
+    pBaseLogger->BufThreadProc();
 }
 
-void DumpThreadProc(Logger *threadParams)
+void DumpThreadProc(BaseLogger *pBaseLogger)
 {
-    threadParams->DmpThreadProc();
+    pBaseLogger->DmpThreadProc();
 }
 
-void LoggerThreadProc(Logger *threadParams)
+void LoggerThreadProc(BaseLogger *pBaseLogger)
 {
-    threadParams->ThreadProc();
+    pBaseLogger->ThreadProc();
 }
 
-
-Logger::Logger(const std::string &fileName, bool bAppend)
+BaseLogger::BaseLogger(const std::string &fileName, bool bAppend)
     : m_pFile(NULL)
     , m_bThreadRunning(true)
     , m_bThreadStopped(false)
@@ -67,21 +70,21 @@ Logger::Logger(const std::string &fileName, bool bAppend)
         m_pFile = fopen(fileName.c_str(), "wt");
     }
 
-    m_pLogTextThread.StartThread((LPTHREAD_START_ROUTINE)LoggerThreadProc, this);
-    m_pDumpThread.StartThread((LPTHREAD_START_ROUTINE)DumpThreadProc, this);
-    m_pBufferThread.StartThread((LPTHREAD_START_ROUTINE)BufferThreadProc, this);
+    m_pLogTextThread.StartThread((THREAD_START_ROUTINE)LoggerThreadProc, this);
+    m_pDumpThread.StartThread((THREAD_START_ROUTINE)DumpThreadProc, this);
+    m_pBufferThread.StartThread((THREAD_START_ROUTINE)BufferThreadProc, this);
 }
 
-Logger::~Logger()
+BaseLogger::~BaseLogger()
 {
     m_bBufferThreadRunning = false;
-    while(!m_bBufferThreadStopped) Helper::uSleep(10);
+    while(!m_bBufferThreadStopped) usleep(ALLOWED_DURATION_FOR_LOG_FILE_COMPLETION_MS * 1000);
 
     m_bDumpThreadRunning = false;
-    while(!m_bDumpThreadStopped) Helper::uSleep(10);
+    while(!m_bDumpThreadStopped) usleep(ALLOWED_DURATION_FOR_LOG_FILE_COMPLETION_MS * 1000);
 
     m_bThreadRunning = false;
-    while(!m_bThreadStopped) Helper::uSleep(10);
+    while(!m_bThreadStopped) usleep(ALLOWED_DURATION_FOR_LOG_FILE_COMPLETION_MS * 1000);
 
     if(NULL != m_pFile)
     {
@@ -94,28 +97,81 @@ Logger::~Logger()
     m_pBufferThread.Join();
 }
 
-void Logger::Log(const std::string &rStrMessage)
+std::string BaseLogger::ConvertTimeStampToString()
+{
+    std::stringstream timestamp;
+
+    struct timeval tv;
+    struct tm *tm;
+
+    gettimeofday(&tv, NULL);
+    tm=localtime(&tv.tv_sec);
+
+    timestamp << std::setfill('0') << tm->tm_hour << ':' << std::setw(2) << tm->tm_min << ':' << std::setw(2) << tm->tm_sec << '.' << std::setw(3) << tv.tv_usec;
+
+    return timestamp.str();
+}
+
+std::string BaseLogger::ConvertPacketToString(uint8_t* buffer, uint32_t length)
+{
+    std::stringstream output;
+    std::stringstream outputText;
+    uint32_t i = 0;
+
+    if (NULL != buffer)
+    {
+        output << "Dump buffer: length=" << length << std::endl << "0x0000 : " << std::setfill('0');
+        for (i=0; i<length; i++)
+        {
+            output << "0x" << std::hex << std::setw(2) << (int)buffer[i] << " ";
+
+            if (buffer[i] >= 0x20 && buffer[i] < 0x7F)
+            {
+                outputText << (char)buffer[i];
+            }
+            else
+            {
+                outputText << ".";
+            }
+
+            if (((i+1) % 16) == 0)
+            {
+                output << outputText.str() << std::endl << "0x" << std::setw(4) << i+1 << " : ";
+                outputText.str("");
+            }
+        }
+    }
+
+    if ((i % 16) != 0)
+    {
+        output << "; " << outputText.str();
+    }
+
+    return output.str();
+}
+
+void BaseLogger::Log(const std::string &rStrMessage)
 {
     if(m_bThreadRunning)
     {
         std::stringstream text;
 
-        text << Helper::GetTimeStamp() << ": " << rStrMessage;
+        text << ConvertTimeStampToString() << ": " << rStrMessage;
 
         if(NULL != m_pFile)
         {
-            AutoLocalMutex guard(m_Mutex);
+            LocalMutexLockGuard guard(m_Mutex);
 
             m_OutputQueue.push(text.str());
         }
     }
 }
 
-void Logger::LogDump(const std::string &rStrMessage, uint8_t *buffer, uint32_t length)
+void BaseLogger::LogDump(const std::string &rStrMessage, uint8_t *buffer, uint32_t length)
 {
     if(m_bDumpThreadRunning)
     {
-        AutoLocalMutex guard(m_DumpMutex);
+        LocalMutexLockGuard guard(m_DumpMutex);
 
         PPACKET pack = new PACKET;
         pack->Buffer.resize(length);
@@ -127,11 +183,11 @@ void Logger::LogDump(const std::string &rStrMessage, uint8_t *buffer, uint32_t l
     }
 }
 
-void Logger::LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t length)
+void BaseLogger::LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t length)
 {
     if(m_bDumpThreadRunning)
     {
-        AutoLocalMutex guard(m_DumpMutex);
+        LocalMutexLockGuard guard(m_DumpMutex);
 
         PPACKET pack = new PACKET;
         pack->Buffer.resize(length);
@@ -143,7 +199,7 @@ void Logger::LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t l
     }
 }
 
-void Logger::ThreadProc()
+void BaseLogger::ThreadProc()
 {
     PrintStartMessage();
 
@@ -153,7 +209,7 @@ void Logger::ThreadProc()
         {
             std::string text;
             {
-                AutoLocalMutex guard(m_Mutex);
+                LocalMutexLockGuard guard(m_Mutex);
 
                 text = m_OutputQueue.front();
                 m_OutputQueue.pop();
@@ -162,7 +218,7 @@ void Logger::ThreadProc()
             fflush(m_pFile);
         }
 
-        Helper::uSleep(3);
+        usleep(MIN_DURATION_BETWEEN_LOG_WRITES_MS * 1000);
     }
 
     PrintExitMessage();
@@ -170,7 +226,7 @@ void Logger::ThreadProc()
     m_bThreadStopped = true;
 }
 
-void Logger::DmpThreadProc()
+void BaseLogger::DmpThreadProc()
 {
     while(m_bDumpThreadRunning)
     {
@@ -179,17 +235,17 @@ void Logger::DmpThreadProc()
             std::string text;
             PPACKET pack;
             {
-                AutoLocalMutex guard(m_DumpMutex);
+                LocalMutexLockGuard guard(m_DumpMutex);
 
                 pack = m_DumpQueue.front();
                 m_DumpQueue.pop();
             }
-            text = Helper::ConvertPacket2String(&pack->Buffer[0], pack->Length);
+            text = ConvertPacketToString(&pack->Buffer[0], pack->Length);
             Log(pack->Message + text);
             delete pack;
         }
 
-        Helper::uSleep(3);
+        usleep(MIN_DURATION_BETWEEN_LOG_WRITES_MS * 1000);
     }
 
     PrintDumpExitMessage();
@@ -197,7 +253,7 @@ void Logger::DmpThreadProc()
     m_bDumpThreadStopped = true;
 }
 
-void Logger::BufThreadProc()
+void BaseLogger::BufThreadProc()
 {
     while(m_bBufferThreadRunning)
     {
@@ -206,7 +262,7 @@ void Logger::BufThreadProc()
             PPACKET pack;
 
             {
-                AutoLocalMutex guard(m_BufferMutex);
+                LocalMutexLockGuard guard(m_BufferMutex);
                 pack = m_BufferQueue.front();
                 m_BufferQueue.pop();
             }
@@ -223,7 +279,7 @@ void Logger::BufThreadProc()
             delete pack;
         }
 
-        Helper::uSleep(3);
+        usleep(MIN_DURATION_BETWEEN_LOG_WRITES_MS * 1000);
     }
 
     PrintBufferExitMessage();
@@ -231,11 +287,11 @@ void Logger::BufThreadProc()
     m_bBufferThreadStopped = true;
 }
 
-void Logger::PrintStartMessage()
+void BaseLogger::PrintStartMessage()
 {
     std::stringstream text;
 
-    text << Helper::GetTimeStamp() << ": +++++ logger started. +++++";
+    text << ConvertTimeStampToString() << ": +++++ logger started. +++++";
     if(NULL != m_pFile)
     {
         fprintf(m_pFile, "%s\n", text.str().c_str());
@@ -243,7 +299,7 @@ void Logger::PrintStartMessage()
     }
 }
 
-void Logger::PrintExitMessage()
+void BaseLogger::PrintExitMessage()
 {
     std::stringstream text;
 
@@ -252,7 +308,7 @@ void Logger::PrintExitMessage()
         return;
     }
 
-    text << Helper::GetTimeStamp() << ": ***** logger exiting, " << m_OutputQueue.size() << " messages left";
+    text << ConvertTimeStampToString() << ": ***** logger exiting, " << m_OutputQueue.size() << " messages left";
     fprintf(m_pFile, "%s\n", text.str().c_str());
     fflush(m_pFile);
 
@@ -265,12 +321,12 @@ void Logger::PrintExitMessage()
     }
 
     text.str("");
-    text << Helper::GetTimeStamp() << ": ***** logger stopped. *****";
+    text << ConvertTimeStampToString() << ": ***** logger stopped. *****";
     fprintf(m_pFile, "%s\n", text.str().c_str());
     fflush(m_pFile);
 }
 
-void Logger::PrintDumpExitMessage()
+void BaseLogger::PrintDumpExitMessage()
 {
     std::stringstream text;
 
@@ -279,7 +335,7 @@ void Logger::PrintDumpExitMessage()
         return;
     }
 
-    text << Helper::GetTimeStamp() << ": ***** Dump logger exiting, " << m_DumpQueue.size() << " dumps left";
+    text << ConvertTimeStampToString() << ": ***** Dump logger exiting, " << m_DumpQueue.size() << " dumps left";
     fprintf(m_pFile, "%s\n", text.str().c_str());
     fflush(m_pFile);
 
@@ -288,7 +344,7 @@ void Logger::PrintDumpExitMessage()
         std::string out;
         PPACKET pack = m_DumpQueue.front();
         m_DumpQueue.pop();
-        out = Helper::ConvertPacket2String(&pack->Buffer[0], pack->Length);
+        out = ConvertPacketToString(&pack->Buffer[0], pack->Length);
         delete pack;
 
         fprintf(m_pFile, "%s\n", out.c_str());
@@ -296,12 +352,12 @@ void Logger::PrintDumpExitMessage()
     }
 
     text.str("");
-    text << Helper::GetTimeStamp() << ": ***** Dump logger stopped. *****";
+    text << ConvertTimeStampToString() << ": ***** Dump logger stopped. *****";
     fprintf(m_pFile, "%s\n", text.str().c_str());
     fflush(m_pFile);
 }
 
-void Logger::PrintBufferExitMessage()
+void BaseLogger::PrintBufferExitMessage()
 {
     while(m_BufferQueue.size() > 0)
     {
@@ -321,5 +377,4 @@ void Logger::PrintBufferExitMessage()
     }
 }
 
-} // namespace BaseTools
-} // namespace AVT
+} // namespace base

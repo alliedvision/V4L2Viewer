@@ -29,7 +29,6 @@
 #ifndef FRAMEOBSERVERUSER_H
 #define FRAMEOBSERVERUSER_H
 
-#include "Helper.h"
 #include "V4l2Helper.h"
 
 #include <FrameObserver.h>
@@ -41,11 +40,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // DEFINES
 ////////////////////////////////////////////////////////////////////////////////
-
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
 
 class FrameObserverUSER : public FrameObserver
 {
@@ -67,10 +61,6 @@ protected:
 
 private:
 };
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
 
 #endif // FRAMEOBSERVERUSER_H
 

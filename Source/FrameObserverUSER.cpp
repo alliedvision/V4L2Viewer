@@ -26,28 +26,26 @@
 
 =============================================================================*/
 
-#include <sstream>
+#include "FrameObserverUSER.h"
+#include "Helper.h"
+#include "LocalMutexLockGuard.h"
+#include "Logger.h"
+
 #include <QPixmap>
+
 #include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include "videodev2_av.h"
-#include <stdlib.h>
+#include <unistd.h>
+
 #include <cstdlib>
-
-#include <FrameObserverUSER.h>
-#include <Logger.h>
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
-
+#include <sstream>
 
 ////////////////////////////////////////////////////////////////////////////
 // Implementation
-////////////////////////////////////////////////////////////////////////////    
+////////////////////////////////////////////////////////////////////////////
 
 FrameObserverUSER::FrameObserverUSER(bool showFrames)
     : FrameObserver(showFrames)
@@ -77,7 +75,7 @@ int FrameObserverUSER::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t
 {
     int result = -1;
 
-    if (m_bStreamRunning) 
+    if (m_bStreamRunning)
     {
         length = buf.length;
         buffer = (uint8_t*)buf.m.userptr;
@@ -126,7 +124,7 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         }
         else
         {
-            AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+            base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
             Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS OK");
             emit OnMessage_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS OK.");
@@ -175,7 +173,7 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
 int FrameObserverUSER::QueueAllUserBuffer()
 {
     int result = -1;
-    AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+    base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
     // queue the buffer
     for (uint32_t i=0; i<m_UserBufferContainerList.size(); i++)
@@ -208,7 +206,7 @@ int FrameObserverUSER::QueueSingleUserBuffer(const int index)
 {
     int result = 0;
     v4l2_buffer buf;
-    AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+    base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
     if (index < m_UserBufferContainerList.size())
     {
@@ -247,7 +245,7 @@ int FrameObserverUSER::DeleteAllUserBuffer()
     V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
 
     {
-        AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+        base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
         // delete all user buffer
         for (int x = 0; x < m_UserBufferContainerList.size(); x++)
@@ -263,8 +261,4 @@ int FrameObserverUSER::DeleteAllUserBuffer()
 
     return result;
 }
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
 

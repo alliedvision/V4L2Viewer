@@ -25,37 +25,65 @@
 
 =============================================================================*/
 
-#include "V4l2Helper.h"
 #include "Camera.h"
-#include "Logger.h"
-#include <stdio.h>
-#include <sstream>
-
-#include <algorithm>
-#include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include "videodev2_av.h"
-
-#include "Helper.h"
-#include "FrameObserverRead.h"
 #include "FrameObserverMMAP.h"
+#include "FrameObserverRead.h"
 #include "FrameObserverUSER.h"
-#include "libcsi_ioctl.h"
+#include "Helper.h"
+#include "Logger.h"
+#include "V4l2Helper.h"
 
 #include <QStringList>
 #include <QSysInfo>
 
-namespace AVT {
-namespace Tools {
-namespace Examples {
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/videodev2.h>
+#include <stdio.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <algorithm>
+#include <sstream>
+
+////////////////////////////////////////////////////////////////////////////////
+// STRUCTS
+////////////////////////////////////////////////////////////////////////////////
+struct v4l2_i2c
+{
+    __u32       register_address;       // Register
+    __u32       timeout;                // Timeout value
+    const char* ptr_buffer;             // I/O buffer
+    __u32       register_size;          // Register size
+    __u32       num_bytes;              // Bytes to read
+};
+
+struct v4l2_stats_t
+{
+    __u64 frames_count;                 // Total number of frames received
+    __u64 packet_crc_error;             // Number of packets with CRC errors
+    __u64 frames_underrun;              // Number of frames dropped because of buffer underrun
+    __u64 frames_incomplete;            // Number of frames that were not completed
+    __u64 current_frame_count;          // Number of frames received within CurrentFrameInterval (nec. to calculate fps value)
+    __u64 current_frame_interval;       // Time interval between frames in µs
+};
+
+/* Stream statistics */
+#define VIDIOC_STREAMSTAT                   _IOR('V', BASE_VIDIOC_PRIVATE + 5, struct v4l2_stats_t)
+
+////////////////////////////////////////////////////////////////////////////////
+// Custom ioctl definitions
+/* i2c read */
+#define VIDIOC_R_I2C                        _IOWR('V', BASE_VIDIOC_PRIVATE + 0, struct v4l2_i2c)
+
+/* i2c write */
+#define VIDIOC_W_I2C                        _IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct v4l2_i2c)
 
 ////////////////////////////////////////////////////////////////////////////
 // Implementation
-////////////////////////////////////////////////////////////////////////////    
+////////////////////////////////////////////////////////////////////////////
 
 Camera::Camera()
     : m_nFileDescriptor(-1)
@@ -71,7 +99,7 @@ Camera::~Camera()
 {
     m_DeviceDiscoveryCallbacks.SetTerminateFlag();
     if (NULL != m_StreamCallbacks.data())
-    m_StreamCallbacks->StopStream();
+        m_StreamCallbacks->StopStream();
 
     CloseDevice();
 }
@@ -91,7 +119,7 @@ unsigned int Camera::GetDroppedFramesCount()
     return m_StreamCallbacks->GetDroppedFramesCount();
 }
 
-int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType, 
+int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,
                bool v4l2TryFmt, bool extendedControls)
 {
     int result = -1;
@@ -122,10 +150,10 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
 
     if (-1 == m_nFileDescriptor)
     {
-                if (m_BlockingMode)
-                   m_nFileDescriptor = open(deviceName.c_str(), O_RDWR, 0);
-                else
-                   m_nFileDescriptor = open(deviceName.c_str(), O_RDWR | O_NONBLOCK, 0);
+        if (m_BlockingMode)
+            m_nFileDescriptor = open(deviceName.c_str(), O_RDWR, 0);
+        else
+            m_nFileDescriptor = open(deviceName.c_str(), O_RDWR | O_NONBLOCK, 0);
 
         if (m_nFileDescriptor == -1)
         {
@@ -135,7 +163,7 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
         else
         {
             getAvtDeviceFirmwareVersion();
-            
+
             Logger::LogEx("Camera::OpenDevice open %s OK", deviceName.c_str());
             emit OnCameraMessage_Signal("OpenDevice: open " + QString(deviceName.c_str()) + " OK");
 
@@ -223,7 +251,7 @@ void Camera::OnError(const QString &msg)
     emit OnCameraError_Signal(msg);
 }
 
-// The event handler to set or remove devices 
+// The event handler to set or remove devices
 void Camera::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info)
 {
     emit OnCameraListChanged_Signal(reason, cardNumber, deviceID, deviceName, info);
@@ -306,7 +334,7 @@ int Camera::DeviceDiscoveryStop()
 
 
 int Camera::StartStreamChannel(const char* csvFilename,
-                               uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, 
+                               uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height,
                    uint32_t bytesPerLine, void *pPrivateData,
                    uint32_t enableLogging, uint32_t logFrameStart, uint32_t logFrameEnd,
                    uint32_t dumpFrameStart, uint32_t dumpFrameEnd,
@@ -320,7 +348,7 @@ int Camera::StartStreamChannel(const char* csvFilename,
 
     Logger::LogEx("Camera::StartStreamChannel pixelformat=%d, payloadsize=%d, width=%d, height=%d.", pixelformat, payloadsize, width, height);
 
-    m_StreamCallbacks->StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat, 
+    m_StreamCallbacks->StartStream(m_BlockingMode, m_nFileDescriptor, pixelformat,
                    payloadsize, width, height, bytesPerLine,
                    enableLogging, logFrameStart, logFrameEnd,
                    dumpFrameStart, dumpFrameEnd, enableRAW10Correction, m_rCSVData);
@@ -339,14 +367,14 @@ int Camera::StopStreamChannel()
     int nResult = 0;
 
     Logger::LogEx("Camera::StopStreamChannel started.");
-    
+
     nResult = m_StreamCallbacks->StopStream();
 
     if (nResult == 0)
     {
        Logger::LogEx("Camera::StopStreamChannel OK.");
        emit OnCameraMessage_Signal("Camera::StopStreamChannel OK.");
-    } 
+    }
     else
     {
        Logger::LogEx("Camera::StopStreamChannel failed.");
@@ -417,7 +445,7 @@ int Camera::ReadPayloadsize(uint32_t &payloadsize)
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
-    {                
+    {
         Logger::LogEx("Camera::ReadPayloadsize VIDIOC_G_FMT OK =%d", fmt.fmt.pix.sizeimage);
         emit OnCameraMessage_Signal(QString("ReadPayloadsize VIDIOC_G_FMT: OK =%1.").arg(fmt.fmt.pix.sizeimage));
 
@@ -443,7 +471,7 @@ int Camera::ReadFrameSize(uint32_t &width, uint32_t &height)
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
-    {       
+    {
         Logger::LogEx("Camera::ReadFrameSize VIDIOC_G_FMT OK =%dx%d", fmt.fmt.pix.width, fmt.fmt.pix.height);
         emit OnCameraMessage_Signal(QString("ReadFrameSize VIDIOC_G_FMT: OK =%1x%2.").arg(fmt.fmt.pix.width).arg(fmt.fmt.pix.height));
 
@@ -470,7 +498,7 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
-    {                
+    {
         Logger::LogEx("Camera::SetFrameSize VIDIOC_G_FMT OK");
         emit OnCameraMessage_Signal(QString("SetFrameSize VIDIOC_G_FMT: OK."));
 
@@ -521,7 +549,7 @@ int Camera::SetWidth(uint32_t width)
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
-    {       
+    {
         Logger::LogEx("Camera::SetWidth VIDIOC_G_FMT OK");
         emit OnCameraMessage_Signal(QString("SetWidth VIDIOC_G_FMT: OK."));
 
@@ -571,7 +599,7 @@ int Camera::ReadWidth(uint32_t &width)
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
-    {                
+    {
         Logger::LogEx("Camera::ReadWidth VIDIOC_G_FMT OK =%d", width);
         emit OnCameraMessage_Signal(QString("ReadWidth VIDIOC_G_FMT: OK =%1.").arg(width));
 
@@ -597,7 +625,7 @@ int Camera::SetHeight(uint32_t height)
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
-    {                
+    {
         Logger::LogEx("Camera::SetHeight VIDIOC_G_FMT OK");
         emit OnCameraMessage_Signal(QString("SetHeight VIDIOC_G_FMT: OK."));
 
@@ -649,7 +677,7 @@ int Camera::ReadHeight(uint32_t &height)
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
-    {       
+    {
         Logger::LogEx("Camera::ReadHeight VIDIOC_G_FMT OK =%d", fmt.fmt.pix.height);
         emit OnCameraMessage_Signal(QString("ReadHeight VIDIOC_G_FMT: OK =%1.").arg(fmt.fmt.pix.height));
 
@@ -688,26 +716,26 @@ int Camera::ReadFormats()
         emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FMT: pixelformat = " + QString("%1").arg(fmt.pixelformat) + " = " + QString(V4l2Helper::ConvertPixelformat2EnumString(fmt.pixelformat).c_str()) + ".");
         Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FMT description = %s", fmt.description);
         emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FMT: description = " + QString(tmp.c_str()) + ".");
-            
+
         emit OnCameraPixelformat_Signal(QString("%1").arg(QString(V4l2Helper::ConvertPixelformat2String(fmt.pixelformat).c_str())));
-                    
+
         CLEAR(fmtsize);
         fmtsize.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         fmtsize.pixel_format = fmt.pixelformat;
         fmtsize.index = 0;
         while (V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &fmtsize) >= 0 && fmtsize.index <= 100)
-        {              
+        {
             if (fmtsize.type == V4L2_FRMSIZE_TYPE_DISCRETE)
             {
                 v4l2_frmivalenum fmtival;
-                        
+
                 Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete width = %d", fmtsize.discrete.width);
                 emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete width = " + QString("%1").arg(fmtsize.discrete.width) + ".");
                 Logger::LogEx("Camera::ReadFormats size VIDIOC_ENUM_FRAMESIZES enum discrete height = %d", fmtsize.discrete.height);
                 emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete height = " + QString("%1").arg(fmtsize.discrete.height) + ".");
-                
+
                 emit OnCameraFramesize_Signal(QString("disc:%1x%2").arg(fmtsize.discrete.width).arg(fmtsize.discrete.height));
-                        
+
                 CLEAR(fmtival);
                 fmtival.index = 0;
                 fmtival.pixel_format = fmt.pixelformat;
@@ -717,7 +745,7 @@ int Camera::ReadFormats()
                 {
                     fmtival.index++;
                 }
-            } 
+            }
             else if (fmtsize.type == V4L2_FRMSIZE_TYPE_STEPWISE)
             {
                 Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_width = %d", fmtsize.stepwise.min_width);
@@ -732,21 +760,21 @@ int Camera::ReadFormats()
                 emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_width = " + QString("%1").arg(fmtsize.stepwise.step_width) + ".");
                 Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_height = %d", fmtsize.stepwise.step_height);
                 emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_height = " + QString("%1").arg(fmtsize.stepwise.step_height) + ".");
-                
+
                 emit OnCameraFramesize_Signal(QString("min:%1x%2,max:%3x%4,step:%5x%6").arg(fmtsize.stepwise.min_width).arg(fmtsize.stepwise.min_height).arg(fmtsize.stepwise.max_width).arg(fmtsize.stepwise.max_height).arg(fmtsize.stepwise.step_width).arg(fmtsize.stepwise.step_height));
             }
-                
+
             result = 0;
-                
+
             fmtsize.index++;
         }
-            
+
         if (fmtsize.index >= 100)
         {
             Logger::LogEx("Camera::ReadFormats no VIDIOC_ENUM_FRAMESIZES never terminated with EINVAL within 100 loops.");
             emit OnCameraError_Signal("ReadFormats: no VIDIOC_ENUM_FRAMESIZES never terminated with EINVAL within 100 loops.");
         }
-            
+
         fmt.index++;
     }
 
@@ -768,12 +796,12 @@ int Camera::SetPixelformat(uint32_t pixelformat, QString pfText)
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
-    {                
+    {
         Logger::LogEx("Camera::SetPixelformat VIDIOC_G_FMT OK");
         emit OnCameraMessage_Signal(QString("SetPixelformat VIDIOC_G_FMT: OK."));
 
         fmt.fmt.pix.pixelformat = pixelformat;
-            fmt.fmt.pix.field = V4L2_FIELD_ANY;
+        fmt.fmt.pix.field = V4L2_FIELD_ANY;
         fmt.fmt.pix.bytesperline = 0;
 
         if (m_useV4l2TryFmt)
@@ -903,7 +931,7 @@ int Camera::EnumAllControlOldStyle()
             emit OnCameraMessage_Signal(QString("EnumAllControlOldStyle VIDIOC_QUERYCTRL: id=%1=%2, min=%3, max=%4, default=%5.").arg(qctrl.id).arg(V4l2Helper::ConvertControlID2String(qctrl.id).c_str()).arg(qctrl.minimum).arg(qctrl.maximum).arg(qctrl.default_value));
 
             cidCount++;
-                
+
             if (qctrl.type & V4L2_CTRL_TYPE_MENU)
             {
                 continue;
@@ -960,7 +988,7 @@ int Camera::ReadExtControl(uint32_t &value, uint32_t controlID, const char *func
         extCtrls.ctrl_class = controlClass;
 
         if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
-        {                
+        {
             Logger::LogEx("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
             emit OnCameraMessage_Signal(QString("%1 VIDIOC_G_EXT_CTRLS: %2 OK =%3.").arg(functionName).arg(controlName).arg(extCtrl.value));
 
@@ -1003,7 +1031,7 @@ int Camera::SetExtControl(uint32_t value, uint32_t controlID, const char *functi
     extCtrls.ctrl_class = controlClass;
 
     if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_TRY_EXT_CTRLS, &extCtrls))
-    {                
+    {
         if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_EXT_CTRLS, &extCtrls))
         {
             Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
@@ -1050,12 +1078,12 @@ int Camera::ReadExtControl(int32_t &value, uint32_t controlID, const char *funct
         extCtrls.ctrl_class = controlClass;
 
         if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
-        {                
+        {
             Logger::LogEx("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
             emit OnCameraMessage_Signal(QString("%1 VIDIOC_G_EXT_CTRLS: %2 OK =%3.").arg(functionName).arg(controlName).arg(extCtrl.value));
 
             value = extCtrl.value;
-            
+
             result = 0;
         }
         else
@@ -1157,7 +1185,7 @@ int Camera::ReadControl(uint32_t &value, uint32_t controlID, const char *functio
         if(ctrl.flags & V4L2_CTRL_FLAG_DISABLED)
         {
             Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s is not supported!", functionName, controlName);
-            emit OnCameraMessage_Signal(QString("Camera::%1 VIDIOC_QUERYCTRL %2 is not supported!").arg(functionName).arg(controlName));        
+            emit OnCameraMessage_Signal(QString("Camera::%1 VIDIOC_QUERYCTRL %2 is not supported!").arg(functionName).arg(controlName));
             return -2;
         }
 
@@ -1170,7 +1198,7 @@ int Camera::ReadControl(uint32_t &value, uint32_t controlID, const char *functio
         fmt.id = controlID;
 
         if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_CTRL, &fmt))
-        {                
+        {
             Logger::LogEx("Camera::%s VIDIOC_G_CTRL %s OK =%d", functionName, controlName, fmt.value);
             emit OnCameraMessage_Signal(QString("%1 VIDIOC_G_CTRL: %2 OK =%3.").arg(functionName).arg(controlName).arg(fmt.value));
 
@@ -1247,7 +1275,7 @@ int Camera::ReadControl(int32_t &value, uint32_t controlID, const char *function
         fmt.id = controlID;
 
         if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_G_CTRL, &fmt))
-        {                
+        {
             Logger::LogEx("Camera::%s VIDIOC_G_CTRL %s OK =%d", functionName, controlName, fmt.value);
             emit OnCameraMessage_Signal(QString("%1 VIDIOC_G_CTRL: %2 OK =%3.").arg(functionName).arg(controlName).arg(fmt.value));
 
@@ -1282,7 +1310,7 @@ int Camera::SetControl(int32_t value, uint32_t controlID, const char *functionNa
     fmt.value = value;
 
     if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_CTRL, &fmt))
-    {                
+    {
         Logger::LogEx("Camera::%s VIDIOC_S_CTRL %s to %d OK", functionName, controlName, value);
         emit OnCameraMessage_Signal(QString("%1 VIDIOC_S_CTRL: %2 to %3 OK.").arg(functionName).arg(controlName).arg(value));
         result = 0;
@@ -1639,7 +1667,7 @@ int Camera::SetFramerate(uint32_t numerator, uint32_t denominator)
             parm.parm.capture.timeperframe.numerator = numerator;
             parm.parm.capture.timeperframe.denominator = denominator;
             if (-1 != V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_S_PARM, &parm))
-            {                
+            {
                 Logger::LogEx("Camera::SetFramerate VIDIOC_S_PARM to %d/%d (%.2f) OK", numerator, denominator, numerator/denominator);
                 emit OnCameraMessage_Signal(QString("SetFramerate VIDIOC_S_PARM: %1/%2 OK.").arg(numerator).arg(denominator));
                 result = 0;
@@ -1677,7 +1705,7 @@ int Camera::ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t 
         defrecth = cropcap.defrect.height;
         aspectnum = cropcap.pixelaspect.numerator;
         aspectdenum = cropcap.pixelaspect.denominator;
-        Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP bx=%d, by=%d, bw=%d, bh=%d, dx=%d, dy=%d, dw=%d, dh=%d, num=%d, denum=%d OK", 
+        Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP bx=%d, by=%d, bw=%d, bh=%d, dx=%d, dy=%d, dw=%d, dh=%d, num=%d, denum=%d OK",
                 boundsx, boundsy, boundsw, boundsh, defrectx, defrecty, defrectw, defrecth, aspectnum, aspectdenum);
         emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_CROPCAP OK bx=%1,by=%2, bw=%3, bh=%4, dx=%5, dy=%6, dw=%7, dh=%8, num=%9, denum=%10")
                 .arg(boundsx).arg(boundsy).arg(boundsw).arg(boundsh).arg(defrectx).arg(defrecty).arg(defrectw).arg(defrecth).arg(aspectnum).arg(aspectdenum));
@@ -1711,7 +1739,7 @@ int Camera::ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint
         height = crop.c.height;
         Logger::LogEx("Camera::ReadCrop VIDIOC_G_CROP x=%d, y=%d, w=%d, h=%d OK", xOffset, yOffset, width, height);
         emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_G_CROP OK %1,%2, %3, %4").arg(xOffset).arg(yOffset).arg(width).arg(height));
-        
+
         result = 0;
     }
     else
@@ -1811,13 +1839,13 @@ int Camera::GetCameraDriverName(std::string &strText)
         Logger::LogEx("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s is no V4L2 device\n", m_DeviceName.c_str());
         emit OnCameraError_Signal("Camera::GetCameraDriverName VIDIOC_QUERYCAP " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
         return -1;
-    } 
+    }
     else
     {
         Logger::LogEx("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
     }
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) 
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraDriverName %s is no video capture device\n", m_DeviceName.c_str());
         emit OnCameraError_Signal("Camera::GetCameraDriverName " + QString(m_DeviceName.c_str()) + " is no video capture device.");
@@ -1855,7 +1883,7 @@ int Camera::GetCameraDeviceName(std::string &strText)
         Logger::LogEx("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
     }
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) 
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraDeviceName %s is no video capture device\n", m_DeviceName.c_str());
         emit OnCameraError_Signal("Camera::GetCameraDeviceName " + QString(m_DeviceName.c_str()) + " is no video capture device.");
@@ -1893,7 +1921,7 @@ int Camera::GetCameraBusInfo(std::string &strText)
         Logger::LogEx("Camera::GetCameraBusInfo VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
     }
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) 
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraBusInfo %s is no video capture device\n", m_DeviceName.c_str());
         emit OnCameraError_Signal("Camera::GetCameraBusInfo " + QString(m_DeviceName.c_str()) + " is no video capture device.");
@@ -1932,7 +1960,7 @@ int Camera::GetCameraDriverVersion(std::string &strText)
         Logger::LogEx("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
     }
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) 
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraDriverVersion %s is no video capture device\n", m_DeviceName.c_str());
         emit OnCameraError_Signal("Camera::GetCameraDriverVersion " + QString(m_DeviceName.c_str()) + " is no video capture device.");
@@ -1963,7 +1991,7 @@ int Camera::GetCameraReadCapability(bool &flag)
     flag = false;
 
     // queuery device capabilities
-    if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap)) 
+    if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
         Logger::LogEx("Camera::GetCameraReadCapability %s is no V4L2 device\n", m_DeviceName.c_str());
         emit OnCameraError_Signal("Camera::GetCameraReadCapability " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
@@ -1974,7 +2002,7 @@ int Camera::GetCameraReadCapability(bool &flag)
         Logger::LogEx("Camera::GetCameraReadCapability VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
     }
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) 
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraReadCapability %s is no video capture device\n", m_DeviceName.c_str());
         emit OnCameraError_Signal("Camera::GetCameraReadCapability " + QString(m_DeviceName.c_str()) + " is no video capture device.");
@@ -2025,7 +2053,7 @@ int Camera::GetCameraCapabilities(std::string &strText)
         m_isAvtCamera = true;
     }
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) 
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraCapabilities %s is no video capture device\n", m_DeviceName.c_str());
         emit OnCameraError_Signal("Camera::GetCameraCapabilities " + QString(m_DeviceName.c_str()) + " is no video capture device.");
@@ -2113,14 +2141,14 @@ int Camera::ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData)
     fclose(pFile);
 
     emit OnCameraMessage_Signal("ReadCSVFile: " + QString(pFilename) + " successfully loaded.");
-    
+
     // check width and height of csv data
     uint32_t width = 0;
     uint32_t height = 0;
-    
+
     QString tmp = fileText.c_str();
     QStringList lines = tmp.split("\r\n");
-    
+
     for (int i=0; i<lines.size(); i++)
     {
         QString line = lines.at(i);
@@ -2129,19 +2157,19 @@ int Camera::ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData)
         {
             QString byte = items.at(6);
             uint8_t dataID = byte.toUInt(0, 16);
-            
+
             if (dataID > 0x12)
             {
                 QString byte = items.at(8);
                 uint32_t length = (((uint8_t)items.at(8).toUInt(0, 16)) << 8);
                 byte = items.at(7);
                 length += items.at(7).toUInt(0, 16);
-                
+
                 if (length > 0 && width == 0)
                 {
                     width = length;
                 }
-                
+
                 if (length == width)
                 {
                     height++;
@@ -2164,14 +2192,14 @@ int Camera::ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData)
         {
             QString byte = items.at(6);
             uint8_t dataID = byte.toUInt(0, 16);
-            
+
             if (dataID > 0x12)
             {
                 QString byte = items.at(8);
                 uint32_t length = (((uint8_t)items.at(8).toUInt(0, 16)) << 8);
                 byte = items.at(7);
                 length += items.at(7).toUInt(0, 16);
-                
+
                 if (length > 0)
                 {
                     const uint32_t lineHeader = 10;
@@ -2203,7 +2231,7 @@ std::string Camera::getAvtDeviceFirmwareVersion()
             const int CCI_BCRM_REG = 0x0014;
             const int BCRM_DEV_FW_VERSION = 0x0010;
 
-            uint16_t nBCRMAddress = 0;  
+            uint16_t nBCRMAddress = 0;
 
             int res = ReadRegister(CCI_BCRM_REG, &nBCRMAddress, sizeof(nBCRMAddress), true);
 
@@ -2302,7 +2330,7 @@ std::string Camera::getAvtDeviceSerialNumber()
             }
         }
     }
-    
+
     return result;
 }
 
@@ -2394,10 +2422,4 @@ int Camera::WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize
 
     return iRet;
 }
-
-
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
 

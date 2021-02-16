@@ -251,7 +251,7 @@ then
         else
             log error "${LOG_ERROR_PARAMETER_INVALID}"
             usage
-            SUCCESS_FLAG=$FALSE        
+            SUCCESS_FLAG=$FALSE
         fi
     else
         log error "${LOG_ERROR_PARAMETER_MISSING}"
@@ -288,7 +288,7 @@ then
         else
             log error "${LOG_ERROR_PARAMETER_INVALID}"
             usage
-            SUCCESS_FLAG=$FALSE      
+            SUCCESS_FLAG=$FALSE
         fi
     else
         log error "${LOG_ERROR_PARAMETER_MISSING}"
@@ -303,7 +303,7 @@ then
     FILE_GCC_SELECTED="${GCC_NAME}-${FILE_VERSION_SELECTED}-${PLATFORM_HOST_SELECTED}_${GCC_SELECTED}"
 fi
 #==============================================================================
-# run script with respective parameter 
+# run script with respective parameter
 #==============================================================================
 gcc_exist
 create_gcc_folder

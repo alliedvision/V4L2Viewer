@@ -26,21 +26,24 @@
 
 =============================================================================*/
 
-#include <sstream>
+#include "DeviationCalculator.h"
+#include "FrameObserver.h"
+#include "ImageTransform.h"
+#include "Logger.h"
+
 #include <QPixmap>
+
 #include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <linux/videodev2.h>
+#include <sstream>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include "videodev2_av.h"
-
-#include "FrameObserver.h"
-#include "Logger.h"
-#include "ImageTransf.h"
-#include "DeviationCalculator.h"
+#include <unistd.h>
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
+
+#define V4L2_PIX_FMT_Y10P     v4l2_fourcc('Y', '1', '0', 'P')
 
 ////////////////////////////////////////////////////////////////////////////
 // Global data
@@ -48,10 +51,6 @@
 
 uint8_t *g_ConversionBuffer1 = 0;
 uint8_t *g_ConversionBuffer2 = 0;
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
 
 ////////////////////////////////////////////////////////////////////////////
 // C service
@@ -295,9 +294,9 @@ void FrameObserver::DequeueAndProcessFrame()
                     {
                         QImage convertedImage;
 
-                        if (AVT::Tools::ImageTransf::ConvertFrame(buffer, length,
-                                m_nWidth, m_nHeight, m_Pixelformat,
-                                m_PayloadSize, m_BytesPerLine, convertedImage) == 0)
+                        if (ImageTransform::ConvertFrame(buffer, length,
+                                                         m_nWidth, m_nHeight, m_Pixelformat,
+                                                         m_PayloadSize, m_BytesPerLine, convertedImage) == 0)
                         {
                             QSharedPointer<MyFrame> frame(new MyFrame(convertedImage, buf.index, buffer, length, m_nWidth, m_nHeight, m_Pixelformat, m_PayloadSize, m_BytesPerLine, m_FrameId));
                             emit OnRecordFrame_Signal(frame);
@@ -512,8 +511,3 @@ void FrameObserver::setFileDescriptor(int fd)
 {
     m_nFileDescriptor = fd;
 }
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
-

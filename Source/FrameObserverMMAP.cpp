@@ -26,22 +26,21 @@
 
 =============================================================================*/
 
-#include <sstream>
+#include "FrameObserverMMAP.h"
+#include "Helper.h"
+#include "LocalMutexLockGuard.h"
+#include "Logger.h"
+
 #include <QPixmap>
+
 #include <errno.h>
 #include <fcntl.h>
+#include <linux/videodev2.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include "videodev2_av.h"
 
-#include <FrameObserverMMAP.h>
-#include <Logger.h>
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
-
+#include <sstream>
 
 ////////////////////////////////////////////////////////////////////////////
 // Implementation
@@ -77,7 +76,7 @@ int FrameObserverMMAP::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t
 
     if (m_bStreamRunning)
     {
-        AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+        base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
         if (buf.index < m_UserBufferContainerList.size())
         {
@@ -134,7 +133,7 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         }
         else
         {
-            AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+            base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
             Logger::LogEx("FrameObserverMMAP::CreateUserBuffer VIDIOC_REQBUFS OK");
             emit OnMessage_Signal("FrameObserverMMAP::CreateUserBuffer: VIDIOC_REQBUFS OK.");
@@ -198,7 +197,7 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
 int FrameObserverMMAP::QueueAllUserBuffer()
 {
     int result = -1;
-    AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+    base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
     // queue the buffer
     for (uint32_t i=0; i<m_UserBufferContainerList.size(); i++)
@@ -229,7 +228,7 @@ int FrameObserverMMAP::QueueSingleUserBuffer(const int index)
 {
     int result = 0;
     v4l2_buffer buf;
-    AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+    base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
     if (index < m_UserBufferContainerList.size())
     {
@@ -254,7 +253,7 @@ int FrameObserverMMAP::DeleteAllUserBuffer()
 {
     int result = 0;
 
-    AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+    base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
     // delete all user buffer
     for (int x = 0; x < m_UserBufferContainerList.size(); x++)
@@ -283,8 +282,4 @@ int FrameObserverMMAP::DeleteAllUserBuffer()
 
     return result;
 }
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
 

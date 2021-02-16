@@ -28,14 +28,12 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <vector>
-#include <QObject>
 #include "FrameObserver.h"
 #include "CameraObserver.h"
 
-namespace AVT {
-namespace Tools {
-namespace Examples {
+#include <QObject>
+
+#include <vector>
 
 enum IO_METHOD_TYPE
 {
@@ -232,9 +230,5 @@ private slots:
     // Event will be caleld when FrameObserver has calculated the number of unequal bytes of current frame
     void OnLiveDeviationCalc(int numberOfUnequalBytes);
 };
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
 
 #endif // CAMERA_H

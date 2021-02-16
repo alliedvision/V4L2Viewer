@@ -26,34 +26,28 @@
 
 =============================================================================*/
 
-#include <sstream>
-
-#include "ImageTransf.h"
+#include "ImageTransform.h"
 #include "Logger.h"
 #include "videodev2_av.h"
-#include <QPixmap>
-#include <cstring>
 
-#define CLIP(color)                                                            \
-    (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
-#define V4L2_PIX_FMT_GREY12P                                                   \
-    v4l2_fourcc('G', '1', '2', 'P') /* FKL 12  Greyscale packed */
+#include <QPixmap>
+
+#include <cstring>
+#include <linux/videodev2.h>
+#include <sstream>
+
+#define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 
 extern uint8_t *g_ConversionBuffer1;
 extern uint8_t *g_ConversionBuffer2;
-
-namespace AVT
-{
-namespace Tools
-{
 
 ////////////////////////////////////////////////////////////////////////////
 // Implementation
 ////////////////////////////////////////////////////////////////////////////
 
-ImageTransf::ImageTransf() {}
+ImageTransform::ImageTransform() {}
 
-ImageTransf::~ImageTransf() {}
+ImageTransform::~ImageTransform() {}
 
 void ConvertMono12gToRGB24(const void *sourceBuffer, uint32_t width,
                            uint32_t height, const void *destBuffer)
@@ -782,10 +776,10 @@ void v4lconvert_remove_padding(const uint8_t **src,
     *src = conversionBuffer->data();
 }
 
-int ImageTransf::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
-                              uint32_t width, uint32_t height,
-                              uint32_t pixelformat, uint32_t &payloadSize,
-                              uint32_t &bytesPerLine, QImage &convertedImage)
+int ImageTransform::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
+                                 uint32_t width, uint32_t height,
+                                 uint32_t pixelformat, uint32_t &payloadSize,
+                                 uint32_t &bytesPerLine, QImage &convertedImage)
 {
     int result = 0;
 
@@ -1087,6 +1081,3 @@ int ImageTransf::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
 
     return result;
 }
-
-} // namespace Tools
-} // namespace AVT

@@ -26,19 +26,15 @@
 
 =============================================================================*/
 
-#include "V4l2Helper.h"
-#include "Logger.h"
 #include "CameraObserver.h"
+#include "Logger.h"
+#include "V4l2Helper.h"
 
 #include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <linux/videodev2.h>
 #include <sys/ioctl.h>
-#include "videodev2_av.h"
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
+#include <unistd.h>
 
 ////////////////////////////////////////////////////////////////////////////
 // Implementation
@@ -229,7 +225,3 @@ void CameraObserver::OnMessage(const char *text, void *pPrivateData)
         Logger::LogEx("CameraObserver: message = '%s'", text);
     }
 }
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT

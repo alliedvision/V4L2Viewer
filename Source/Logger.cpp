@@ -25,14 +25,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =============================================================================*/
 
-#include "Helper.h"
-
-#ifdef _WIN32
-#include "windows.h"
-#endif
 #include "Logger.h"
 
-QSharedPointer<AVT::BaseTools::Logger> Logger::m_pLogger;
+QSharedPointer<base::BaseLogger> Logger::m_pBaseLogger;
 bool Logger::m_LogSwitch = false;
 
 Logger::Logger(void)
@@ -48,11 +43,11 @@ Logger::~Logger(void)
 // PCIe Logging
 //////////////////////////////////////////////////////////////////////////////////////
 
-void Logger::SetV4L2Logger(const std::string &rLogFileName)
+void Logger::InitializeLogger(const std::string &rLogFileName)
 {
-    if (NULL == m_pLogger)
+    if (NULL == m_pBaseLogger)
     {
-        m_pLogger = QSharedPointer<AVT::BaseTools::Logger>(new AVT::BaseTools::Logger(rLogFileName));
+        m_pBaseLogger = QSharedPointer<base::BaseLogger>(new base::BaseLogger(rLogFileName));
         m_LogSwitch = true;
     }
 }
@@ -60,7 +55,7 @@ void Logger::SetV4L2Logger(const std::string &rLogFileName)
 void Logger::Log(const std::string &rMessage)
 {
     if (m_LogSwitch)
-        m_pLogger->Log(rMessage);
+        m_pBaseLogger->Log(rMessage);
 }
 
 void Logger::LogEx(const char *text, ...)
@@ -71,53 +66,41 @@ void Logger::LogEx(const char *text, ...)
     int sizeText = 0;
 
     va_start(args, text);
-#ifdef _WIN32
-    sizeText = _vscprintf(text, args) + 1;
-#else
     sizeText = vsnprintf(NULL, 0, text, args) + 1;
-#endif
     va_end(args);
 
-#ifdef _WIN32
     string = (char *)malloc(sizeof(char)*sizeText);
-#else
-    string = (char *)malloc(sizeof(char)*sizeText);
-#endif
 
     if (NULL == string)
         output = "<conversion failed>";
     else
     {
         va_start(args, text);
-#ifdef _WIN32
-        vsprintf_s(string, sizeof(char)*sizeText, text, args);
-#else
         vsnprintf(string, sizeof(char)*sizeText, text, args);
-#endif
         va_end(args);
         output = string;
         free(string);
     }
 
-    if (m_pLogger == NULL)
+    if (m_pBaseLogger == NULL)
     {
         m_LogSwitch = true;
-        Logger::SetV4L2Logger("Noname.log");
+        Logger::InitializeLogger("Noname.log");
     }
 
     if (m_LogSwitch)
-        m_pLogger->Log(output);
+        m_pBaseLogger->Log(output);
 }
 
 void Logger::LogDump(const std::string &rMessage, uint8_t *buffer, uint32_t length)
 {
     if (m_LogSwitch)
-        m_pLogger->LogDump(rMessage, buffer, length);
+        m_pBaseLogger->LogDump(rMessage, buffer, length);
 }
 
 void Logger::LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t length)
 {
-    m_pLogger->LogBuffer(rFileName, buffer, length);
+    m_pBaseLogger->LogBuffer(rFileName, buffer, length);
 }
 
 void Logger::LogSwitch(bool flag)

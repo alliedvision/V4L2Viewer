@@ -46,7 +46,7 @@ parameter_exist()
 	then
 		return $FALSE
 	else
-		return $TRUE 
+		return $TRUE
 	fi
 }
 #==============================================================================

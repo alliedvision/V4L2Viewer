@@ -25,8 +25,9 @@
 
 =============================================================================*/
 
-#include <string.h>
 #include "MyFrame.h"
+
+#include <string.h>
 
 MyFrame::MyFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
          uint32_t &width, uint32_t &height, uint32_t &pixelformat,

@@ -28,18 +28,18 @@
 #ifndef V4L2VIEWER_H
 #define V4L2VIEWER_H
 
-#include <list>
-#include <QtGui>
-#include <QMainWindow>
-#include <QTimer>
+#include "Camera.h"
+#include "DeviationCalculator.h"
+#include "FrameObserver.h"
+#include "MyFrame.h"
+
 #include "ui_V4L2Viewer.h"
 
-#include <MyFrame.h>
-#include <Camera.h>
-#include <FrameObserver.h>
-#include <DeviationCalculator.h>
+#include <list>
 
-using namespace AVT::Tools::Examples;
+#include <QMainWindow>
+#include <QtGui>
+#include <QTimer>
 
 #define VIEWER_MASTER       0
 
@@ -188,7 +188,7 @@ private:
     void UpdateCameraFormat();
     // returns the file destination for saving the frame
     void SaveFrameDialog(bool raw);
-    // Saves the given frame to the given destination 
+    // Saves the given frame to the given destination
     void SaveFrame(QSharedPointer<MyFrame> frame, QString filepath, bool raw);
 
 private slots:
@@ -286,9 +286,9 @@ private slots:
     void OnCalcDeviation();
     // Button calc live deviation clicked
     void OnCalcLiveDeviation();
-    
+
     void OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes);
-    
+
     // Button load reference image clicked
     void OnGetReferenceImage();
     // Deviation calculator thread has calculated the deviation of one frame

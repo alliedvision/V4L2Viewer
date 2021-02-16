@@ -26,22 +26,20 @@
 
 =============================================================================*/
 
-#include <sstream>
+#include "FrameObserverRead.h"
+#include "LocalMutexLockGuard.h"
+#include "Logger.h"
+
 #include <QPixmap>
+
 #include <errno.h>
 #include <fcntl.h>
+#include <linux/videodev2.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include "videodev2_av.h"
 
-#include <FrameObserverRead.h>
-#include <Logger.h>
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
-
+#include <sstream>
 
 ////////////////////////////////////////////////////////////////////////////
 // Implementation
@@ -108,7 +106,7 @@ int FrameObserverRead::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
     {
         // creates user defined buffer
 
-        AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+        base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
         Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS OK");
         emit OnMessage_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS OK.");
@@ -171,24 +169,19 @@ int FrameObserverRead::DeleteAllUserBuffer()
     // creates user defined buffer
 
     {
-    AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+        base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
-    // delete all user buffer
-    for (int x = 0; x < m_UserBufferContainerList.size(); x++)
-    {
-        if (0 != m_UserBufferContainerList[x]->pBuffer)
-            delete [] m_UserBufferContainerList[x]->pBuffer;
-        if (0 != m_UserBufferContainerList[x])
-            delete m_UserBufferContainerList[x];
-    }
+        // delete all user buffer
+        for (int x = 0; x < m_UserBufferContainerList.size(); x++)
+        {
+            if (0 != m_UserBufferContainerList[x]->pBuffer)
+                delete [] m_UserBufferContainerList[x]->pBuffer;
+            if (0 != m_UserBufferContainerList[x])
+                delete m_UserBufferContainerList[x];
+        }
 
-    m_UserBufferContainerList.resize(0);
+        m_UserBufferContainerList.resize(0);
     }
 
     return result;
 }
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
-

@@ -28,17 +28,16 @@
 #ifndef BASELOGGER_H
 #define BASELOGGER_H
 
-#include <stdio.h>
-#include <stdint.h>
-#include <string>
-#include <queue>
-#include <vector>
-#include <string>
+#include "LocalMutex.h"
 #include "Thread.h"
-#include "LoggerMutex.h"
 
-namespace AVT {
-namespace BaseTools {
+#include <queue>
+#include <stdint.h>
+#include <stdio.h>
+#include <string>
+#include <vector>
+
+namespace base {
 
 typedef struct _PACKET
 {
@@ -48,11 +47,11 @@ typedef struct _PACKET
     std::string FileName;
 } PACKET, *PPACKET;
 
-class Logger
+class BaseLogger
 {
 public:
-    Logger(const std::string &fileName, bool bAppend = false);
-    virtual ~Logger();
+    BaseLogger(const std::string &fileName, bool bAppend = false);
+    virtual ~BaseLogger();
 
     void ThreadProc();
     void DmpThreadProc();
@@ -67,6 +66,13 @@ private:
     void PrintExitMessage();
     void PrintDumpExitMessage();
     void PrintBufferExitMessage();
+
+private:
+    static
+    std::string ConvertTimeStampToString();
+
+    static
+    std::string ConvertPacketToString (uint8_t *buffer, uint32_t length);
 
     FILE                          *m_pFile;
     LocalMutex                    m_Mutex;
@@ -86,7 +92,6 @@ private:
     bool                          m_bBufferThreadStopped;
 };
 
-} // namespace BaseTools
-} // namespace AVT
+} // namespace base
 
 #endif // BASELOGGER_H

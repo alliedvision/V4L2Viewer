@@ -28,13 +28,14 @@
 #ifndef CAMERAOBSERVER_H
 #define CAMERAOBSERVER_H
 
-#include <map>
-#include <QObject>
-#include <QThread>
 #include <QImage>
+#include <QObject>
 #include <QSharedPointer>
+#include <QThread>
 
 #include <stdint.h>
+
+#include <map>
 
 enum UpdateTriggerType
 {
@@ -42,10 +43,6 @@ enum UpdateTriggerType
     UpdateTriggerPluggedOut          = 1,
     UpdateTriggerOpenStateChanged    = 3
 };
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
 
 class CameraObserver : public QThread
 {
@@ -96,10 +93,6 @@ private:
     std::map<int, std::string>                    m_DeviceList;
 
 };
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
 
 #endif // CAMERAOBSERVER_H
 

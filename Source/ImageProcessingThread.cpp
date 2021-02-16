@@ -26,11 +26,10 @@
 =============================================================================*/
 
 #include "ImageProcessingThread.h"
-#include "ImageTransf.h"
-//#include "VmbImageTransformHelper.hpp"
-
-#include "videodev2_av.h"
+#include "ImageTransform.h"
 #include "Logger.h"
+
+#include <linux/videodev2.h>
 
 ImageProcessingThread::ImageProcessingThread()
     : m_bAbort(false)
@@ -131,9 +130,9 @@ void ImageProcessingThread::run()
             uint32_t bytesPerLine = pFrame->GetBytesPerLine();
             uint32_t bufferIndex = pFrame->GetBufferIndex();
             QImage convertedImage;
-            result = AVT::Tools::ImageTransf::ConvertFrame(pBuffer, length,
-                                                           width, height, pixelformat,
-                                                           payloadSize, bytesPerLine, convertedImage);
+            result = ImageTransform::ConvertFrame(pBuffer, length,
+                                                  width, height, pixelformat,
+                                                  payloadSize, bytesPerLine, convertedImage);
 
             if (result == 0)
                 emit OnFrameReady_Signal(convertedImage, frameID, bufferIndex);

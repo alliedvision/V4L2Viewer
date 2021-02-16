@@ -28,10 +28,12 @@
 #ifndef DEVIATIONCALCULATOR_H
 #define DEVIATIONCALCULATOR_H
 
-#include <QObject>
-#include <QThread>
-#include <QSharedPointer>
 #include "MyFrame.h"
+
+#include <QObject>
+#include <QSharedPointer>
+#include <QThread>
+
 #include <map>
 
 class DeviationCalculator : public QThread

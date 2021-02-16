@@ -25,30 +25,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =============================================================================*/
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <iomanip>
-#include <sstream>
-#include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
+#include "V4l2Helper.h"
 #include "videodev2_av.h"
 
-#include "V4l2Helper.h"
-
-#ifdef _WIN32       /* Windows */
-#include <Windows.h>
-#else               /* Linux */
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/videodev2.h>
 #include <pthread.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
 #include <sys/time.h>
 #include <unistd.h>
-#endif
 
-namespace AVT {
-namespace Tools {
-namespace Examples {
+#include <iomanip>
+#include <sstream>
 
 V4l2Helper::V4l2Helper(void)
 {
@@ -422,7 +414,3 @@ std::string V4l2Helper::ConvertControlID2String(uint32_t controlID)
 
     return result;
 }
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT

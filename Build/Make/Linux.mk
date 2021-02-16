@@ -321,7 +321,7 @@ MACRO_RCC               = rcc -o $(1) $(2)
 #MACRO_CP Parameters:
 #1. Source
 #2. Destination
-MACRO_CP                = cp -r $(1) $(2) 
+MACRO_CP                = cp -r $(1) $(2)
 
 #MACRO_RSYNC Parameters:
 #1. Source

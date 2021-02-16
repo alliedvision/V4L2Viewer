@@ -25,19 +25,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =============================================================================*/
 
-#include <sstream>
-
-#include <QtGlobal>
-#include <QtCore>
-#include <QStringList>
-#include <limits>
-
-#include "V4L2Viewer.h"
-#include "V4l2Helper.h"
-#include "alvium_regs.h"
-
 #include "Logger.h"
+#include "V4l2Helper.h"
+#include "V4L2Viewer.h"
+
+#include <QtCore>
+#include <QtGlobal>
+#include <QStringList>
+
 #include <ctime>
+#include <limits>
+#include <sstream>
 
 #define NUM_COLORS 3
 #define BIT_DEPTH 8
@@ -54,6 +52,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SCM_REVISION
 #define SCM_REVISION        0
 #endif
+
+// CCI registers
+#define CCI_GCPRM_16R                               0x0010
+#define CCI_BCRM_16R                                0x0014
 
 
 static const QStringList GetImageFormats()
@@ -121,7 +123,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 {
     srand((unsigned)time(0));
 
-    Logger::SetV4L2Logger("V4L2ViewerLog.log");
+    Logger::InitializeLogger("V4L2ViewerLog.log");
 
     ui.setupUi(this);
 
@@ -1589,25 +1591,25 @@ void V4L2Viewer::OnDirectRegisterAccessReadButtonClicked()
             if (ui.m_DataTypeCombo->currentText() == "Int16")
             {
                 int16_t nVal = *(int16_t*)pBuffer;
-                
+
                 if (ui.m_BigEndianessRadio->isChecked())
                     nVal = qToBigEndian(nVal);
-                
-                strValue = ui.m_DataHexRadio->isChecked() ? 
+
+                strValue = ui.m_DataHexRadio->isChecked() ?
                     QString("0x%1").arg(nVal, 4, 16, QChar('0')) :
-                    QString("%1").arg(nVal); 
+                    QString("%1").arg(nVal);
             }
             else
             if (ui.m_DataTypeCombo->currentText() == "UInt16")
             {
                 uint16_t nVal = *(uint16_t*)pBuffer;
-                
+
                 if (ui.m_BigEndianessRadio->isChecked())
                     nVal = qToBigEndian(nVal);
-                
-                strValue = ui.m_DataHexRadio->isChecked() ? 
+
+                strValue = ui.m_DataHexRadio->isChecked() ?
                     QString("0x%1").arg(nVal, 4, 16, QChar('0')) :
-                    QString("%1").arg(nVal); 
+                    QString("%1").arg(nVal);
             }
             else
             if (ui.m_DataTypeCombo->currentText() == "Int32")
@@ -1616,10 +1618,10 @@ void V4L2Viewer::OnDirectRegisterAccessReadButtonClicked()
 
                 if (ui.m_BigEndianessRadio->isChecked())
                     nVal = qToBigEndian(nVal);
-                
-                strValue = ui.m_DataHexRadio->isChecked() ? 
+
+                strValue = ui.m_DataHexRadio->isChecked() ?
                     QString("0x%1").arg(nVal, 8, 16, QChar('0')) :
-                    QString("%1").arg(nVal); 
+                    QString("%1").arg(nVal);
             }
             else
             if (ui.m_DataTypeCombo->currentText() == "UInt32")
@@ -1629,9 +1631,9 @@ void V4L2Viewer::OnDirectRegisterAccessReadButtonClicked()
                 if (ui.m_BigEndianessRadio->isChecked())
                     nVal = qToBigEndian(nVal);
 
-                strValue = ui.m_DataHexRadio->isChecked() ? 
+                strValue = ui.m_DataHexRadio->isChecked() ?
                     QString("0x%1").arg(nVal, 8, 16, QChar('0')) :
-                    QString("%1").arg(nVal); 
+                    QString("%1").arg(nVal);
             }
             else
             if (ui.m_DataTypeCombo->currentText() == "Int64")
@@ -1641,9 +1643,9 @@ void V4L2Viewer::OnDirectRegisterAccessReadButtonClicked()
                 if (ui.m_BigEndianessRadio->isChecked())
                     nVal = qToBigEndian(nVal);
 
-                strValue = ui.m_DataHexRadio->isChecked() ? 
+                strValue = ui.m_DataHexRadio->isChecked() ?
                     QString("0x%1").arg(nVal, 16, 16, QChar('0')) :
-                    QString("%1").arg(nVal); 
+                    QString("%1").arg(nVal);
             }
             else
             if (ui.m_DataTypeCombo->currentText() == "UInt64")
@@ -1653,14 +1655,14 @@ void V4L2Viewer::OnDirectRegisterAccessReadButtonClicked()
                 if (ui.m_BigEndianessRadio->isChecked())
                     nVal = qToBigEndian(nVal);
 
-                strValue = ui.m_DataHexRadio->isChecked() ? 
+                strValue = ui.m_DataHexRadio->isChecked() ?
                     QString("0x%1").arg(nVal, 16, 16, QChar('0')) :
-                    QString("%1").arg(nVal); 
+                    QString("%1").arg(nVal);
             }
             else
             if (ui.m_DataTypeCombo->currentText() == "String64")
             {
-                strValue = QString("%1").arg(pBuffer); 
+                strValue = QString("%1").arg(pBuffer);
             }
 
             OnLog(QString("Register '0x%1' read returned %2.").arg(address, 4, 16, QChar('0')).arg(strValue));
@@ -1707,7 +1709,7 @@ void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
 
         if (ui.m_DataTypeCombo->currentText() != "String64")
         {
-            nVal = ui.m_DataHexRadio->isChecked() ? 
+            nVal = ui.m_DataHexRadio->isChecked() ?
                     ui.m_DirectRegisterAccessDataLineEdit->text().toLongLong(&converted, 16) :
                     ui.m_DirectRegisterAccessDataLineEdit->text().toLongLong(&converted, 10);
         }
@@ -1718,7 +1720,7 @@ void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
             nSize = 64;
             bValid = true;
         }
-                    
+
         if (ui.m_DataTypeCombo->currentText() == "Int8")
         {
             memcpy(pBuffer, (char*)&nVal, 1);
@@ -1746,7 +1748,7 @@ void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
         if (ui.m_DataTypeCombo->currentText() == "UInt16")
         {
             if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((uint16_t)nVal);            
+                nVal = qToBigEndian((uint16_t)nVal);
             memcpy(pBuffer, (char*)&nVal, 2);
             nSize = 2;
             bValid = true;
@@ -1755,7 +1757,7 @@ void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
         if (ui.m_DataTypeCombo->currentText() == "Int32")
         {
             if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((int32_t)nVal);            
+                nVal = qToBigEndian((int32_t)nVal);
             memcpy(pBuffer, (char*)&nVal, 4);
             nSize = 4;
             bValid = true;
@@ -1764,7 +1766,7 @@ void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
         if (ui.m_DataTypeCombo->currentText() == "UInt32")
         {
             if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((uint32_t)nVal);            
+                nVal = qToBigEndian((uint32_t)nVal);
             memcpy(pBuffer, (char*)&nVal, 4);
             nSize = 4;
             bValid = true;
@@ -1773,7 +1775,7 @@ void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
         if (ui.m_DataTypeCombo->currentText() == "Int64")
         {
             if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((qint64)nVal);            
+                nVal = qToBigEndian((qint64)nVal);
             memcpy(pBuffer, (char*)&nVal, 8);
             nSize = 8;
             bValid = true;
@@ -1782,7 +1784,7 @@ void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
         if (ui.m_DataTypeCombo->currentText() == "UInt64")
         {
             if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((quint64)nVal);            
+                nVal = qToBigEndian((quint64)nVal);
             memcpy(pBuffer, (char*)&nVal, 8);
             nSize = 8;
             bValid = true;
@@ -1790,7 +1792,7 @@ void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
 
         if (bValid && converted)
         {
-            int iRet = m_Camera.WriteRegister(address, pBuffer, nSize, true);      
+            int iRet = m_Camera.WriteRegister(address, pBuffer, nSize, true);
             if (iRet == 0)
             {
                 OnLog(QString("Register '0x%1' set to %2.").arg(address, 4, 16, QChar('0')).arg(pBuffer));
@@ -1800,7 +1802,7 @@ void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
                 OnLog(QString("Error while writing register '0x%1'").arg(address, 4, 16, QChar('0')));
             }
         }
-        
+
         free(pBuffer);
         pBuffer = NULL;
     }
@@ -1949,11 +1951,11 @@ void V4L2Viewer::OnGetReferenceImage()
                 if(m_bIsOpen)
                 {
                     ui.m_CalcLiveDeviationButton->setEnabled(true);
-                    
+
                     if (m_FrameRecordVector.size())
                     {
                         ui.m_CalcDeviationButton->setEnabled(true);
-                    }                    
+                    }
                 }
             }
             else
@@ -2182,7 +2184,7 @@ void V4L2Viewer::OnCalcLiveDeviation()
         ui.m_ExportRecordedFrameButton->setEnabled(false);
         ui.m_GetReferenceButton->setEnabled(false);
         ui.m_FrameRecordTable->setDisabled(true);
-        
+
         m_LiveDeviationNumberOfErrorFrames = 0;
         m_LiveDeviationFrameCount = 0;
         m_LiveDeviationUnequalBytes = 0;
@@ -2193,17 +2195,17 @@ void V4L2Viewer::OnCalcLiveDeviation()
     {
         // pass a QShared-Null-Pointer to disable live deviation calc
         m_Camera.SetLiveDeviationCalc(QSharedPointer<QByteArray>());
-        
+
         ui.m_StartRecordButton->setEnabled(true);
         ui.m_StopRecordButton->setEnabled(false);
         ui.m_GetReferenceButton->setEnabled(true);
         ui.m_FrameRecordTable->setDisabled(false);
-        
+
         if(m_FrameRecordVector.size())
         {
             ui.m_DeleteRecording->setEnabled(true);
             ui.m_SaveFrameSeriesButton->setEnabled(true);
-            
+
             if(m_ReferenceImage)
             {
                 ui.m_CalcDeviationButton->setEnabled(true);
@@ -2220,7 +2222,7 @@ void V4L2Viewer::OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes)
         // stop calc live deviation
         ui.m_CalcLiveDeviationButton->setChecked(false);
         OnCalcLiveDeviation();
-        
+
         QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixelformat!"), tr("") );
     }
     // valid reference image
@@ -3196,6 +3198,4 @@ void V4L2Viewer::SetTitleText(QString additionalText)
     else
         setWindowTitle(QString("%1 V%2.%3.%4 - %5. viewer %6").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(m_nViewerNumber).arg(additionalText));
 }
-
-
 

@@ -28,11 +28,11 @@
 #ifndef MYFRAMEQUEUE_H
 #define MYFRAMEQUEUE_H
 
+#include "MyFrame.h"
+
 #include <QMutex>
 #include <QQueue>
 #include <QSharedPointer>
-
-#include <MyFrame.h>
 
 class MyFrameQueue
 {

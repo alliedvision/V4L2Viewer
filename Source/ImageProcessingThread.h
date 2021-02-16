@@ -28,13 +28,13 @@
 #ifndef IMAGEPORCESSINGTHREAD_H
 #define IMAGEPORCESSINGTHREAD_H
 
-#include <QObject>
-#include <QThread>
-#include <QImage>
-#include <QSharedPointer>
-
 #include <MyFrame.h>
 #include <MyFrameQueue.h>
+
+#include <QImage>
+#include <QObject>
+#include <QSharedPointer>
+#include <QThread>
 
 class ImageProcessingThread : public QThread
 {

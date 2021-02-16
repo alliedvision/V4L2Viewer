@@ -63,9 +63,8 @@ OBJ_FILES   =   $(OBJ_DIR)/BaseLogger.o \
                 $(OBJ_DIR)/FrameObserverMMAP.o \
                 $(OBJ_DIR)/FrameObserverUSER.o \
                 $(OBJ_DIR)/ImageProcessingThread.o \
-                $(OBJ_DIR)/ImageTransf.o \
+                $(OBJ_DIR)/ImageTransform.o \
                 $(OBJ_DIR)/V4l2Helper.o \
-                $(OBJ_DIR)/Helper.o \
                 $(OBJ_DIR)/V4L2Viewer.o \
                 $(OBJ_DIR)/DeviationCalculator.o \
                 $(OBJ_DIR)/Logger.o \

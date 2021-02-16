@@ -28,48 +28,32 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef THREAD_H
 #define THREAD_H
 
-#include <stdint.h>
-
-#ifdef _WIN32       /* Windows */
-#include <Windows.h>
-#else               /* Linux */
 #include <pthread.h>
+#include <stdint.h>
 #include <sys/time.h>
 #include <sys/errno.h>
-#ifndef LPTHREAD_START_ROUTINE
-typedef void *(*LPTHREAD_START_ROUTINE)(void *);
-#endif // LPTHREAD_START_ROUTINE
-#endif
+
+typedef void *(*THREAD_START_ROUTINE)(void *);
 
 
-namespace AVT {
-namespace BaseTools {
+namespace base {
 
-#ifdef __APPLE__
-    int pthread_timedjoin_np_avt(pthread_t td, void **res, struct timespec *ts);
-#endif
+class Thread
+{
+public:
+    Thread();
+    ~Thread(void);
 
-    class Thread
-    {
-    public:
-        Thread();
-        ~Thread(void);
+    void *StartThread(THREAD_START_ROUTINE threadStartRoutine, void* params);
+    void *GetThreadID();
+    uint32_t Join();
+    uint32_t JoinTimed(int msec);
 
-        void *StartThread(LPTHREAD_START_ROUTINE pfct, void* params);
-        void *GetThreadID();
-        uint32_t Join();
-        uint32_t JoinTimed(int msec );
+private:
+    pthread_t m_ThreadID;
+};
 
-    private:
-#ifdef _WIN32       /* Windows */
-        HANDLE    m_ThreadID;
-#else               /* Linux */
-        pthread_t m_ThreadID;
-#endif
-    };
-
-} // namespace BaseTools
-} // namespace AVT
+} // namespace base
 
 #endif // THREAD_H
 
