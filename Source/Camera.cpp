@@ -2347,7 +2347,7 @@ bool Camera::getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError
         if(m_isAvtCamera)
         {
             v4l2_stats_t stream_stats;
-            memset(&stream_stats, 0, sizeof(v4l2_stats_t));
+            CLEAR(stream_stats);
             if (ioctl(m_nFileDescriptor, VIDIOC_STREAMSTAT, &stream_stats) >= 0)
             {
                 FramesCount = stream_stats.frames_count;

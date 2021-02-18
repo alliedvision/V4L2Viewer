@@ -86,16 +86,16 @@ usage()
     log_raw "   *note that the script is always selecting the latest version of selected major version GCC."
 }
 #==============================================================================
-# check if selected GCC exist
+# check if selected GCC exists
 #==============================================================================
-gcc_exist()
+gcc_exists()
 {
     if proceed
     then
-        log info "Check if selected GCC exist (host:${PLATFORM_HOST_SELECTED}, target:${PLATFORM_TARGET_SELECTED}, version:${FILE_VERSION_SELECTED})"
+        log info "Selected GCC host:${PLATFORM_HOST_SELECTED}, target:${PLATFORM_TARGET_SELECTED}, version:${FILE_VERSION_SELECTED}"
         if directory_exist "${PATH_GCC_ROOT}/${FILE_GCC_SELECTED}"
         then
-            log debug "GCC already exist"
+            log debug "Selected GCC already exists in ${PATH_GCC_ROOT}/${FILE_GCC_SELECTED}"
 
             # set environment variables
             log info "Set environment variables for selected GCC"
@@ -103,6 +103,7 @@ gcc_exist()
 
             SUCCESS_FLAG=$FALSE
         else
+            log debug "Selected GCC will be created in ${PATH_GCC_ROOT}/${FILE_GCC_SELECTED}"
             SUCCESS_FLAG=$TRUE
         fi
     fi
@@ -116,13 +117,12 @@ create_gcc_folder()
     # and create it if not present
     if proceed
     then
-        log info "Check for '${PATH_DEV}' folder in home folder"
         if ! directory_exist $PATH_DEV
         then
-            log debug "Create Development folder in ${PATH_HOME}"
+            log debug "Create development folder ${PATH_DEV}"
             call "create_directory ${PATH_DEV}"
         else
-            log debug "Already exist"
+            log debug "${PATH_DEV} already exists"
             SUCCESS_FLAG=$TRUE
         fi
     fi
@@ -131,13 +131,12 @@ create_gcc_folder()
     # and create it if not present
     if proceed
     then
-        log info "Check for GCC folder in Development"
         if ! directory_exist ${PATH_GCC_ROOT}
         then
-            log debug "Create GCC folder in ${PATH_DEV}"
+            log debug "Create GCC folder ${PATH_GCC_ROOT}"
             call "create_directory ${PATH_GCC_ROOT}"
         else
-            log debug "Already exist"
+            log debug "${PATH_GCC_ROOT} already exists"
             SUCCESS_FLAG=$TRUE
         fi
     fi
@@ -153,10 +152,10 @@ download_gcc()
         # check if file was already downloaded
         if ! file_exist "${PATH_DOWNLOADS}/${FILE_GCC_SELECTED}.tar.xz"
         then
-            log info "Download GCC of version:${VERSION_SELECTED}, host:${PLATFORM_HOST_SELECTED}, target:${PLATFORM_TARGET_SELECTED} to ~/Downloads"
+            log info "Download GCC tarball ${PATH_EXT_GCC_ROOT}/${FOLDER_VERSION_SELECTED}/${GCC_SELECTED}/${FILE_GCC_SELECTED}.tar.xz to ${PATH_DOWNLOADS}"
             call "download_file ${PATH_EXT_GCC_ROOT}/${FOLDER_VERSION_SELECTED}/${GCC_SELECTED}/${FILE_GCC_SELECTED}.tar.xz ${PATH_DOWNLOADS}"
         else
-            log debug "File was already downloaded in ${PATH_DOWNLOADS}"
+            log debug "GCC tarball ${PATH_EXT_GCC_ROOT}/${FOLDER_VERSION_SELECTED}/${GCC_SELECTED}/${FILE_GCC_SELECTED}.tar.xz was already downloaded in ${PATH_DOWNLOADS}"
             SUCCESS_FLAG=$TRUE
         fi
     fi
@@ -169,14 +168,14 @@ extract_gcc()
     # extract GCC tarball
     if proceed
     then
-        log info "Extract GCC tarball in ${PATH_DOWNLOADS}"
+        log info "Extract GCC tarball ${PATH_DOWNLOADS}/${FILE_GCC_SELECTED}.tar.xz to ${PATH_GCC_ROOT}}"
         call "extract_file_tar ${PATH_DOWNLOADS}/${FILE_GCC_SELECTED}.tar.xz ${PATH_GCC_ROOT}"
     fi
 
     # remove tarball after successful extraction
     if proceed
     then
-        log info "Remove extracted tarball '${FILE_GCC_SELECTED}' from '${PATH_DOWNLOADS}'"
+        log info "Remove extracted tarball ${PATH_DOWNLOADS}/${FILE_GCC_SELECTED}.tar.xz"
         call "remove_file ${PATH_DOWNLOADS}/${FILE_GCC_SELECTED}.tar.xz"
     fi
 }
@@ -196,7 +195,7 @@ set_gcc_environment()
             export ARCH=arm
         elif check_parameter $PLATFORM_TARGET_SELECTED "armv8"
         then
-            export ARCH=arm64
+            export ARCH=arm
         fi
 
         log_raw "   ARCH:          ${ARCH}"
@@ -301,11 +300,12 @@ fi
 if proceed
 then
     FILE_GCC_SELECTED="${GCC_NAME}-${FILE_VERSION_SELECTED}-${PLATFORM_HOST_SELECTED}_${GCC_SELECTED}"
+    log info "Using selected GCC filename ${FILE_GCC_SELECTED}"}
 fi
 #==============================================================================
 # run script with respective parameter
 #==============================================================================
-gcc_exist
+gcc_exists
 create_gcc_folder
 download_gcc
 extract_gcc

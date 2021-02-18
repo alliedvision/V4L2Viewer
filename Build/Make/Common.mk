@@ -3,45 +3,204 @@ CONFIG                      = Debug
 #Check build configuration
 ifneq ($(CONFIG),Debug)
   ifneq ($(CONFIG),Release)
-    ifneq ($(CONFIG),DebugOpenMP)
-      ifneq ($(CONFIG),ReleaseOpenMP)
-	$(error Unsupported configuration)
-      endif
+    $(error Unsupported configuration)
+  endif
+endif
+
+#Helper constants
+CONST_COMMA            = ,
+UNAME                  = $(shell uname -m)
+DEFAULT_CC             = gcc
+DEFAULT_CXX            = g++
+CONST_OS               = LINUX
+
+#ARCH       possible values: x86, arm, ppc)
+#WORDSIZE   possible values: 32, 64)
+#FLOATABI   possible values: soft, hard or ignore
+ifeq ($(UNAME),i386)
+  AUTO_ARCH               = x86
+  AUTO_WORDSIZE           = 32
+  AUTO_FLOATABI           = ignore
+endif
+ifeq ($(UNAME),i486)
+  AUTO_ARCH               = x86
+  AUTO_WORDSIZE           = 32
+  AUTO_FLOATABI           = ignore
+endif
+ifeq ($(UNAME),i586)
+  AUTO_ARCH               = x86
+  AUTO_WORDSIZE           = 32
+  AUTO_FLOATABI           = ignore
+endif
+ifeq ($(UNAME),i686)
+  AUTO_ARCH               = x86
+  AUTO_WORDSIZE           = 32
+  AUTO_FLOATABI           = ignore
+endif
+ifeq ($(UNAME),x86_64)
+  AUTO_ARCH               = x86
+  AUTO_WORDSIZE           = 64
+  AUTO_FLOATABI           = ignore
+endif
+ifeq ($(UNAME),amd64)
+  AUTO_ARCH               = x86
+  AUTO_WORDSIZE           = 64
+  AUTO_FLOATABI           = ignore
+endif
+ifeq ($(UNAME),armv6l)
+  AUTO_ARCH               = arm
+  AUTO_WORDSIZE           = 32
+  AUTO_FLOATABI           = soft
+endif
+ifeq ($(UNAME),armv7l)
+  AUTO_ARCH               = arm
+  AUTO_WORDSIZE           = 32
+  AUTO_FLOATABI           = hard
+endif
+ifeq ($(UNAME),aarch64)
+  AUTO_ARCH               = arm
+  AUTO_WORDSIZE           = $(shell getconf LONG_BIT)
+  AUTO_FLOATABI           = hard
+endif
+ifeq ($(UNAME),ppc)
+  AUTO_ARCH               = ppc
+  AUTO_WORDSIZE           = 32
+  AUTO_FLOATABI           = ignore
+endif
+
+#Check auto settings
+ifneq ($(AUTO_ARCH),x86)
+  ifneq ($(AUTO_ARCH),arm)
+    ifneq ($(AUTO_ARCH),ppc)
+      $(error Invalid auto target architecture $(AUTO_ARCH))
     endif
   endif
 endif
 
-#Common file prefixes and suffixes
-TRANSPORTLAYER_PREFIX       = Vimba
-TRANSPORTLAYER_SUFFIX       = .cti
+ifneq ($(AUTO_WORDSIZE),32)
+  ifneq ($(AUTO_WORDSIZE),64)
+    $(error Invalid auto word size $(AUTO_WORDSIZE))
+  endif
+endif
 
-#MACRO_TOUPPER Parameters:
-#1. Variable
-MACRO_TOUPPER               = $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$(subst f,F,$(subst g,G,$(subst h,H,$(subst i,I,$(subst j,J,$(subst k,K,$(subst l,L,$(subst m,M,$(subst n,N,$(subst o,O,$(subst p,P,$(subst q,Q,$(subst r,R,$(subst s,S,$(subst t,T,$(subst u,U,$(subst v,V,$(subst w,W,$(subst x,X,$(subst y,Y,$(subst z,Z,$(1)))))))))))))))))))))))))))
+ifneq ($(AUTO_FLOATABI),soft)
+  ifneq ($(AUTO_FLOATABI),hard)
+    ifneq ($(AUTO_FLOATABI),ignore)
+      $(error Invalid auto float abi $(AUTO_FLOATABI))
+    endif
+  endif
+endif
 
-#MACRO_TOLOWER Parameters:
-#1. Variable
-MACRO_TOLOWER               = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$(1)))))))))))))))))))))))))))
+#Override the following variables for customizations
+ARCH                    = $(AUTO_ARCH)
+WORDSIZE                = $(AUTO_WORDSIZE)
+FLOATABI                = $(AUTO_FLOATABI)
 
-#Helper constants
-CONST_CONFIG                = $(call MACRO_TOUPPER,$(CONFIG))
-CONST_COMMA                 = ,
-CONST_QUOTE                 = '
+#Check custom settings
+ifneq ($(ARCH),x86)
+  ifneq ($(ARCH),arm)
+    ifneq ($(ARCH),ppc)
+      $(error Invalid target architecture $(ARCH))
+    endif
+  endif
+endif
 
-#MACRO_MAKE Parameters:
-#1. Directory of make project
-#2. Targets
-MACRO_MAKE                  = make -C $(CONST_QUOTE)$(1)$(CONST_QUOTE) OS=$(CONST_QUOTE)$(OS)$(CONST_QUOTE) ARCH=$(CONST_QUOTE)$(ARCH)$(CONST_QUOTE) WORDSIZE=$(CONST_QUOTE)$(WORDSIZE)$(CONST_QUOTE) ENDIANESS=$(CONST_QUOTE)$(ENDIANESS)$(CONST_QUOTE) CONFIG=$(CONST_QUOTE)$(CONFIG)$(CONST_QUOTE) CC=$(CONST_QUOTE)$(CC)$(CONST_QUOTE) CXX=$(CONST_QUOTE)$(CXX)$(CONST_QUOTE) FLOATABI=$(CONST_QUOTE)$(FLOATABI)$(CONST_QUOTE) $(2)
+ifneq ($(WORDSIZE),32)
+  ifneq ($(WORDSIZE),64)
+    $(error Invalid word size $(WORDSIZE))
+  endif
+endif
 
-#MACRO_MAKE_CUSTOM Parameters:
-# 1. Directory of make project
-# 2. Targets
-# 3. OS
-# 4. ARCH
-# 5. WORDSIZE
-# 6. ENDIANESS
-# 7. CONFIG
-# 8. CC
-# 9. CXX
-#10. FLOATABI
-MACRO_MAKE_CUSTOM           = make -C $(CONST_QUOTE)$(1)$(CONST_QUOTE) OS=$(CONST_QUOTE)$(3)$(CONST_QUOTE) ARCH=$(CONST_QUOTE)$(4)$(CONST_QUOTE) WORDSIZE=$(CONST_QUOTE)$(5)$(CONST_QUOTE) ENDIANESS=$(CONST_QUOTE)$(6)$(CONST_QUOTE) CONFIG=$(CONST_QUOTE)$(7)$(CONST_QUOTE) CC=$(CONST_QUOTE)$(8)$(CONST_QUOTE) CXX=$(CONST_QUOTE)$(9)$(CONST_QUOTE) FLOATABI=$(CONST_QUOTE)$(10)$(CONST_QUOTE) $(2)
+ifneq ($(FLOATABI),soft)
+  ifneq ($(FLOATABI),hard)
+    ifneq ($(FLOATABI),ignore)
+      $(error Invalid float abi $(FLOATABI))
+    endif
+  endif
+endif
+
+#MACRO_CXX Parameters:
+#1. Output file
+#2. Input files
+#3. Include dirs
+#4. Defines
+#5. Packages (pkg-config)
+CXX                     = $(DEFAULT_CXX)
+ifeq ($(WORDSIZE),32)
+  ifeq ($(ARCH),x86)
+    CXX_ARCH                = -m$(WORDSIZE)
+    CXX_THUMB               =
+    CXX_FLOATABI            =
+  endif
+  ifeq ($(ARCH),arm)
+    ifeq ($(FLOATABI),soft)
+      CXX_ARCH                = -march=armv4t
+      CXX_THUMB               = -marm
+      CXX_FLOATABI            = -mfloat-abi=soft
+    endif
+    ifeq ($(FLOATABI),hard)
+      CXX_ARCH                = -march=armv7
+      CXX_THUMB               = -mthumb
+      CXX_FLOATABI            = -mfloat-abi=hard
+    endif
+  endif
+endif
+ifeq ($(WORDSIZE),64)
+  ifeq ($(ARCH),x86)
+    CXX_ARCH                = -m$(WORDSIZE)
+    CXX_THUMB               =
+    CXX_FLOATABI            =
+  endif
+  ifeq ($(ARCH),arm)
+    CXX_ARCH                = -march=armv8-a
+    CXX_THUMB               =
+    CXX_FLOATABI            =
+  endif
+endif
+ifeq ($(CONFIG),Debug)
+  CXX_CONFIG_FLAGS        = -O0 -g
+endif
+ifeq ($(CONFIG),Release)
+  CXX_CONFIG_FLAGS        = -O3
+endif
+MACRO_CXX               = $(CXX) -std=c++98 $(foreach dir,$(3),-I$(dir)) $(foreach def,$(4),-D$(def)) -fvisibility=hidden -fPIC $(CXX_CONFIG_FLAGS) $(CXX_ARCH) $(CXX_FLOATABI) $(CXX_THUMB) -o $(1) -c $(2) $(foreach pkg,$(5),$(shell pkg-config --cflags $(pkg)))
+
+#MACRO_MKDIR Parameters:
+#1. Directories to create
+MACRO_MKDIR             = mkdir -p $(1)
+
+#MACRO_RMDIR Parameters:
+#1. Directories to delete
+MACRO_RMDIR             = if [ -d "$(1)" ]; then rm -Rf $(1); fi
+
+#MACRO_RM Parameters:
+#1. Files to delete
+MACRO_RM                = rm -f $(1)
+
+#MACRO_LINK_BINARY Parameters:
+#1. Output file
+#2. Input files
+#3. Libraries
+#4. Library dirs
+#5. Packages (pkg-config)
+#6. Symbols file
+#7. rpath linker paths
+#8. rpath-link linker paths
+MACRO_LINK_BINARY       = $(CXX) $(CXX_ARCH) $(CXX_FLOATABI) $(CXX_THUMB) $(if $(6),-Wl$(CONST_COMMA)--retain-symbols-file=$(6) $(foreach symbol,$(shell cat $(6)),-Wl$(CONST_COMMA)-u$(CONST_COMMA)$(symbol))) -o $(1) $(2) $(foreach dir,$(4),-L$(dir)) $(foreach dir,$(7),-Wl$(CONST_COMMA)-rpath$(CONST_COMMA)$(dir)) $(foreach dir,$(8),-Wl$(CONST_COMMA)-rpath-link$(CONST_COMMA)$(dir)) $(foreach lib,$(3),$(if $(findstring STATIC_,$(lib)),$(patsubst STATIC_%,-Wl$(CONST_COMMA)-Bstatic -l%, $(lib)),-Wl$(CONST_COMMA)-Bdynamic -l$(lib))) $(patsubst %,-L%,$(subst :, ,$(ADD_LIBRARY_PATH))) $(foreach pkg,$(5),$(shell pkg-config --libs $(pkg))) -Wl,--no-undefined
+
+#MACRO_MOC Parameters:
+#1. Output file
+#2. Input file
+PKGCFG_MOC              = $(shell pkg-config --variable=moc_location QtCore)
+MACRO_MOC               = $(if $(PKGCFG_MOC),$(PKGCFG_MOC),moc) -o $(1) $(2)
+
+#MACRO_UIC Parameters:
+#1. Output file
+#2. Input file
+PKGCFG_UIC              = $(shell pkg-config --variable=uic_location QtCore)
+MACRO_UIC               = $(if $(PKGCFG_UIC),$(PKGCFG_UIC),uic) -o $(1) $(2)
+
+#MACRO_RCC Parameters:
+#1. Output file
+#2. Input file
+MACRO_RCC               = rcc -o $(1) $(2)

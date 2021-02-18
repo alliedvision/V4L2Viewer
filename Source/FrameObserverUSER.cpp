@@ -60,7 +60,7 @@ int FrameObserverUSER::ReadFrame(v4l2_buffer &buf)
 {
     int result = -1;
 
-    memset(&buf, 0, sizeof(buf));
+    CLEAR(buf);
 
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_USERPTR;

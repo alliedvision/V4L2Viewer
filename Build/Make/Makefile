@@ -28,14 +28,12 @@
 # general information
 PROJECT_NAME            = V4L2Viewer
 
-OS                      = $(shell uname -s)
-
 BIN_FILE = $(PROJECT_NAME)
 
 # path variables
 PROJECT_DIR             = ../..
 MAKE_INCLUDE_DIR        = $(CURDIR)
-CONFIG_DIR              = $(OS)_$(ARCH)_$(WORDSIZE)bit/$(CONFIG)
+CONFIG_DIR              = $(ARCH)_$(WORDSIZE)bit/$(CONFIG)
 BIN_DIR                 = binary/$(CONFIG_DIR)
 OBJ_DIR                 = object/$(CONFIG_DIR)
 SOURCE_DIR              = $(PROJECT_DIR)/Source
@@ -44,7 +42,7 @@ INCLUDE_DIRS            = $(SOURCE_DIR) \
 BIN_PATH                = $(BIN_DIR)/$(BIN_FILE)
 
 # include OS dependent content
-include $(MAKE_INCLUDE_DIR)/$(OS).mk
+include $(MAKE_INCLUDE_DIR)/Common.mk
 
 # required libs
 LIBS = pthread
@@ -83,44 +81,35 @@ OBJ_FILES   =   $(OBJ_DIR)/BaseLogger.o \
 # header files
 GEN_HEADERS    = $(OBJ_DIR)/ui_V4L2Viewer.h
 
+.SECONDARY: $(GEN_HEADERS)
+
 all: $(BIN_PATH)
-
-$(OBJ_DIR)/moc_%.cpp: $(SOURCE_DIR)/%.h $(OBJ_DIR)
-	$(call MACRO_MOC,$@,$<)
-
-$(OBJ_DIR)/moc_%.cpp: $(SOURCE_DIR)/QHexEdit/%.h $(OBJ_DIR)
-	$(call MACRO_MOC,$@,$<)
-
-$(OBJ_DIR)/ui_%.h: $(SOURCE_DIR)/res/%.ui $(OBJ_DIR)
-	$(call MACRO_UIC,$@,$<)
-
-$(OBJ_DIR)/qrc_%.cpp: $(SOURCE_DIR)/res/%.qrc $(OBJ_DIR)
-	$(call MACRO_RCC,$@,$<)
-
-$(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.c $(OBJ_DIR) $(GEN_HEADERS)
-	$(call MACRO_CC,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
-
-$(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(OBJ_DIR) $(GEN_HEADERS)
-	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
-
-$(OBJ_DIR)/%.o: $(SOURCE_DIR)/QHexEdit/%.cpp $(OBJ_DIR) $(GEN_HEADERS)
-	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
-
-$(OBJ_DIR)/%.o: $(OBJ_DIR)/%.cpp $(OBJ_DIR) $(GEN_HEADERS)
-	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
-
-$(BIN_PATH): $(DEPENDENCIES) $(OBJ_FILES) $(BIN_DIR)
-	$(call MACRO_LINK_BINARY,$(BIN_PATH),$(OBJ_FILES),$(LIBS),$(LIB_DIRS),$(PACKAGES),,'$$ORIGIN',$(BIN_DIR),,$(FRAMEWORKS))
-
-clean:
-	$(call MACRO_RM,$(OBJ_FILES))
-	$(call MACRO_RM,$(BIN_PATH))
-	$(call MACRO_RMDIR,$(OBJ_DIR))
-	$(call MACRO_RMDIR,$(BIN_DIR))
-	$(call MACRO_RMDIR_FORCE,../gcc)
 
 $(OBJ_DIR):
 	$(call MACRO_MKDIR,$(OBJ_DIR))
 
 $(BIN_DIR):
 	$(call MACRO_MKDIR,$(BIN_DIR))
+
+$(OBJ_DIR)/moc_%.cpp: $(SOURCE_DIR)/%.h
+	$(call MACRO_MOC,$@,$<)
+
+$(OBJ_DIR)/ui_%.h: $(SOURCE_DIR)/res/%.ui
+	$(call MACRO_UIC,$@,$<)
+
+$(OBJ_DIR)/qrc_%.cpp: $(SOURCE_DIR)/res/%.qrc
+	$(call MACRO_RCC,$@,$<)
+
+$(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(GEN_HEADERS) | $(OBJ_DIR)
+	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
+
+$(OBJ_DIR)/%.o: $(OBJ_DIR)/%.cpp $(GEN_HEADERS) | $(OBJ_DIR)
+	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
+
+$(BIN_PATH): $(OBJ_FILES) $(BIN_DIR)
+	$(call MACRO_LINK_BINARY,$(BIN_PATH),$(OBJ_FILES),$(LIBS),$(LIB_DIRS),$(PACKAGES),,'$$ORIGIN',$(BIN_DIR),,$(FRAMEWORKS))
+
+clean:
+	$(call MACRO_RMDIR,$(OBJ_DIR))
+	$(call MACRO_RMDIR,$(BIN_DIR))
+	$(call MACRO_RMDIR,../gcc)
