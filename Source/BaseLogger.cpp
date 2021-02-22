@@ -70,9 +70,9 @@ BaseLogger::BaseLogger(const std::string &fileName, bool bAppend)
         m_pFile = fopen(fileName.c_str(), "wt");
     }
 
-    m_pLogTextThread.StartThread((THREAD_START_ROUTINE)LoggerThreadProc, this);
-    m_pDumpThread.StartThread((THREAD_START_ROUTINE)DumpThreadProc, this);
-    m_pBufferThread.StartThread((THREAD_START_ROUTINE)BufferThreadProc, this);
+    m_LogTextThread.StartThread((THREAD_START_ROUTINE)LoggerThreadProc, this);
+    m_DumpThread.StartThread((THREAD_START_ROUTINE)DumpThreadProc, this);
+    m_BufferThread.StartThread((THREAD_START_ROUTINE)BufferThreadProc, this);
 }
 
 BaseLogger::~BaseLogger()
@@ -92,9 +92,9 @@ BaseLogger::~BaseLogger()
         m_pFile = NULL;
     }
 
-    m_pLogTextThread.Join();
-    m_pDumpThread.Join();
-    m_pBufferThread.Join();
+    m_LogTextThread.Join();
+    m_DumpThread.Join();
+    m_BufferThread.Join();
 }
 
 std::string BaseLogger::ConvertTimeStampToString()
@@ -150,13 +150,13 @@ std::string BaseLogger::ConvertPacketToString(uint8_t* buffer, uint32_t length)
     return output.str();
 }
 
-void BaseLogger::Log(const std::string &rStrMessage)
+void BaseLogger::Log(const std::string &message)
 {
     if(m_bThreadRunning)
     {
         std::stringstream text;
 
-        text << ConvertTimeStampToString() << ": " << rStrMessage;
+        text << ConvertTimeStampToString() << ": " << message;
 
         if(NULL != m_pFile)
         {
@@ -167,35 +167,35 @@ void BaseLogger::Log(const std::string &rStrMessage)
     }
 }
 
-void BaseLogger::LogDump(const std::string &rStrMessage, uint8_t *buffer, uint32_t length)
+void BaseLogger::LogDump(const std::string &message, uint8_t *buffer, uint32_t length)
 {
     if(m_bDumpThreadRunning)
     {
         LocalMutexLockGuard guard(m_DumpMutex);
 
-        PPACKET pack = new PACKET;
-        pack->Buffer.resize(length);
-        memcpy(&pack->Buffer[0], buffer, length);
-        pack->Length = length;
-        pack->Message = rStrMessage;
+        Packet* pPacket = new Packet;
+        pPacket->buffer.resize(length);
+        memcpy(&pPacket->buffer[0], buffer, length);
+        pPacket->length = length;
+        pPacket->message = message;
 
-        m_DumpQueue.push(pack);
+        m_DumpQueue.push(pPacket);
     }
 }
 
-void BaseLogger::LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t length)
+void BaseLogger::LogBuffer(const std::string &filename, uint8_t *buffer, uint32_t length)
 {
     if(m_bDumpThreadRunning)
     {
         LocalMutexLockGuard guard(m_DumpMutex);
 
-        PPACKET pack = new PACKET;
-        pack->Buffer.resize(length);
-        memcpy(&pack->Buffer[0], buffer, length);
-        pack->Length = length;
-        pack->FileName = rFileName;
+        Packet* pPacket = new Packet;
+        pPacket->buffer.resize(length);
+        memcpy(&pPacket->buffer[0], buffer, length);
+        pPacket->length = length;
+        pPacket->filename = filename;
 
-        m_BufferQueue.push(pack);
+        m_BufferQueue.push(pPacket);
     }
 }
 
@@ -233,16 +233,16 @@ void BaseLogger::DmpThreadProc()
         if(m_DumpQueue.size() > 0)
         {
             std::string text;
-            PPACKET pack;
+            Packet* pPacket;
             {
                 LocalMutexLockGuard guard(m_DumpMutex);
 
-                pack = m_DumpQueue.front();
+                pPacket = m_DumpQueue.front();
                 m_DumpQueue.pop();
             }
-            text = ConvertPacketToString(&pack->Buffer[0], pack->Length);
-            Log(pack->Message + text);
-            delete pack;
+            text = ConvertPacketToString(&pPacket->buffer[0], pPacket->length);
+            Log(pPacket->message + text);
+            delete pPacket;
         }
 
         usleep(MIN_DURATION_BETWEEN_LOG_WRITES_MS * 1000);
@@ -259,24 +259,24 @@ void BaseLogger::BufThreadProc()
     {
         if(m_BufferQueue.size() > 0)
         {
-            PPACKET pack;
+            Packet* pPacket;
 
             {
                 LocalMutexLockGuard guard(m_BufferMutex);
-                pack = m_BufferQueue.front();
+                pPacket = m_BufferQueue.front();
                 m_BufferQueue.pop();
             }
 
-            FILE *localFile = fopen(pack->FileName.c_str(), "wb");
+            FILE *localFile = fopen(pPacket->filename.c_str(), "wb");
 
             if(NULL != localFile)
             {
-                fwrite(&pack->Buffer[0], 1, pack->Length, localFile);
+                fwrite(&pPacket->buffer[0], 1, pPacket->length, localFile);
 
                 fflush(localFile);
                 fclose(localFile);
             }
-            delete pack;
+            delete pPacket;
         }
 
         usleep(MIN_DURATION_BETWEEN_LOG_WRITES_MS * 1000);
@@ -342,10 +342,10 @@ void BaseLogger::PrintDumpExitMessage()
     while(m_DumpQueue.size() > 0)
     {
         std::string out;
-        PPACKET pack = m_DumpQueue.front();
+        Packet* pPacket = m_DumpQueue.front();
         m_DumpQueue.pop();
-        out = ConvertPacketToString(&pack->Buffer[0], pack->Length);
-        delete pack;
+        out = ConvertPacketToString(&pPacket->buffer[0], pPacket->length);
+        delete pPacket;
 
         fprintf(m_pFile, "%s\n", out.c_str());
         fflush(m_pFile);
@@ -361,19 +361,19 @@ void BaseLogger::PrintBufferExitMessage()
 {
     while(m_BufferQueue.size() > 0)
     {
-        PPACKET pack = m_BufferQueue.front();
-        FILE *localFile = fopen(pack->FileName.c_str(), "wb");
+        Packet* pPacket = m_BufferQueue.front();
+        FILE *localFile = fopen(pPacket->filename.c_str(), "wb");
 
         m_BufferQueue.pop();
 
         if(NULL != localFile)
         {
-            fwrite(&pack->Buffer[0], 1, pack->Length, localFile);
+            fwrite(&pPacket->buffer[0], 1, pPacket->length, localFile);
 
             fflush(localFile);
             fclose(localFile);
         }
-        delete pack;
+        delete pPacket;
     }
 }
 

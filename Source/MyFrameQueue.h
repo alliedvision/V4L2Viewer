@@ -49,7 +49,7 @@ public:
 
     // Add a new frame
     void Enqueue(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
-         uint32_t &width, uint32_t &height, uint32_t &pixelformat,
+         uint32_t &width, uint32_t &height, uint32_t &pixelFormat,
          uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
 
     // Add a new frame

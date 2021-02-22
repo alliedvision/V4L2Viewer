@@ -88,9 +88,9 @@ private:
     bool                                        m_bTerminate;
 
     // Variable to abort the running thread
-    bool                                         m_bAbort;
+    bool                                        m_bAbort;
 
-    std::map<int, std::string>                    m_DeviceList;
+    std::map<int, std::string>                  m_DeviceList;
 
 };
 

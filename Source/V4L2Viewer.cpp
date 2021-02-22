@@ -25,8 +25,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =============================================================================*/
 
+#include <V4L2Helper.h>
 #include "Logger.h"
-#include "V4l2Helper.h"
 #include "V4L2Viewer.h"
 
 #include <QtCore>
@@ -107,7 +107,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_nViewerNumber(viewerNumber)
     , m_bIsOpen(false)
     , m_bIsStreaming(false)
-    , m_dFitToScreen(false)
+    , m_bFitToScreen(false)
     , m_dScaleFactor(1.0)
     , m_DirectAccessData(0)
     , m_SaveFileDialog(0)
@@ -163,8 +163,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(OnCameraError_Signal(const QString &)), this, SLOT(OnCameraError(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraMessage_Signal(const QString &)), this, SLOT(OnCameraMessage(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraRecordFrame_Signal(const QSharedPointer<MyFrame>&)), this, SLOT(OnCameraRecordFrame(const QSharedPointer<MyFrame>&)));
-    connect(&m_Camera, SIGNAL(OnCameraPixelformat_Signal(const QString &)), this, SLOT(OnCameraPixelformat(const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraFramesize_Signal(const QString &)), this, SLOT(OnCameraFramesize(const QString &)));
+    connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)), this, SLOT(OnCameraPixelFormat(const QString &)));
+    connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)), this, SLOT(OnCameraFrameSize(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraLiveDeviationCalc_Signal(int)), this, SLOT(OnCalcLiveDeviationFromFrameObserver(int)));
 
     // Setup blocking mode radio buttons
@@ -210,11 +210,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     // Connect the buttons for the direct register access
     connect(ui.m_DirectRegisterAccessReadButton, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessReadButtonClicked()));
     connect(ui.m_DirectRegisterAccessWriteButton, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessWriteButtonClicked()));
-    connect(ui.m_BigEndianessRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
-    connect(ui.m_LittleEndianessRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
-    connect(ui.m_DataDecRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
-    connect(ui.m_DataHexRadio, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessUpdateData()));
-    OnDirectRegisterAccessUpdateData();
 
     // connect the buttons for the Recording
     connect(ui.m_StartRecordButton, SIGNAL(clicked()), this, SLOT(OnStartRecording()));
@@ -245,14 +240,14 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     // connect the buttons for Image m_ControlRequestTimer
     connect(ui.m_edWidth, SIGNAL(returnPressed()), this, SLOT(OnWidth()));
     connect(ui.m_edHeight, SIGNAL(returnPressed()), this, SLOT(OnHeight()));
-    connect(ui.m_edPixelformat, SIGNAL(returnPressed()), this, SLOT(OnPixelformat()));
+    connect(ui.m_edPixelFormat, SIGNAL(returnPressed()), this, SLOT(OnPixelFormat()));
     connect(ui.m_edGain, SIGNAL(returnPressed()), this, SLOT(OnGain()));
     connect(ui.m_chkAutoGain, SIGNAL(clicked()), this, SLOT(OnAutoGain()));
     connect(ui.m_edExposure, SIGNAL(returnPressed()), this, SLOT(OnExposure()));
     connect(ui.m_edExposureAbs, SIGNAL(returnPressed()), this, SLOT(OnExposureAbs()));
     connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
-    connect(ui.m_liPixelformats, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnPixelformatDBLClick(QListWidgetItem *)));
-    connect(ui.m_liFramesizes, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnFramesizesDBLClick(QListWidgetItem *)));
+    connect(ui.m_liPixelFormats, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnPixelFormatDBLClick(QListWidgetItem *)));
+    connect(ui.m_liFrameSizes, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnFrameSizesDBLClick(QListWidgetItem *)));
     connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
     connect(ui.m_edReverseX, SIGNAL(returnPressed()), this, SLOT(OnReverseX()));
     connect(ui.m_edReverseY, SIGNAL(returnPressed()), this, SLOT(OnReverseY()));
@@ -265,7 +260,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_butWhiteBalanceOnce, SIGNAL(clicked()), this, SLOT(OnWhiteBalanceOnce()));
     connect(ui.m_edRedBalance, SIGNAL(returnPressed()), this, SLOT(OnRedBalance()));
     connect(ui.m_edBlueBalance, SIGNAL(returnPressed()), this, SLOT(OnBlueBalance()));
-    connect(ui.m_edFramerate, SIGNAL(returnPressed()), this, SLOT(OnFramerate()));
+    connect(ui.m_edFrameRate, SIGNAL(returnPressed()), this, SLOT(OnFrameRate()));
     connect(ui.m_edCropXOffset, SIGNAL(returnPressed()), this, SLOT(OnCropXOffset()));
     connect(ui.m_edCropYOffset, SIGNAL(returnPressed()), this, SLOT(OnCropYOffset()));
     connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
@@ -422,6 +417,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_ToggleStreamDelayWidgetAction = new QWidgetAction(this);
     m_ToggleStreamDelayWidgetAction->setDefaultWidget(widgetToggleStreamDelay);
     ui.m_MenuTest->addAction(m_ToggleStreamDelayWidgetAction);
+
+    ui.menuBar->setNativeMenuBar(false);
 
     ui.m_FeatureTabWidget->setCurrentIndex(0);
 
@@ -818,36 +815,36 @@ void V4L2Viewer::OnGetStreamStatisticsButtonClicked()
 // The event handler for starting
 void V4L2Viewer::OnStartButtonClicked()
 {
-    uint32_t payloadsize = 0;
+    uint32_t payloadSize = 0;
     uint32_t width = 0;
     uint32_t height = 0;
-    uint32_t pixelformat = 0;
+    uint32_t pixelFormat = 0;
     uint32_t bytesPerLine = 0;
-    QString pixelformatText;
+    QString pixelFormatText;
     int result = 0;
 
-    // Get the payloadsize first to setup the streaming channel
-    result = m_Camera.ReadPayloadsize(payloadsize);
-    OnLog(QString("Received Payloadsize = %1").arg(payloadsize));
+    // Get the payload size first to setup the streaming channel
+    result = m_Camera.ReadPayloadSize(payloadSize);
+    OnLog(QString("Received payload size = %1").arg(payloadSize));
     result = m_Camera.ReadFrameSize(width, height);
-    OnLog(QString("Received Width = %1").arg(width));
-    OnLog(QString("Received Height = %1").arg(height));
-    result = m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
-    OnLog(QString("Received Pixelformat = %1 = 0x%2 = %3").arg(pixelformat).arg(pixelformat, 8, 16, QChar('0')).arg(pixelformatText));
+    OnLog(QString("Received width = %1").arg(width));
+    OnLog(QString("Received height = %1").arg(height));
+    result = m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
+    OnLog(QString("Received pixel format = %1 = 0x%2 = %3").arg(pixelFormat).arg(pixelFormat, 8, 16, QChar('0')).arg(pixelFormatText));
 
     if (result == 0)
-        StartStreaming(pixelformat, payloadsize, width, height, bytesPerLine);
+        StartStreaming(pixelFormat, payloadSize, width, height, bytesPerLine);
 }
 
 void V4L2Viewer::OnToggleButtonClicked()
 {
-    uint32_t payloadsize = 0;
+    uint32_t payloadSize = 0;
     int result = 0;
 
-    // Get the payloadsize first to setup the streaming channel
-    result = m_Camera.ReadPayloadsize(payloadsize);
+    // Get the payload size first to setup the streaming channel
+    result = m_Camera.ReadPayloadSize(payloadSize);
 
-    OnLog(QString("Received Payloadsize = %1").arg(payloadsize));
+    OnLog(QString("Received payload size = %1").arg(payloadSize));
 
     if (result == 0)
     {
@@ -946,17 +943,17 @@ void V4L2Viewer::OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame)
     UpdateRecordTableWidget();
 }
 
-void V4L2Viewer::OnCameraPixelformat(const QString& format)
+void V4L2Viewer::OnCameraPixelFormat(const QString& pixelFormat)
 {
-    ui.m_liPixelformats->addItem(format);
+    ui.m_liPixelFormats->addItem(pixelFormat);
 }
 
-void V4L2Viewer::OnCameraFramesize(const QString& size)
+void V4L2Viewer::OnCameraFrameSize(const QString& frameSize)
 {
-    ui.m_liFramesizes->addItem(size);
+    ui.m_liFrameSizes->addItem(frameSize);
 }
 
-void V4L2Viewer::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
+void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
     int err = 0;
     int nRow = ui.m_CamerasListBox->currentRow();
@@ -1005,7 +1002,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint
 
     // start streaming
 
-    if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadsize) == 0)
+    if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadSize) == 0)
     {
         m_Camera.QueueAllUserBuffer();
         OnLog("Starting Stream...");
@@ -1018,18 +1015,18 @@ void V4L2Viewer::StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint
             OnLog("Start Stream failed.");
         }
         err = m_Camera.StartStreamChannel(m_CSVFileLineEdit->text().toStdString().c_str(),
-                          pixelformat,
-                          payloadsize,
-                          width,
-                          height,
-                          bytesPerLine,
-                          NULL,
-                          ui.m_TitleLogtofile->isChecked(),
-                          logFrameRangeStart,
-                          logFrameRangeEnd,
-                          dumpByteFrameRangeStart,
-                          dumpByteFrameRangeEnd,
-                          ui.m_TitleCorrectIncomingRAW10Image->isChecked());
+                                          pixelFormat,
+                                          payloadSize,
+                                          width,
+                                          height,
+                                          bytesPerLine,
+                                          NULL,
+                                          ui.m_TitleLogtofile->isChecked(),
+                                          logFrameRangeStart,
+                                          logFrameRangeEnd,
+                                          dumpByteFrameRangeStart,
+                                          dumpByteFrameRangeEnd,
+                                          ui.m_TitleCorrectIncomingRAW10Image->isChecked());
 
         if (0 != err)
             OnLog("Start Acquisition failed during SI Start channel.");
@@ -1061,7 +1058,7 @@ void V4L2Viewer::InitializeTableWidget()
 
     // set table headers
     QStringList header;
-    header << "Frame ID" << "Buffer index" << "Width" << "Height" << "Payload size" << "Pixelformat" << "Buffer length" << "Bytes per line" << "Reference Image: #Unequal Bytes";
+    header << "Frame ID" << "Buffer index" << "Width" << "Height" << "Payload size" << "Pixel Format" << "Buffer length" << "Bytes per line" << "Reference Image: #Unequal Bytes";
     ui.m_FrameRecordTable->setHorizontalHeaderLabels(header);
     ui.m_FrameRecordTable->resizeColumnsToContents();
 }
@@ -1100,7 +1097,7 @@ void V4L2Viewer::UpdateRecordTableWidget()
         uint32_t width = frame->GetWidth();
         uint32_t height = frame->GetHeight();
         uint32_t payloadSize = frame->GetPayloadSize();
-        uint32_t pixelFormat = frame->GetPixelformat();
+        uint32_t pixelFormat = frame->GetPixelFormat();
         uint32_t bufferLength = frame->GetBufferlength();
         uint32_t bytesPerLine = frame->GetBytesPerLine();
 
@@ -1131,7 +1128,7 @@ void V4L2Viewer::UpdateRecordTableWidget()
 
         // pixel format
         QTableWidgetItem* item_pixelFormat = new QTableWidgetItem();
-        item_pixelFormat->setText(QString::fromStdString(V4l2Helper::ConvertPixelformat2EnumString(pixelFormat)));
+        item_pixelFormat->setText(QString::fromStdString(v4l2helper::ConvertPixelFormat2EnumString(pixelFormat)));
         ui.m_FrameRecordTable->setItem(i, 5, item_pixelFormat);
 
         // buffer length
@@ -1812,21 +1809,6 @@ void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
     }
 }
 
-// The event handler to update the direct register access value
-void V4L2Viewer::OnDirectRegisterAccessUpdateData()
-{
-    QString strValue("");
-    uint64_t value64u = m_DirectAccessData;
-    int64_t value64s = reinterpret_cast<int64_t &>(value64u);
-    uint32_t value32u = reinterpret_cast<uint32_t &>(value64u);
-    int32_t value32s = reinterpret_cast<int32_t &>(value64u);
-
-    // big or little endian
-    if (!ui.m_LittleEndianessRadio->isChecked())
-    {
-    }
-}
-
 void V4L2Viewer::OnStartRecording()
 {
     m_Camera.SetRecording(true);
@@ -2013,11 +1995,11 @@ void V4L2Viewer::SaveFrameDialog(bool raw)
     {
         QString fileExtensions = raw ? ".raw" : ".png";
 
-        QString pixelformat = QString::fromStdString(V4l2Helper::ConvertPixelformat2EnumString(selectedFrame->GetPixelformat()));
+        QString pixelFormat = QString::fromStdString(v4l2helper::ConvertPixelFormat2EnumString(selectedFrame->GetPixelFormat()));
         QString width = QString::number(selectedFrame->GetWidth());
         QString height = QString::number(selectedFrame->GetHeight());
         QString frameId = QString::number(selectedFrame->GetFrameId());
-        QString defaultFileName = QString("Frame") + frameId + QString("_") + width + QString("x") + height + QString("_") + pixelformat;
+        QString defaultFileName = QString("Frame") + frameId + QString("_") + width + QString("x") + height + QString("_") + pixelFormat;
 
         if ( NULL != m_SaveFileDialog )
         {
@@ -2069,11 +2051,11 @@ void V4L2Viewer::OnSaveFrameSeries()
             {
                 QSharedPointer<MyFrame> frame = m_FrameRecordVector[tableRow];
 
-                QString pixelformat = QString::fromStdString(V4l2Helper::ConvertPixelformat2EnumString(frame->GetPixelformat()));
+                QString pixelFormat = QString::fromStdString(v4l2helper::ConvertPixelFormat2EnumString(frame->GetPixelFormat()));
                 QString width = QString::number(frame->GetWidth());
                 QString height = QString::number(frame->GetHeight());
                 QString frameId = QString::number(frame->GetFrameId());
-                QString filename = QString::number(tableRow) + QString("_Frame") + frameId + QString("_") + width + QString("x") + height + QString("_") + pixelformat + QString(".raw");
+                QString filename = QString::number(tableRow) + QString("_Frame") + frameId + QString("_") + width + QString("x") + height + QString("_") + pixelFormat + QString(".raw");
                 QString absoluteFilePath = dir + QString("/") + filename;
 
                 SaveFrame(frame, absoluteFilePath, true);
@@ -2116,7 +2098,7 @@ void V4L2Viewer::OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequal
         else
         {
             ui.m_meanDeviationLabel->setText(QString("Mean #Unequal Bytes: -"));
-            QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixelformat!"), tr("") );
+            QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixel format!"), tr("") );
         }
 
         ui.m_StartRecordButton->setEnabled(true);
@@ -2139,7 +2121,7 @@ void V4L2Viewer::OnCalcDeviation()
     m_MeanNumberOfUnequalBytes = 0;
     m_deviationErrors = 0;
 
-    std::map<unsigned int, QSharedPointer<MyFrame> > tableRowToFrame;
+    std::map<unsigned int, QSharedPointer<MyFrame> > rowToFrameTable;
 
     // iterate through table
     for (unsigned int tableRow = 0; tableRow < ui.m_FrameRecordTable->rowCount(); ++tableRow)
@@ -2151,7 +2133,7 @@ void V4L2Viewer::OnCalcDeviation()
         if (tableRow < m_FrameRecordVector.size())
         {
             QSharedPointer<MyFrame> frame = m_FrameRecordVector[tableRow];
-            tableRowToFrame.insert(std::make_pair(tableRow, frame));
+            rowToFrameTable.insert(std::make_pair(tableRow, frame));
         }
     }
 
@@ -2162,7 +2144,7 @@ void V4L2Viewer::OnCalcDeviation()
     m_LoadingAnimation->start();
 
     // calculate in separate thread
-    m_CalcThread = QSharedPointer<DeviationCalculator>(new DeviationCalculator(m_ReferenceImage, tableRowToFrame));
+    m_CalcThread = QSharedPointer<DeviationCalculator>(new DeviationCalculator(m_ReferenceImage, rowToFrameTable));
 
     connect(m_CalcThread.data(), SIGNAL(OnCalcDeviationReady_Signal(unsigned int, int, bool)),
             this, SLOT(OnCalcDeviationReady(unsigned int, int, bool)));
@@ -2223,7 +2205,7 @@ void V4L2Viewer::OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes)
         ui.m_CalcLiveDeviationButton->setChecked(false);
         OnCalcLiveDeviation();
 
-        QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixelformat!"), tr("") );
+        QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixel format!"), tr("") );
     }
     // valid reference image
     else
@@ -2250,18 +2232,18 @@ void V4L2Viewer::OnWidth()
     {
         uint32_t width = 0;
         uint32_t height = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framesize!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
         m_Camera.ReadFrameSize(width, height);
         ui.m_edWidth->setText(QString("%1").arg(width));
         ui.m_edHeight->setText(QString("%1").arg(height));
     }
     else
     {
-        uint32_t payloadsize = 0;
-        OnLog(QString("Framesize set to %1x%2").arg(ui.m_edWidth->text().toInt()).arg(ui.m_edHeight->text().toInt()));
+        uint32_t payloadSize = 0;
+        OnLog(QString("Frame size set to %1x%2").arg(ui.m_edWidth->text().toInt()).arg(ui.m_edHeight->text().toInt()));
 
-        m_Camera.ReadPayloadsize(payloadsize);
-        ui.m_edPayloadsize->setText(QString("%1").arg(payloadsize));
+        m_Camera.ReadPayloadSize(payloadSize);
+        ui.m_edPayloadSize->setText(QString("%1").arg(payloadSize));
     }
 }
 
@@ -2272,15 +2254,15 @@ void V4L2Viewer::OnHeight()
 
     if (m_Camera.SetFrameSize(ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt()) < 0)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framesize!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
     }
     else
     {
-        uint32_t payloadsize = 0;
-        OnLog(QString("Framesize set to %1x%2").arg(ui.m_edWidth->text().toInt()).arg(ui.m_edHeight->text().toInt()));
+        uint32_t payloadSize = 0;
+        OnLog(QString("Frame size set to %1x%2").arg(ui.m_edWidth->text().toInt()).arg(ui.m_edHeight->text().toInt()));
 
-        m_Camera.ReadPayloadsize(payloadsize);
-        ui.m_edPayloadsize->setText(QString("%1").arg(payloadsize));
+        m_Camera.ReadPayloadSize(payloadSize);
+        ui.m_edPayloadSize->setText(QString("%1").arg(payloadSize));
     }
 
     m_Camera.ReadFrameSize(width, height);
@@ -2288,29 +2270,29 @@ void V4L2Viewer::OnHeight()
     ui.m_edHeight->setText(QString("%1").arg(height));
 }
 
-void V4L2Viewer::OnPixelformat()
+void V4L2Viewer::OnPixelFormat()
 {
-    if (m_Camera.SetPixelformat(ui.m_edPixelformat->text().toInt(), "") < 0)
+    if (m_Camera.SetPixelFormat(ui.m_edPixelFormat->text().toInt(), "") < 0)
     {
-        uint32_t pixelformat = 0;
+        uint32_t pixelFormat = 0;
         uint32_t bytesPerLine = 0;
-        QString pixelformatText;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Pixelformat!") );
-        m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
-        ui.m_edPixelformat->setText(QString("%1").arg(pixelformat));
-        ui.m_edPixelformatText->setText(QString("%1").arg(pixelformatText));
+        QString pixelFormatText;
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE pixel format!") );
+        m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
+        ui.m_edPixelFormat->setText(QString("%1").arg(pixelFormat));
+        ui.m_edPixelFormatText->setText(QString("%1").arg(pixelFormatText));
     }
     else
     {
-        uint32_t pixelformat = 0;
+        uint32_t pixelFormat = 0;
         uint32_t bytesPerLine = 0;
-        QString pixelformatText;
+        QString pixelFormatText;
         // Readback to verify
-        m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
-        ui.m_edPixelformat->setText(QString("%1").arg(pixelformat));
-        ui.m_edPixelformatText->setText(QString("%1").arg(pixelformatText));
+        m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
+        ui.m_edPixelFormat->setText(QString("%1").arg(pixelFormat));
+        ui.m_edPixelFormatText->setText(QString("%1").arg(pixelFormatText));
 
-        OnLog(QString("Pixelformat set to %1").arg(ui.m_edPixelformat->text().toInt()));
+        OnLog(QString("Pixel format set to %1").arg(ui.m_edPixelFormat->text().toInt()));
     }
 
     OnReadAllValues();
@@ -2436,7 +2418,7 @@ void V4L2Viewer::OnAutoExposure()
         ui.m_chkAutoExposure->setEnabled(false);
 }
 
-void V4L2Viewer::OnPixelformatDBLClick(QListWidgetItem *item)
+void V4L2Viewer::OnPixelFormatDBLClick(QListWidgetItem *item)
 {
     std::string tmp = item->text().toStdString();
     char *s = (char*)tmp.c_str();
@@ -2450,13 +2432,13 @@ void V4L2Viewer::OnPixelformatDBLClick(QListWidgetItem *item)
         result += *s++ << 24;
     }
 
-    ui.m_edPixelformat->setText(QString("%1").arg(result));
-    ui.m_edPixelformatText->setText(QString("%1").arg(V4l2Helper::ConvertPixelformat2EnumString(result).c_str()));
+    ui.m_edPixelFormat->setText(QString("%1").arg(result));
+    ui.m_edPixelFormatText->setText(QString("%1").arg(v4l2helper::ConvertPixelFormat2EnumString(result).c_str()));
 
-    OnPixelformat();
+    OnPixelFormat();
 }
 
-void V4L2Viewer::OnFramesizesDBLClick(QListWidgetItem *item)
+void V4L2Viewer::OnFrameSizesDBLClick(QListWidgetItem *item)
 {
     QString tmp = item->text();
     QStringList list1 = tmp.split('x').first().split(':');
@@ -2473,7 +2455,7 @@ void V4L2Viewer::OnGamma()
     if (m_Camera.SetGamma(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Gamma!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE gamma!") );
         m_Camera.ReadGamma(tmp);
         ui.m_edGamma->setText(QString("%1").arg(tmp));
     }
@@ -2494,7 +2476,7 @@ void V4L2Viewer::OnReverseX()
     if (m_Camera.SetReverseX(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ReverseX!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE reverse x!") );
         m_Camera.ReadReverseX(tmp);
         ui.m_edReverseX->setText(QString("%1").arg(tmp));
     }
@@ -2515,7 +2497,7 @@ void V4L2Viewer::OnReverseY()
     if (m_Camera.SetReverseY(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ReverseY!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE reverse y!") );
         m_Camera.ReadReverseY(tmp);
         ui.m_edReverseY->setText(QString("%1").arg(tmp));
     }
@@ -2536,7 +2518,7 @@ void V4L2Viewer::OnSharpness()
     if (m_Camera.SetSharpness(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Sharpness!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE sharpness!") );
         m_Camera.ReadSharpness(tmp);
         ui.m_edSharpness->setText(QString("%1").arg(tmp));
     }
@@ -2557,7 +2539,7 @@ void V4L2Viewer::OnBrightness()
     if (m_Camera.SetBrightness(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Brightness!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE brightness!") );
         m_Camera.ReadBrightness(tmp);
         ui.m_edBrightness->setText(QString("%1").arg(tmp));
     }
@@ -2578,7 +2560,7 @@ void V4L2Viewer::OnContrast()
     if (m_Camera.SetContrast(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Contrast!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE contrast!") );
         m_Camera.ReadContrast(tmp);
         ui.m_edContrast->setText(QString("%1").arg(tmp));
     }
@@ -2599,7 +2581,7 @@ void V4L2Viewer::OnSaturation()
     if (m_Camera.SetSaturation(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Saturation!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE saturation!") );
         m_Camera.ReadSaturation(tmp);
         ui.m_edSaturation->setText(QString("%1").arg(tmp));
     }
@@ -2620,7 +2602,7 @@ void V4L2Viewer::OnHue()
     if (m_Camera.SetHue(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Hue!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE hue!") );
         m_Camera.ReadHue(tmp);
         ui.m_edHue->setText(QString("%1").arg(tmp));
     }
@@ -2651,7 +2633,7 @@ void V4L2Viewer::OnRedBalance()
     if (m_Camera.SetRedBalance((uint32_t)nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE RedBalance!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE red balance!") );
         m_Camera.ReadRedBalance(tmp);
         ui.m_edRedBalance->setText(QString("%1").arg(tmp));
     }
@@ -2672,7 +2654,7 @@ void V4L2Viewer::OnBlueBalance()
     if (m_Camera.SetBlueBalance((uint32_t)nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE BlueBalance!") );
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE blue balance!") );
         m_Camera.ReadBlueBalance(tmp);
         ui.m_edBlueBalance->setText(QString("%1").arg(tmp));
     }
@@ -2686,39 +2668,39 @@ void V4L2Viewer::OnBlueBalance()
     }
 }
 
-void V4L2Viewer::OnFramerate()
+void V4L2Viewer::OnFrameRate()
 {
     uint32_t width = 0;
     uint32_t height = 0;
-    uint32_t pixelformat = 0;
+    uint32_t pixelFormat = 0;
     uint32_t bytesPerLine = 0;
-    QString pixelformatText;
-    QString framerate = ui.m_edFramerate->text();
-    QStringList framerateList = framerate.split('/');
+    QString pixelFormatText;
+    QString frameRate = ui.m_edFrameRate->text();
+    QStringList frameRateList = frameRate.split('/');
 
-    if (framerateList.size() < 2)
+    if (frameRateList.size() < 2)
     {
         QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1/100!") );
         return;
     }
 
-    uint32_t numerator = framerateList.at(0).toInt();
-    uint32_t denominator = framerateList.at(1).toInt();
+    uint32_t numerator = frameRateList.at(0).toInt();
+    uint32_t denominator = frameRateList.at(1).toInt();
 
     m_Camera.ReadFrameSize(width, height);
-    m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
+    m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
 
-    if (m_Camera.SetFramerate(numerator, denominator) < 0)
+    if (m_Camera.SetFrameRate(numerator, denominator) < 0)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Framerate!") );
-        m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat);
-        ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame rate!") );
+        m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
+        ui.m_edFrameRate->setText(QString("%1/%2").arg(numerator).arg(denominator));
     }
     else
     {
-        OnLog(QString("Framerate set to %1").arg(ui.m_edFramerate->text() + QString(" (") + QString::number((double)numerator/(double)denominator, 'f', 3) + QString(")") ));
-        m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat);
-        ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
+        OnLog(QString("Frame rate set to %1").arg(ui.m_edFrameRate->text() + QString(" (") + QString::number((double)numerator/(double)denominator, 'f', 3) + QString(")") ));
+        m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
+        ui.m_edFrameRate->setText(QString("%1/%2").arg(numerator).arg(denominator));
     }
 }
 
@@ -2917,9 +2899,7 @@ void V4L2Viewer::OnToggleStreamDelay()
     m_ToggleStreamDelayRandCheckBox->setChecked(false);
 }
 
-////////////////////////////////////////////////////////////////////////
-// Tools
-////////////////////////////////////////////////////////////////////////
+/////////////////////// Tools /////////////////////////////////////
 
 void V4L2Viewer::GetImageInformation()
 {
@@ -2937,8 +2917,8 @@ void V4L2Viewer::GetImageInformation()
     int32_t nSVal;
     uint32_t numerator = 0;
     uint32_t denominator = 0;
-    uint32_t pixelformat = 0;
-    QString pixelformatText;
+    uint32_t pixelFormat = 0;
+    QString pixelFormatText;
     uint32_t bytesPerLine = 0;
 
 
@@ -3082,14 +3062,14 @@ void V4L2Viewer::GetImageInformation()
 
     nUVal = 0;
     m_Camera.ReadFrameSize(width, height);
-    m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
-    if (m_Camera.ReadFramerate(numerator, denominator, width, height, pixelformat) != -2)
+    m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
+    if (m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat) != -2)
     {
-        ui.m_edFramerate->setEnabled(true);
-        ui.m_edFramerate->setText(QString("%1/%2").arg(numerator).arg(denominator));
+        ui.m_edFrameRate->setEnabled(true);
+        ui.m_edFrameRate->setText(QString("%1/%2").arg(numerator).arg(denominator));
     }
     else
-        ui.m_edFramerate->setEnabled(false);
+        ui.m_edFrameRate->setEnabled(false);
 
     nUVal = 0;
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
@@ -3122,27 +3102,27 @@ void V4L2Viewer::GetImageInformation()
 void V4L2Viewer::UpdateCameraFormat()
 {
     int result = -1;
-    uint32_t payloadsize = 0;
+    uint32_t payloadSize = 0;
     uint32_t width = 0;
     uint32_t height = 0;
-    uint32_t pixelformat = 0;
-    QString pixelformatText;
+    uint32_t pixelFormat = 0;
+    QString pixelFormatText;
     uint32_t bytesPerLine = 0;
 
-    ui.m_liPixelformats->clear();
-    ui.m_liFramesizes->clear();
+    ui.m_liPixelFormats->clear();
+    ui.m_liFrameSizes->clear();
 
-    // Get the payloadsize first to setup the streaming channel
-    result = m_Camera.ReadPayloadsize(payloadsize);
-    ui.m_edPayloadsize->setText(QString("%1").arg(payloadsize));
+    // Get the payload size first to setup the streaming channel
+    result = m_Camera.ReadPayloadSize(payloadSize);
+    ui.m_edPayloadSize->setText(QString("%1").arg(payloadSize));
 
     result = m_Camera.ReadFrameSize(width, height);
     ui.m_edWidth->setText(QString("%1").arg(width));
     ui.m_edHeight->setText(QString("%1").arg(height));
 
-    result = m_Camera.ReadPixelformat(pixelformat, bytesPerLine, pixelformatText);
-    ui.m_edPixelformat->setText(QString("%1").arg(pixelformat));
-    ui.m_edPixelformatText->setText(QString("%1").arg(pixelformatText));
+    result = m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
+    ui.m_edPixelFormat->setText(QString("%1").arg(pixelFormat));
+    ui.m_edPixelFormatText->setText(QString("%1").arg(pixelFormatText));
 
     result = m_Camera.ReadFormats();
 }

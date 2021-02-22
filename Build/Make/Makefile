@@ -56,29 +56,30 @@ DEFINES      =
 OBJ_FILES   =   $(OBJ_DIR)/BaseLogger.o \
                 $(OBJ_DIR)/Camera.o \
                 $(OBJ_DIR)/CameraObserver.o \
+                $(OBJ_DIR)/DeviationCalculator.o \
                 $(OBJ_DIR)/FrameObserver.o \
                 $(OBJ_DIR)/FrameObserverRead.o \
                 $(OBJ_DIR)/FrameObserverMMAP.o \
                 $(OBJ_DIR)/FrameObserverUSER.o \
+                $(OBJ_DIR)/IOHelper.o \
                 $(OBJ_DIR)/ImageProcessingThread.o \
                 $(OBJ_DIR)/ImageTransform.o \
-                $(OBJ_DIR)/V4l2Helper.o \
-                $(OBJ_DIR)/V4L2Viewer.o \
-                $(OBJ_DIR)/DeviationCalculator.o \
                 $(OBJ_DIR)/Logger.o \
                 $(OBJ_DIR)/main.o \
-                $(OBJ_DIR)/MyFrame.o \
-                $(OBJ_DIR)/MyFrameQueue.o \
-                $(OBJ_DIR)/Thread.o \
-                $(OBJ_DIR)/moc_DeviationCalculator.o \
                 $(OBJ_DIR)/moc_Camera.o \
                 $(OBJ_DIR)/moc_CameraObserver.o \
+                $(OBJ_DIR)/moc_DeviationCalculator.o \
                 $(OBJ_DIR)/moc_FrameObserver.o \
                 $(OBJ_DIR)/moc_ImageProcessingThread.o \
                 $(OBJ_DIR)/moc_V4L2Viewer.o \
-                $(OBJ_DIR)/qrc_V4L2Viewer.o
+                $(OBJ_DIR)/MyFrame.o \
+                $(OBJ_DIR)/MyFrameQueue.o \
+                $(OBJ_DIR)/qrc_V4L2Viewer.o \
+                $(OBJ_DIR)/Thread.o \
+                $(OBJ_DIR)/V4L2Helper.o \
+                $(OBJ_DIR)/V4L2Viewer.o
 
-# header files
+# generated header files
 GEN_HEADERS    = $(OBJ_DIR)/ui_V4L2Viewer.h
 
 .SECONDARY: $(GEN_HEADERS)
@@ -100,7 +101,7 @@ $(OBJ_DIR)/ui_%.h: $(SOURCE_DIR)/res/%.ui
 $(OBJ_DIR)/qrc_%.cpp: $(SOURCE_DIR)/res/%.qrc
 	$(call MACRO_RCC,$@,$<)
 
-$(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(GEN_HEADERS) | $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(SOURCE_DIR)/*.h $(GEN_HEADERS) | $(OBJ_DIR)
 	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
 
 $(OBJ_DIR)/%.o: $(OBJ_DIR)/%.cpp $(GEN_HEADERS) | $(OBJ_DIR)
@@ -112,4 +113,3 @@ $(BIN_PATH): $(OBJ_FILES) $(BIN_DIR)
 clean:
 	$(call MACRO_RMDIR,$(OBJ_DIR))
 	$(call MACRO_RMDIR,$(BIN_DIR))
-	$(call MACRO_RMDIR,../gcc)

@@ -57,22 +57,22 @@ public:
     int DeviceDiscoveryStart();
     int DeviceDiscoveryStop();
     int StartStreamChannel(const char* csvFilename,
-                           uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height,
+                           uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height,
                            uint32_t bytesPerLine, void *pPrivateData,
                            uint32_t enableLogging, uint32_t logFrameStart, uint32_t logFrameEnd,
                            uint32_t dumpFrameStart, uint32_t dumpFrameEnd,
                            uint32_t enableRAW10Correction);
     int StopStreamChannel();
 
-    int ReadPayloadsize(uint32_t &payloadsize);
+    int ReadPayloadSize(uint32_t &payloadSize);
     int ReadFrameSize(uint32_t &width, uint32_t &height);
     int SetFrameSize(uint32_t width, uint32_t height);
     int ReadWidth(uint32_t &width);
     int SetWidth(uint32_t width);
     int ReadHeight(uint32_t &height);
     int SetHeight(uint32_t height);
-    int ReadPixelformat(uint32_t &pixelformat, uint32_t &bytesPerLine, QString &pfText);
-    int SetPixelformat(uint32_t pixelformat, QString pfText);
+    int ReadPixelFormat(uint32_t &pixelFormat, uint32_t &bytesPerLine, QString &pfText);
+    int SetPixelFormat(uint32_t pixelFormat, QString pfText);
     int ReadFormats();
     int ReadGain(int32_t &gain);
     int SetGain(int32_t gain);
@@ -108,8 +108,8 @@ public:
     int SetRedBalance(int32_t value);
     int ReadBlueBalance(int32_t &value);
     int SetBlueBalance(int32_t value);
-    int ReadFramerate(uint32_t &numerator, uint32_t &denominator, uint32_t width, uint32_t height, uint32_t pixelformat);
-    int SetFramerate(uint32_t numerator, uint32_t denominator);
+    int ReadFrameRate(uint32_t &numerator, uint32_t &denominator, uint32_t width, uint32_t height, uint32_t pixelFormat);
+    int SetFrameRate(uint32_t numerator, uint32_t denominator);
     int SetControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName);
     int ReadControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
 
@@ -169,20 +169,25 @@ public:
     std::string getAvtDeviceTemperature();
     std::string getAvtDeviceSerialNumber();
 
+    static std::string ConvertErrno2String(int errnumber);
+    static std::string ConvertPixelFormat2String(int pixelFormat);
+    static std::string ConvertPixelFormat2EnumString(int pixelFormat);
+    static std::string ConvertControlID2String(uint32_t controlID);
+
 private:
     std::string         m_DeviceName;
     int                 m_nFileDescriptor;
     bool                m_BlockingMode;
     bool                m_ShowFrames;
-    bool                m_useV4l2TryFmt;
+    bool                m_UseV4L2TryFmt;
     bool                m_UseExtendedControls;
     bool                m_Recording;
-    bool                m_isAvtCamera;
+    bool                m_IsAvtCamera;
 
-    CameraObserver                  m_DeviceDiscoveryCallbacks;
-    QSharedPointer<FrameObserver>   m_StreamCallbacks;
+    CameraObserver                  m_CameraObserver;
+    QSharedPointer<FrameObserver>   m_pFrameObserver;
 
-    std::vector<uint8_t>        m_rCSVData;
+    std::vector<uint8_t>        m_CsvData;
 
     size_t fsize(const char *filename);
     int ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData);
@@ -208,8 +213,8 @@ signals:
     // Event will be called when the a frame is displayed
     void OnCameraDisplayFrame_Signal(const unsigned long long &);
 
-    void OnCameraPixelformat_Signal(const QString &);
-    void OnCameraFramesize_Signal(const QString &);
+    void OnCameraPixelFormat_Signal(const QString &);
+    void OnCameraFrameSize_Signal(const QString &);
     void OnCameraLiveDeviationCalc_Signal(int numberOfUnequalBytes);
 
 private slots:

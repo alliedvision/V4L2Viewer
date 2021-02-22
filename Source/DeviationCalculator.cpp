@@ -27,30 +27,30 @@
 
 #include "DeviationCalculator.h"
 
-DeviationCalculator::DeviationCalculator(QSharedPointer<QByteArray> referenceFrame, std::map<unsigned int, QSharedPointer<MyFrame> > tableRowToFrame) :
-    m_referenceFrame(referenceFrame),
-    m_tableRowToFrame(tableRowToFrame)
+DeviationCalculator::DeviationCalculator(QSharedPointer<QByteArray> pReferenceFrame, std::map<unsigned int, QSharedPointer<MyFrame> > rowToFrameTable)
+    : m_pReferenceFrame(pReferenceFrame)
+    , m_RowToFrameTable(rowToFrameTable)
 {
 
 }
 
 void DeviationCalculator::run()
 {
-    if(m_referenceFrame)
+    if(m_pReferenceFrame)
     {
-        if(m_tableRowToFrame.size() > 0)
+        if(m_RowToFrameTable.size() > 0)
         {
-            for(std::map<unsigned int, QSharedPointer<MyFrame> >::const_iterator it = m_tableRowToFrame.begin();
-                it != m_tableRowToFrame.end();
+            for(std::map<unsigned int, QSharedPointer<MyFrame> >::const_iterator it = m_RowToFrameTable.begin();
+                it != m_RowToFrameTable.end();
                 ++it)
             {
                 unsigned int row = it->first;
-                QSharedPointer<MyFrame> frame = it->second;
+                QSharedPointer<MyFrame> pFrame = it->second;
 
-                QSharedPointer<QByteArray> compareFrame( new QByteArray((char*)frame->GetBuffer(), frame->GetBufferlength()));
+                QSharedPointer<QByteArray> pCompareFrame( new QByteArray((char*)pFrame->GetBuffer(), pFrame->GetBufferlength()));
                 double deviation;
 
-                emit OnCalcDeviationReady_Signal(row, CountUnequalBytes(m_referenceFrame, compareFrame), (it == --m_tableRowToFrame.end()));
+                emit OnCalcDeviationReady_Signal(row, CountUnequalBytes(m_pReferenceFrame, pCompareFrame), (it == --m_RowToFrameTable.end()));
             }
         }
         // return error if map is empty
@@ -66,21 +66,21 @@ void DeviationCalculator::run()
     }
 }
 
-int DeviationCalculator::CountUnequalBytes(QSharedPointer<QByteArray> reference, QSharedPointer<QByteArray> compareFrame)
+int DeviationCalculator::CountUnequalBytes(QSharedPointer<QByteArray> pReferenceFrame, QSharedPointer<QByteArray> pCompareFrame)
 {
     int unequalBytes = 0;
 
     // set deviation to error if the two frames cannot be compared
-    if (reference->size() != compareFrame->size())
+    if (pReferenceFrame->size() != pCompareFrame->size())
     {
         unequalBytes = -1;
     }
     // compare frames bytewise
     else
     {
-        for (int i = 0; i < reference->size(); ++i)
+        for (int i = 0; i < pReferenceFrame->size(); ++i)
         {
-            if (reference->at(i) != compareFrame->at(i))
+            if (pReferenceFrame->at(i) != pCompareFrame->at(i))
             {
                 unequalBytes++;
             }

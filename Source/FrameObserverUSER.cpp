@@ -27,14 +27,15 @@
 =============================================================================*/
 
 #include "FrameObserverUSER.h"
-#include "Helper.h"
 #include "LocalMutexLockGuard.h"
 #include "Logger.h"
+#include "MemoryHelper.h"
 
 #include <QPixmap>
 
 #include <errno.h>
 #include <fcntl.h>
+#include <IOHelper.h>
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -42,10 +43,6 @@
 
 #include <cstdlib>
 #include <sstream>
-
-////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////
 
 FrameObserverUSER::FrameObserverUSER(bool showFrames)
     : FrameObserver(showFrames)
@@ -65,8 +62,8 @@ int FrameObserverUSER::ReadFrame(v4l2_buffer &buf)
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_USERPTR;
 
-    if (m_bStreamRunning)
-        result = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_DQBUF, &buf);
+    if (m_IsStreamRunning)
+        result = iohelper::xioctl(m_nFileDescriptor, VIDIOC_DQBUF, &buf);
 
     return result;
 }
@@ -75,7 +72,7 @@ int FrameObserverUSER::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t
 {
     int result = -1;
 
-    if (m_bStreamRunning)
+    if (m_IsStreamRunning)
     {
         length = buf.length;
         buffer = (uint8_t*)buf.m.userptr;
@@ -109,7 +106,7 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         req.memory = V4L2_MEMORY_USERPTR;
 
         // requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
-        if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req))
+        if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req))
         {
             if (EINVAL == errno)
             {
@@ -142,9 +139,9 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
             // get the length and start address of each of the 4 buffer structs and assign the user buffer addresses
             for (int x = 0; x < m_UserBufferContainerList.size(); ++x)
             {
-                PUSER_BUFFER pTmpBuffer = new USER_BUFFER;
+                UserBuffer* pTmpBuffer = new UserBuffer;
                 pTmpBuffer->nBufferlength = bufferSize;
-                m_RealPayloadsize = pTmpBuffer->nBufferlength;
+                m_RealPayloadSize = pTmpBuffer->nBufferlength;
 
                 // buffer needs to be aligned to 128 bytes
                 if (bufferSize % 128)
@@ -187,7 +184,7 @@ int FrameObserverUSER::QueueAllUserBuffer()
         buf.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
         buf.length = m_UserBufferContainerList[i]->nBufferlength;
 
-        if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
+        if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
         {
             Logger::LogEx("Camera::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", i, m_UserBufferContainerList[i]->pBuffer);
             return result;
@@ -217,9 +214,9 @@ int FrameObserverUSER::QueueSingleUserBuffer(const int index)
         buf.m.userptr = (unsigned long)m_UserBufferContainerList[index]->pBuffer;
         buf.length = m_UserBufferContainerList[index]->nBufferlength;
 
-        if (m_bStreamRunning)
+        if (m_IsStreamRunning)
         {
-            if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
+            if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
             {
                 Logger::LogEx("FrameObserverUSER::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
             }
@@ -242,7 +239,7 @@ int FrameObserverUSER::DeleteAllUserBuffer()
     req.memory = V4L2_MEMORY_USERPTR;
 
     // requests 0 video capture buffer. Driver is going to configure all parameter and frees them.
-    V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
+    iohelper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
 
     {
         base::LocalMutexLockGuard guard(m_UsedBufferMutex);

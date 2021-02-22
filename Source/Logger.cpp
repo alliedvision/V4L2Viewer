@@ -34,28 +34,23 @@ Logger::Logger(void)
 {
 }
 
-
 Logger::~Logger(void)
 {
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
-// PCIe Logging
-//////////////////////////////////////////////////////////////////////////////////////
-
-void Logger::InitializeLogger(const std::string &rLogFileName)
+void Logger::InitializeLogger(const std::string &logFilename)
 {
     if (NULL == m_pBaseLogger)
     {
-        m_pBaseLogger = QSharedPointer<base::BaseLogger>(new base::BaseLogger(rLogFileName));
+        m_pBaseLogger = QSharedPointer<base::BaseLogger>(new base::BaseLogger(logFilename));
         m_LogSwitch = true;
     }
 }
 
-void Logger::Log(const std::string &rMessage)
+void Logger::Log(const std::string &message)
 {
     if (m_LogSwitch)
-        m_pBaseLogger->Log(rMessage);
+        m_pBaseLogger->Log(message);
 }
 
 void Logger::LogEx(const char *text, ...)
@@ -92,15 +87,15 @@ void Logger::LogEx(const char *text, ...)
         m_pBaseLogger->Log(output);
 }
 
-void Logger::LogDump(const std::string &rMessage, uint8_t *buffer, uint32_t length)
+void Logger::LogDump(const std::string &message, uint8_t *buffer, uint32_t length)
 {
     if (m_LogSwitch)
-        m_pBaseLogger->LogDump(rMessage, buffer, length);
+        m_pBaseLogger->LogDump(message, buffer, length);
 }
 
-void Logger::LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t length)
+void Logger::LogBuffer(const std::string &filename, uint8_t *buffer, uint32_t length)
 {
-    m_pBaseLogger->LogBuffer(rFileName, buffer, length);
+    m_pBaseLogger->LogBuffer(filename, buffer, length);
 }
 
 void Logger::LogSwitch(bool flag)

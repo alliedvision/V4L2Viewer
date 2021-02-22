@@ -6,7 +6,7 @@
 
 -------------------------------------------------------------------------------
 
-  File:        Helper.h
+  File:        IOHelper.h
 
   Description:
 
@@ -25,9 +25,14 @@
 
 =============================================================================*/
 
-#ifndef HELPER_H
-#define HELPER_H
+#ifndef IOHELPER_H
+#define IOHELPER_H
 
-#define CLEAR(x) memset(&(x), 0, sizeof(x))
+namespace iohelper {
 
-#endif // HELPER_H
+// extended version of ioctl that repeats the operation on failure
+int xioctl(int fh, int request, void *arg);
+
+} // namespace iohelper
+
+#endif // IOHELPER_H

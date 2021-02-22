@@ -6,7 +6,7 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 -------------------------------------------------------------------------------
 
-File:        V4l2Helper.h
+File:        V4L2Helper.h
 
 Description:
 
@@ -29,20 +29,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define V4L2HELPER_H
 
 #include <stdint.h>
+
 #include <string>
 
-class V4l2Helper
+namespace v4l2helper
 {
-public:
-    V4l2Helper(void);
-    virtual ~V4l2Helper(void);
 
-    static std::string ConvertResult2String(int result);
-    static int xioctl(int fh, int request, void *arg);
-    static std::string ConvertPixelformat2EnumString(int pixelformat);
-    static std::string ConvertErrno2String(int errnumber);
-    static std::string ConvertPixelformat2String(int pixelformat);
-    static std::string ConvertControlID2String(uint32_t controlID);
-};
+std::string ConvertPixelFormat2EnumString(int pixelFormat);
+
+std::string ConvertControlID2String(uint32_t controlID);
+
+} // namepsace v4l2helper
 
 #endif // V4L2HELPER_H

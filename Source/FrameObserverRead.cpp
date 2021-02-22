@@ -41,10 +41,6 @@
 
 #include <sstream>
 
-////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////
-
 FrameObserverRead::FrameObserverRead(bool showFrames)
     : FrameObserver(showFrames)
     , m_nFrameBufferIndex(0)
@@ -64,7 +60,7 @@ int FrameObserverRead::ReadFrame(v4l2_buffer &buf)
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_USERPTR;
 
-    if (m_bStreamRunning)
+    if (m_IsStreamRunning)
     {
         buf.m.userptr = (long unsigned int)m_UserBufferContainerList[m_nFrameBufferIndex]->pBuffer;
         buf.length = m_UserBufferContainerList[m_nFrameBufferIndex]->nBufferlength;
@@ -80,7 +76,7 @@ int FrameObserverRead::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t
 {
     int result = -1;
 
-    if (m_bStreamRunning)
+    if (m_IsStreamRunning)
     {
         length = buf.length;
         buffer = (uint8_t*)buf.m.userptr;
@@ -124,9 +120,9 @@ int FrameObserverRead::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         // get the length and start address of each of the 4 buffer structs and assign the user buffer addresses
         for (int x = 0; x < m_UserBufferContainerList.size(); ++x)
         {
-            PUSER_BUFFER pTmpBuffer = new USER_BUFFER;
+            UserBuffer* pTmpBuffer = new UserBuffer;
             pTmpBuffer->nBufferlength = bufferSize;
-            m_RealPayloadsize = pTmpBuffer->nBufferlength;
+            m_RealPayloadSize = pTmpBuffer->nBufferlength;
             pTmpBuffer->pBuffer = new uint8_t[bufferSize];
 
             if (!pTmpBuffer->pBuffer)

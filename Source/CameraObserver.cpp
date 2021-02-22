@@ -28,17 +28,15 @@
 
 #include "CameraObserver.h"
 #include "Logger.h"
-#include "V4l2Helper.h"
 
 #include <errno.h>
 #include <fcntl.h>
+#include <IOHelper.h>
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////
+#define MAX_DEVICE_COUNT 10
 
 CameraObserver::CameraObserver(void)
     : m_bTerminate(false)
@@ -86,7 +84,7 @@ void CameraObserver::run()
 
 int CameraObserver::CheckDevices()
 {
-    uint32_t device_count = 0;
+    uint32_t deviceCount = 0;
     int nResult = 0;
     QString deviceName;
     int fileDiscriptor = -1;
@@ -94,7 +92,7 @@ int CameraObserver::CheckDevices()
 
     do
     {
-        deviceName.sprintf("/dev/video%d", device_count);
+        deviceName.sprintf("/dev/video%d", deviceCount);
 
         if ((fileDiscriptor = open(deviceName.toStdString().c_str(), O_RDWR)) == -1)
         {
@@ -103,13 +101,13 @@ int CameraObserver::CheckDevices()
         }
         else
         {
-            struct v4l2_capability cap;
+            v4l2_capability cap;
 
             Logger::LogEx("Camera::DeviceDiscoveryStart open %s found", deviceName.toAscii().data());
             emit OnCameraMessage_Signal("DeviceDiscoveryStart: open " + deviceName + " found");
 
-            // queuery device capabilities
-            if (-1 == V4l2Helper::xioctl(fileDiscriptor, VIDIOC_QUERYCAP, &cap))
+            // query device capabilities
+            if (-1 == iohelper::xioctl(fileDiscriptor, VIDIOC_QUERYCAP, &cap))
             {
                 Logger::LogEx("Camera::DeviceDiscoveryStart %s is no V4L2 device", deviceName.toAscii().data());
                 emit OnCameraError_Signal("DeviceDiscoveryStart: " + deviceName + " is no V4L2 device");
@@ -131,16 +129,16 @@ int CameraObserver::CheckDevices()
             }
             else
             {
-                deviceList[device_count] = deviceName.toStdString();
+                deviceList[deviceCount] = deviceName.toStdString();
 
-                device_count++;
+                deviceCount++;
 
                 Logger::LogEx("Camera::DeviceDiscoveryStart close %s OK", deviceName.toAscii().data());
                 emit OnCameraMessage_Signal("DeviceDiscoveryStart: close " + deviceName + " OK");
             }
         }
     }
-    while(++device_count < 10);
+    while(++deviceCount < MAX_DEVICE_COUNT);
 
     for (int i=0; i<deviceList.size(); i++)
     {

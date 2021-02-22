@@ -106,7 +106,7 @@ private:
     //// Our Qt image to display
     double m_dScaleFactor;
     //// Our Qt image to display
-    bool m_dFitToScreen;
+    bool m_bFitToScreen;
     // Timer to togle the stream
     QTimer m_StreamToggleTimer;
     // Timer to show the frames received from the frame observer
@@ -161,8 +161,8 @@ private:
     // Open/Close the camera
     int OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName);
     int CloseCamera(const uint32_t cardNumber);
-    // called by OnCameraPayloadSizeReady when payloadsize arrieved
-    void StartStreaming(uint32_t pixelformat, uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
+    // called by OnCameraPayloadSizeReady when payload size arrived
+    void StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
 
     // update record listing
     void InitializeTableWidget();
@@ -262,8 +262,6 @@ private slots:
     void OnDirectRegisterAccessReadButtonClicked();
     // The event handler to write a register per direct access
     void OnDirectRegisterAccessWriteButtonClicked();
-    // The event handler to update the direct register access value
-    void OnDirectRegisterAccessUpdateData();
 
     void OnCropXOffset();
     void OnCropYOffset();
@@ -298,14 +296,14 @@ private slots:
 
     void OnWidth();
     void OnHeight();
-    void OnPixelformat();
+    void OnPixelFormat();
     void OnGain();
     void OnAutoGain();
     void OnExposure();
     void OnAutoExposure();
     void OnExposureAbs();
-    void OnPixelformatDBLClick(QListWidgetItem *);
-    void OnFramesizesDBLClick(QListWidgetItem *);
+    void OnPixelFormatDBLClick(QListWidgetItem *);
+    void OnFrameSizesDBLClick(QListWidgetItem *);
     void OnGamma();
     void OnReverseX();
     void OnReverseY();
@@ -318,13 +316,13 @@ private slots:
     void OnWhiteBalanceOnce();
     void OnRedBalance();
     void OnBlueBalance();
-    void OnFramerate();
+    void OnFrameRate();
     void OnCropCapabilities();
     void OnReadAllValues();
 
 
-    void OnCameraPixelformat(const QString &);
-    void OnCameraFramesize(const QString &);
+    void OnCameraPixelFormat(const QString &);
+    void OnCameraFrameSize(const QString &);
 
     void OnToggleStreamDelayRand();
     void OnToggleStreamDelay();

@@ -27,24 +27,21 @@
 =============================================================================*/
 
 #include "FrameObserverMMAP.h"
-#include "Helper.h"
 #include "LocalMutexLockGuard.h"
 #include "Logger.h"
+#include "MemoryHelper.h"
 
 #include <QPixmap>
 
 #include <errno.h>
 #include <fcntl.h>
+#include <IOHelper.h>
 #include <linux/videodev2.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
 #include <sstream>
-
-////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////
 
 FrameObserverMMAP::FrameObserverMMAP(bool showFrames)
     : FrameObserver(showFrames)
@@ -64,8 +61,8 @@ int FrameObserverMMAP::ReadFrame(v4l2_buffer &buf)
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
 
-    if (m_bStreamRunning)
-        result = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_DQBUF, &buf);
+    if (m_IsStreamRunning)
+        result = iohelper::xioctl(m_nFileDescriptor, VIDIOC_DQBUF, &buf);
 
     return result;
 }
@@ -74,7 +71,7 @@ int FrameObserverMMAP::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t
 {
     int result = -1;
 
-    if (m_bStreamRunning)
+    if (m_IsStreamRunning)
     {
         base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
@@ -118,7 +115,7 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         req.memory = V4L2_MEMORY_MMAP;
 
         // requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
-        if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req))
+        if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req))
         {
             if (EINVAL == errno)
             {
@@ -157,7 +154,7 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
                 buf.memory = V4L2_MEMORY_MMAP;
                 buf.index = x;
 
-                if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QUERYBUF, &buf))
+                if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYBUF, &buf))
                 {
                     Logger::LogEx("FrameObserverMMAP::CreateUserBuffer VIDIOC_QUERYBUF error");
                     emit OnError_Signal("FrameObserverMMAP::CreateUserBuffer: VIDIOC_QUERYBUF error.");
@@ -167,9 +164,9 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
                 Logger::LogEx("FrameObserverMMAP::CreateUserBuffer VIDIOC_QUERYBUF MMAP OK length=%d", buf.length);
                 emit OnMessage_Signal(QString("FrameObserverMMAP::CreateUserBuffer: VIDIOC_QUERYBUF OK length=%1.").arg(buf.length));
 
-                PUSER_BUFFER pTmpBuffer = new USER_BUFFER;
+                UserBuffer* pTmpBuffer = new UserBuffer;
                 pTmpBuffer->nBufferlength = buf.length;
-                m_RealPayloadsize = pTmpBuffer->nBufferlength;
+                m_RealPayloadSize = pTmpBuffer->nBufferlength;
                 pTmpBuffer->pBuffer = (uint8_t*)mmap(NULL,
                                     buf.length,
                                     PROT_READ | PROT_WRITE,
@@ -209,7 +206,7 @@ int FrameObserverMMAP::QueueAllUserBuffer()
         buf.index = i;
         buf.memory = V4L2_MEMORY_MMAP;
 
-        if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
+        if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
         {
             Logger::LogEx("FrameObserverMMAP::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", i, m_UserBufferContainerList[i]->pBuffer);
             return result;
@@ -237,9 +234,9 @@ int FrameObserverMMAP::QueueSingleUserBuffer(const int index)
         buf.index = index;
         buf.memory = V4L2_MEMORY_MMAP;
 
-        if (m_bStreamRunning)
+        if (m_IsStreamRunning)
         {
-            if (-1 == V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
+            if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
             {
                 Logger::LogEx("FrameObserverMMAP::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
             }
@@ -278,7 +275,7 @@ int FrameObserverMMAP::DeleteAllUserBuffer()
     req.memory = V4L2_MEMORY_MMAP;
 
     // requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
-    result = V4l2Helper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
+    result = iohelper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
 
     return result;
 }

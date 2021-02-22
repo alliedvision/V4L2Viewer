@@ -39,13 +39,13 @@
 
 namespace base {
 
-typedef struct _PACKET
+struct Packet
 {
-    std::string Message;
-    std::vector<uint8_t> Buffer;
-    uint32_t Length;
-    std::string FileName;
-} PACKET, *PPACKET;
+    std::string message;
+    std::vector<uint8_t> buffer;
+    uint32_t length;
+    std::string filename;
+};
 
 class BaseLogger
 {
@@ -57,9 +57,9 @@ public:
     void DmpThreadProc();
     void BufThreadProc();
 
-    void Log(const std::string &rStrMessage);
-    void LogDump(const std::string &rStrMessage, uint8_t *buffer, uint32_t length);
-    void LogBuffer(const std::string &rFileName, uint8_t *buffer, uint32_t length);
+    void Log(const std::string &message);
+    void LogDump(const std::string &message, uint8_t *buffer, uint32_t length);
+    void LogBuffer(const std::string &fileName, uint8_t *buffer, uint32_t length);
 
 private:
     void PrintStartMessage();
@@ -78,12 +78,12 @@ private:
     LocalMutex                    m_Mutex;
     LocalMutex                    m_DumpMutex;
     LocalMutex                    m_BufferMutex;
-    Thread                        m_pLogTextThread;
-    Thread                        m_pDumpThread;
-    Thread                        m_pBufferThread;
+    Thread                        m_LogTextThread;
+    Thread                        m_DumpThread;
+    Thread                        m_BufferThread;
     std::queue<std::string>       m_OutputQueue;
-    std::queue<PPACKET>           m_DumpQueue;
-    std::queue<PPACKET>           m_BufferQueue;
+    std::queue<Packet*>           m_DumpQueue;
+    std::queue<Packet*>           m_BufferQueue;
     bool                          m_bThreadRunning;
     bool                          m_bThreadStopped;
     bool                          m_bDumpThreadRunning;

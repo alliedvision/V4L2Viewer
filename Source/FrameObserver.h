@@ -31,8 +31,6 @@
 
 #include "ImageProcessingThread.h"
 #include "LocalMutex.h"
-#include "V4l2Helper.h"
-
 #include <QImage>
 #include <QObject>
 #include <QSharedPointer>
@@ -46,22 +44,15 @@
 
 #include <queue>
 #include <vector>
-
-////////////////////////////////////////////////////////////////////////////////
-// TYPEDEFS
-////////////////////////////////////////////////////////////////////////////////
+#include "V4L2Helper.h"
 
 #define MAX_VIEWER_USER_BUFFER_COUNT    50
 
-////////////////////////////////////////////////////////////////////////////////
-// DEFINES
-////////////////////////////////////////////////////////////////////////////////
-
-typedef struct _USER_BUFFER
+struct UserBuffer
 {
     uint8_t         *pBuffer;
     size_t          nBufferlength;
-} USER_BUFFER, *PUSER_BUFFER, **PPUSER_BUFFER;
+};
 
 
 class FrameObserver : public QThread
@@ -74,11 +65,11 @@ public:
 
     virtual ~FrameObserver();
 
-    int StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat,
-                    uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
+    int StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelFormat,
+                    uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
                     uint32_t enableLogging, int32_t logFrameStart, int32_t logFrameEnd,
                     int32_t dumpFrameStart, int32_t dumpFrameEnd, uint32_t enableRAW10Correction,
-                    std::vector<uint8_t> &rData);
+                    std::vector<uint8_t> &csvData);
     int StopStream();
 
     // Get the number of frames
@@ -126,25 +117,25 @@ protected:
     // Counter to count the received images
     uint32_t m_nReceivedFramesCounter;
 
-    // Counter to coutn the rendered frames
+    // Counter to count the rendered frames
     uint32_t m_nRenderedFramesCounter;
 
     // Counter to count the received uncompleted images
     unsigned int m_nDroppedFramesCounter;
 
     int m_nFileDescriptor;
-    uint32_t m_Pixelformat;
+    uint32_t m_PixelFormat;
     uint32_t m_nWidth;
     uint32_t m_nHeight;
     uint32_t m_PayloadSize;
-    uint32_t m_RealPayloadsize;
+    uint32_t m_RealPayloadSize;
     uint32_t m_BytesPerLine;
     uint64_t m_FrameId;
     uint32_t m_DQBUF_last_errno;
 
     bool m_MessageSendFlag;
     bool m_BlockingMode;
-    bool m_bStreamRunning;
+    bool m_IsStreamRunning;
     bool m_bStreamStopped;
 
     uint32_t m_EnableRAW10Correction;
@@ -157,13 +148,13 @@ protected:
 
     bool m_ShowFrames;
 
-    std::vector<PUSER_BUFFER>             m_UserBufferContainerList;
+    std::vector<UserBuffer*>              m_UserBufferContainerList;
     base::LocalMutex                      m_UsedBufferMutex;
 
     // Shared pointer to a worker thread for the image processing
     QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
 
-    std::vector<uint8_t>                  m_rCSVData;
+    std::vector<uint8_t>                  m_CsvData;
 
 private slots:
     //Event handler for getting the processed frame to an image

@@ -29,19 +29,9 @@
 #ifndef IMAGETRANSFORM_H
 #define IMAGETRANSFORM_H
 
-#include "V4l2Helper.h"
-
 #include <QImage>
-#include <QObject>
-#include <QSharedPointer>
 
-////////////////////////////////////////////////////////////////////////////////
-// TYPEDEFS
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-// DEFINES
-////////////////////////////////////////////////////////////////////////////////
+#include <stdint.h>
 
 class ImageTransform
 {
@@ -52,7 +42,7 @@ public:
     virtual ~ImageTransform();
 
     static int ConvertFrame(const uint8_t* pBuffer, uint32_t length,
-                            uint32_t width, uint32_t height, uint32_t pixelformat,
+                            uint32_t width, uint32_t height, uint32_t pixelFormat,
                             uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage);
 };
 

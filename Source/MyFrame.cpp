@@ -30,57 +30,65 @@
 #include <string.h>
 
 MyFrame::MyFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
-         uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-         uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
-    : m_FrameId(0)
+                 uint32_t &width, uint32_t &height, uint32_t &pixelFormat,
+                 uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+    : m_pBuffer(buffer)
+    , m_FrameId(frameID)
+    , m_Width(width)
+    , m_Height(height)
+    , m_PixelFormat(pixelFormat)
+    , m_PayloadSize(payloadSize)
+    , m_BytesPerLine(bytesPerLine)
+    , m_Bufferlength(length)
+    , m_BufferIndex(bufferIndex)
 {
-    // this constructor is used by the ImageProc thread
-
-    m_FrameId = frameID;
-    m_bufferPtr = buffer;
-    m_bufferlength = length;
-    m_Width = width;
-    m_Height = height;
-    m_Pixelformat = pixelformat;
-    m_PayloadSize = payloadSize;
-    m_BytesPerLine = bytesPerLine;
-    m_bufferIndex = bufferIndex;
 }
 
-
 MyFrame::MyFrame(QImage &image, uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
-     uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-     uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
-  : m_FrameId(0)
+                 uint32_t &width, uint32_t &height, uint32_t &v,
+                 uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+    : m_Image(image)
+    , m_pBuffer(NULL)
+    , m_FrameId(frameID)
+    , m_Width(width)
+    , m_Height(height)
+    , m_PixelFormat(0)
+    , m_PayloadSize(payloadSize)
+    , m_BytesPerLine(bytesPerLine)
+    , m_Bufferlength(length)
+    , m_BufferIndex(bufferIndex)
 {
-    // this constructor is used by the recorder
-
-    m_buffer.resize(length);
-    memcpy(m_buffer.data(), buffer, length);
-    m_Image = image;
-    m_FrameId = frameID;
-    m_bufferlength = length;
-    m_Width = width;
-    m_Height = height;
-    m_Pixelformat = pixelformat;
-    m_PayloadSize = payloadSize;
-    m_BytesPerLine = bytesPerLine;
-    m_bufferIndex = bufferIndex;
-    m_bufferPtr = m_buffer.data();
+    m_Buffer.resize(length);
+    memcpy(m_Buffer.data(), buffer, length);
+    m_pBuffer = m_Buffer.data();
 }
 
 MyFrame::MyFrame(QImage &image, unsigned long long frameID)
-    : m_FrameId(0)
+    : m_Image(image)
+    , m_pBuffer(NULL)
+    , m_FrameId(frameID)
+    , m_Width(0)
+    , m_Height(0)
+    , m_PixelFormat(0)
+    , m_PayloadSize(0)
+    , m_BytesPerLine(0)
+    , m_Bufferlength(0)
+    , m_BufferIndex(0)
 {
-    m_FrameId = frameID;
-    m_Image = image;
 }
 
 MyFrame::MyFrame(const MyFrame *pFrame)
-    : m_FrameId(0)
+    : m_Image(pFrame->m_Image)
+    , m_pBuffer(NULL)
+    , m_FrameId(pFrame->m_FrameId)
+    , m_Width(0)
+    , m_Height(0)
+    , m_PixelFormat(0)
+    , m_PayloadSize(0)
+    , m_BytesPerLine(0)
+    , m_Bufferlength(0)
+    , m_BufferIndex(0)
 {
-    m_FrameId = pFrame->m_FrameId;
-    m_Image = pFrame->m_Image;
 }
 
 MyFrame::~MyFrame(void)
@@ -95,12 +103,12 @@ QImage &MyFrame::GetImage()
 
 uint8_t *MyFrame::GetBuffer()
 {
-    return m_bufferPtr;
+    return m_pBuffer;
 }
 
 uint32_t MyFrame::GetBufferlength()
 {
-    return m_bufferlength;
+    return m_Bufferlength;
 }
 
 uint32_t MyFrame::GetWidth()
@@ -113,9 +121,9 @@ uint32_t MyFrame::GetHeight()
     return m_Height;
 }
 
-uint32_t MyFrame::GetPixelformat()
+uint32_t MyFrame::GetPixelFormat()
 {
-    return m_Pixelformat;
+    return m_PixelFormat;
 }
 
 uint32_t MyFrame::GetPayloadSize()
@@ -136,5 +144,5 @@ unsigned long long MyFrame::GetFrameId()
 
 uint32_t MyFrame::GetBufferIndex()
 {
-    return m_bufferIndex;
+    return m_BufferIndex;
 }
