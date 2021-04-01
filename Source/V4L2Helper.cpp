@@ -6,7 +6,7 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 -------------------------------------------------------------------------------
 
-File:        V4l2Helper.cpp
+File:        V4L2Helper.cpp
 
 Description:
 
@@ -25,68 +25,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =============================================================================*/
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <iomanip>
-#include <sstream>
-#include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
 #include "videodev2_av.h"
 
-#include "V4l2Helper.h"
-
-#ifdef _WIN32       /* Windows */
-#include <Windows.h>
-#else               /* Linux */
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/videodev2.h>
 #include <pthread.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
 #include <sys/time.h>
 #include <unistd.h>
-#endif
+#include <V4L2Helper.h>
 
-namespace AVT {
-namespace Tools {
-namespace Examples {
+#include <iomanip>
+#include <sstream>
 
-V4l2Helper::V4l2Helper(void)
+namespace v4l2helper {
+
+std::string ConvertPixelFormat2EnumString(int pixelFormat)
 {
-}
-
-
-V4l2Helper::~V4l2Helper(void)
-{
-}
-
-int V4l2Helper::xioctl(int fh, int request, void *arg)
-{
-    int result = 0;
-
-    do
-    {
-        result = ioctl(fh, request, arg);
-    }
-    while (-1 == result && EINTR == errno);
-
-    return result;
-}
-
-std::string V4l2Helper::ConvertPixelformat2String(int pixelformat)
-{
-    std::string s;
-
-    s += pixelformat & 0xff;
-    s += (pixelformat >> 8) & 0xff;
-    s += (pixelformat >> 16) & 0xff;
-    s += (pixelformat >> 24) & 0xff;
-
-    return s;
-}
-
-std::string V4l2Helper::ConvertPixelformat2EnumString(int pixelformat)
-{
-    switch(pixelformat)
+    switch(pixelFormat)
     {
         case V4L2_PIX_FMT_ABGR32: return "V4L2_PIX_FMT_ABGR32";
         case V4L2_PIX_FMT_XBGR32: return "V4L2_PIX_FMT_XBGR32";
@@ -286,54 +246,7 @@ std::string V4l2Helper::ConvertPixelformat2EnumString(int pixelformat)
     }
 }
 
-
-std::string V4l2Helper::ConvertErrno2String(int errnumber)
-{
-    std::string result;
-
-    switch(errnumber)
-    {
-        case EPERM: result = "EPERM=Operation not permitted"; break;
-        case ENOENT: result = "ENOENT=No such file or directory"; break;
-        case ESRCH: result = "ESRCH=No such process"; break;
-        case EINTR: result = "EINTR=Interrupted system call"; break;
-        case EIO: result = "EIO=I/O error"; break;
-        case ENXIO: result = "ENXIO=No such device or address"; break;
-        case E2BIG: result = "E2BIG=Argument list too long"; break;
-        case ENOEXEC: result = "ENOEXEC=Exec format error"; break;
-        case EBADF: result = "EBADF=Bad file number"; break;
-        case ECHILD: result = "ECHILD=No child processes"; break;
-        case EAGAIN: result = "EAGAIN=Try again"; break;
-        case ENOMEM: result = "ENOMEM=Out of memory"; break;
-        case EACCES: result = "EACCES=Permission denied"; break;
-        case EFAULT: result = "EFAULT=Bad address"; break;
-        case ENOTBLK: result = "ENOTBLK=Block device required"; break;
-        case EBUSY: result = "EBUSY=Device or resource busy"; break;
-        case EEXIST: result = "EEXIST=File exists"; break;
-        case EXDEV: result = "EXDEV=Cross-device link"; break;
-        case ENODEV: result = "ENODEV=No such device"; break;
-        case ENOTDIR: result = "ENOTDIR=Not a directory"; break;
-        case EISDIR: result = "EISDIR=Is a directory"; break;
-        case EINVAL: result = "EINVAL=Invalid argument"; break;
-        case ENFILE: result = "ENFILE=File table overflow"; break;
-        case EMFILE: result = "EMFILE=Too many open files"; break;
-        case ENOTTY: result = "ENOTTY=Not a typewriter"; break;
-        case ETXTBSY: result = "ETXTBSY=Text file busy"; break;
-        case EFBIG: result = "EFBIG=File too large"; break;
-        case ENOSPC: result = "ENOSPC=No space left on device"; break;
-        case ESPIPE: result = "ESPIPE=Illegal seek"; break;
-        case EROFS: result = "EROFS=Read-only file system"; break;
-        case EMLINK: result = "EMLINK=Too many links"; break;
-        case EPIPE: result = "EPIPE=Broken pipe"; break;
-        case EDOM: result = "EDOM=Math argument out of domain of func"; break;
-        case ERANGE: result = "ERANGE=Math result not representable"; break;
-        default: result = "<unknown>"; break;
-    }
-
-    return result;
-}
-
-std::string V4l2Helper::ConvertControlID2String(uint32_t controlID)
+std::string ConvertControlID2String(uint32_t controlID)
 {
     std::string result = "";
 
@@ -423,6 +336,4 @@ std::string V4l2Helper::ConvertControlID2String(uint32_t controlID)
     return result;
 }
 
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
+} // namespace v4l2helper

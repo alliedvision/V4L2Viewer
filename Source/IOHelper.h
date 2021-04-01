@@ -6,10 +6,9 @@
 
 -------------------------------------------------------------------------------
 
-  File:        ImTransf.h
+  File:        IOHelper.h
 
-  Description: The frame observer that is used for notifications
-               regarding the arrival of a newly acquired frame.
+  Description:
 
 -------------------------------------------------------------------------------
 
@@ -26,44 +25,14 @@
 
 =============================================================================*/
 
-#ifndef IMAGETRANSF_H
-#define IMAGETRANSF_H
+#ifndef IOHELPER_H
+#define IOHELPER_H
 
-#include <QObject>
-#include <QImage>
-#include <QSharedPointer>
+namespace iohelper {
 
-#include "Helper.h"
+// extended version of ioctl that repeats the operation on failure
+int xioctl(int fh, int request, void *arg);
 
-#include "V4l2Helper.h"
+} // namespace iohelper
 
-////////////////////////////////////////////////////////////////////////////////
-// TYPEDEFS
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-// DEFINES
-////////////////////////////////////////////////////////////////////////////////
-
-
-namespace AVT {
-namespace Tools {
-
-class ImageTransf
-{
-public:
-
-    ImageTransf();
-
-    virtual ~ImageTransf();
-
-    static int ConvertFrame(const uint8_t* pBuffer, uint32_t length,
-                            uint32_t width, uint32_t height, uint32_t pixelformat,
-                            uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage);
-};
-
-} // namespace Tools
-} // namespace AVT
-
-#endif // IMAGETRANSF_H
-
+#endif // IOHELPER_H

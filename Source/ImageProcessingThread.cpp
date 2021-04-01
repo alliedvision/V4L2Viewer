@@ -26,11 +26,9 @@
 =============================================================================*/
 
 #include "ImageProcessingThread.h"
-#include "ImageTransf.h"
-//#include "VmbImageTransformHelper.hpp"
+#include "ImageTransform.h"
 
-#include "videodev2_av.h"
-#include "Logger.h"
+#include <linux/videodev2.h>
 
 ImageProcessingThread::ImageProcessingThread()
     : m_bAbort(false)
@@ -42,8 +40,8 @@ ImageProcessingThread::~ImageProcessingThread(void)
 }
 
 int ImageProcessingThread::QueueFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
-                      uint32_t &width, uint32_t &height, uint32_t &pixelformat,
-                      uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
+                                      uint32_t &width, uint32_t &height, uint32_t &pixelFormat,
+                                      uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID)
 {
     int result = -1;
 
@@ -52,7 +50,7 @@ int ImageProcessingThread::QueueFrame(uint32_t &bufferIndex, uint8_t *&buffer, u
     if (m_FrameQueue.GetSize() < MAX_QUEUE_SIZE)
     {
         m_FrameQueue.Enqueue(bufferIndex, buffer, length, width, height,
-             pixelformat, payloadSize, bytesPerLine, frameID);
+                             pixelFormat, payloadSize, bytesPerLine, frameID);
         result = 0;
     }
 
@@ -126,14 +124,14 @@ void ImageProcessingThread::run()
             uint32_t length = pFrame->GetBufferlength();
             uint32_t width = pFrame->GetWidth();
             uint32_t height = pFrame->GetHeight();
-            uint32_t pixelformat = pFrame->GetPixelformat();
+            uint32_t pixelFormat = pFrame->GetPixelFormat();
             uint32_t payloadSize = pFrame->GetPayloadSize();
             uint32_t bytesPerLine = pFrame->GetBytesPerLine();
             uint32_t bufferIndex = pFrame->GetBufferIndex();
             QImage convertedImage;
-            result = AVT::Tools::ImageTransf::ConvertFrame(pBuffer, length,
-                                                           width, height, pixelformat,
-                                                           payloadSize, bytesPerLine, convertedImage);
+            result = ImageTransform::ConvertFrame(pBuffer, length,
+                                                  width, height, pixelFormat,
+                                                  payloadSize, bytesPerLine, convertedImage);
 
             if (result == 0)
                 emit OnFrameReady_Signal(convertedImage, frameID, bufferIndex);

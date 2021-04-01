@@ -28,11 +28,12 @@
 #ifndef VIDEODEV2_AV_H
 #define VIDEODEV2_AV_H
 
-#include <linux/videodev2.h>
-
 /* 10bit and 12bit greyscale packed */
 #define V4L2_PIX_FMT_Y10P     v4l2_fourcc('Y', '1', '0', 'P')
 #define V4L2_PIX_FMT_Y12P     v4l2_fourcc('Y', '1', '2', 'P')
+
+ /* 12bit greyscale packed (alternative) */
+#define V4L2_PIX_FMT_GREY12P  v4l2_fourcc('G', '1', '2', 'P')
 
 /* Jetson TX2 pixel formats */
 #define V4L2_PIX_FMT_TX2_Y10     v4l2_fourcc('J', '2', 'Y', '0')

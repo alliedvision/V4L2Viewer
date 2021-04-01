@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>v4l2testTestClass</class>
- <widget class="QMainWindow" name="v4l2testTestClass">
+ <class>V4L2ViewerClass</class>
+ <widget class="QMainWindow" name="V4L2ViewerClass">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -166,8 +166,8 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="v4l2test.qrc">
-               <normaloff>:/v4l2test/play128.png</normaloff>:/v4l2test/play128.png</iconset>
+              <iconset resource="V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/play128.png</normaloff>:/V4L2Viewer/play128.png</iconset>
              </property>
             </widget>
            </item>
@@ -198,8 +198,8 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="v4l2test.qrc">
-               <normaloff>:/v4l2test/play128orange.png</normaloff>:/v4l2test/play128orange.png</iconset>
+              <iconset resource="V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/play128orange.png</normaloff>:/V4L2Viewer/play128orange.png</iconset>
              </property>
             </widget>
            </item>
@@ -230,8 +230,8 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="v4l2test.qrc">
-               <normaloff>:/v4l2test/stop4.png</normaloff>:/v4l2test/stop4.png</iconset>
+              <iconset resource="V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/stop4.png</normaloff>:/V4L2Viewer/stop4.png</iconset>
              </property>
             </widget>
            </item>
@@ -272,8 +272,8 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="v4l2test.qrc">
-               <normaloff>:/v4l2test/magnifying-glass1.png</normaloff>:/v4l2test/magnifying-glass1.png</iconset>
+              <iconset resource="V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/magnifying-glass1.png</normaloff>:/V4L2Viewer/magnifying-glass1.png</iconset>
              </property>
              <property name="checkable">
               <bool>true</bool>
@@ -307,8 +307,8 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="v4l2test.qrc">
-               <normaloff>:/v4l2test/zoom75.png</normaloff>:/v4l2test/zoom75.png</iconset>
+              <iconset resource="V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/zoom75.png</normaloff>:/V4L2Viewer/zoom75.png</iconset>
              </property>
              <property name="autoRepeat">
               <bool>true</bool>
@@ -342,8 +342,8 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="v4l2test.qrc">
-               <normaloff>:/v4l2test/magnifying-glass2.png</normaloff>:/v4l2test/magnifying-glass2.png</iconset>
+              <iconset resource="V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/magnifying-glass2.png</normaloff>:/V4L2Viewer/magnifying-glass2.png</iconset>
              </property>
              <property name="autoRepeat">
               <bool>true</bool>
@@ -581,10 +581,10 @@
            </rect>
           </property>
           <property name="text">
-           <string>Payloadsize:</string>
+           <string>PayloadSize:</string>
           </property>
          </widget>
-         <widget class="QLineEdit" name="m_edPayloadsize">
+         <widget class="QLineEdit" name="m_edPayloadSize">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -603,7 +603,7 @@
            <bool>true</bool>
           </property>
          </widget>
-         <widget class="QLineEdit" name="m_edPixelformat">
+         <widget class="QLineEdit" name="m_edPixelFormat">
           <property name="geometry">
            <rect>
             <x>110</x>
@@ -626,7 +626,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>Pixelformat:</string>
+           <string>PixelFormat:</string>
           </property>
          </widget>
          <widget class="QLineEdit" name="m_edGain">
@@ -642,7 +642,7 @@
            <number>10</number>
           </property>
          </widget>
-         <widget class="QListWidget" name="m_liFramesizes">
+         <widget class="QListWidget" name="m_liFrameSizes">
           <property name="geometry">
            <rect>
             <x>570</x>
@@ -652,7 +652,7 @@
            </rect>
           </property>
          </widget>
-         <widget class="QListWidget" name="m_liPixelformats">
+         <widget class="QListWidget" name="m_liPixelFormats">
           <property name="geometry">
            <rect>
             <x>570</x>
@@ -727,7 +727,7 @@
            <string>Exposure:</string>
           </property>
          </widget>
-         <widget class="QLineEdit" name="m_edPixelformatText">
+         <widget class="QLineEdit" name="m_edPixelFormatText">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -1036,7 +1036,7 @@
            <string>FrameInterval:</string>
           </property>
          </widget>
-         <widget class="QLineEdit" name="m_edFramerate">
+         <widget class="QLineEdit" name="m_edFrameRate">
           <property name="geometry">
            <rect>
             <x>210</x>
@@ -1963,8 +1963,8 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/saveSeries.ico</normaloff>:/v4l2test/saveSeries.ico</iconset>
+                      <iconset resource="V4L2Viewer.qrc">
+                       <normaloff>:/V4L2Viewer/saveSeries.ico</normaloff>:/V4L2Viewer/saveSeries.ico</iconset>
                      </property>
                     </widget>
                    </item>
@@ -1998,8 +1998,8 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/recordStart.ico</normaloff>:/v4l2test/recordStart.ico</iconset>
+                      <iconset resource="V4L2Viewer.qrc">
+                       <normaloff>:/V4L2Viewer/recordStart.ico</normaloff>:/V4L2Viewer/recordStart.ico</iconset>
                      </property>
                     </widget>
                    </item>
@@ -2027,8 +2027,8 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/saveSingle.ico</normaloff>:/v4l2test/saveSingle.ico</iconset>
+                      <iconset resource="V4L2Viewer.qrc">
+                       <normaloff>:/V4L2Viewer/saveSingle.ico</normaloff>:/V4L2Viewer/saveSingle.ico</iconset>
                      </property>
                     </widget>
                    </item>
@@ -2062,8 +2062,8 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/recordStop.ico</normaloff>:/v4l2test/recordStop.ico</iconset>
+                      <iconset resource="V4L2Viewer.qrc">
+                       <normaloff>:/V4L2Viewer/recordStop.ico</normaloff>:/V4L2Viewer/recordStop.ico</iconset>
                      </property>
                     </widget>
                    </item>
@@ -2097,8 +2097,8 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/removeRecord.ico</normaloff>:/v4l2test/removeRecord.ico</iconset>
+                      <iconset resource="V4L2Viewer.qrc">
+                       <normaloff>:/V4L2Viewer/removeRecord.ico</normaloff>:/V4L2Viewer/removeRecord.ico</iconset>
                      </property>
                     </widget>
                    </item>
@@ -2132,8 +2132,8 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/export.png</normaloff>:/v4l2test/export.png</iconset>
+                      <iconset resource="V4L2Viewer.qrc">
+                       <normaloff>:/V4L2Viewer/export.png</normaloff>:/V4L2Viewer/export.png</iconset>
                      </property>
                     </widget>
                    </item>
@@ -2186,8 +2186,8 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/calculate.ico</normaloff>:/v4l2test/calculate.ico</iconset>
+                      <iconset resource="V4L2Viewer.qrc">
+                       <normaloff>:/V4L2Viewer/calculate.ico</normaloff>:/V4L2Viewer/calculate.ico</iconset>
                      </property>
                     </widget>
                    </item>
@@ -2215,8 +2215,8 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/calculate-live.png</normaloff>:/v4l2test/calculate-live.png</iconset>
+                      <iconset resource="V4L2Viewer.qrc">
+                       <normaloff>:/V4L2Viewer/calculate-live.png</normaloff>:/V4L2Viewer/calculate-live.png</iconset>
                      </property>
                     </widget>
                    </item>
@@ -2258,8 +2258,8 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="v4l2test.qrc">
-                       <normaloff>:/v4l2test/addReference.ico</normaloff>:/v4l2test/addReference.ico</iconset>
+                      <iconset resource="V4L2Viewer.qrc">
+                       <normaloff>:/V4L2Viewer/addReference.ico</normaloff>:/V4L2Viewer/addReference.ico</iconset>
                      </property>
                     </widget>
                    </item>
@@ -2559,7 +2559,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="v4l2test.qrc"/>
+  <include location="V4L2Viewer.qrc"/>
  </resources>
  <connections/>
 </ui>

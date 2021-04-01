@@ -25,13 +25,14 @@
 
 =============================================================================*/
 
-#include "v4l2test.h"
+#include "V4L2Viewer.h"
+
 #include <QApplication>
 
 int main( int argc, char *argv[] )
 {
     QApplication a( argc, argv );
-    v4l2test w;
+    V4L2Viewer w;
     w.show();
     return a.exec();
 }

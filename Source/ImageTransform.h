@@ -6,9 +6,10 @@
 
 -------------------------------------------------------------------------------
 
-  File:        Helper.h
+  File:        ImTransf.h
 
-  Description:
+  Description: The frame observer that is used for notifications
+               regarding the arrival of a newly acquired frame.
 
 -------------------------------------------------------------------------------
 
@@ -25,41 +26,25 @@
 
 =============================================================================*/
 
-#ifndef HELPER_H
-#define HELPER_H
+#ifndef IMAGETRANSFORM_H
+#define IMAGETRANSFORM_H
+
+#include <QImage>
 
 #include <stdint.h>
-#include <string>
 
-#define CLEAR(x) memset(&(x), 0, sizeof(x))
-
-namespace AVT {
-namespace BaseTools {
-
-class Helper
+class ImageTransform
 {
 public:
-    Helper (void);
-    virtual ~Helper (void);
 
-    static void SwapByteOrder (void *pData, size_t nSize);
+    ImageTransform();
 
-    static std::string ConvertCommandID2String (uint16_t command);
-    static std::string ConvertPixelformat2String (uint32_t nPixelFormat);
+    virtual ~ImageTransform();
 
-    static std::string ConvertPacket2String (uint8_t *buffer, uint32_t length);
-
-    static void OutputDebugWindow (const char *text, ...);
-
-    static std::string VSPrint (const char *text, ...);
-
-    static void uSleep (uint32_t msec);
-
-    static std::string GetTimeStamp ();
-
+    static int ConvertFrame(const uint8_t* pBuffer, uint32_t length,
+                            uint32_t width, uint32_t height, uint32_t pixelFormat,
+                            uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage);
 };
 
-} // namespace BaseTools
-} // namespace AVT
+#endif // IMAGETRANSFORM_H
 
-#endif // HELPER_H

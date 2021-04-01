@@ -6,7 +6,7 @@
 
 -------------------------------------------------------------------------------
 
-  File:        DeviationCalculator.h
+  File:        MemoryHelper.h
 
   Description:
 
@@ -25,37 +25,10 @@
 
 =============================================================================*/
 
-#ifndef DEVIATIONCALCULATOR_H
-#define DEVIATIONCALCULATOR_H
+#ifndef MEMORYHELPER_H
+#define MEMORYHELPER_H
 
-#include "MyFrame.h"
+// reset memory contents to zero
+#define CLEAR(x) memset(&(x), 0, sizeof(x))
 
-#include <QObject>
-#include <QSharedPointer>
-#include <QThread>
-
-#include <map>
-
-class DeviationCalculator : public QThread
-{
-    Q_OBJECT
-
-private:
-    QSharedPointer<QByteArray> m_pReferenceFrame;
-    std::map<unsigned int, QSharedPointer<MyFrame> > m_RowToFrameTable;
-
-public:
-    DeviationCalculator(QSharedPointer<QByteArray> pReferenceFrame, std::map<unsigned int, QSharedPointer<MyFrame> > rowToFrameTable);
-
-    // return -1 if bytearrays have different size, else return number of unequal bytes
-    static int CountUnequalBytes(QSharedPointer<QByteArray> pReferenceFrame, QSharedPointer<QByteArray> pCompareFrames);
-
-protected:
-    void run();
-
-signals:
-    void OnCalcDeviationReady_Signal(unsigned int tableRow, int unequalBytes, bool done);
-};
-
-#endif // DEVIATIONCALCULATOR_H
-
+#endif // MEMORYHELPER_H

@@ -26,26 +26,20 @@
 
 =============================================================================*/
 
-#include <sstream>
+#include "FrameObserverRead.h"
+#include "LocalMutexLockGuard.h"
+#include "Logger.h"
+
 #include <QPixmap>
+
 #include <errno.h>
 #include <fcntl.h>
+#include <linux/videodev2.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include "videodev2_av.h"
 
-#include <FrameObserverRead.h>
-#include <Logger.h>
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
-
-
-////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////
+#include <sstream>
 
 FrameObserverRead::FrameObserverRead(bool showFrames)
     : FrameObserver(showFrames)
@@ -66,7 +60,7 @@ int FrameObserverRead::ReadFrame(v4l2_buffer &buf)
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_USERPTR;
 
-    if (m_bStreamRunning)
+    if (m_IsStreamRunning)
     {
         buf.m.userptr = (long unsigned int)m_UserBufferContainerList[m_nFrameBufferIndex]->pBuffer;
         buf.length = m_UserBufferContainerList[m_nFrameBufferIndex]->nBufferlength;
@@ -82,7 +76,7 @@ int FrameObserverRead::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t
 {
     int result = -1;
 
-    if (m_bStreamRunning)
+    if (m_IsStreamRunning)
     {
         length = buf.length;
         buffer = (uint8_t*)buf.m.userptr;
@@ -108,7 +102,7 @@ int FrameObserverRead::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
     {
         // creates user defined buffer
 
-        AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+        base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
         Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS OK");
         emit OnMessage_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS OK.");
@@ -126,9 +120,9 @@ int FrameObserverRead::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         // get the length and start address of each of the 4 buffer structs and assign the user buffer addresses
         for (int x = 0; x < m_UserBufferContainerList.size(); ++x)
         {
-            PUSER_BUFFER pTmpBuffer = new USER_BUFFER;
+            UserBuffer* pTmpBuffer = new UserBuffer;
             pTmpBuffer->nBufferlength = bufferSize;
-            m_RealPayloadsize = pTmpBuffer->nBufferlength;
+            m_RealPayloadSize = pTmpBuffer->nBufferlength;
             pTmpBuffer->pBuffer = new uint8_t[bufferSize];
 
             if (!pTmpBuffer->pBuffer)
@@ -171,24 +165,19 @@ int FrameObserverRead::DeleteAllUserBuffer()
     // creates user defined buffer
 
     {
-    AVT::BaseTools::AutoLocalMutex guard(m_UsedBufferMutex);
+        base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
-    // delete all user buffer
-    for (int x = 0; x < m_UserBufferContainerList.size(); x++)
-    {
-        if (0 != m_UserBufferContainerList[x]->pBuffer)
-            delete [] m_UserBufferContainerList[x]->pBuffer;
-        if (0 != m_UserBufferContainerList[x])
-            delete m_UserBufferContainerList[x];
-    }
+        // delete all user buffer
+        for (int x = 0; x < m_UserBufferContainerList.size(); x++)
+        {
+            if (0 != m_UserBufferContainerList[x]->pBuffer)
+                delete [] m_UserBufferContainerList[x]->pBuffer;
+            if (0 != m_UserBufferContainerList[x])
+                delete m_UserBufferContainerList[x];
+        }
 
-    m_UserBufferContainerList.resize(0);
+        m_UserBufferContainerList.resize(0);
     }
 
     return result;
 }
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
-

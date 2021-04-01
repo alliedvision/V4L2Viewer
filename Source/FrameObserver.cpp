@@ -26,41 +26,32 @@
 
 =============================================================================*/
 
-#include <sstream>
+#include "DeviationCalculator.h"
+#include "FrameObserver.h"
+#include "ImageTransform.h"
+#include "Logger.h"
+
 #include <QPixmap>
+
 #include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <linux/videodev2.h>
+#include <sstream>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include "videodev2_av.h"
-
-#include "FrameObserver.h"
-#include "Logger.h"
-#include "ImageTransf.h"
-#include "DeviationCalculator.h"
+#include <unistd.h>
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 
-////////////////////////////////////////////////////////////////////////////
-// Global data
-////////////////////////////////////////////////////////////////////////////
+#define V4L2_PIX_FMT_Y10P     v4l2_fourcc('Y', '1', '0', 'P')
 
 uint8_t *g_ConversionBuffer1 = 0;
 uint8_t *g_ConversionBuffer2 = 0;
 
-namespace AVT {
-namespace Tools {
-namespace Examples {
-
-////////////////////////////////////////////////////////////////////////////
-// C service
-////////////////////////////////////////////////////////////////////////////
-
 uint32_t InternalConvertRAW10inRAW16ToRAW10g(const void *sourceBuffer, uint32_t length, const void *destBuffer)
 {
-    uint8_t *destdata = (unsigned char *)destBuffer;
-    uint8_t *srcdata = (unsigned char *)sourceBuffer;
+    uint8_t *destData = (unsigned char *)destBuffer;
+    uint8_t *srcData = (unsigned char *)sourceBuffer;
     uint32_t srcCount = 0;
     uint32_t destCount = 0;
 
@@ -70,45 +61,49 @@ uint32_t InternalConvertRAW10inRAW16ToRAW10g(const void *sourceBuffer, uint32_t 
 
         for (int iii = 0; iii < 4; iii++)
         {
-            *destdata++ = *(srcdata + 1); // bits [9:2]
+            *destData++ = *(srcData + 1); // bits [9:2]
             destCount++;
 
-            lsbits |= (*srcdata >> 6) << (iii * 2); // least significant bits [1:0]
+            lsbits |= (*srcData >> 6) << (iii * 2); // least significant bits [1:0]
 
-            srcdata += 2; // move to next 16 bits
+            srcData += 2; // move to next 16 bits
 
             srcCount += 2;
         }
 
-        *destdata++ = lsbits; // every 5th byte contains the lsbs from the last 4 pixels
+        *destData++ = lsbits; // every 5th byte contains the lsbs from the last 4 pixels
         destCount++;
     }
 
     return destCount;
 }
 
-////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////
-
 FrameObserver::FrameObserver(bool showFrames)
-    : m_nReceivedFramesCounter(0)
+    : m_bRecording(false)
+    , m_nReceivedFramesCounter(0)
     , m_nRenderedFramesCounter(0)
     , m_nDroppedFramesCounter(0)
-    , m_bRecording(false)
     , m_nFileDescriptor(0)
+    , m_PixelFormat(0)
     , m_nWidth(0)
     , m_nHeight(0)
-    , m_FrameId(0)
     , m_PayloadSize(0)
+    , m_RealPayloadSize(0)
     , m_BytesPerLine(0)
+    , m_FrameId(0)
+    , m_DQBUF_last_errno(0)
     , m_MessageSendFlag(false)
     , m_BlockingMode(false)
-    , m_bStreamRunning(false)
+    , m_IsStreamRunning(false)
     , m_bStreamStopped(true)
+    , m_EnableRAW10Correction(0)
+    , m_EnableLogging(0)
+    , m_FrameCount(0)
+    , m_LogFrameStart(0)
+    , m_LogFrameEnd(0)
+    , m_DumpFrameStart(0)
+    , m_DumpFrameEnd(0)
     , m_ShowFrames(showFrames)
-    , m_RealPayloadsize(0)
-    , m_DQBUF_last_errno(0)
 {
     m_pImageProcessingThread = QSharedPointer<ImageProcessingThread>(new ImageProcessingThread());
 
@@ -127,11 +122,11 @@ FrameObserver::~FrameObserver()
         QThread::msleep(10);
 }
 
-int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelformat,
-                               uint32_t payloadsize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
+int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelFormat,
+                               uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
                                uint32_t enableLogging, int32_t logFrameStart, int32_t logFrameEnd,
                                int32_t dumpFrameStart, int32_t dumpFrameEnd, uint32_t enableRAW10Correction,
-                               std::vector<uint8_t> &rData)
+                               std::vector<uint8_t> &csvData)
 {
     int nResult = 0;
 
@@ -142,13 +137,13 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_FrameId = 0;
     m_nReceivedFramesCounter = 0;
     m_nRenderedFramesCounter = 0;
-    m_PayloadSize = payloadsize;
-    m_Pixelformat = pixelformat;
+    m_PayloadSize = payloadSize;
+    m_PixelFormat = pixelFormat;
     m_BytesPerLine = bytesPerLine;
     m_MessageSendFlag = false;
 
     m_bStreamStopped = false;
-    m_bStreamRunning = true;
+    m_IsStreamRunning = true;
 
     m_EnableLogging = enableLogging;
     m_FrameCount = 0;
@@ -157,7 +152,7 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_DumpFrameStart = dumpFrameStart;
     m_DumpFrameEnd = dumpFrameEnd;
 
-    m_rCSVData = rData;
+    m_CsvData = csvData;
 
     m_EnableRAW10Correction = enableRAW10Correction;
 
@@ -181,7 +176,7 @@ int FrameObserver::StopStream()
 
     m_pImageProcessingThread->StopThread();
 
-    m_bStreamRunning = false;
+    m_IsStreamRunning = false;
 
     while (!m_bStreamStopped && count-- > 0)
         QThread::msleep(10);
@@ -235,18 +230,18 @@ void FrameObserver::DequeueAndProcessFrame()
             {
 
                 if (m_EnableRAW10Correction &&
-                        (m_Pixelformat == V4L2_PIX_FMT_Y10P ||
-                         m_Pixelformat == V4L2_PIX_FMT_SBGGR10P ||
-                         m_Pixelformat == V4L2_PIX_FMT_SGBRG10P ||
-                         m_Pixelformat == V4L2_PIX_FMT_SGRBG10P ||
-                         m_Pixelformat == V4L2_PIX_FMT_SRGGB10P))
+                        (m_PixelFormat == V4L2_PIX_FMT_Y10P ||
+                         m_PixelFormat == V4L2_PIX_FMT_SBGGR10P ||
+                         m_PixelFormat == V4L2_PIX_FMT_SGBRG10P ||
+                         m_PixelFormat == V4L2_PIX_FMT_SGRBG10P ||
+                         m_PixelFormat == V4L2_PIX_FMT_SRGGB10P))
                 {
                     length = InternalConvertRAW10inRAW16ToRAW10g(buffer, m_PayloadSize, g_ConversionBuffer2);
                     buffer = g_ConversionBuffer2;
                     logPayloadSize = length;
                 }
 
-                if (length <= m_RealPayloadsize)
+                if (length <= m_RealPayloadSize)
                 {
                     if (m_FrameCount >= m_LogFrameStart && m_FrameCount <=  m_LogFrameEnd)
                     {
@@ -256,21 +251,21 @@ void FrameObserver::DequeueAndProcessFrame()
                     if (m_FrameCount >= m_DumpFrameStart && m_FrameCount <=  m_DumpFrameEnd)
                     {
                         std::stringstream localFileName;
-                        localFileName << "v4l2test_Frame" << m_FrameCount << ".dmp";
+                        localFileName << "V4L2Viewer_Frame" << m_FrameCount << ".dmp";
                         Logger::LogBuffer(localFileName.str(), (uint8_t*)buffer, logPayloadSize);
                     }
                     m_FrameCount++;
 
-                    if (m_rCSVData.size() > 0 && m_FrameCount == 1)
+                    if (m_CsvData.size() > 0 && m_FrameCount == 1)
                     {
-                        uint32_t tmpCSVPayloadSize = m_rCSVData.size();
+                        uint32_t tmpCsvPayloadSize = m_CsvData.size();
 
-                        if (m_PayloadSize == tmpCSVPayloadSize)
+                        if (m_PayloadSize == tmpCsvPayloadSize)
                         {
                             bool notequalflag = false;
                             for (uint32_t i = 0; i < m_PayloadSize; i++)
                             {
-                                if (buffer[i] != m_rCSVData[i])
+                                if (buffer[i] != m_CsvData[i])
                                 {
                                     Logger::Log("!!! Buffer unequal to CSV file. !!!");
                                     emit OnMessage_Signal("!!! Buffer unequal to CSV file. !!!");
@@ -286,8 +281,8 @@ void FrameObserver::DequeueAndProcessFrame()
                         }
                         else
                         {
-                            Logger::LogEx("Buffer size=%d unequal to CSV file data size=%d.", m_PayloadSize, tmpCSVPayloadSize);
-                            emit OnMessage_Signal(QString("Buffer size=%1 unequal to CSV file data size=%2.").arg(m_PayloadSize).arg(tmpCSVPayloadSize));
+                            Logger::LogEx("Buffer size=%d unequal to CSV file data size=%d.", m_PayloadSize, tmpCsvPayloadSize);
+                            emit OnMessage_Signal(QString("Buffer size=%1 unequal to CSV file data size=%2.").arg(m_PayloadSize).arg(tmpCsvPayloadSize));
                         }
                     }
 
@@ -295,11 +290,11 @@ void FrameObserver::DequeueAndProcessFrame()
                     {
                         QImage convertedImage;
 
-                        if (AVT::Tools::ImageTransf::ConvertFrame(buffer, length,
-                                m_nWidth, m_nHeight, m_Pixelformat,
-                                m_PayloadSize, m_BytesPerLine, convertedImage) == 0)
+                        if (ImageTransform::ConvertFrame(buffer, length,
+                                                         m_nWidth, m_nHeight, m_PixelFormat,
+                                                         m_PayloadSize, m_BytesPerLine, convertedImage) == 0)
                         {
-                            QSharedPointer<MyFrame> frame(new MyFrame(convertedImage, buf.index, buffer, length, m_nWidth, m_nHeight, m_Pixelformat, m_PayloadSize, m_BytesPerLine, m_FrameId));
+                            QSharedPointer<MyFrame> frame(new MyFrame(convertedImage, buf.index, buffer, length, m_nWidth, m_nHeight, m_PixelFormat, m_PayloadSize, m_BytesPerLine, m_FrameId));
                             emit OnRecordFrame_Signal(frame);
                         }
                         else
@@ -316,8 +311,8 @@ void FrameObserver::DequeueAndProcessFrame()
                     }
 
                     if (m_pImageProcessingThread->QueueFrame(buf.index, buffer, length,
-                            m_nWidth, m_nHeight, m_Pixelformat,
-                            m_PayloadSize, m_BytesPerLine, m_FrameId))
+                        m_nWidth, m_nHeight, m_PixelFormat,
+                        m_PayloadSize, m_BytesPerLine, m_FrameId))
                     {
                         // when frame was not queued to image queue because queue is full
                         // frame should be queued to v4l2 queue again
@@ -328,7 +323,7 @@ void FrameObserver::DequeueAndProcessFrame()
                 {
                     m_nDroppedFramesCounter++;
 
-                    emit OnError_Signal(QString("Received data length is higher than announced payload size. lenght=%1, payloadsize=%2").arg(length).arg(m_PayloadSize));
+                    emit OnError_Signal(QString("Received data length is higher than announced payload size. length=%1, payload size=%2").arg(length).arg(m_PayloadSize));
 
                     emit OnFrameID_Signal(m_FrameId);
                     QueueSingleUserBuffer(buf.index);
@@ -370,9 +365,9 @@ void FrameObserver::run()
 {
     emit OnMessage_Signal(QString("FrameObserver thread started."));
 
-    m_bStreamRunning = true;
+    m_IsStreamRunning = true;
 
-    while (m_bStreamRunning)
+    while (m_IsStreamRunning)
     {
         fd_set fds;
         struct timeval tv;
@@ -393,12 +388,15 @@ void FrameObserver::run()
             {
                 // Error
                 continue;
-            } else if (0 == result)
+            }
+            else if (0 == result)
             {
                 // Timeout
                 QThread::msleep(0);
                 continue;
-            } else {
+            }
+            else
+            {
                 DequeueAndProcessFrame();
             }
         }
@@ -512,8 +510,3 @@ void FrameObserver::setFileDescriptor(int fd)
 {
     m_nFileDescriptor = fd;
 }
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
-

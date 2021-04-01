@@ -6,7 +6,7 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 -------------------------------------------------------------------------------
 
-File:        Thread.h
+File:        V4L2Helper.h
 
 Description:
 
@@ -25,35 +25,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =============================================================================*/
 
-#ifndef THREAD_H
-#define THREAD_H
+#ifndef V4L2HELPER_H
+#define V4L2HELPER_H
 
-#include <pthread.h>
 #include <stdint.h>
-#include <sys/time.h>
-#include <sys/errno.h>
 
-typedef void *(*THREAD_START_ROUTINE)(void *);
+#include <string>
 
-
-namespace base {
-
-class Thread
+namespace v4l2helper
 {
-public:
-    Thread();
-    ~Thread(void);
 
-    void *StartThread(THREAD_START_ROUTINE threadStartRoutine, void* params);
-    void *GetThreadID();
-    uint32_t Join();
-    uint32_t JoinTimed(int msec);
+std::string ConvertPixelFormat2EnumString(int pixelFormat);
 
-private:
-    pthread_t m_ThreadID;
-};
+std::string ConvertControlID2String(uint32_t controlID);
 
-} // namespace base
+} // namepsace v4l2helper
 
-#endif // THREAD_H
-
+#endif // V4L2HELPER_H

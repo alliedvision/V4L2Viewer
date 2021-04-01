@@ -6,7 +6,7 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 -------------------------------------------------------------------------------
 
-File:        V4l2Helper.h
+File:        LocalMutex.h
 
 Description:
 
@@ -25,32 +25,37 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =============================================================================*/
 
-#ifndef V4L2HELPER_INCLUDE
-#define V4L2HELPER_INCLUDE
+#ifndef LOCALMUTEX_H
+#define LOCALMUTEX_H
 
-#include <stdint.h>
-#include <string>
+#include <pthread.h>
 
-namespace AVT {
-namespace Tools {
-namespace Examples {
+namespace base {
 
-class V4l2Helper
+class LocalMutex
 {
 public:
-    V4l2Helper(void);
-    virtual ~V4l2Helper(void);
+    LocalMutex()
+    {
+        pthread_mutex_init(&m_Mutex, NULL);
+    }
+    virtual ~LocalMutex()
+    {
+        pthread_mutex_destroy(&m_Mutex);
+    }
 
-    static std::string    ConvertResult2String(int result);
-    static int xioctl(int fh, int request, void *arg);
-    static std::string ConvertPixelformat2EnumString(int pixelformat);
-    static std::string ConvertErrno2String(int errnumber);
-    static std::string ConvertPixelformat2String(int pixelformat);
-    static std::string ConvertControlID2String(uint32_t controlID);
+    void Lock()
+    {
+        pthread_mutex_lock(&m_Mutex);
+    }
+    void Unlock()
+    {
+        pthread_mutex_unlock(&m_Mutex);
+    }
+
+    pthread_mutex_t  m_Mutex;
 };
 
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
+} // namespace base
 
-#endif /* V4L2HELPER_INCLUDE */
+#endif // LOCALMUTEX_H

@@ -29,24 +29,7 @@
 #ifndef FRAMEOBSERVERREAD_H
 #define FRAMEOBSERVERREAD_H
 
-#include "Helper.h"
-#include "V4l2Helper.h"
-
-#include <FrameObserver.h>
-
-
-////////////////////////////////////////////////////////////////////////////////
-// TYPEDEFS
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-// DEFINES
-////////////////////////////////////////////////////////////////////////////////
-
-
-namespace AVT {
-namespace Tools {
-namespace Examples {
+#include "FrameObserver.h"
 
 class FrameObserverRead : public FrameObserver
 {
@@ -69,10 +52,6 @@ protected:
 private:
     int        m_nFrameBufferIndex;
 };
-
-} // namespace Examples
-} // namespace Tools
-} // namespace AVT
 
 #endif // FRAMEOBSERVERREAD_H
 
