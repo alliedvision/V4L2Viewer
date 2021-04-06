@@ -85,7 +85,6 @@ void CameraObserver::run()
 int CameraObserver::CheckDevices()
 {
     uint32_t deviceCount = 0;
-    int nResult = 0;
     QString deviceName;
     int fileDiscriptor = -1;
     std::map<int, std::string>    deviceList;
@@ -140,11 +139,11 @@ int CameraObserver::CheckDevices()
     }
     while(++deviceCount < MAX_DEVICE_COUNT);
 
-    for (int i=0; i<deviceList.size(); i++)
+    for (unsigned int i=0; i<deviceList.size(); i++)
     {
         bool found = false;
 
-        for (int ii=0; ii<m_DeviceList.size(); ii++)
+        for (unsigned int ii=0; ii<m_DeviceList.size(); ii++)
         {
             if (deviceList[i] == m_DeviceList[ii])
             {
@@ -155,7 +154,7 @@ int CameraObserver::CheckDevices()
 
         if (!found)
         {
-            int ii = 0;
+            unsigned int ii = 0;
             for (ii=0; ii<m_DeviceList.size(); ii++)
             {
                 bool found = false;
@@ -175,11 +174,11 @@ int CameraObserver::CheckDevices()
         }
     }
 
-    for (int i=0; i<m_DeviceList.size(); i++)
+    for (unsigned int i=0; i<m_DeviceList.size(); i++)
     {
         bool found = false;
 
-        for (int ii=0; ii<deviceList.size(); ii++)
+        for (unsigned int ii=0; ii<deviceList.size(); ii++)
         {
             if (deviceList[ii] == m_DeviceList[i])
             {

@@ -53,9 +53,9 @@ void ConvertMono12gToRGB24(const void *sourceBuffer, uint32_t width,
     uint32_t count = 0;
     uint32_t bytesPerLine = width * 1.5;
 
-    for (int i = 0; i < height; i++)
+    for (unsigned int i = 0; i < height; i++)
     {
-        for (int ii = 0; ii < bytesPerLine; ii++)
+        for (unsigned int ii = 0; ii < bytesPerLine; ii++)
         {
             if (((count + 1) % 3) != 0)
             {
@@ -77,9 +77,9 @@ void ConvertMono10gToRGB24(const void *sourceBuffer, uint32_t width,
     uint32_t count = 0;
     uint32_t bytesPerLine = width * 1.25;
 
-    for (int i = 0; i < height; i++)
+    for (unsigned int i = 0; i < height; i++)
     {
-        for (int ii = 0; ii < bytesPerLine; ii++)
+        for (unsigned int ii = 0; ii < bytesPerLine; ii++)
         {
             if (((count + 1) % 5) != 0)
             {
@@ -101,9 +101,9 @@ void ConvertRAW12gToRAW8(const void *sourceBuffer, uint32_t width,
     uint32_t count = 0;
     uint32_t bytesPerLine = width * 1.5;
 
-    for (int i = 0; i < height; i++)
+    for (unsigned int i = 0; i < height; i++)
     {
-        for (int ii = 0; ii < bytesPerLine; ii++)
+        for (unsigned int ii = 0; ii < bytesPerLine; ii++)
         {
             if (((count + 1) % 3) != 0)
             {
@@ -123,9 +123,9 @@ void ConvertRAW10gToRAW8(const void *sourceBuffer, uint32_t width,
     uint32_t count = 0;
     uint32_t bytesPerLine = width * 1.25;
 
-    for (int i = 0; i < height; i++)
+    for (unsigned int i = 0; i < height; i++)
     {
-        for (int ii = 0; ii < bytesPerLine; ii++)
+        for (unsigned int ii = 0; ii < bytesPerLine; ii++)
         {
             if (((count + 1) % 5) != 0)
             {
@@ -145,9 +145,9 @@ void ConvertRAW10ToRAW8(const void *sourceBuffer, uint32_t width,
     uint32_t count = 0;
     uint32_t bytesPerLine = width * 2;
 
-    for (int i = 0; i < height; i++)
+    for (unsigned int i = 0; i < height; i++)
     {
-        for (int ii = 0; ii < bytesPerLine; ii++)
+        for (unsigned int ii = 0; ii < bytesPerLine; ii++)
         {
             if (((count + 1) % 2) != 0)
             {
@@ -169,7 +169,7 @@ void  ConvertJetsonMono16ToRGB24(const void *sourceBuffer, uint32_t width, uint3
     uint8_t *destdata = dst.bits();
     uint16_t const *srcdata = reinterpret_cast<uint16_t const*>(sourceBuffer);
 
-    for(int px = 0; px < width*height; ++px) {
+    for(unsigned int px = 0; px < width*height; ++px) {
         uint8_t const val = (srcdata[px] >> shift) & 0xFF;
         *destdata++ = val;
         *destdata++ = val;
@@ -184,7 +184,7 @@ void ConvertJetsonBayer16ToRGB24(const void *sourceBuffer, uint32_t width, uint3
     uint8_t *destdata = g_ConversionBuffer1;
     uint16_t const *srcdata = reinterpret_cast<uint16_t const*>(sourceBuffer);
 
-    for(int px = 0; px < width*height; ++px) {
+    for(unsigned int px = 0; px < width*height; ++px) {
         uint8_t const val = (srcdata[px] >> shift) & 0xFF;
         *destdata++ = val;
     }

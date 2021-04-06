@@ -262,7 +262,6 @@ void Camera::OnCameraListChanged(const int &reason, unsigned int cardNumber, uns
 int Camera::DeviceDiscoveryStart()
 {
     uint32_t deviceCount = 0;
-    int nResult = 0;
     QString deviceName;
     int fileDiscriptor = -1;
 
@@ -696,9 +695,6 @@ int Camera::ReadFormats()
     int result = -1;
     v4l2_fmtdesc fmt;
     v4l2_frmsizeenum fmtsize;
-
-    int x=V4L2_PIX_FMT_RGB565;
-    int z=V4L2_PIX_FMT_UYVY;
 
     CLEAR(fmt);
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -1823,12 +1819,7 @@ int Camera::DeleteUserBuffer()
 int Camera::GetCameraDriverName(std::string &strText)
 {
     int result = 0;
-
     v4l2_capability cap;
-    v4l2_cropcap cropcap;
-    v4l2_crop crop;
-    v4l2_format fmt;
-    unsigned int min;
 
     // query device capabilities
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
@@ -1861,12 +1852,7 @@ int Camera::GetCameraDriverName(std::string &strText)
 int Camera::GetCameraDeviceName(std::string &strText)
 {
     int result = 0;
-
     v4l2_capability cap;
-    v4l2_cropcap cropcap;
-    v4l2_crop crop;
-    v4l2_format fmt;
-    unsigned int min;
 
     // query device capabilities
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
@@ -1899,12 +1885,7 @@ int Camera::GetCameraDeviceName(std::string &strText)
 int Camera::GetCameraBusInfo(std::string &strText)
 {
     int result = 0;
-
     v4l2_capability cap;
-    v4l2_cropcap cropcap;
-    v4l2_crop crop;
-    v4l2_format fmt;
-    unsigned int min;
 
     // query device capabilities
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
@@ -1938,12 +1919,7 @@ int Camera::GetCameraDriverVersion(std::string &strText)
 {
     int result = 0;
     std::stringstream tmp;
-
     v4l2_capability cap;
-    v4l2_cropcap cropcap;
-    v4l2_crop crop;
-    v4l2_format fmt;
-    unsigned int min;
 
     // query device capabilities
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
@@ -1978,13 +1954,7 @@ int Camera::GetCameraReadCapability(bool &flag)
 {
     int result = 0;
     std::stringstream tmp;
-
     v4l2_capability cap;
-    v4l2_cropcap cropcap;
-    v4l2_crop crop;
-    v4l2_format fmt;
-    unsigned int min;
-
     flag = false;
 
     // query device capabilities
@@ -2024,12 +1994,7 @@ int Camera::GetCameraCapabilities(std::string &strText)
 {
     int result = 0;
     std::stringstream tmp;
-
     v4l2_capability cap;
-    v4l2_cropcap cropcap;
-    v4l2_crop crop;
-    v4l2_format fmt;
-    unsigned int min;
 
     // query device capabilities
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
@@ -2200,7 +2165,7 @@ int Camera::ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData)
                 if (length > 0)
                 {
                     const uint32_t lineHeader = 10;
-                    for (int x=0; x<length; x++)
+                    for (unsigned int x=0; x<length; x++)
                     {
                         rData[counter++] =  items.at(lineHeader + x).toUInt(0, 16);
                     }
@@ -2210,6 +2175,7 @@ int Camera::ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData)
     }
 
     emit OnCameraMessage_Signal(QString("ReadCSVFile: data cache filled with %1 bytes.").arg(width*height));
+	return 0;
 }
 
 
@@ -2316,7 +2282,7 @@ std::string Camera::getAvtDeviceSerialNumber()
                 std::stringstream ss;
 
                 // buffer may contain trailing null terminators
-                for(int i=0; i<sizeof(pBuf); i++)
+                for(unsigned int i=0; i<sizeof(pBuf); i++)
                 {
                     char c = pBuf[i];
                     if(c != 0)

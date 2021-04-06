@@ -48,7 +48,6 @@ void DeviationCalculator::run()
                 QSharedPointer<MyFrame> pFrame = it->second;
 
                 QSharedPointer<QByteArray> pCompareFrame( new QByteArray((char*)pFrame->GetBuffer(), pFrame->GetBufferlength()));
-                double deviation;
 
                 emit OnCalcDeviationReady_Signal(row, CountUnequalBytes(m_pReferenceFrame, pCompareFrame), (it == --m_RowToFrameTable.end()));
             }

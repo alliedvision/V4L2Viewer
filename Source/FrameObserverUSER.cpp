@@ -137,7 +137,7 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
             }
 
             // get the length and start address of each of the 4 buffer structs and assign the user buffer addresses
-            for (int x = 0; x < m_UserBufferContainerList.size(); ++x)
+            for (unsigned int x = 0; x < m_UserBufferContainerList.size(); ++x)
             {
                 UserBuffer* pTmpBuffer = new UserBuffer;
                 pTmpBuffer->nBufferlength = bufferSize;
@@ -245,7 +245,7 @@ int FrameObserverUSER::DeleteAllUserBuffer()
         base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
         // delete all user buffer
-        for (int x = 0; x < m_UserBufferContainerList.size(); x++)
+        for (unsigned int x = 0; x < m_UserBufferContainerList.size(); x++)
         {
             if (0 != m_UserBufferContainerList[x]->pBuffer)
             delete [] m_UserBufferContainerList[x]->pBuffer;

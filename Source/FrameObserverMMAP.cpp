@@ -146,7 +146,7 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
                 return -1;
             }
 
-            for (int x = 0; x < bufferCount; ++x)
+            for (unsigned int x = 0; x < bufferCount; ++x)
             {
                 v4l2_buffer buf;
                 CLEAR(buf);
