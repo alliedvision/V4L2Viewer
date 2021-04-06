@@ -163,7 +163,7 @@ endif
 ifeq ($(CONFIG),Release)
   CXX_CONFIG_FLAGS        = -O3
 endif
-MACRO_CXX               = $(CXX) -std=c++98 $(foreach dir,$(3),-I$(dir)) $(foreach def,$(4),-D$(def)) -fvisibility=hidden -fPIC $(CXX_CONFIG_FLAGS) $(CXX_ARCH) $(CXX_FLOATABI) $(CXX_THUMB) -o $(1) -c $(2) $(foreach pkg,$(5),$(shell pkg-config --cflags $(pkg)))
+MACRO_CXX               = $(CXX) -std=c++17 -Wall $(foreach dir,$(3),-I$(dir)) $(foreach def,$(4),-D$(def)) -fvisibility=hidden -fPIC $(CXX_CONFIG_FLAGS) $(CXX_ARCH) $(CXX_FLOATABI) $(CXX_THUMB) -o $(1) -c $(2) $(foreach pkg,$(5),$(shell pkg-config --cflags $(pkg)))
 
 #MACRO_MKDIR Parameters:
 #1. Directories to create
@@ -191,13 +191,13 @@ MACRO_LINK_BINARY       = $(CXX) $(CXX_ARCH) $(CXX_FLOATABI) $(CXX_THUMB) $(if $
 #MACRO_MOC Parameters:
 #1. Output file
 #2. Input file
-PKGCFG_MOC              = $(shell pkg-config --variable=moc_location QtCore)
+PKGCFG_MOC              = $(shell pkg-config --variable=moc_location Qt5Core)
 MACRO_MOC               = $(if $(PKGCFG_MOC),$(PKGCFG_MOC),moc) -o $(1) $(2)
 
 #MACRO_UIC Parameters:
 #1. Output file
 #2. Input file
-PKGCFG_UIC              = $(shell pkg-config --variable=uic_location QtCore)
+PKGCFG_UIC              = $(shell pkg-config --variable=uic_location Qt5Core)
 MACRO_UIC               = $(if $(PKGCFG_UIC),$(PKGCFG_UIC),uic) -o $(1) $(2)
 
 #MACRO_RCC Parameters:

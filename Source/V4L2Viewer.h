@@ -38,7 +38,7 @@
 #include <list>
 
 #include <QMainWindow>
-#include <QtGui>
+#include <QtWidgets>
 #include <QTimer>
 
 #define VIEWER_MASTER       0

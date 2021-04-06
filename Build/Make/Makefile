@@ -48,7 +48,7 @@ include $(MAKE_INCLUDE_DIR)/Common.mk
 LIBS = pthread
 
 # require packages
-PACKAGES     =     QtCore QtGui
+PACKAGES     =     Qt5Core Qt5Widgets
 
 DEFINES      =
 

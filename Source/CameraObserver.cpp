@@ -96,27 +96,27 @@ int CameraObserver::CheckDevices()
 
         if ((fileDiscriptor = open(deviceName.toStdString().c_str(), O_RDWR)) == -1)
         {
-            Logger::LogEx("Camera::DeviceDiscoveryStart open %s failed", deviceName.toAscii().data());
+            Logger::LogEx("Camera::DeviceDiscoveryStart open %s failed", deviceName.toLatin1().data());
             emit OnCameraError_Signal("DeviceDiscoveryStart: open " + deviceName + " failed");
         }
         else
         {
             v4l2_capability cap;
 
-            Logger::LogEx("Camera::DeviceDiscoveryStart open %s found", deviceName.toAscii().data());
+            Logger::LogEx("Camera::DeviceDiscoveryStart open %s found", deviceName.toLatin1().data());
             emit OnCameraMessage_Signal("DeviceDiscoveryStart: open " + deviceName + " found");
 
             // query device capabilities
             if (-1 == iohelper::xioctl(fileDiscriptor, VIDIOC_QUERYCAP, &cap))
             {
-                Logger::LogEx("Camera::DeviceDiscoveryStart %s is no V4L2 device", deviceName.toAscii().data());
+                Logger::LogEx("Camera::DeviceDiscoveryStart %s is no V4L2 device", deviceName.toLatin1().data());
                 emit OnCameraError_Signal("DeviceDiscoveryStart: " + deviceName + " is no V4L2 device");
             }
             else
             {
                 if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
                 {
-                    Logger::LogEx("Camera::DeviceDiscoveryStart %s is no video capture device", deviceName.toAscii().data());
+                    Logger::LogEx("Camera::DeviceDiscoveryStart %s is no video capture device", deviceName.toLatin1().data());
                     emit OnCameraError_Signal("DeviceDiscoveryStart: " + deviceName + " is no video capture device");
                 }
             }
@@ -124,7 +124,7 @@ int CameraObserver::CheckDevices()
 
             if (-1 == close(fileDiscriptor))
             {
-                Logger::LogEx("Camera::DeviceDiscoveryStart close %s failed", deviceName.toAscii().data());
+                Logger::LogEx("Camera::DeviceDiscoveryStart close %s failed", deviceName.toLatin1().data());
                 emit OnCameraError_Signal("DeviceDiscoveryStart: close " + deviceName + " failed");
             }
             else
@@ -133,7 +133,7 @@ int CameraObserver::CheckDevices()
 
                 deviceCount++;
 
-                Logger::LogEx("Camera::DeviceDiscoveryStart close %s OK", deviceName.toAscii().data());
+                Logger::LogEx("Camera::DeviceDiscoveryStart close %s OK", deviceName.toLatin1().data());
                 emit OnCameraMessage_Signal("DeviceDiscoveryStart: close " + deviceName + " OK");
             }
         }

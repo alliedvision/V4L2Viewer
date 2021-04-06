@@ -1291,7 +1291,7 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
         bUpdateList = true;
 
         std::string manuName;
-        std::string devName = deviceName.toAscii().data();
+        std::string devName = deviceName.toLatin1().data();
         OnLog(QString("Camera list changed. A new camera was discovered, cardNumber=%1, deviceID=%2, cardName=%3.").arg(cardNumber).arg(deviceID).arg(info));
     }
     else if (UpdateTriggerPluggedOut == reason)
@@ -1903,7 +1903,7 @@ void V4L2Viewer::OnGetReferenceImage()
     // create new file dialog
     QString fileExtensions = GetImageFormatString();
     m_ReferenceImageDialog = new QFileDialog( this, tr("Open reference image"), m_SaveFileDir, "" );
-    m_ReferenceImageDialog->selectFilter( m_SelectedExtension );
+    m_ReferenceImageDialog->selectNameFilter( m_SelectedExtension );
     m_ReferenceImageDialog->setAcceptMode( QFileDialog::AcceptOpen );
 
     // open file dialog
@@ -2008,7 +2008,7 @@ void V4L2Viewer::SaveFrameDialog(bool raw)
         }
 
         m_SaveFileDialog = new QFileDialog ( this, tr((raw ? "Save Image" : "Export Image")), m_SaveFileDir + QString("/") + defaultFileName, fileExtensions );
-        m_SaveFileDialog->selectFilter(m_SelectedExtension);
+        m_SaveFileDialog->selectNameFilter(m_SelectedExtension);
         m_SaveFileDialog->setAcceptMode(QFileDialog::AcceptSave);
 
         if (m_SaveFileDialog->exec())
