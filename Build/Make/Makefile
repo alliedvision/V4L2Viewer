@@ -37,6 +37,7 @@ CONFIG_DIR              = $(ARCH)_$(WORDSIZE)bit/$(CONFIG)
 BIN_DIR                 = binary/$(CONFIG_DIR)
 OBJ_DIR                 = object/$(CONFIG_DIR)
 SOURCE_DIR              = $(PROJECT_DIR)/Source/Source
+MAIN_DIR		= $(PROJECT_DIR)/Source
 HEADER_DIR		= $(PROJECT_DIR)/Source/Headers
 RESOURCE_DIR		= $(PROJECT_DIR)/Source/Resources
 INCLUDE_DIRS            = $(HEADER_DIR) \
@@ -104,6 +105,9 @@ $(OBJ_DIR)/qrc_%.cpp: $(RESOURCE_DIR)/%.qrc
 	$(call MACRO_RCC,$@,$<)
 
 $(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(HEADER_DIR)/*.h $(GEN_HEADERS) | $(OBJ_DIR)
+	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
+
+$(OBJ_DIR)/%.o: $(MAIN_DIR)/%.cpp $(HEADER_DIR)/*.h $(GEN_HEADERS) | $(OBJ_DIR)
 	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
 
 $(OBJ_DIR)/%.o: $(OBJ_DIR)/%.cpp $(GEN_HEADERS) | $(OBJ_DIR)
