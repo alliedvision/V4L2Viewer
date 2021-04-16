@@ -36,8 +36,11 @@ MAKE_INCLUDE_DIR        = $(CURDIR)
 CONFIG_DIR              = $(ARCH)_$(WORDSIZE)bit/$(CONFIG)
 BIN_DIR                 = binary/$(CONFIG_DIR)
 OBJ_DIR                 = object/$(CONFIG_DIR)
-SOURCE_DIR              = $(PROJECT_DIR)/Source
-INCLUDE_DIRS            = $(SOURCE_DIR) \
+SOURCE_DIR              = $(PROJECT_DIR)/Source/Source
+MAIN_DIR		= $(PROJECT_DIR)/Source
+HEADER_DIR		= $(PROJECT_DIR)/Source/Headers
+RESOURCE_DIR		= $(PROJECT_DIR)/Source/Resources
+INCLUDE_DIRS            = $(HEADER_DIR) \
                           $(OBJ_DIR)
 BIN_PATH                = $(BIN_DIR)/$(BIN_FILE)
 
@@ -48,7 +51,7 @@ include $(MAKE_INCLUDE_DIR)/Common.mk
 LIBS = pthread
 
 # require packages
-PACKAGES     =     QtCore QtGui
+PACKAGES     =     Qt5Core Qt5Widgets
 
 DEFINES      =
 
@@ -92,16 +95,19 @@ $(OBJ_DIR):
 $(BIN_DIR):
 	$(call MACRO_MKDIR,$(BIN_DIR))
 
-$(OBJ_DIR)/moc_%.cpp: $(SOURCE_DIR)/%.h
+$(OBJ_DIR)/moc_%.cpp: $(HEADER_DIR)/%.h
 	$(call MACRO_MOC,$@,$<)
 
-$(OBJ_DIR)/ui_%.h: $(SOURCE_DIR)/res/%.ui
+$(OBJ_DIR)/ui_%.h: $(RESOURCE_DIR)/Forms/%.ui
 	$(call MACRO_UIC,$@,$<)
 
-$(OBJ_DIR)/qrc_%.cpp: $(SOURCE_DIR)/res/%.qrc
+$(OBJ_DIR)/qrc_%.cpp: $(RESOURCE_DIR)/%.qrc
 	$(call MACRO_RCC,$@,$<)
 
-$(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(SOURCE_DIR)/*.h $(GEN_HEADERS) | $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(HEADER_DIR)/*.h $(GEN_HEADERS) | $(OBJ_DIR)
+	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
+
+$(OBJ_DIR)/%.o: $(MAIN_DIR)/%.cpp $(HEADER_DIR)/*.h $(GEN_HEADERS) | $(OBJ_DIR)
 	$(call MACRO_CXX,$@,$<,$(INCLUDE_DIRS),$(DEFINES),$(PACKAGES))
 
 $(OBJ_DIR)/%.o: $(OBJ_DIR)/%.cpp $(GEN_HEADERS) | $(OBJ_DIR)

@@ -6,9 +6,10 @@
 
 -------------------------------------------------------------------------------
 
-  File:        main.cpp
+  File:        ImTransf.h
 
-  Description: The main entry point of the Application.
+  Description: The frame observer that is used for notifications
+               regarding the arrival of a newly acquired frame.
 
 -------------------------------------------------------------------------------
 
@@ -25,14 +26,25 @@
 
 =============================================================================*/
 
-#include "V4L2Viewer.h"
+#ifndef IMAGETRANSFORM_H
+#define IMAGETRANSFORM_H
 
-#include <QApplication>
+#include <QImage>
 
-int main( int argc, char *argv[] )
+#include <stdint.h>
+
+class ImageTransform
 {
-    QApplication a( argc, argv );
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+public:
+
+    ImageTransform();
+
+    virtual ~ImageTransform();
+
+    static int ConvertFrame(const uint8_t* pBuffer, uint32_t length,
+                            uint32_t width, uint32_t height, uint32_t pixelFormat,
+                            uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage);
+};
+
+#endif // IMAGETRANSFORM_H
+

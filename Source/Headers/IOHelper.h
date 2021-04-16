@@ -6,9 +6,9 @@
 
 -------------------------------------------------------------------------------
 
-  File:        main.cpp
+  File:        IOHelper.h
 
-  Description: The main entry point of the Application.
+  Description:
 
 -------------------------------------------------------------------------------
 
@@ -25,14 +25,14 @@
 
 =============================================================================*/
 
-#include "V4L2Viewer.h"
+#ifndef IOHELPER_H
+#define IOHELPER_H
 
-#include <QApplication>
+namespace iohelper {
 
-int main( int argc, char *argv[] )
-{
-    QApplication a( argc, argv );
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+// extended version of ioctl that repeats the operation on failure
+int xioctl(int fh, int request, void *arg);
+
+} // namespace iohelper
+
+#endif // IOHELPER_H

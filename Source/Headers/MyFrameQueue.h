@@ -6,9 +6,9 @@
 
 -------------------------------------------------------------------------------
 
-  File:        main.cpp
+  File:        MyFrameQueue.h
 
-  Description: The main entry point of the Application.
+  Description:
 
 -------------------------------------------------------------------------------
 
@@ -25,14 +25,52 @@
 
 =============================================================================*/
 
-#include "V4L2Viewer.h"
+#ifndef MYFRAMEQUEUE_H
+#define MYFRAMEQUEUE_H
 
-#include <QApplication>
+#include "MyFrame.h"
 
-int main( int argc, char *argv[] )
+#include <QMutex>
+#include <QQueue>
+#include <QSharedPointer>
+
+class MyFrameQueue
 {
-    QApplication a( argc, argv );
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+public:
+    // Copy the of the given frame
+    MyFrameQueue(void);
+    ~MyFrameQueue(void);
+
+    // Get the size of the queue
+    unsigned int GetSize();
+
+    // Clear queue
+    void Clear();
+
+    // Add a new frame
+    void Enqueue(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
+         uint32_t &width, uint32_t &height, uint32_t &pixelFormat,
+         uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
+
+    // Add a new frame
+    void Enqueue(QImage &image, uint64_t frameID);
+
+    // Add a new frame
+    void Enqueue(QSharedPointer<MyFrame> pFrame);
+
+    // Get the frame out of the queue
+    QSharedPointer<MyFrame> Dequeue();
+
+    // Get the frame at the previous index
+    QSharedPointer<MyFrame> GetPrevious();
+
+    // Get the frame at the next index
+    QSharedPointer<MyFrame> GetNext();
+
+private:
+    QQueue< QSharedPointer<MyFrame> > m_FrameQueue;
+    QMutex m_FrameQueueMutex;
+    int m_nQueueIndex;
+};
+
+#endif // MYFRAMEQUEUE_H

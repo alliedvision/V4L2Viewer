@@ -6,9 +6,10 @@
 
 -------------------------------------------------------------------------------
 
-  File:        main.cpp
+  File:        FrameObserverMMAP.h
 
-  Description: The main entry point of the Application.
+  Description: The frame observer that is used for notifications
+               regarding the arrival of a newly acquired frame.
 
 -------------------------------------------------------------------------------
 
@@ -25,14 +26,32 @@
 
 =============================================================================*/
 
-#include "V4L2Viewer.h"
+#ifndef FRAMEOBSERVERMMAP_H
+#define FRAMEOBSERVERMMAP_H
 
-#include <QApplication>
+#include "FrameObserver.h"
 
-int main( int argc, char *argv[] )
+class FrameObserverMMAP : public FrameObserver
 {
-    QApplication a( argc, argv );
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+  public:
+    // We pass the camera that will deliver the frames to the constructor
+    FrameObserverMMAP(bool showFrames);
+
+    virtual ~FrameObserverMMAP();
+
+    virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
+    virtual int QueueAllUserBuffer();
+    virtual int QueueSingleUserBuffer(const int index);
+    virtual int DeleteAllUserBuffer();
+
+protected:
+    // v4l2
+    virtual int ReadFrame(v4l2_buffer &buf);
+    virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
+
+private:
+
+};
+
+#endif // FRAMEOBSERVERMMAP_H
+
