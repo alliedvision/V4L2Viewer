@@ -119,14 +119,6 @@ private:
     QGraphicsPixmapItem *m_PixmapItem;
     // Direct access value
     uint64_t m_DirectAccessData;
-    // save a frame dialog
-    QFileDialog *m_SaveFileDialog;
-    // save a frame directory
-    QString m_SaveFileDir;
-    // save a frame extension
-    QString m_SelectedExtension;
-    // save a frame name
-    QString m_SaveImageName;
     // store radio buttons for blocking/non-blocking mode in a group
     QButtonGroup* m_BlockingModeRadioButtonGroup;
     // load reference image dialog
@@ -141,10 +133,6 @@ private:
     unsigned int m_deviationErrors;
     // show loading gif during deviation calculation
     QMovie *m_LoadingAnimation;
-    // vector for recorded frames
-    QVector<QSharedPointer<MyFrame> > m_FrameRecordVector;
-    // max size of framerecordvector
-    const static int MAX_RECORD_FRAME_VECTOR_SIZE = 100;
     // frames received for live deviation calc
     unsigned int m_LiveDeviationFrameCount;
     // number of unequal bytes of live deviation calc
@@ -164,12 +152,6 @@ private:
     // called by OnCameraPayloadSizeReady when payload size arrived
     void StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
 
-    // update record listing
-    void InitializeTableWidget();
-    void UpdateRecordTableWidget();
-    QSharedPointer<MyFrame> getSelectedRecordedFrame();
-
-
     // Official QT dialog close event callback
     virtual void closeEvent(QCloseEvent *event);
     virtual void mousePressEvent(QMouseEvent *event);
@@ -186,10 +168,6 @@ private:
     void SetTitleText(QString additionalText);
 
     void UpdateCameraFormat();
-    // returns the file destination for saving the frame
-    void SaveFrameDialog(bool raw);
-    // Saves the given frame to the given destination
-    void SaveFrame(QSharedPointer<MyFrame> frame, QString filepath, bool raw);
 
 private slots:
     void OnLogToFile();
@@ -252,8 +230,6 @@ private slots:
     void OnCameraWarning(const QString &text);
     // Event will be called on message
     void OnCameraMessage(const QString &text);
-    // Event will be called when the a frame is recorded
-    void OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame);
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
 
@@ -278,8 +254,6 @@ private slots:
     void OnPixelFormatDBLClick(QListWidgetItem *);
     void OnFrameSizesDBLClick(QListWidgetItem *);
     void OnGamma();
-    void OnReverseX();
-    void OnReverseY();
     void OnSharpness();
     void OnBrightness();
     void OnContrast();

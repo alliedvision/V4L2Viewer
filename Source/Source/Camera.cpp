@@ -140,7 +140,6 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
     }
     connect(m_pFrameObserver.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
-    connect(m_pFrameObserver.data(), SIGNAL(OnRecordFrame_Signal(const QSharedPointer<MyFrame>&)), this, SLOT(OnRecordFrame(const QSharedPointer<MyFrame>&)));
     connect(m_pFrameObserver.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
@@ -218,12 +217,6 @@ void Camera::OnFrameReady(const QImage &image, const unsigned long long &frameId
 void Camera::OnFrameID(const unsigned long long &frameId)
 {
     emit OnCameraFrameID_Signal(frameId);
-}
-
-// Event will be called when a frame is recorded
-void Camera::OnRecordFrame(const QSharedPointer<MyFrame>& frame)
-{
-    emit OnCameraRecordFrame_Signal(frame);
 }
 
 void Camera::OnLiveDeviationCalc(int numberOfUnequalBytes)
@@ -2033,18 +2026,6 @@ int Camera::GetCameraCapabilities(std::string &strText)
 
     return result;
 }
-
-
-// Recording
-void Camera::SetRecording(bool start)
-{
-    m_Recording = start;
-    if(m_pFrameObserver)
-    {
-        m_pFrameObserver->SetRecording(start);
-    }
-}
-
 
 // Live Deviation Calc
 void Camera::SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame)

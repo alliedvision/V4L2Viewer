@@ -156,9 +156,6 @@ public:
     unsigned int GetRenderedFramesCount();
     unsigned int GetDroppedFramesCount();
 
-    // Recording
-    void SetRecording(bool start);
-
     // live deviation calc
     void SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame);
 
@@ -224,8 +221,6 @@ private slots:
     void OnFrameReady(const QImage &image, const unsigned long long &frameId);
     // The event handler to show the processed frame ID
     void OnFrameID(const unsigned long long &frameId);
-    // Event will be called when the a frame is recorded
-    void OnRecordFrame(const QSharedPointer<MyFrame>&);
     // Event will be called when the a frame is displayed
     void OnDisplayFrame(const unsigned long long &frameID);
     // Event will be called when for text notification

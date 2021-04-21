@@ -79,8 +79,7 @@ uint32_t InternalConvertRAW10inRAW16ToRAW10g(const void *sourceBuffer, uint32_t 
 }
 
 FrameObserver::FrameObserver(bool showFrames)
-    : m_bRecording(false)
-    , m_nReceivedFramesCounter(0)
+    : m_nReceivedFramesCounter(0)
     , m_nRenderedFramesCounter(0)
     , m_nDroppedFramesCounter(0)
     , m_nFileDescriptor(0)
@@ -286,23 +285,6 @@ void FrameObserver::DequeueAndProcessFrame()
                         }
                     }
 
-                    if (m_bRecording)
-                    {
-                        QImage convertedImage;
-
-                        if (ImageTransform::ConvertFrame(buffer, length,
-                                                         m_nWidth, m_nHeight, m_PixelFormat,
-                                                         m_PayloadSize, m_BytesPerLine, convertedImage) == 0)
-                        {
-                            QSharedPointer<MyFrame> frame(new MyFrame(convertedImage, buf.index, buffer, length, m_nWidth, m_nHeight, m_PixelFormat, m_PayloadSize, m_BytesPerLine, m_FrameId));
-                            emit OnRecordFrame_Signal(frame);
-                        }
-                        else
-                        {
-                            emit OnError_Signal("Frame buffer not converted. Possible missing conversion.");
-                        }
-                    }
-
                     if(m_bLiveDeviationCalc)
                     {
                         QSharedPointer<QByteArray> currentFrame(new QByteArray((char*)buffer, length));
@@ -453,13 +435,6 @@ void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned l
 void FrameObserver::OnMessageFromThread(const QString &msg)
 {
     emit OnMessage_Signal(msg);
-}
-
-// Recording
-
-void FrameObserver::SetRecording(bool start)
-{
-    m_bRecording = start;
 }
 
 void FrameObserver::SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame)

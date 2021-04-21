@@ -110,7 +110,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_bFitToScreen(false)
     , m_dScaleFactor(1.0)
     , m_DirectAccessData(0)
-    , m_SaveFileDialog(0)
     , m_BLOCKING_MODE(true)
     , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
@@ -119,7 +118,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
     , m_ReferenceImageDialog(0)
-    , m_SaveFileDir(QDir::currentPath())
 {
     srand((unsigned)time(0));
 
@@ -157,7 +155,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(OnCameraRegisterValueReady_Signal(unsigned long long)), this, SLOT(OnCameraRegisterValueReady(unsigned long long)));
     connect(&m_Camera, SIGNAL(OnCameraError_Signal(const QString &)), this, SLOT(OnCameraError(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraMessage_Signal(const QString &)), this, SLOT(OnCameraMessage(const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraRecordFrame_Signal(const QSharedPointer<MyFrame>&)), this, SLOT(OnCameraRecordFrame(const QSharedPointer<MyFrame>&)));
     connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)), this, SLOT(OnCameraPixelFormat(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)), this, SLOT(OnCameraFrameSize(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraLiveDeviationCalc_Signal(int)), this, SLOT(OnCalcLiveDeviationFromFrameObserver(int)));
@@ -177,11 +174,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     }
 
     connect(m_BlockingModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(OnBlockingMode(QAbstractButton*)));
-    connect(ui.m_chkUseRead, SIGNAL(clicked()), this, SLOT(OnUseRead()));
     connect(ui.m_TitleUseRead, SIGNAL(triggered()), this, SLOT(OnUseRead()));
-    connect(ui.m_chkUseMMAP, SIGNAL(clicked()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
-    connect(ui.m_chkUseUSERPTR, SIGNAL(clicked()), this, SLOT(OnUseUSERPTR()));
     connect(ui.m_TitleUseUSERPTR, SIGNAL(triggered()), this, SLOT(OnUseUSERPTR()));
     connect(ui.m_TitleEnable_VIDIOC_TRY_FMT, SIGNAL(triggered()), this, SLOT(OnUseVIDIOC_TRY_FMT()));
     connect(ui.m_TitleEnableExtendedControls, SIGNAL(triggered()), this, SLOT(OnUseExtendedControls()));
@@ -214,8 +208,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_liPixelFormats, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnPixelFormatDBLClick(QListWidgetItem *)));
     connect(ui.m_liFrameSizes, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnFrameSizesDBLClick(QListWidgetItem *)));
     connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
-    connect(ui.m_edReverseX, SIGNAL(returnPressed()), this, SLOT(OnReverseX()));
-    connect(ui.m_edReverseY, SIGNAL(returnPressed()), this, SLOT(OnReverseY()));
     connect(ui.m_edSharpness, SIGNAL(returnPressed()), this, SLOT(OnSharpness()));
     connect(ui.m_edBrightness, SIGNAL(returnPressed()), this, SLOT(OnBrightness()));
     connect(ui.m_edContrast, SIGNAL(returnPressed()), this, SLOT(OnContrast()));
@@ -395,42 +387,34 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     // set check boxes state for mmap according to variable m_MMAP_BUFFER
     if (IO_METHOD_READ == m_MMAP_BUFFER)
     {
-        ui.m_chkUseRead->setChecked(true);
         ui.m_TitleUseRead->setChecked(true);
     }
     else
     {
-        ui.m_chkUseRead->setChecked(false);
         ui.m_TitleUseRead->setChecked(false);
     }
 
     if (IO_METHOD_USERPTR == m_MMAP_BUFFER)
     {
-        ui.m_chkUseUSERPTR->setChecked(true);
         ui.m_TitleUseUSERPTR->setChecked(true);
     }
     else
     {
-        ui.m_chkUseUSERPTR->setChecked(false);
         ui.m_TitleUseUSERPTR->setChecked(false);
     }
 
     if (IO_METHOD_MMAP == m_MMAP_BUFFER)
     {
-        ui.m_chkUseMMAP->setChecked(true);
         ui.m_TitleUseMMAP->setChecked(true);
     }
     else
     {
-        ui.m_chkUseMMAP->setChecked(false);
         ui.m_TitleUseMMAP->setChecked(false);
     }
 
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
     ui.m_TitleEnableExtendedControls->setChecked((m_ExtendedControls));
 
-    // setup table widgets for record listing
-    InitializeTableWidget();
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -460,9 +444,6 @@ void V4L2Viewer::OnUseRead()
     m_MMAP_BUFFER = IO_METHOD_READ;
     OnLog(QString("Use IO Read"));
 
-    ui.m_chkUseUSERPTR->setChecked(false);
-    ui.m_chkUseRead->setChecked(true);
-    ui.m_chkUseMMAP->setChecked(false);
     ui.m_TitleUseMMAP->setChecked(false);
     ui.m_TitleUseUSERPTR->setChecked(false);
     ui.m_TitleUseRead->setChecked(true);
@@ -473,9 +454,6 @@ void V4L2Viewer::OnUseMMAP()
     m_MMAP_BUFFER = IO_METHOD_MMAP;
     OnLog(QString("Use IO MMAP"));
 
-    ui.m_chkUseUSERPTR->setChecked(false);
-    ui.m_chkUseRead->setChecked(false);
-    ui.m_chkUseMMAP->setChecked(true);
     ui.m_TitleUseMMAP->setChecked(true);
     ui.m_TitleUseUSERPTR->setChecked(false);
     ui.m_TitleUseRead->setChecked(false);
@@ -486,9 +464,6 @@ void V4L2Viewer::OnUseUSERPTR()
     m_MMAP_BUFFER = IO_METHOD_USERPTR;
     OnLog(QString("Use IO USERPTR"));
 
-    ui.m_chkUseUSERPTR->setChecked(true);
-    ui.m_chkUseRead->setChecked(false);
-    ui.m_chkUseMMAP->setChecked(false);
     ui.m_TitleUseMMAP->setChecked(false);
     ui.m_TitleUseUSERPTR->setChecked(true);
     ui.m_TitleUseRead->setChecked(false);
@@ -675,9 +650,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
     ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
     ui.m_radioBlocking->setEnabled( !m_bIsOpen );
     ui.m_radioNonBlocking->setEnabled( !m_bIsOpen );
-    ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_chkUseRead->setEnabled( !m_bIsOpen );
-    ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
@@ -865,21 +837,6 @@ void V4L2Viewer::OnCameraMessage(const QString &text)
     OnLog(QString("Message = %1").arg(text));
 }
 
-// Event will be called when the a frame is recorded
-void V4L2Viewer::OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame)
-{
-    if(m_FrameRecordVector.size() >= 100)
-    {
-        OnLog(QString("The following frames are not recorded, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_VECTOR_SIZE));
-    }
-    else
-    {
-        m_FrameRecordVector.push_back(frame);
-    }
-
-    UpdateRecordTableWidget();
-}
-
 void V4L2Viewer::OnCameraPixelFormat(const QString& pixelFormat)
 {
     ui.m_liPixelFormats->addItem(pixelFormat);
@@ -986,26 +943,6 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
         OnLog("Creating user buffers failed.");
     }
 }
-
-void V4L2Viewer::InitializeTableWidget()
-{
-    // set table headers
-    QStringList header;
-    header << "Frame ID" << "Buffer index" << "Width" << "Height" << "Payload size" << "Pixel Format" << "Buffer length" << "Bytes per line" << "Reference Image: #Unequal Bytes";
-}
-
-// Returns the frame object that is selected in the gui table, or a null pointer if nothing is selected
-QSharedPointer<MyFrame> V4L2Viewer::getSelectedRecordedFrame()
-{
-    QSharedPointer<MyFrame> result;
-    return result;
-}
-
-void V4L2Viewer::UpdateRecordTableWidget()
-{
-
-}
-
 
 // The event handler for stopping acquisition
 void V4L2Viewer::OnStopButtonClicked()
@@ -1164,9 +1101,6 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
     ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
     ui.m_radioBlocking->setEnabled( !m_bIsOpen );
     ui.m_radioNonBlocking->setEnabled( !m_bIsOpen );
-    ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_chkUseRead->setEnabled( !m_bIsOpen );
-    ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
@@ -1201,9 +1135,6 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
     ui.m_GetStreamStatisticsButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_radioBlocking->setEnabled( !m_bIsOpen );
     ui.m_radioNonBlocking->setEnabled( !m_bIsOpen );
-    ui.m_chkUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_chkUseRead->setEnabled( !m_bIsOpen );
-    ui.m_chkUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
@@ -1339,88 +1270,6 @@ void V4L2Viewer::OnControllerResponseTimeout()
     OnLog("Payload request timed out. Cannot start streaming.");
 
     m_ControlRequestTimer.stop();
-}
-
-void V4L2Viewer::SaveFrame(QSharedPointer<MyFrame> frame, QString fileName, bool raw)
-{
-    // dump frame binary to file
-    if (raw)
-    {
-        QFile file(fileName);
-        if (file.open(QIODevice::WriteOnly))
-        {
-            QByteArray databuf = QByteArray((char*)(frame->GetBuffer()), frame->GetBufferlength());
-            file.write(databuf);
-            file.flush();
-            file.close();
-
-            OnLog(QString("Saving RAW image successful: %1").arg(fileName));
-        }
-        else
-        {
-            QMessageBox::warning( this, tr("V4L2 Test"), tr("Failed to save image! \nCheck access rights."), tr("") );
-        }
-
-    }
-    // save png
-    else
-    {
-        QImage image = frame->GetImage();
-        if (image.save(fileName))
-        {
-            OnLog(QString("Saving PNG image successful: %1").arg(fileName));
-        }
-        else
-        {
-            QMessageBox::warning( this, tr("V4L2 Test"), tr("Failed to save image! \nCheck access rights."), tr("") );
-        }
-    }
-}
-
-
-void V4L2Viewer::SaveFrameDialog(bool raw)
-{
-    QSharedPointer<MyFrame> selectedFrame = getSelectedRecordedFrame();
-
-    if (selectedFrame)
-    {
-        QString fileExtensions = raw ? ".raw" : ".png";
-
-        QString pixelFormat = QString::fromStdString(v4l2helper::ConvertPixelFormat2EnumString(selectedFrame->GetPixelFormat()));
-        QString width = QString::number(selectedFrame->GetWidth());
-        QString height = QString::number(selectedFrame->GetHeight());
-        QString frameId = QString::number(selectedFrame->GetFrameId());
-        QString defaultFileName = QString("Frame") + frameId + QString("_") + width + QString("x") + height + QString("_") + pixelFormat;
-
-        if ( NULL != m_SaveFileDialog )
-        {
-            delete m_SaveFileDialog;
-            m_SaveFileDialog = NULL;
-        }
-
-        m_SaveFileDialog = new QFileDialog ( this, tr((raw ? "Save Image" : "Export Image")), m_SaveFileDir + QString("/") + defaultFileName, fileExtensions );
-        m_SaveFileDialog->selectNameFilter(m_SelectedExtension);
-        m_SaveFileDialog->setAcceptMode(QFileDialog::AcceptSave);
-
-        if (m_SaveFileDialog->exec())
-        {
-            m_SelectedExtension = m_SaveFileDialog->selectedNameFilter();
-            m_SaveFileDir = m_SaveFileDialog->directory().absolutePath();
-            QStringList files = m_SaveFileDialog->selectedFiles();
-
-            if (!files.isEmpty())
-            {
-                QString fileName = files.at(0);
-
-                if (!fileName.endsWith(m_SelectedExtension))
-                {
-                    fileName.append(m_SelectedExtension);
-                }
-
-                SaveFrame(selectedFrame, fileName, raw);
-            }
-        }
-    }
 }
 
 void V4L2Viewer::OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBytes, bool done)
@@ -1701,48 +1550,6 @@ void V4L2Viewer::OnGamma()
 
         m_Camera.ReadGamma(tmp);
         ui.m_edGamma->setText(QString("%1").arg(tmp));
-    }
-}
-
-void V4L2Viewer::OnReverseX()
-{
-    int32_t nVal = int64_2_int32(ui.m_edReverseX->text().toLongLong());
-
-    if (m_Camera.SetReverseX(nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE reverse x!") );
-        m_Camera.ReadReverseX(tmp);
-        ui.m_edReverseX->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        int32_t tmp = 0;
-        OnLog(QString("ReverseX set to %1").arg(nVal));
-
-        m_Camera.ReadReverseX(tmp);
-        ui.m_edReverseX->setText(QString("%1").arg(tmp));
-    }
-}
-
-void V4L2Viewer::OnReverseY()
-{
-    int32_t nVal = int64_2_int32(ui.m_edReverseY->text().toLongLong());
-
-    if (m_Camera.SetReverseY(nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE reverse y!") );
-        m_Camera.ReadReverseY(tmp);
-        ui.m_edReverseY->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        int32_t tmp = 0;
-        OnLog(QString("ReverseY set to %1").arg(nVal));
-
-        m_Camera.ReadReverseY(tmp);
-        ui.m_edReverseY->setText(QString("%1").arg(tmp));
     }
 }
 
@@ -2215,24 +2022,6 @@ void V4L2Viewer::GetImageInformation()
         ui.m_edGamma->setEnabled(false);
 
     nSVal = 0;
-    if (m_Camera.ReadReverseX(nSVal) != -2)
-    {
-        ui.m_edReverseX->setEnabled(true);
-        ui.m_edReverseX->setText(QString("%1").arg(nSVal));
-    }
-    else
-        ui.m_edReverseX->setEnabled(false);
-
-    nSVal = 0;
-    if (m_Camera.ReadReverseY(nSVal) != -2)
-    {
-        ui.m_edReverseY->setEnabled(true);
-        ui.m_edReverseY->setText(QString("%1").arg(nSVal));
-    }
-    else
-        ui.m_edReverseY->setEnabled(false);
-
-    nSVal = 0;
     if (m_Camera.ReadSharpness(nSVal) != -2)
     {
         ui.m_edSharpness->setEnabled(true);
@@ -2383,23 +2172,18 @@ void V4L2Viewer::Check4IOReadAbility()
 
         if (!ioRead)
         {
-            ui.m_chkUseRead->setEnabled( false );
             ui.m_TitleUseRead->setEnabled( false );
         }
         else
         {
-            ui.m_chkUseRead->setEnabled( true );
             ui.m_TitleUseRead->setEnabled( true );
         }
-        if (!ioRead && ui.m_chkUseRead->isChecked())
+        if (!ioRead && ui.m_TitleUseRead->isChecked())
         {
             QMessageBox::warning( this, tr("V4L2 Test"), tr("IO Read not available with this camera. V4L2_CAP_VIDEO_CAPTURE not set. Switched to IO MMAP."));
 
-            ui.m_chkUseRead->setChecked( false );
             ui.m_TitleUseRead->setChecked( false );
-            ui.m_chkUseMMAP->setEnabled( true );
             ui.m_TitleUseMMAP->setEnabled( true );
-            ui.m_chkUseMMAP->setChecked( true );
             ui.m_TitleUseMMAP->setChecked( true );
             m_MMAP_BUFFER = IO_METHOD_MMAP;
         }

@@ -84,9 +84,6 @@ public:
     // Set the number of uncompleted frames
     void ResetDroppedFramesCount();
 
-    // Recording
-    void SetRecording(bool start);
-
     void setFileDescriptor(int fd);
 
     // Live Deviation Calc
@@ -110,7 +107,6 @@ protected:
     virtual void run();
 
 protected:
-    bool m_bRecording;
 
     QSharedPointer<QByteArray> m_bLiveDeviationCalc;
 
@@ -169,8 +165,6 @@ signals:
     void OnFrameID_Signal(const unsigned long long &frameId);
     // Event will be called when the frame processing is done and the frame can be returned to streaming engine
     //void OnFrameDone_Signal(const unsigned long long frameHandle);
-    // Event will be called when the a frame is recorded
-    void OnRecordFrame_Signal(const QSharedPointer<MyFrame>&);
     // Event will be called when the a frame is displayed
     void OnDisplayFrame_Signal(const unsigned long long &);
     // Event will be called when for text notification
