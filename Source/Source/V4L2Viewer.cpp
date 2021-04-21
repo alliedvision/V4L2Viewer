@@ -134,11 +134,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     else
         ui.m_MenuOpenNextViewer->setEnabled(false);
 
-    // set event font
-    ui.m_EventsLogEditWidget->setFont(QFont("Courier", 10));
-    ui.m_EventsLogEditWidget->setReadOnly(true);
-    ui.m_EventsLogEditWidget->clear();
-
     // Connect GUI events with event handlers
     connect(ui.m_OpenCloseButton,             SIGNAL(clicked()),         this, SLOT(OnOpenCloseButtonClicked()));
     connect(ui.m_GetDeviceInfoButton,         SIGNAL(clicked()),         this, SLOT(OnGetDeviceInfoButtonClicked()));
@@ -204,38 +199,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     // Connect the handler to toggle the stream randomly
     connect(&m_StreamToggleTimer, SIGNAL(timeout()), this, SLOT(OnStreamToggleTimeout()));
 
-    // Connect the handler to clear the event list
-    connect(ui.m_ClearEventLogButton, SIGNAL(clicked()), this, SLOT(OnClearEventLogButtonClicked()));
-
-    // Connect the buttons for the direct register access
-    connect(ui.m_DirectRegisterAccessReadButton, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessReadButtonClicked()));
-    connect(ui.m_DirectRegisterAccessWriteButton, SIGNAL(clicked()), this, SLOT(OnDirectRegisterAccessWriteButtonClicked()));
-
-    // connect the buttons for the Recording
-    connect(ui.m_StartRecordButton, SIGNAL(clicked()), this, SLOT(OnStartRecording()));
-    connect(ui.m_StopRecordButton, SIGNAL(clicked()), this, SLOT(OnStopRecording()));
-    connect(ui.m_DeleteRecording, SIGNAL(clicked()), this, SLOT(OnDeleteRecording()));
-    connect(ui.m_DisplaySaveFrame, SIGNAL(clicked()), this, SLOT(OnSaveFrame()));
-    connect(ui.m_ExportRecordedFrameButton, SIGNAL(clicked()), this, SLOT(OnExportFrame()));
-    connect(ui.m_SaveFrameSeriesButton, SIGNAL(clicked()), this, SLOT(OnSaveFrameSeries()));
-    connect(ui.m_CalcDeviationButton, SIGNAL(clicked()), this, SLOT(OnCalcDeviation()));
-    connect(ui.m_CalcLiveDeviationButton, SIGNAL(clicked()), this, SLOT(OnCalcLiveDeviation()));
-    connect(ui.m_GetReferenceButton, SIGNAL(clicked()), this, SLOT(OnGetReferenceImage()));
-    connect(ui.m_FrameRecordTable->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-            this, SLOT(OnRecordTableSelectionChanged(const QItemSelection &, const QItemSelection &)));
-
-
-    // disable table editing from user
-    ui.m_FrameRecordTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui.m_FrameRecordTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui.m_FrameRecordTable->setSelectionMode(QAbstractItemView::SingleSelection);
-
     // register meta type for QT signal/slot mechanism
     qRegisterMetaType<QSharedPointer<MyFrame> >("QSharedPointer<MyFrame>");
-
-    // make calc live deviation button checakbel
-    ui.m_CalcLiveDeviationButton->setCheckable(true);
-    ui.m_meanDeviationLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     // connect the buttons for Image m_ControlRequestTimer
     connect(ui.m_edWidth, SIGNAL(returnPressed()), this, SLOT(OnWidth()));
@@ -718,24 +683,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
     ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
-
-    // enable/disable record buttons accordingly
-    if ( m_bIsOpen )
-    {
-        ui.m_StartRecordButton->setEnabled(true);
-        if(m_ReferenceImage)
-        {
-            ui.m_CalcLiveDeviationButton->setEnabled(true);
-        }
-    }
-    else
-    {
-        ui.m_CalcLiveDeviationButton->setChecked(false);
-        OnCalcLiveDeviation();
-        OnStopRecording();
-        ui.m_StartRecordButton->setEnabled(false);
-        ui.m_CalcLiveDeviationButton->setEnabled(false);
-    }
 }
 
 // The event handler for get device info
@@ -924,20 +871,10 @@ void V4L2Viewer::OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame)
     if(m_FrameRecordVector.size() >= 100)
     {
         OnLog(QString("The following frames are not recorded, more than %1 would freeze the system.").arg(MAX_RECORD_FRAME_VECTOR_SIZE));
-        OnStopRecording();
     }
     else
     {
         m_FrameRecordVector.push_back(frame);
-        ui.m_FrameIDRecording->setText(QString("FrameID: %1").arg(frame->GetFrameId()));
-
-        ui.m_FramesInQueue->setText(QString("Frames in Queue: %1").arg(m_FrameRecordVector.size()));
-
-        if (1 == m_FrameRecordVector.size())
-        {
-            ui.m_FrameIDStartedRecord->setText(QString("FrameID start: %1").arg(frame->GetFrameId()));
-        }
-        ui.m_FrameIDStoppedRecord->setText(QString("FrameID stopped: %1").arg(frame->GetFrameId()));
     }
 
     UpdateRecordTableWidget();
@@ -1052,97 +989,21 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
 void V4L2Viewer::InitializeTableWidget()
 {
-    // set number of columns and rows
-    ui.m_FrameRecordTable->setRowCount(0);
-    ui.m_FrameRecordTable->setColumnCount(9);
-
     // set table headers
     QStringList header;
     header << "Frame ID" << "Buffer index" << "Width" << "Height" << "Payload size" << "Pixel Format" << "Buffer length" << "Bytes per line" << "Reference Image: #Unequal Bytes";
-    ui.m_FrameRecordTable->setHorizontalHeaderLabels(header);
-    ui.m_FrameRecordTable->resizeColumnsToContents();
 }
 
 // Returns the frame object that is selected in the gui table, or a null pointer if nothing is selected
 QSharedPointer<MyFrame> V4L2Viewer::getSelectedRecordedFrame()
 {
     QSharedPointer<MyFrame> result;
-    QList<QTableWidgetItem*> selectedItems = ui.m_FrameRecordTable->selectedItems();
-
-    if (selectedItems.size() > 0)
-    {
-        QTableWidgetItem* item = selectedItems[0];
-        int index = item->row();
-
-        if (index >= 0 && index < m_FrameRecordVector.size())
-        {
-            result = m_FrameRecordVector[index];
-        }
-    }
-
     return result;
 }
 
 void V4L2Viewer::UpdateRecordTableWidget()
 {
-    ui.m_FrameRecordTable->setRowCount(m_FrameRecordVector.size());
 
-    for (int i = 0; i < m_FrameRecordVector.size(); i++)
-    {
-        QSharedPointer<MyFrame> frame = m_FrameRecordVector.at(i);
-
-        // get frame information
-        unsigned long long frameId = frame->GetFrameId();
-        uint32_t bufferIndex = frame->GetBufferIndex();
-        uint32_t width = frame->GetWidth();
-        uint32_t height = frame->GetHeight();
-        uint32_t payloadSize = frame->GetPayloadSize();
-        uint32_t pixelFormat = frame->GetPixelFormat();
-        uint32_t bufferLength = frame->GetBufferlength();
-        uint32_t bytesPerLine = frame->GetBytesPerLine();
-
-        // frame id
-        QTableWidgetItem* item_frameId = new QTableWidgetItem();
-        item_frameId->setText(QString::number(frameId));
-        ui.m_FrameRecordTable->setItem(i, 0, item_frameId);
-
-        // buffer index
-        QTableWidgetItem* item_bufferIndex = new QTableWidgetItem();
-        item_bufferIndex->setText(QString::number(bufferIndex));
-        ui.m_FrameRecordTable->setItem(i, 1, item_bufferIndex);
-
-        // width
-        QTableWidgetItem* item_width = new QTableWidgetItem();
-        item_width->setText(QString::number(width));
-        ui.m_FrameRecordTable->setItem(i, 2, item_width);
-
-        // height
-        QTableWidgetItem* item_height = new QTableWidgetItem();
-        item_height->setText(QString::number(height));
-        ui.m_FrameRecordTable->setItem(i, 3, item_height);
-
-        // payload size
-        QTableWidgetItem* item_payloadSize = new QTableWidgetItem();
-        item_payloadSize->setText(QString::number(payloadSize));
-        ui.m_FrameRecordTable->setItem(i, 4, item_payloadSize);
-
-        // pixel format
-        QTableWidgetItem* item_pixelFormat = new QTableWidgetItem();
-        item_pixelFormat->setText(QString::fromStdString(v4l2helper::ConvertPixelFormat2EnumString(pixelFormat)));
-        ui.m_FrameRecordTable->setItem(i, 5, item_pixelFormat);
-
-        // buffer length
-        QTableWidgetItem* item_bufferLength = new QTableWidgetItem();
-        item_bufferLength->setText(QString::number(bufferLength));
-        ui.m_FrameRecordTable->setItem(i, 6, item_bufferLength);
-
-        // bytes per line
-        QTableWidgetItem* item_bytesPerLine = new QTableWidgetItem();
-        item_bytesPerLine->setText(QString::number(bytesPerLine));
-        ui.m_FrameRecordTable->setItem(i, 7, item_bytesPerLine);
-    }
-
-    ui.m_FrameRecordTable->resizeColumnsToContents();
 }
 
 
@@ -1269,15 +1130,6 @@ void V4L2Viewer::OnFrameID(const unsigned long long &frameId)
 void V4L2Viewer::OnCameraEventReady(const QString &eventText)
 {
     OnLog("Event received.");
-
-    ui.m_EventsLogEditWidget->appendPlainText(eventText);
-    ui.m_EventsLogEditWidget->verticalScrollBar()->setValue(ui.m_EventsLogEditWidget->verticalScrollBar()->maximum());
-}
-
-// The event handler to clear the event list
-void V4L2Viewer::OnClearEventLogButtonClicked()
-{
-    ui.m_EventsLogEditWidget->clear();
 }
 
 // This event handler is triggered through a Qt signal posted by the camera observer
@@ -1444,21 +1296,16 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
         if (m_Camera.ReadRegister(CCI_GCPRM_16R, buff, 2, true) >= 0)
         {
             uint16_t val = *(uint16_t*)buff;
-            ui.m_GCPRMOffset->setText( QString("0x%1").arg(val, 4, 16, QChar('0')));
         }
         else
         {
-            ui.m_GCPRMOffset->setText("-");
         }
 
         if (m_Camera.ReadRegister(CCI_BCRM_16R, buff, 2, true) >= 0)
         {
-            uint16_t val = *(uint16_t*)buff;
-            ui.m_BCRMOffset->setText( QString("0x%1").arg(val, 4, 16, QChar('0')));
         }
         else
         {
-            ui.m_BCRMOffset->setText("-");
         }
     }
 
@@ -1493,462 +1340,6 @@ void V4L2Viewer::OnControllerResponseTimeout()
 
     m_ControlRequestTimer.stop();
 }
-
-// The event handler to read a register per direct access
-void V4L2Viewer::OnDirectRegisterAccessReadButtonClicked()
-{
-    // define the base of the given string
-    int base = 10;
-    if (0 <= ui.m_DirectRegisterAccessAddressLineEdit->text().indexOf("x"))
-    {
-        base = 16;
-    }
-    // convert the register address value
-    bool converted;
-    uint16_t address = (uint16_t)ui.m_DirectRegisterAccessAddressLineEdit->text().toInt(&converted, base);
-
-    if (converted)
-    {
-        char *pBuffer = NULL;
-        uint32_t nSize = 0;
-
-        if (ui.m_DataTypeCombo->currentText() == "Int8")
-        {
-            nSize = 1;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "UInt8")
-        {
-            nSize = 1;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "Int16")
-        {
-            nSize = 2;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "UInt16")
-        {
-            nSize = 2;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "Int32")
-        {
-            nSize = 4;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "UInt32")
-        {
-            nSize = 4;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "Int64")
-        {
-            nSize = 8;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "UInt64")
-        {
-            nSize = 8;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "String64")
-        {
-            nSize = 64;
-        }
-        else
-        {
-            // Error
-            return;
-        }
-
-        pBuffer = (char*)malloc(nSize+1);
-        memset(pBuffer, 0, nSize+1);
-        int iRet = m_Camera.ReadRegister(address, pBuffer, nSize, true);
-        QString strValue("");
-
-        if (iRet == 0)
-        {
-            if (ui.m_DataTypeCombo->currentText() == "Int8")
-            {
-                int8_t nVal = *(int8_t*)pBuffer;
-                strValue = ui.m_DataHexRadio->isChecked() ?
-                    QString("0x%1").arg(nVal, 2, 16, QChar('0')) :
-                    QString("%1").arg(nVal);
-            }
-            else
-            if (ui.m_DataTypeCombo->currentText() == "UInt8")
-            {
-                uint8_t nVal = *(uint8_t*)pBuffer;
-                strValue = ui.m_DataHexRadio->isChecked() ?
-                    QString("0x%1").arg(nVal, 2, 16, QChar('0')) :
-                    QString("%1").arg(nVal);
-            }
-            else
-            if (ui.m_DataTypeCombo->currentText() == "Int16")
-            {
-                int16_t nVal = *(int16_t*)pBuffer;
-
-                if (ui.m_BigEndianessRadio->isChecked())
-                    nVal = qToBigEndian(nVal);
-
-                strValue = ui.m_DataHexRadio->isChecked() ?
-                    QString("0x%1").arg(nVal, 4, 16, QChar('0')) :
-                    QString("%1").arg(nVal);
-            }
-            else
-            if (ui.m_DataTypeCombo->currentText() == "UInt16")
-            {
-                uint16_t nVal = *(uint16_t*)pBuffer;
-
-                if (ui.m_BigEndianessRadio->isChecked())
-                    nVal = qToBigEndian(nVal);
-
-                strValue = ui.m_DataHexRadio->isChecked() ?
-                    QString("0x%1").arg(nVal, 4, 16, QChar('0')) :
-                    QString("%1").arg(nVal);
-            }
-            else
-            if (ui.m_DataTypeCombo->currentText() == "Int32")
-            {
-                int32_t nVal = *(int32_t*)pBuffer;
-
-                if (ui.m_BigEndianessRadio->isChecked())
-                    nVal = qToBigEndian(nVal);
-
-                strValue = ui.m_DataHexRadio->isChecked() ?
-                    QString("0x%1").arg(nVal, 8, 16, QChar('0')) :
-                    QString("%1").arg(nVal);
-            }
-            else
-            if (ui.m_DataTypeCombo->currentText() == "UInt32")
-            {
-                uint32_t nVal = *(uint32_t*)pBuffer;
-
-                if (ui.m_BigEndianessRadio->isChecked())
-                    nVal = qToBigEndian(nVal);
-
-                strValue = ui.m_DataHexRadio->isChecked() ?
-                    QString("0x%1").arg(nVal, 8, 16, QChar('0')) :
-                    QString("%1").arg(nVal);
-            }
-            else
-            if (ui.m_DataTypeCombo->currentText() == "Int64")
-            {
-                qint64 nVal = *(qint64*)pBuffer;
-
-                if (ui.m_BigEndianessRadio->isChecked())
-                    nVal = qToBigEndian(nVal);
-
-                strValue = ui.m_DataHexRadio->isChecked() ?
-                    QString("0x%1").arg(nVal, 16, 16, QChar('0')) :
-                    QString("%1").arg(nVal);
-            }
-            else
-            if (ui.m_DataTypeCombo->currentText() == "UInt64")
-            {
-                quint64 nVal = *(quint64*)pBuffer;
-
-                if (ui.m_BigEndianessRadio->isChecked())
-                    nVal = qToBigEndian(nVal);
-
-                strValue = ui.m_DataHexRadio->isChecked() ?
-                    QString("0x%1").arg(nVal, 16, 16, QChar('0')) :
-                    QString("%1").arg(nVal);
-            }
-            else
-            if (ui.m_DataTypeCombo->currentText() == "String64")
-            {
-                strValue = QString("%1").arg(pBuffer);
-            }
-
-            OnLog(QString("Register '0x%1' read returned %2.").arg(address, 4, 16, QChar('0')).arg(strValue));
-        }
-        else
-        {
-            OnLog(QString("Error while reading register '0x%1'").arg(address, 4, 16, QChar('0')));
-        }
-
-        ui.m_DirectRegisterAccessDataLineEdit->setText(strValue);
-
-        free(pBuffer);
-        pBuffer = NULL;
-    }
-    else
-    {
-        OnLog("Could not convert the register address from the given string.");
-    }
-}
-
-
-// The event handler to write a register per direct access
-void V4L2Viewer::OnDirectRegisterAccessWriteButtonClicked()
-{
-    // define the base of the given strings
-    int base = 10;
-    if (0 <= ui.m_DirectRegisterAccessAddressLineEdit->text().indexOf("x"))
-    {
-        base = 16;
-    }
-
-    // convert the register address value
-    bool converted;
-    uint16_t address = (uint16_t)ui.m_DirectRegisterAccessAddressLineEdit->text().toInt(&converted, base);
-
-    if (converted)
-    {
-        uint64_t nVal = 0;
-        bool bValid = false;
-        char *pBuffer = NULL;
-        uint32_t nSize = 0;
-        pBuffer = (char*)malloc(65);
-        memset(pBuffer, 0, 65);
-
-        if (ui.m_DataTypeCombo->currentText() != "String64")
-        {
-            nVal = ui.m_DataHexRadio->isChecked() ?
-                    ui.m_DirectRegisterAccessDataLineEdit->text().toLongLong(&converted, 16) :
-                    ui.m_DirectRegisterAccessDataLineEdit->text().toLongLong(&converted, 10);
-        }
-        else
-        {
-            QByteArray ba = ui.m_DirectRegisterAccessDataLineEdit->text().toLocal8Bit();
-            memcpy(pBuffer, ba.data(), ba.length());
-            nSize = 64;
-            bValid = true;
-        }
-
-        if (ui.m_DataTypeCombo->currentText() == "Int8")
-        {
-            memcpy(pBuffer, (char*)&nVal, 1);
-            nSize = 1;
-            bValid = true;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "UInt8")
-        {
-            memcpy(pBuffer, (char*)&nVal, 1);
-            nSize = 1;
-            bValid = true;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "Int16")
-        {
-            if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((int16_t)nVal);
-
-            memcpy(pBuffer, (char*)&nVal, 2);
-            nSize = 2;
-            bValid = true;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "UInt16")
-        {
-            if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((uint16_t)nVal);
-            memcpy(pBuffer, (char*)&nVal, 2);
-            nSize = 2;
-            bValid = true;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "Int32")
-        {
-            if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((int32_t)nVal);
-            memcpy(pBuffer, (char*)&nVal, 4);
-            nSize = 4;
-            bValid = true;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "UInt32")
-        {
-            if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((uint32_t)nVal);
-            memcpy(pBuffer, (char*)&nVal, 4);
-            nSize = 4;
-            bValid = true;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "Int64")
-        {
-            if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((qint64)nVal);
-            memcpy(pBuffer, (char*)&nVal, 8);
-            nSize = 8;
-            bValid = true;
-        }
-        else
-        if (ui.m_DataTypeCombo->currentText() == "UInt64")
-        {
-            if (ui.m_BigEndianessRadio->isChecked())
-                nVal = qToBigEndian((quint64)nVal);
-            memcpy(pBuffer, (char*)&nVal, 8);
-            nSize = 8;
-            bValid = true;
-        }
-
-        if (bValid && converted)
-        {
-            int iRet = m_Camera.WriteRegister(address, pBuffer, nSize, true);
-            if (iRet == 0)
-            {
-                OnLog(QString("Register '0x%1' set to %2.").arg(address, 4, 16, QChar('0')).arg(pBuffer));
-            }
-            else
-            {
-                OnLog(QString("Error while writing register '0x%1'").arg(address, 4, 16, QChar('0')));
-            }
-        }
-
-        free(pBuffer);
-        pBuffer = NULL;
-    }
-    else
-    {
-        OnLog("Could not convert the register address from the given string.");
-    }
-}
-
-void V4L2Viewer::OnStartRecording()
-{
-    m_Camera.SetRecording(true);
-
-    ui.m_CalcLiveDeviationButton->setEnabled(false);
-    ui.m_StartRecordButton->setEnabled(false);
-    ui.m_StopRecordButton->setEnabled(true);
-    ui.m_CalcDeviationButton->setEnabled(false);
-    ui.m_DeleteRecording->setEnabled(false);
-    ui.m_SaveFrameSeriesButton->setEnabled(false);
-}
-
-void V4L2Viewer::OnStopRecording()
-{
-    m_Camera.SetRecording(false);
-
-    UpdateRecordTableWidget();
-
-    ui.m_StartRecordButton->setEnabled(true);
-    ui.m_StopRecordButton->setEnabled(false);
-
-    if (m_FrameRecordVector.size() > 0)
-    {
-        ui.m_DeleteRecording->setEnabled(true);
-        ui.m_SaveFrameSeriesButton->setEnabled(true);
-
-        if (m_ReferenceImage)
-        {
-            ui.m_CalcDeviationButton->setEnabled(true);
-            ui.m_CalcLiveDeviationButton->setEnabled(true);
-        }
-    }
-}
-
-void V4L2Viewer::OnDeleteRecording()
-{
-    if(m_bIsStreaming)
-    {
-        OnStopRecording();
-    }
-
-    m_FrameRecordVector.clear();
-    UpdateRecordTableWidget();
-
-    ui.m_FrameIDRecording->setText(QString("FrameID: -"));
-    ui.m_FrameIDStartedRecord->setText(QString("FrameID start: -"));
-    ui.m_FrameIDStoppedRecord->setText(QString("FrameID stopped: -"));
-    ui.m_FramesInQueue->setText(QString("Frames in Queue: 0"));
-
-    if (m_FrameRecordVector.size() == 0)
-    {
-        ui.m_DeleteRecording->setEnabled(false);
-        ui.m_SaveFrameSeriesButton->setEnabled(false);
-        ui.m_CalcDeviationButton->setEnabled(false);
-        ui.m_meanDeviationLabel->setText(QString("Mean #Unequal Bytes: -"));
-    }
-}
-
-void V4L2Viewer::OnRecordTableSelectionChanged(const QItemSelection &, const QItemSelection &)
-{
-    QSharedPointer<MyFrame> selectedFrame = getSelectedRecordedFrame();
-
-    // enable save frame if there is a frame selected
-    ui.m_DisplaySaveFrame->setEnabled(!(!selectedFrame));
-    ui.m_ExportRecordedFrameButton->setEnabled(!(!selectedFrame));
-
-    // Display selected recorded frame if camera is not streaming
-    if (!m_bIsStreaming)
-    {
-        if (selectedFrame)
-        {
-            QImage image = selectedFrame->GetImage();
-
-            m_pScene->setSceneRect(0, 0, image.width(), image.height());
-            m_PixmapItem->setPixmap(QPixmap::fromImage(image));
-            ui.m_ImageView->show();
-
-            ui.m_FrameIdLabel->setText(QString("Recorded Frame ID: %1, W: %2, H: %3").arg(selectedFrame->GetFrameId()).arg(image.width()).arg(image.height()));
-        }
-    }
-}
-
-void V4L2Viewer::OnGetReferenceImage()
-{
-    // if dialog already exist, delete it
-    if ( NULL != m_ReferenceImageDialog )
-    {
-        delete m_ReferenceImageDialog;
-        m_ReferenceImageDialog = NULL;
-    }
-
-    // create new file dialog
-    QString fileExtensions = GetImageFormatString();
-    m_ReferenceImageDialog = new QFileDialog( this, tr("Open reference image"), m_SaveFileDir, "" );
-    m_ReferenceImageDialog->selectNameFilter( m_SelectedExtension );
-    m_ReferenceImageDialog->setAcceptMode( QFileDialog::AcceptOpen );
-
-    // open file dialog
-    if ( m_ReferenceImageDialog->exec() )
-    {
-        m_SelectedExtension = m_ReferenceImageDialog->selectedNameFilter();
-        m_SaveFileDir = m_ReferenceImageDialog->directory().absolutePath();
-        QStringList selectedFiles = m_ReferenceImageDialog->selectedFiles();
-
-        // get selected file
-        if ( !selectedFiles.isEmpty() )
-        {
-            QString filePath = selectedFiles.at(0);
-            QFile file(filePath);
-
-            if (file.open(QIODevice::ReadOnly))
-            {
-                m_ReferenceImage.clear();
-                m_ReferenceImage = QSharedPointer<QByteArray>(new QByteArray(file.readAll()));
-
-                QFileInfo fileInfo(file.fileName());
-                QString filename(fileInfo.fileName());
-                ui.m_referenceLabel->setText(QString("Reference Image: %1 (%2 Bytes)").arg(filename).arg(m_ReferenceImage->size()));
-
-                file.close();
-
-                if(m_bIsOpen)
-                {
-                    ui.m_CalcLiveDeviationButton->setEnabled(true);
-
-                    if (m_FrameRecordVector.size())
-                    {
-                        ui.m_CalcDeviationButton->setEnabled(true);
-                    }
-                }
-            }
-            else
-            {
-                QMessageBox::warning( this, tr("V4L2 Test"), tr("Could not load image! \nCheck access rights."), tr("") );
-            }
-
-        }
-    }
-}
-
 
 void V4L2Viewer::SaveFrame(QSharedPointer<MyFrame> frame, QString fileName, bool raw)
 {
@@ -2032,44 +1423,6 @@ void V4L2Viewer::SaveFrameDialog(bool raw)
     }
 }
 
-void V4L2Viewer::OnSaveFrame()
-{
-    SaveFrameDialog(true);
-}
-
-void V4L2Viewer::OnSaveFrameSeries()
-{
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"), m_SaveFileDir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-
-    // check if user has hit the cancel button in the file dialog
-    if (!dir.isEmpty() && !dir.isNull())
-    {
-        // iterate through table
-        for (unsigned int tableRow = 0; tableRow < ui.m_FrameRecordTable->rowCount(); ++tableRow)
-        {
-            if (tableRow < m_FrameRecordVector.size())
-            {
-                QSharedPointer<MyFrame> frame = m_FrameRecordVector[tableRow];
-
-                QString pixelFormat = QString::fromStdString(v4l2helper::ConvertPixelFormat2EnumString(frame->GetPixelFormat()));
-                QString width = QString::number(frame->GetWidth());
-                QString height = QString::number(frame->GetHeight());
-                QString frameId = QString::number(frame->GetFrameId());
-                QString filename = QString::number(tableRow) + QString("_Frame") + frameId + QString("_") + width + QString("x") + height + QString("_") + pixelFormat + QString(".raw");
-                QString absoluteFilePath = dir + QString("/") + filename;
-
-                SaveFrame(frame, absoluteFilePath, true);
-            }
-        }
-    }
-}
-
-void V4L2Viewer::OnExportFrame()
-{
-    SaveFrameDialog(false);
-}
-
-
 void V4L2Viewer::OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBytes, bool done)
 {
     if(numberOfUnequalBytes < 0)
@@ -2079,120 +1432,12 @@ void V4L2Viewer::OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequal
     else
     {
         m_MeanNumberOfUnequalBytes += numberOfUnequalBytes;
-
-        QTableWidgetItem* item_unequalBytes = new QTableWidgetItem();
-        item_unequalBytes->setText(QString::number(numberOfUnequalBytes));
-        ui.m_FrameRecordTable->setItem(tableRow, 8, item_unequalBytes);
     }
 
     if(done)
     {
-        // clear loading animation
-        ui.m_meanDeviationLabel->clear();
         delete m_LoadingAnimation;
-
-        if(m_deviationErrors < ui.m_FrameRecordTable->rowCount())
-        {
-            ui.m_meanDeviationLabel->setText(QString("Mean #Unequal Bytes: %1").arg(m_MeanNumberOfUnequalBytes / ui.m_FrameRecordTable->rowCount()));
-        }
-        else
-        {
-            ui.m_meanDeviationLabel->setText(QString("Mean #Unequal Bytes: -"));
-            QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixel format!"), tr("") );
-        }
-
-        ui.m_StartRecordButton->setEnabled(true);
-        ui.m_CalcDeviationButton->setEnabled(true);
-        ui.m_DeleteRecording->setEnabled(true);
-        ui.m_GetReferenceButton->setEnabled(true);
-        ui.m_CalcLiveDeviationButton->setEnabled(true);
         m_CalcThread.clear();
-    }
-}
-
-void V4L2Viewer::OnCalcDeviation()
-{
-    ui.m_StartRecordButton->setEnabled(false);
-    ui.m_CalcDeviationButton->setEnabled(false);
-    ui.m_DeleteRecording->setEnabled(false);
-    ui.m_GetReferenceButton->setEnabled(false);
-    ui.m_CalcLiveDeviationButton->setEnabled(false);
-
-    m_MeanNumberOfUnequalBytes = 0;
-    m_deviationErrors = 0;
-
-    std::map<unsigned int, QSharedPointer<MyFrame> > rowToFrameTable;
-
-    // iterate through table
-    for (unsigned int tableRow = 0; tableRow < ui.m_FrameRecordTable->rowCount(); ++tableRow)
-    {
-        // delete deviation column
-        delete ui.m_FrameRecordTable->item(tableRow, 8);
-
-        // populate map for deviation calculator thread
-        if (tableRow < m_FrameRecordVector.size())
-        {
-            QSharedPointer<MyFrame> frame = m_FrameRecordVector[tableRow];
-            rowToFrameTable.insert(std::make_pair(tableRow, frame));
-        }
-    }
-
-    // show loading animation
-    m_LoadingAnimation = new QMovie(":/V4L2Viewer/loading-animation.gif");
-    ui.m_meanDeviationLabel->setMovie(m_LoadingAnimation);
-    ui.m_meanDeviationLabel->show();
-    m_LoadingAnimation->start();
-
-    // calculate in separate thread
-    m_CalcThread = QSharedPointer<DeviationCalculator>(new DeviationCalculator(m_ReferenceImage, rowToFrameTable));
-
-    connect(m_CalcThread.data(), SIGNAL(OnCalcDeviationReady_Signal(unsigned int, int, bool)),
-            this, SLOT(OnCalcDeviationReady(unsigned int, int, bool)));
-
-    m_CalcThread->start();
-}
-
-void V4L2Viewer::OnCalcLiveDeviation()
-{
-    // start calc live deviation
-    if(ui.m_CalcLiveDeviationButton->isChecked())
-    {
-        ui.m_StartRecordButton->setEnabled(false);
-        ui.m_StopRecordButton->setEnabled(false);
-        ui.m_CalcDeviationButton->setEnabled(false);
-        ui.m_DeleteRecording->setEnabled(false);
-        ui.m_SaveFrameSeriesButton->setEnabled(false);
-        ui.m_DisplaySaveFrame->setEnabled(false);
-        ui.m_ExportRecordedFrameButton->setEnabled(false);
-        ui.m_GetReferenceButton->setEnabled(false);
-        ui.m_FrameRecordTable->setDisabled(true);
-
-        m_LiveDeviationNumberOfErrorFrames = 0;
-        m_LiveDeviationFrameCount = 0;
-        m_LiveDeviationUnequalBytes = 0;
-        m_Camera.SetLiveDeviationCalc(m_ReferenceImage);
-    }
-    // stop calc live deviation
-    else
-    {
-        // pass a QShared-Null-Pointer to disable live deviation calc
-        m_Camera.SetLiveDeviationCalc(QSharedPointer<QByteArray>());
-
-        ui.m_StartRecordButton->setEnabled(true);
-        ui.m_StopRecordButton->setEnabled(false);
-        ui.m_GetReferenceButton->setEnabled(true);
-        ui.m_FrameRecordTable->setDisabled(false);
-
-        if(m_FrameRecordVector.size())
-        {
-            ui.m_DeleteRecording->setEnabled(true);
-            ui.m_SaveFrameSeriesButton->setEnabled(true);
-
-            if(m_ReferenceImage)
-            {
-                ui.m_CalcDeviationButton->setEnabled(true);
-            }
-        }
     }
 }
 
@@ -2201,10 +1446,6 @@ void V4L2Viewer::OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes)
     // invalid reference image
     if(numberOfUnequalBytes < 0)
     {
-        // stop calc live deviation
-        ui.m_CalcLiveDeviationButton->setChecked(false);
-        OnCalcLiveDeviation();
-
         QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixel format!"), tr("") );
     }
     // valid reference image
@@ -2216,12 +1457,6 @@ void V4L2Viewer::OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes)
         {
             m_LiveDeviationNumberOfErrorFrames++;
         }
-
-        ui.m_FrameIDRecording->setText(QString(""));
-        ui.m_FrameIDStartedRecord->setText(QString("Processed frames: %1").arg(m_LiveDeviationFrameCount));
-        ui.m_FrameIDStoppedRecord->setText(QString("Error Frames: %1").arg(m_LiveDeviationNumberOfErrorFrames));
-        ui.m_FramesInQueue->setText(QString("Unequal Bytes: %1").arg(m_LiveDeviationUnequalBytes));
-        ui.m_meanDeviationLabel->setText(QString("Live Comparison: Average %3 Unequal Bytes/Frame").arg(((double)m_LiveDeviationUnequalBytes)/m_LiveDeviationFrameCount));
     }
 }
 

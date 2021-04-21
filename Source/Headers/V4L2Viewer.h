@@ -244,8 +244,6 @@ private slots:
     void OnFrameID(const unsigned long long &frameId);
     // The event handler to show the event data
     void OnCameraEventReady(const QString &eventText);
-    // The event handler to clear the event list
-    void OnClearEventLogButtonClicked();
     // The event handler to show the received values
     void OnCameraRegisterValueReady(unsigned long long value);
     // Event will be called on error
@@ -258,41 +256,16 @@ private slots:
     void OnCameraRecordFrame(const QSharedPointer<MyFrame>& frame);
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
-    // The event handler to read a register per direct access
-    void OnDirectRegisterAccessReadButtonClicked();
-    // The event handler to write a register per direct access
-    void OnDirectRegisterAccessWriteButtonClicked();
 
     void OnCropXOffset();
     void OnCropYOffset();
     void OnCropWidth();
     void OnCropHeight();
 
-    // Button start recording clicked
-    void OnStartRecording();
-    // Button stop recording clicked
-    void OnStopRecording();
-    // User has selected a row in the record table
-    void OnRecordTableSelectionChanged(const QItemSelection &, const QItemSelection &);
-    // Button delete recording clicked
-    void OnDeleteRecording();
-    // Button save frame clicked
-    void OnSaveFrame();
-    // Button save frame series clicked
-    void OnSaveFrameSeries();
-    // Button calc deviation clicked
-    void OnCalcDeviation();
-    // Button calc live deviation clicked
-    void OnCalcLiveDeviation();
-
     void OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes);
 
-    // Button load reference image clicked
-    void OnGetReferenceImage();
     // Deviation calculator thread has calculated the deviation of one frame
     void OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBytes, bool done);
-    // Button export frame clicked
-    void OnExportFrame();
 
     void OnWidth();
     void OnHeight();
