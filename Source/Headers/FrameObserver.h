@@ -86,9 +86,6 @@ public:
 
     void setFileDescriptor(int fd);
 
-    // Live Deviation Calc
-    void SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame);
-
     virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
     virtual int QueueAllUserBuffer();
     virtual int QueueSingleUserBuffer(const int index);
@@ -107,9 +104,6 @@ protected:
     virtual void run();
 
 protected:
-
-    QSharedPointer<QByteArray> m_bLiveDeviationCalc;
-
     // Counter to count the received images
     uint32_t m_nReceivedFramesCounter;
 
@@ -171,8 +165,6 @@ signals:
     void OnMessage_Signal(const QString &msg);
     // Event will be called on error
     void OnError_Signal(const QString &text);
-
-    void OnLiveDeviationCalc_Signal(int numberOfUnequalBytes);
 };
 
 #endif /* FRAMEOBSERVER_H */

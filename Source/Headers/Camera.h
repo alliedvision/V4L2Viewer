@@ -156,9 +156,6 @@ public:
     unsigned int GetRenderedFramesCount();
     unsigned int GetDroppedFramesCount();
 
-    // live deviation calc
-    void SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame);
-
     // Misc
     void SwitchFrameTransfer2GUI(bool showFrames);
 
@@ -212,7 +209,6 @@ signals:
 
     void OnCameraPixelFormat_Signal(const QString &);
     void OnCameraFrameSize_Signal(const QString &);
-    void OnCameraLiveDeviationCalc_Signal(int numberOfUnequalBytes);
 
 private slots:
     // The event handler to set or remove devices
@@ -227,8 +223,6 @@ private slots:
     void OnMessage(const QString &msg);
     // Event will be called when for text notification
     void OnError(const QString &msg);
-    // Event will be caleld when FrameObserver has calculated the number of unequal bytes of current frame
-    void OnLiveDeviationCalc(int numberOfUnequalBytes);
 };
 
 #endif // CAMERA_H

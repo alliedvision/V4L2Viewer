@@ -143,7 +143,6 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
     connect(m_pFrameObserver.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
-    connect(m_pFrameObserver.data(), SIGNAL(OnLiveDeviationCalc_Signal(int)), this, SLOT(OnLiveDeviationCalc(int)));
 
     if (-1 == m_nFileDescriptor)
     {
@@ -217,11 +216,6 @@ void Camera::OnFrameReady(const QImage &image, const unsigned long long &frameId
 void Camera::OnFrameID(const unsigned long long &frameId)
 {
     emit OnCameraFrameID_Signal(frameId);
-}
-
-void Camera::OnLiveDeviationCalc(int numberOfUnequalBytes)
-{
-    emit OnCameraLiveDeviationCalc_Signal(numberOfUnequalBytes);
 }
 
 // Event will be called when a frame is displayed
@@ -2025,15 +2019,6 @@ int Camera::GetCameraCapabilities(std::string &strText)
     strText = tmp.str();
 
     return result;
-}
-
-// Live Deviation Calc
-void Camera::SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame)
-{
-    if(m_pFrameObserver)
-    {
-        m_pFrameObserver->SetLiveDeviationCalc(referenceFrame);
-    }
 }
 
 /*********************************************************************************************************/

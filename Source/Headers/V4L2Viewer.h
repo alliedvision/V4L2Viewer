@@ -105,40 +105,17 @@ private:
     bool m_bIsStreaming;
     //// Our Qt image to display
     double m_dScaleFactor;
-    //// Our Qt image to display
-    bool m_bFitToScreen;
     // Timer to togle the stream
     QTimer m_StreamToggleTimer;
     // Timer to show the frames received from the frame observer
     QTimer m_FramesReceivedTimer;
-    // Timer to check for controller timeouts
-    QTimer m_ControlRequestTimer;
     // Graphics scene to show the image
     QSharedPointer<QGraphicsScene> m_pScene;
     // Pixel map for the graphics scene
     QGraphicsPixmapItem *m_PixmapItem;
-    // Direct access value
-    uint64_t m_DirectAccessData;
     // store radio buttons for blocking/non-blocking mode in a group
     QButtonGroup* m_BlockingModeRadioButtonGroup;
-    // load reference image dialog
-    QFileDialog *m_ReferenceImageDialog;
-    // reference image
-    QSharedPointer<QByteArray> m_ReferenceImage;
-    // thread to calculate deviation
-    QSharedPointer<DeviationCalculator> m_CalcThread;
-    // for calculating the mean deviation to the reference image
-    int m_MeanNumberOfUnequalBytes;
-    // for checking if deviation calculation was successful
-    unsigned int m_deviationErrors;
-    // show loading gif during deviation calculation
-    QMovie *m_LoadingAnimation;
     // frames received for live deviation calc
-    unsigned int m_LiveDeviationFrameCount;
-    // number of unequal bytes of live deviation calc
-    unsigned long long m_LiveDeviationUnequalBytes;
-    // number of frames with unequal bytes
-    unsigned int m_LiveDeviationNumberOfErrorFrames;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -212,8 +189,6 @@ private slots:
     void OnZoomOutButtonClicked();
     // The event handler to show the frames received
     void OnUpdateFramesReceived();
-    // The event handler to check for controller timeouts
-    void OnControllerResponseTimeout();
     // The event handler to receive timer messages
     void OnStreamToggleTimeout();
     // The event handler to show the processed frame
@@ -238,11 +213,6 @@ private slots:
     void OnCropWidth();
     void OnCropHeight();
 
-    void OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes);
-
-    // Deviation calculator thread has calculated the deviation of one frame
-    void OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBytes, bool done);
-
     void OnWidth();
     void OnHeight();
     void OnPixelFormat();
@@ -266,7 +236,6 @@ private slots:
     void OnFrameRate();
     void OnCropCapabilities();
     void OnReadAllValues();
-
 
     void OnCameraPixelFormat(const QString &);
     void OnCameraFrameSize(const QString &);

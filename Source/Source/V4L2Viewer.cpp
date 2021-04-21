@@ -107,9 +107,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_nViewerNumber(viewerNumber)
     , m_bIsOpen(false)
     , m_bIsStreaming(false)
-    , m_bFitToScreen(false)
     , m_dScaleFactor(1.0)
-    , m_DirectAccessData(0)
     , m_BLOCKING_MODE(true)
     , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
@@ -117,7 +115,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_ShowFrames(true)
     , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
-    , m_ReferenceImageDialog(0)
 {
     srand((unsigned)time(0));
 
@@ -157,7 +154,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(OnCameraMessage_Signal(const QString &)), this, SLOT(OnCameraMessage(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)), this, SLOT(OnCameraPixelFormat(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)), this, SLOT(OnCameraFrameSize(const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraLiveDeviationCalc_Signal(int)), this, SLOT(OnCalcLiveDeviationFromFrameObserver(int)));
 
     // Setup blocking mode radio buttons
     m_BlockingModeRadioButtonGroup = new QButtonGroup();
@@ -966,7 +962,6 @@ void V4L2Viewer::OnStopButtonClicked()
         OnLog("Stop Stream failed.");
     }
 
-
     QApplication::processEvents();
 
     m_bIsStreaming = false;
@@ -1216,28 +1211,8 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
     err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
 
     if (0 != err)
-        OnLog("Open device failed");
-    else
     {
-        m_nStreamNumber = 0;
-
-        char buff[32];
-        memset(buff, 0, sizeof(buff));
-
-        if (m_Camera.ReadRegister(CCI_GCPRM_16R, buff, 2, true) >= 0)
-        {
-            uint16_t val = *(uint16_t*)buff;
-        }
-        else
-        {
-        }
-
-        if (m_Camera.ReadRegister(CCI_BCRM_16R, buff, 2, true) >= 0)
-        {
-        }
-        else
-        {
-        }
+        OnLog("Open device failed");
     }
 
     return err;
@@ -1263,52 +1238,6 @@ void V4L2Viewer::OnUpdateFramesReceived()
 
     ui.m_FramesPerSecondLabel->setText(QString("fps: %1 received/%2 rendered [drops %3]").arg(fpsReceived).arg(fpsRendered).arg(uncompletedFrames));
 }
-
-// The event handler to show the frames received
-void V4L2Viewer::OnControllerResponseTimeout()
-{
-    OnLog("Payload request timed out. Cannot start streaming.");
-
-    m_ControlRequestTimer.stop();
-}
-
-void V4L2Viewer::OnCalcDeviationReady(unsigned int tableRow, int numberOfUnequalBytes, bool done)
-{
-    if(numberOfUnequalBytes < 0)
-    {
-        m_deviationErrors++;
-    }
-    else
-    {
-        m_MeanNumberOfUnequalBytes += numberOfUnequalBytes;
-    }
-
-    if(done)
-    {
-        delete m_LoadingAnimation;
-        m_CalcThread.clear();
-    }
-}
-
-void V4L2Viewer::OnCalcLiveDeviationFromFrameObserver(int numberOfUnequalBytes)
-{
-    // invalid reference image
-    if(numberOfUnequalBytes < 0)
-    {
-        QMessageBox::warning( this, tr("V4L2 Test"), tr("Invalid reference image!\nPlease make sure to use a reference image in RAW format\nwith the same resolution and pixel format!"), tr("") );
-    }
-    // valid reference image
-    else
-    {
-        m_LiveDeviationFrameCount++;
-        m_LiveDeviationUnequalBytes += numberOfUnequalBytes;
-        if(numberOfUnequalBytes > 0)
-        {
-            m_LiveDeviationNumberOfErrorFrames++;
-        }
-    }
-}
-
 
 void V4L2Viewer::OnWidth()
 {
@@ -1387,8 +1316,6 @@ void V4L2Viewer::OnPixelFormat()
 void V4L2Viewer::OnGain()
 {
     int32_t gain = 0;
-    bool autogain = false;
-
     int32_t nVal = int64_2_int32(ui.m_edGain->text().toLongLong());
 
     m_Camera.SetGain(nVal);
@@ -1399,12 +1326,13 @@ void V4L2Viewer::OnGain()
         ui.m_edGain->setText(QString("%1").arg(gain));
     }
     else
+    {
         ui.m_edGain->setEnabled(false);
+    }
 }
 
 void V4L2Viewer::OnAutoGain()
 {
-    int32_t gain = 0;
     bool autogain = false;
 
     m_Camera.SetAutoGain(ui.m_chkAutoGain->isChecked());
@@ -1415,7 +1343,9 @@ void V4L2Viewer::OnAutoGain()
         ui.m_chkAutoGain->setChecked(autogain);
     }
     else
+    {
         ui.m_chkAutoGain->setEnabled(false);
+    }
 }
 
 void V4L2Viewer::OnExposure()
@@ -1449,7 +1379,9 @@ void V4L2Viewer::OnExposure()
         ui.m_chkAutoExposure->setChecked(autoexposure);
     }
     else
+    {
         ui.m_chkAutoExposure->setEnabled(false);
+    }
 }
 
 void V4L2Viewer::OnExposureAbs()
@@ -1483,12 +1415,13 @@ void V4L2Viewer::OnExposureAbs()
         ui.m_chkAutoExposure->setChecked(autoexposure);
     }
     else
+    {
         ui.m_chkAutoExposure->setEnabled(false);
+    }
 }
 
 void V4L2Viewer::OnAutoExposure()
 {
-    int32_t exposure = 0;
     bool autoexposure = false;
 
     m_Camera.SetAutoExposure(ui.m_chkAutoExposure->isChecked());
@@ -1499,7 +1432,9 @@ void V4L2Viewer::OnAutoExposure()
         ui.m_chkAutoExposure->setChecked(autoexposure);
     }
     else
+    {
         ui.m_chkAutoExposure->setEnabled(false);
+    }
 }
 
 void V4L2Viewer::OnPixelFormatDBLClick(QListWidgetItem *item)
@@ -1954,8 +1889,6 @@ void V4L2Viewer::GetImageInformation()
     int32_t exposure = 0;
     int32_t exposureAbs = 0;
     bool autoexposure = false;
-    int result = 0;
-    uint32_t nUVal;
     int32_t nSVal;
     uint32_t numerator = 0;
     uint32_t denominator = 0;
@@ -2084,7 +2017,6 @@ void V4L2Viewer::GetImageInformation()
     else
         ui.m_edBlueBalance->setEnabled(false);
 
-    nUVal = 0;
     m_Camera.ReadFrameSize(width, height);
     m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
     if (m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat) != -2)
@@ -2095,7 +2027,6 @@ void V4L2Viewer::GetImageInformation()
     else
         ui.m_edFrameRate->setEnabled(false);
 
-    nUVal = 0;
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
     {
         ui.m_edCropXOffset->setEnabled(true);
@@ -2160,7 +2091,6 @@ void V4L2Viewer::Check4IOReadAbility()
     {
         QString devName = ui.m_CamerasListBox->item(nRow)->text();
         std::string deviceName;
-        std::string tmp;
 
         devName = devName.right(devName.length() - devName.indexOf(':') - 2);
         deviceName = devName.left(devName.indexOf('(') - 1).toStdString();

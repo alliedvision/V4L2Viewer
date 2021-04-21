@@ -285,13 +285,6 @@ void FrameObserver::DequeueAndProcessFrame()
                         }
                     }
 
-                    if(m_bLiveDeviationCalc)
-                    {
-                        QSharedPointer<QByteArray> currentFrame(new QByteArray((char*)buffer, length));
-
-                        emit OnLiveDeviationCalc_Signal(DeviationCalculator::CountUnequalBytes(m_bLiveDeviationCalc, currentFrame));
-                    }
-
                     if (m_pImageProcessingThread->QueueFrame(buf.index, buffer, length,
                         m_nWidth, m_nHeight, m_PixelFormat,
                         m_PayloadSize, m_BytesPerLine, m_FrameId))
@@ -435,11 +428,6 @@ void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned l
 void FrameObserver::OnMessageFromThread(const QString &msg)
 {
     emit OnMessage_Signal(msg);
-}
-
-void FrameObserver::SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame)
-{
-    m_bLiveDeviationCalc = referenceFrame;
 }
 
 /*********************************************************************************************************/
