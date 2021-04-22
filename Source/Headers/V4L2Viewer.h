@@ -74,29 +74,7 @@ private:
     // The menu widget to setup the number of used frames
     QWidgetAction *m_NumberOfUsedFramesWidgetAction;
     // The line which holds the number of used frames
-    QLineEdit *m_NumberOfUsedFramesLineEdit;
-    // The menu widget to setup the number of dumped frames
-    QWidgetAction *m_LogFrameRangeWidgetAction;
-    // The line which holds the number dumped frames
-    QLineEdit *m_LogFrameRangeLineEdit;
-    // The menu widget to setup the number of dumped frames
-    QWidgetAction *m_DumpByteFrameRangeWidgetAction;
-    // The line which holds the number dumped frames
-    QLineEdit *m_DumpByteFrameRangeLineEdit;
-    // The menu widget to setup the number of CSV File
-    QWidgetAction *m_CSVFileWidgetAction;
-    // The line which holds the number CSV File
-    QLineEdit *m_CSVFileLineEdit;
-    // The menu widget to setup the number of CSV File
-    QWidgetAction *m_ToggleStreamDelayRandWidgetAction;
-    // The line which holds the number CSV File
-    QLineEdit *m_ToggleStreamDelayRandLineEdit;
-    QCheckBox *m_ToggleStreamDelayRandCheckBox;
-    // The menu widget to setup the number of CSV File
-    QWidgetAction *m_ToggleStreamDelayWidgetAction;
-    // The line which holds the number CSV File
-    QLineEdit *m_ToggleStreamDelayLineEdit;
-    QCheckBox *m_ToggleStreamDelayCheckBox;
+    QLineEdit *m_NumberOfUsedFramesLineEdit;   
     // A list of known camera IDs
     std::vector<uint32_t> m_cameras;
     // Is a camera open?
@@ -239,9 +217,6 @@ private slots:
 
     void OnCameraPixelFormat(const QString &);
     void OnCameraFrameSize(const QString &);
-
-    void OnToggleStreamDelayRand();
-    void OnToggleStreamDelay();
 };
 
 #endif // V4L2VIEWER_H

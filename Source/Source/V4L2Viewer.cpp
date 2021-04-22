@@ -254,122 +254,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     QWidget *widgetNum = new QWidget(this);
     widgetNum->setLayout(layoutNum);
 
-    ///////////////////// Dump range /////////////////////
-    // add the number of used frames option to the menu
-    m_LogFrameRangeLineEdit = new QLineEdit(this);
-    m_LogFrameRangeLineEdit->setText("");
-
-    // prepare the layout
-    QHBoxLayout *layoutDump = new QHBoxLayout;
-    QLabel *labelDump = new QLabel("Dump frames to log file (range 1 or 1-3):");
-    layoutDump->addWidget(labelDump);
-    layoutDump->addWidget(m_LogFrameRangeLineEdit);
-
-    // put the layout into a widget
-    QWidget *widgetDump = new QWidget(this);
-    widgetDump->setLayout(layoutDump);
-
-    ///////////////////// Dump byte range /////////////////////
-    // add the number of used frames option to the menu
-    m_DumpByteFrameRangeLineEdit = new QLineEdit(this);
-    m_DumpByteFrameRangeLineEdit->setText("");
-
-    // prepare the layout
-    QHBoxLayout *layoutByteDump = new QHBoxLayout;
-    QLabel *labelByteDump = new QLabel("Dump frames to binary file (range 1 or 1-3):");
-    layoutByteDump->addWidget(labelByteDump);
-    layoutByteDump->addWidget(m_DumpByteFrameRangeLineEdit);
-
-    // put the layout into a widget
-    QWidget *widgetByteDump = new QWidget(this);
-    widgetByteDump->setLayout(layoutByteDump);
-
-    ///////////////////// CSV File /////////////////////
-    // add the number of used frames option to the menu
-    m_CSVFileLineEdit = new QLineEdit(this);
-    m_CSVFileLineEdit->setText("");
-
-    // prepare the layout
-    QHBoxLayout *layoutCSVFile = new QHBoxLayout;
-    QLabel *labelCSVFile = new QLabel("CSV File:");
-    layoutCSVFile->addWidget(labelCSVFile);
-    layoutCSVFile->addWidget(m_CSVFileLineEdit);
-
-    // put the layout into a widget
-    QWidget *widgetCSVFile = new QWidget(this);
-    widgetCSVFile->setLayout(layoutCSVFile);
-
-    ///////////////////// Toggle stream Delay Random /////////////////////
-    // add the number of used frames option to the menu
-    m_ToggleStreamDelayRandLineEdit = new QLineEdit(this);
-    m_ToggleStreamDelayRandLineEdit->setText("500");
-    m_ToggleStreamDelayRandLineEdit->setValidator(new QIntValidator(1, 10000, this));
-
-    m_ToggleStreamDelayRandCheckBox = new QCheckBox(this);
-    m_ToggleStreamDelayRandCheckBox->setChecked(true);
-    connect(m_ToggleStreamDelayRandCheckBox, SIGNAL(clicked()), this, SLOT(OnToggleStreamDelayRand()));
-
-    // prepare the layout
-    QHBoxLayout *layoutToggleStreamDelayRand = new QHBoxLayout;
-    QLabel *labelToggleStreamDelayRand = new QLabel("Toggle Stream Delay Random/ms 1-");
-    layoutToggleStreamDelayRand->addWidget(m_ToggleStreamDelayRandCheckBox);
-    layoutToggleStreamDelayRand->addWidget(labelToggleStreamDelayRand);
-    layoutToggleStreamDelayRand->addWidget(m_ToggleStreamDelayRandLineEdit);
-
-    // put the layout into a widget
-    QWidget *widgetToggleStreamDelayRand = new QWidget(this);
-    widgetToggleStreamDelayRand->setLayout(layoutToggleStreamDelayRand);
-
-    ///////////////////// Toggle stream Delay Random /////////////////////
-    // add the number of used frames option to the menu
-    m_ToggleStreamDelayLineEdit = new QLineEdit(this);
-    m_ToggleStreamDelayLineEdit->setText("1000");
-    m_ToggleStreamDelayLineEdit->setValidator(new QIntValidator(1, 10000, this));
-
-    m_ToggleStreamDelayCheckBox = new QCheckBox(this);
-    m_ToggleStreamDelayCheckBox->setChecked(false);
-    connect(m_ToggleStreamDelayCheckBox, SIGNAL(clicked()), this, SLOT(OnToggleStreamDelay()));
-
-    // prepare the layout
-    QHBoxLayout *layoutToggleStreamDelay = new QHBoxLayout;
-    QLabel *labelToggleStreamDelay = new QLabel("Toggle Stream Delay/ms ");
-    layoutToggleStreamDelay->addWidget(m_ToggleStreamDelayCheckBox);
-    layoutToggleStreamDelay->addWidget(labelToggleStreamDelay);
-    layoutToggleStreamDelay->addWidget(m_ToggleStreamDelayLineEdit);
-
-    // put the layout into a widget
-    QWidget *widgetToggleStreamDelay = new QWidget(this);
-    widgetToggleStreamDelay->setLayout(layoutToggleStreamDelay);
-
     // add the widget into the menu bar
     m_NumberOfUsedFramesWidgetAction = new QWidgetAction(this);
     m_NumberOfUsedFramesWidgetAction->setDefaultWidget(widgetNum);
     ui.m_MenuOptions->addAction(m_NumberOfUsedFramesWidgetAction);
-
-    // add the widget into the menu bar
-    m_LogFrameRangeWidgetAction = new QWidgetAction(this);
-    m_LogFrameRangeWidgetAction->setDefaultWidget(widgetDump);
-    ui.m_MenuOptions->addAction(m_LogFrameRangeWidgetAction);
-
-    // add the widget into the menu bar
-    m_DumpByteFrameRangeWidgetAction = new QWidgetAction(this);
-    m_DumpByteFrameRangeWidgetAction->setDefaultWidget(widgetByteDump);
-    ui.m_MenuOptions->addAction(m_DumpByteFrameRangeWidgetAction);
-
-    // add the widget into the menu bar
-    m_CSVFileWidgetAction = new QWidgetAction(this);
-    m_CSVFileWidgetAction->setDefaultWidget(widgetCSVFile);
-    ui.m_MenuOptions->addAction(m_CSVFileWidgetAction);
-
-    // add the widget into the menu bar
-    m_ToggleStreamDelayRandWidgetAction = new QWidgetAction(this);
-    m_ToggleStreamDelayRandWidgetAction->setDefaultWidget(widgetToggleStreamDelayRand);
-    ui.m_MenuTest->addAction(m_ToggleStreamDelayRandWidgetAction);
-
-    // add the widget into the menu bar
-    m_ToggleStreamDelayWidgetAction = new QWidgetAction(this);
-    m_ToggleStreamDelayWidgetAction->setDefaultWidget(widgetToggleStreamDelay);
-    ui.m_MenuTest->addAction(m_ToggleStreamDelayWidgetAction);
 
     ui.menuBar->setNativeMenuBar(false);
 
@@ -764,16 +652,6 @@ void V4L2Viewer::OnToggleButtonClicked()
     if (result == 0)
     {
         int timeout = 1000;
-        if (m_ToggleStreamDelayRandCheckBox->isChecked())
-        {
-            int randomBase = m_ToggleStreamDelayRandLineEdit->text().toInt();
-            timeout = (rand() % randomBase) + 1;
-        }
-        else
-        {
-            timeout = m_ToggleStreamDelayLineEdit->text().toInt();
-        }
-
         m_StreamToggleTimer.start(timeout);
     }
 }
@@ -781,16 +659,6 @@ void V4L2Viewer::OnToggleButtonClicked()
 void V4L2Viewer::OnStreamToggleTimeout()
 {
     int timeout = 1000;
-    if (m_ToggleStreamDelayRandCheckBox->isChecked())
-    {
-        int randomBase = m_ToggleStreamDelayRandLineEdit->text().toInt();
-        timeout = (rand() % randomBase) + 1;
-    }
-    else
-    {
-        timeout = m_ToggleStreamDelayLineEdit->text().toInt();
-    }
-
     m_StreamToggleTimer.stop();
 
     if (m_bIsStreaming)
@@ -855,41 +723,6 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
     m_nDroppedFrames = 0;
 
-    // prepare the frame ascii log range
-    QString logFrameRange = m_LogFrameRangeLineEdit->text();
-    QStringList logFrameRangeList = logFrameRange.split('-');
-
-    if (logFrameRangeList.size() > 3)
-    {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1 or 1-2!") );
-        return;
-    }
-
-    int32_t logFrameRangeStart = -1;
-    if (m_LogFrameRangeLineEdit->text() != "" && logFrameRangeList.size() >= 1)
-        logFrameRangeStart = logFrameRangeList.at(0).toInt();
-
-    int32_t logFrameRangeEnd = logFrameRangeStart;
-    if (logFrameRangeList.size() == 2)
-        logFrameRangeEnd = logFrameRangeList.at(1).toInt();
-
-    // prepare the frame byte log range
-    QString dumpByteFrameRange = m_DumpByteFrameRangeLineEdit->text();
-    QStringList dumpByteFrameRangeList = dumpByteFrameRange.split('-');
-
-    if (dumpByteFrameRangeList.size() > 3)
-    {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1 or 1-2!") );
-        return;
-    }
-
-    int32_t dumpByteFrameRangeStart = -1;
-    if (m_DumpByteFrameRangeLineEdit->text() != "" && dumpByteFrameRangeList.size() >= 1)
-        dumpByteFrameRangeStart = dumpByteFrameRangeList.at(0).toInt();
-    int32_t dumpByteFrameRangeEnd = dumpByteFrameRangeStart;
-    if (dumpByteFrameRangeList.size() == 2)
-        dumpByteFrameRangeEnd = dumpByteFrameRangeList.at(1).toInt();
-
     // start streaming
 
     if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadSize) == 0)
@@ -904,19 +737,13 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
         {
             OnLog("Start Stream failed.");
         }
-        err = m_Camera.StartStreamChannel(m_CSVFileLineEdit->text().toStdString().c_str(),
-                                          pixelFormat,
+        err = m_Camera.StartStreamChannel(pixelFormat,
                                           payloadSize,
                                           width,
                                           height,
                                           bytesPerLine,
                                           NULL,
-                                          ui.m_TitleLogtofile->isChecked(),
-                                          logFrameRangeStart,
-                                          logFrameRangeEnd,
-                                          dumpByteFrameRangeStart,
-                                          dumpByteFrameRangeEnd,
-                                          ui.m_TitleCorrectIncomingRAW10Image->isChecked());
+                                          ui.m_TitleLogtofile->isChecked());
 
         if (0 != err)
             OnLog("Start Acquisition failed during SI Start channel.");
@@ -1862,18 +1689,6 @@ void V4L2Viewer::OnReadAllValues()
 {
     GetImageInformation();
     UpdateCameraFormat();
-}
-
-void V4L2Viewer::OnToggleStreamDelayRand()
-{
-    m_ToggleStreamDelayCheckBox->setChecked(false);
-    m_ToggleStreamDelayRandCheckBox->setChecked(true);
-}
-
-void V4L2Viewer::OnToggleStreamDelay()
-{
-    m_ToggleStreamDelayCheckBox->setChecked(true);
-    m_ToggleStreamDelayRandCheckBox->setChecked(false);
 }
 
 /////////////////////// Tools /////////////////////////////////////

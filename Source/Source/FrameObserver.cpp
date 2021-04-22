@@ -95,13 +95,7 @@ FrameObserver::FrameObserver(bool showFrames)
     , m_BlockingMode(false)
     , m_IsStreamRunning(false)
     , m_bStreamStopped(true)
-    , m_EnableRAW10Correction(0)
     , m_EnableLogging(0)
-    , m_FrameCount(0)
-    , m_LogFrameStart(0)
-    , m_LogFrameEnd(0)
-    , m_DumpFrameStart(0)
-    , m_DumpFrameEnd(0)
     , m_ShowFrames(showFrames)
 {
     m_pImageProcessingThread = QSharedPointer<ImageProcessingThread>(new ImageProcessingThread());
@@ -123,9 +117,7 @@ FrameObserver::~FrameObserver()
 
 int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelFormat,
                                uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
-                               uint32_t enableLogging, int32_t logFrameStart, int32_t logFrameEnd,
-                               int32_t dumpFrameStart, int32_t dumpFrameEnd, uint32_t enableRAW10Correction,
-                               std::vector<uint8_t> &csvData)
+                               uint32_t enableLogging)
 {
     int nResult = 0;
 
@@ -145,15 +137,6 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_IsStreamRunning = true;
 
     m_EnableLogging = enableLogging;
-    m_FrameCount = 0;
-    m_LogFrameStart = logFrameStart;
-    m_LogFrameEnd = logFrameEnd;
-    m_DumpFrameStart = dumpFrameStart;
-    m_DumpFrameEnd = dumpFrameEnd;
-
-    m_CsvData = csvData;
-
-    m_EnableRAW10Correction = enableRAW10Correction;
 
     if (0 == g_ConversionBuffer1)
         g_ConversionBuffer1 = (uint8_t*)malloc(m_nWidth * m_nHeight * 4);
@@ -228,12 +211,11 @@ void FrameObserver::DequeueAndProcessFrame()
             if (0 == GetFrameData(buf, buffer, length))
             {
 
-                if (m_EnableRAW10Correction &&
-                        (m_PixelFormat == V4L2_PIX_FMT_Y10P ||
-                         m_PixelFormat == V4L2_PIX_FMT_SBGGR10P ||
-                         m_PixelFormat == V4L2_PIX_FMT_SGBRG10P ||
-                         m_PixelFormat == V4L2_PIX_FMT_SGRBG10P ||
-                         m_PixelFormat == V4L2_PIX_FMT_SRGGB10P))
+                if (m_PixelFormat == V4L2_PIX_FMT_Y10P ||
+                    m_PixelFormat == V4L2_PIX_FMT_SBGGR10P ||
+                    m_PixelFormat == V4L2_PIX_FMT_SGBRG10P ||
+                    m_PixelFormat == V4L2_PIX_FMT_SGRBG10P ||
+                    m_PixelFormat == V4L2_PIX_FMT_SRGGB10P)
                 {
                     length = InternalConvertRAW10inRAW16ToRAW10g(buffer, m_PayloadSize, g_ConversionBuffer2);
                     buffer = g_ConversionBuffer2;
@@ -242,49 +224,6 @@ void FrameObserver::DequeueAndProcessFrame()
 
                 if (length <= m_RealPayloadSize)
                 {
-                    if (m_FrameCount >= m_LogFrameStart && m_FrameCount <=  m_LogFrameEnd)
-                    {
-                        Logger::LogDump("Received frame:", (uint8_t*)buffer, logPayloadSize);
-                    }
-
-                    if (m_FrameCount >= m_DumpFrameStart && m_FrameCount <=  m_DumpFrameEnd)
-                    {
-                        std::stringstream localFileName;
-                        localFileName << "V4L2Viewer_Frame" << m_FrameCount << ".dmp";
-                        Logger::LogBuffer(localFileName.str(), (uint8_t*)buffer, logPayloadSize);
-                    }
-                    m_FrameCount++;
-
-                    if (m_CsvData.size() > 0 && m_FrameCount == 1)
-                    {
-                        uint32_t tmpCsvPayloadSize = m_CsvData.size();
-
-                        if (m_PayloadSize == tmpCsvPayloadSize)
-                        {
-                            bool notequalflag = false;
-                            for (uint32_t i = 0; i < m_PayloadSize; i++)
-                            {
-                                if (buffer[i] != m_CsvData[i])
-                                {
-                                    Logger::Log("!!! Buffer unequal to CSV file. !!!");
-                                    emit OnMessage_Signal("!!! Buffer unequal to CSV file. !!!");
-                                    notequalflag = true;
-                                    break;
-                                }
-                            }
-                            if (!notequalflag)
-                            {
-                                Logger::Log("*** Buffer equal to CSV file. ***");
-                                emit OnMessage_Signal("*** Buffer equal to CSV file. ***");
-                            }
-                        }
-                        else
-                        {
-                            Logger::LogEx("Buffer size=%d unequal to CSV file data size=%d.", m_PayloadSize, tmpCsvPayloadSize);
-                            emit OnMessage_Signal(QString("Buffer size=%1 unequal to CSV file data size=%2.").arg(m_PayloadSize).arg(tmpCsvPayloadSize));
-                        }
-                    }
-
                     if (m_pImageProcessingThread->QueueFrame(buf.index, buffer, length,
                         m_nWidth, m_nHeight, m_PixelFormat,
                         m_PayloadSize, m_BytesPerLine, m_FrameId))

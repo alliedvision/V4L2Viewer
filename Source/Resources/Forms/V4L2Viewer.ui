@@ -455,7 +455,7 @@
               <x>0</x>
               <y>0</y>
               <width>836</width>
-              <height>287</height>
+              <height>421</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1501,21 +1501,14 @@
     <addaction name="m_TitleFlipVertical"/>
     <addaction name="m_TitleEnableExtendedControls"/>
     <addaction name="m_TitleEnable_VIDIOC_TRY_FMT"/>
-    <addaction name="m_TitleCorrectIncomingRAW10Image"/>
     <addaction name="separator"/>
     <addaction name="m_TitleEnableMessageListbox"/>
     <addaction name="m_TitleClearOutputListbox"/>
     <addaction name="m_TitleLogtofile"/>
     <addaction name="separator"/>
    </widget>
-   <widget class="QMenu" name="m_MenuTest">
-    <property name="title">
-     <string>Test</string>
-    </property>
-   </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>
-   <addaction name="m_MenuTest"/>
   </widget>
   <action name="m_MenuClose">
    <property name="text">

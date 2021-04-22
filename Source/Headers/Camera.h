@@ -56,12 +56,9 @@ public:
 
     int DeviceDiscoveryStart();
     int DeviceDiscoveryStop();
-    int StartStreamChannel(const char* csvFilename,
-                           uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height,
+    int StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height,
                            uint32_t bytesPerLine, void *pPrivateData,
-                           uint32_t enableLogging, uint32_t logFrameStart, uint32_t logFrameEnd,
-                           uint32_t dumpFrameStart, uint32_t dumpFrameEnd,
-                           uint32_t enableRAW10Correction);
+                           uint32_t enableLogging);
     int StopStreamChannel();
 
     int ReadPayloadSize(uint32_t &payloadSize);
@@ -184,7 +181,6 @@ private:
     std::vector<uint8_t>        m_CsvData;
 
     size_t fsize(const char *filename);
-    int ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData);
     void reverseBytes(void* start, int size);
 
 signals:
