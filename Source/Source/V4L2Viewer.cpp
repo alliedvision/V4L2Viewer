@@ -134,7 +134,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_GetDeviceInfoButton,         SIGNAL(clicked()),         this, SLOT(OnGetDeviceInfoButtonClicked()));
     connect(ui.m_GetStreamStatisticsButton,   SIGNAL(clicked()),         this, SLOT(OnGetStreamStatisticsButtonClicked()));
     connect(ui.m_StartButton,                 SIGNAL(clicked()),         this, SLOT(OnStartButtonClicked()));
-    connect(ui.m_ToggleButton,                SIGNAL(clicked()),         this, SLOT(OnToggleButtonClicked()));
     connect(ui.m_StopButton,                  SIGNAL(clicked()),         this, SLOT(OnStopButtonClicked()));
     connect(ui.m_ZoomFitButton,               SIGNAL(clicked()),         this, SLOT(OnZoomFitButtonClicked()));
     connect(ui.m_ZoomInButton,                SIGNAL(clicked()),         this, SLOT(OnZoomInButtonClicked()));
@@ -185,9 +184,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     // Connect the handler to show the frames per second
     connect(&m_FramesReceivedTimer, SIGNAL(timeout()), this, SLOT(OnUpdateFramesReceived()));
-
-    // Connect the handler to toggle the stream randomly
-    connect(&m_StreamToggleTimer, SIGNAL(timeout()), this, SLOT(OnStreamToggleTimeout()));
 
     // register meta type for QT signal/slot mechanism
     qRegisterMetaType<QSharedPointer<MyFrame> >("QSharedPointer<MyFrame>");
@@ -639,48 +635,6 @@ void V4L2Viewer::OnStartButtonClicked()
         StartStreaming(pixelFormat, payloadSize, width, height, bytesPerLine);
 }
 
-void V4L2Viewer::OnToggleButtonClicked()
-{
-    uint32_t payloadSize = 0;
-    int result = 0;
-
-    // Get the payload size first to setup the streaming channel
-    result = m_Camera.ReadPayloadSize(payloadSize);
-
-    OnLog(QString("Received payload size = %1").arg(payloadSize));
-
-    if (result == 0)
-    {
-        int timeout = 1000;
-        m_StreamToggleTimer.start(timeout);
-    }
-}
-
-void V4L2Viewer::OnStreamToggleTimeout()
-{
-    int timeout = 1000;
-    m_StreamToggleTimer.stop();
-
-    if (m_bIsStreaming)
-    {
-        m_Camera.StopStreaming();
-
-        int err = m_Camera.StopStreamChannel();
-        if (0 != err)
-            OnLog("Stop stream channel failed.");
-
-        m_bIsStreaming = false;
-        UpdateViewerLayout();
-
-        m_FramesReceivedTimer.stop();
-        m_Camera.DeleteUserBuffer();
-    }
-    else
-        OnStartButtonClicked();
-
-    m_StreamToggleTimer.start(timeout);
-}
-
 void V4L2Viewer::OnCameraRegisterValueReady(unsigned long long value)
 {
     OnLog(QString("Received value = %1").arg(value));
@@ -718,7 +672,6 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
-    ui.m_ToggleButton->setEnabled(false);
     QApplication::processEvents();
 
     m_nDroppedFrames = 0;
@@ -776,8 +729,6 @@ void V4L2Viewer::OnStopButtonClicked()
     int err = m_Camera.StopStreamChannel();
     if (0 != err)
         OnLog("Stop stream channel failed.");
-
-    m_StreamToggleTimer.stop();
 
     OnLog("Stopping Stream...");
     if (m_Camera.StopStreaming() == 0)
@@ -983,7 +934,6 @@ void V4L2Viewer::UpdateViewerLayout()
     ui.m_CamerasListBox->setEnabled(!m_bIsOpen);
 
     ui.m_StartButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
-    ui.m_ToggleButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FramesPerSecondLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FrameIdLabel->setEnabled(m_bIsOpen && m_bIsStreaming);

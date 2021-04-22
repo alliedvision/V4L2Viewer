@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1224</width>
-    <height>820</height>
+    <width>963</width>
+    <height>688</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -168,38 +168,6 @@
              <property name="icon">
               <iconset resource="../V4L2Viewer.qrc">
                <normaloff>:/V4L2Viewer/play128.png</normaloff>:/V4L2Viewer/play128.png</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="m_ToggleButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Toggle acquisition</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../V4L2Viewer.qrc">
-               <normaloff>:/V4L2Viewer/play128orange.png</normaloff>:/V4L2Viewer/play128orange.png</iconset>
              </property>
             </widget>
            </item>
@@ -454,8 +422,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>836</width>
-              <height>421</height>
+              <width>640</width>
+              <height>342</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -508,6 +476,12 @@
        <widget class="QTabWidget" name="m_FeatureTabWidget">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
         </property>
         <property name="tabPosition">
          <enum>QTabWidget::South</enum>
@@ -606,9 +580,9 @@
          <widget class="QLineEdit" name="m_edPixelFormat">
           <property name="geometry">
            <rect>
-            <x>110</x>
-            <y>230</y>
-            <width>271</width>
+            <x>570</x>
+            <y>220</y>
+            <width>201</width>
             <height>16</height>
            </rect>
           </property>
@@ -619,8 +593,8 @@
          <widget class="QLabel" name="label_6">
           <property name="geometry">
            <rect>
-            <x>10</x>
-            <y>230</y>
+            <x>570</x>
+            <y>200</y>
             <width>81</width>
             <height>17</height>
            </rect>
@@ -733,9 +707,9 @@
           </property>
           <property name="geometry">
            <rect>
-            <x>110</x>
-            <y>250</y>
-            <width>271</width>
+            <x>570</x>
+            <y>240</y>
+            <width>201</width>
             <height>20</height>
            </rect>
           </property>
@@ -1140,8 +1114,8 @@
          <widget class="QGroupBox" name="groupBox_6">
           <property name="geometry">
            <rect>
-            <x>390</x>
-            <y>220</y>
+            <x>210</x>
+            <y>240</y>
             <width>161</width>
             <height>101</height>
            </rect>
@@ -1260,8 +1234,8 @@
          <widget class="QGroupBox" name="groupBox_5">
           <property name="geometry">
            <rect>
-            <x>570</x>
-            <y>220</y>
+            <x>390</x>
+            <y>240</y>
             <width>151</width>
             <height>101</height>
            </rect>
@@ -1442,8 +1416,8 @@
          <widget class="QRadioButton" name="m_radioBlocking">
           <property name="geometry">
            <rect>
-            <x>40</x>
-            <y>300</y>
+            <x>10</x>
+            <y>230</y>
             <width>151</width>
             <height>22</height>
            </rect>
@@ -1455,8 +1429,8 @@
          <widget class="QRadioButton" name="m_radioNonBlocking">
           <property name="geometry">
            <rect>
-            <x>200</x>
-            <y>300</y>
+            <x>10</x>
+            <y>260</y>
             <width>181</width>
             <height>22</height>
            </rect>
@@ -1477,7 +1451,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1224</width>
+     <width>963</width>
      <height>22</height>
     </rect>
    </property>

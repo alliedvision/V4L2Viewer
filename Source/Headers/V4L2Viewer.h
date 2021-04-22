@@ -83,8 +83,6 @@ private:
     bool m_bIsStreaming;
     //// Our Qt image to display
     double m_dScaleFactor;
-    // Timer to togle the stream
-    QTimer m_StreamToggleTimer;
     // Timer to show the frames received from the frame observer
     QTimer m_FramesReceivedTimer;
     // Graphics scene to show the image
@@ -156,8 +154,6 @@ private slots:
     void OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info);
     // The event handler for starting acquisition
     void OnStartButtonClicked();
-    // The event handler for toggeling acquisition
-    void OnToggleButtonClicked();
     // The event handler for stopping acquisition
     void OnStopButtonClicked();
     // The event handler to resize the image to fit to window
@@ -167,8 +163,6 @@ private slots:
     void OnZoomOutButtonClicked();
     // The event handler to show the frames received
     void OnUpdateFramesReceived();
-    // The event handler to receive timer messages
-    void OnStreamToggleTimeout();
     // The event handler to show the processed frame
     void OnFrameReady(const QImage &image, const unsigned long long &frameId);
     // The event handler to show the processed frame ID
