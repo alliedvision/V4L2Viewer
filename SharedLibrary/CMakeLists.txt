@@ -53,7 +53,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
-
 find_package(Threads REQUIRED)
 
 list(APPEND QT_LIBRARIES

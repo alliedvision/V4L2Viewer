@@ -67,9 +67,7 @@ public:
 
     int StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelFormat,
                     uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
-                    uint32_t enableLogging, int32_t logFrameStart, int32_t logFrameEnd,
-                    int32_t dumpFrameStart, int32_t dumpFrameEnd, uint32_t enableRAW10Correction,
-                    std::vector<uint8_t> &csvData);
+                    uint32_t enableLogging);
     int StopStream();
 
     // Get the number of frames
@@ -84,13 +82,7 @@ public:
     // Set the number of uncompleted frames
     void ResetDroppedFramesCount();
 
-    // Recording
-    void SetRecording(bool start);
-
     void setFileDescriptor(int fd);
-
-    // Live Deviation Calc
-    void SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame);
 
     virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
     virtual int QueueAllUserBuffer();
@@ -110,10 +102,6 @@ protected:
     virtual void run();
 
 protected:
-    bool m_bRecording;
-
-    QSharedPointer<QByteArray> m_bLiveDeviationCalc;
-
     // Counter to count the received images
     uint32_t m_nReceivedFramesCounter;
 
@@ -138,13 +126,7 @@ protected:
     bool m_IsStreamRunning;
     bool m_bStreamStopped;
 
-    uint32_t m_EnableRAW10Correction;
     uint32_t m_EnableLogging;
-    int32_t m_FrameCount;
-    int32_t m_LogFrameStart;
-    int32_t m_LogFrameEnd;
-    int32_t m_DumpFrameStart;
-    int32_t m_DumpFrameEnd;
 
     bool m_ShowFrames;
 
@@ -153,8 +135,6 @@ protected:
 
     // Shared pointer to a worker thread for the image processing
     QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
-
-    std::vector<uint8_t>                  m_CsvData;
 
 private slots:
     //Event handler for getting the processed frame to an image
@@ -169,16 +149,12 @@ signals:
     void OnFrameID_Signal(const unsigned long long &frameId);
     // Event will be called when the frame processing is done and the frame can be returned to streaming engine
     //void OnFrameDone_Signal(const unsigned long long frameHandle);
-    // Event will be called when the a frame is recorded
-    void OnRecordFrame_Signal(const QSharedPointer<MyFrame>&);
     // Event will be called when the a frame is displayed
     void OnDisplayFrame_Signal(const unsigned long long &);
     // Event will be called when for text notification
     void OnMessage_Signal(const QString &msg);
     // Event will be called on error
     void OnError_Signal(const QString &text);
-
-    void OnLiveDeviationCalc_Signal(int numberOfUnequalBytes);
 };
 
 #endif /* FRAMEOBSERVER_H */

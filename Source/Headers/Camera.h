@@ -56,12 +56,9 @@ public:
 
     int DeviceDiscoveryStart();
     int DeviceDiscoveryStop();
-    int StartStreamChannel(const char* csvFilename,
-                           uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height,
+    int StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height,
                            uint32_t bytesPerLine, void *pPrivateData,
-                           uint32_t enableLogging, uint32_t logFrameStart, uint32_t logFrameEnd,
-                           uint32_t dumpFrameStart, uint32_t dumpFrameEnd,
-                           uint32_t enableRAW10Correction);
+                           uint32_t enableLogging);
     int StopStreamChannel();
 
     int ReadPayloadSize(uint32_t &payloadSize);
@@ -156,12 +153,6 @@ public:
     unsigned int GetRenderedFramesCount();
     unsigned int GetDroppedFramesCount();
 
-    // Recording
-    void SetRecording(bool start);
-
-    // live deviation calc
-    void SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame);
-
     // Misc
     void SwitchFrameTransfer2GUI(bool showFrames);
 
@@ -190,7 +181,6 @@ private:
     std::vector<uint8_t>        m_CsvData;
 
     size_t fsize(const char *filename);
-    int ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData);
     void reverseBytes(void* start, int size);
 
 signals:
@@ -215,7 +205,6 @@ signals:
 
     void OnCameraPixelFormat_Signal(const QString &);
     void OnCameraFrameSize_Signal(const QString &);
-    void OnCameraLiveDeviationCalc_Signal(int numberOfUnequalBytes);
 
 private slots:
     // The event handler to set or remove devices
@@ -224,16 +213,12 @@ private slots:
     void OnFrameReady(const QImage &image, const unsigned long long &frameId);
     // The event handler to show the processed frame ID
     void OnFrameID(const unsigned long long &frameId);
-    // Event will be called when the a frame is recorded
-    void OnRecordFrame(const QSharedPointer<MyFrame>&);
     // Event will be called when the a frame is displayed
     void OnDisplayFrame(const unsigned long long &frameID);
     // Event will be called when for text notification
     void OnMessage(const QString &msg);
     // Event will be called when for text notification
     void OnError(const QString &msg);
-    // Event will be caleld when FrameObserver has calculated the number of unequal bytes of current frame
-    void OnLiveDeviationCalc(int numberOfUnequalBytes);
 };
 
 #endif // CAMERA_H

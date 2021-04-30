@@ -140,11 +140,9 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
     }
     connect(m_pFrameObserver.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
-    connect(m_pFrameObserver.data(), SIGNAL(OnRecordFrame_Signal(const QSharedPointer<MyFrame>&)), this, SLOT(OnRecordFrame(const QSharedPointer<MyFrame>&)));
     connect(m_pFrameObserver.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
-    connect(m_pFrameObserver.data(), SIGNAL(OnLiveDeviationCalc_Signal(int)), this, SLOT(OnLiveDeviationCalc(int)));
 
     if (-1 == m_nFileDescriptor)
     {
@@ -218,17 +216,6 @@ void Camera::OnFrameReady(const QImage &image, const unsigned long long &frameId
 void Camera::OnFrameID(const unsigned long long &frameId)
 {
     emit OnCameraFrameID_Signal(frameId);
-}
-
-// Event will be called when a frame is recorded
-void Camera::OnRecordFrame(const QSharedPointer<MyFrame>& frame)
-{
-    emit OnCameraRecordFrame_Signal(frame);
-}
-
-void Camera::OnLiveDeviationCalc(int numberOfUnequalBytes)
-{
-    emit OnCameraLiveDeviationCalc_Signal(numberOfUnequalBytes);
 }
 
 // Event will be called when a frame is displayed
@@ -329,25 +316,17 @@ int Camera::DeviceDiscoveryStop()
 // SI helper
 /********************************************************************************/
 
-int Camera::StartStreamChannel(const char* csvFilename,
-                               uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height,
+int Camera::StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height,
                                uint32_t bytesPerLine, void *pPrivateData,
-                               uint32_t enableLogging, uint32_t logFrameStart, uint32_t logFrameEnd,
-                               uint32_t dumpFrameStart, uint32_t dumpFrameEnd,
-                               uint32_t enableRAW10Correction)
+                               uint32_t enableLogging)
 {
     int nResult = 0;
-
-    if (NULL != csvFilename && csvFilename[0] != 0)
-        ReadCSVFile(csvFilename, m_CsvData);
-
 
     Logger::LogEx("Camera::StartStreamChannel pixelFormat=%d, payloadSize=%d, width=%d, height=%d.", pixelFormat, payloadSize, width, height);
 
     m_pFrameObserver->StartStream(m_BlockingMode, m_nFileDescriptor, pixelFormat,
                                   payloadSize, width, height, bytesPerLine,
-                                  enableLogging, logFrameStart, logFrameEnd,
-                                  dumpFrameStart, dumpFrameEnd, enableRAW10Correction, m_CsvData);
+                                  enableLogging);
 
     m_pFrameObserver->ResetDroppedFramesCount();
 
@@ -2034,27 +2013,6 @@ int Camera::GetCameraCapabilities(std::string &strText)
     return result;
 }
 
-
-// Recording
-void Camera::SetRecording(bool start)
-{
-    m_Recording = start;
-    if(m_pFrameObserver)
-    {
-        m_pFrameObserver->SetRecording(start);
-    }
-}
-
-
-// Live Deviation Calc
-void Camera::SetLiveDeviationCalc(QSharedPointer<QByteArray> referenceFrame)
-{
-    if(m_pFrameObserver)
-    {
-        m_pFrameObserver->SetLiveDeviationCalc(referenceFrame);
-    }
-}
-
 /*********************************************************************************************************/
 // Commands
 /*********************************************************************************************************/
@@ -2080,104 +2038,6 @@ size_t Camera::fsize(const char *filename)
 
     return -1;
 }
-
-int Camera::ReadCSVFile(const char *pFilename, std::vector<uint8_t> &rData)
-{
-    if (NULL == pFilename)
-        return -1;
-
-    // read csv file
-    FILE *pFile = fopen(pFilename, "rt");
-    if (NULL == pFile)
-        return -2;
-
-    size_t nSize = fsize(pFilename);
-    std::string fileText(nSize, '\0');
-    size_t readCount = fread(&(fileText[0]), 1, nSize, pFile);
-    if (readCount != nSize)
-    {
-        fclose(pFile);
-        return -3;
-    }
-
-    fclose(pFile);
-
-    emit OnCameraMessage_Signal("ReadCSVFile: " + QString(pFilename) + " successfully loaded.");
-
-    // check width and height of csv data
-    uint32_t width = 0;
-    uint32_t height = 0;
-
-    QString tmp = fileText.c_str();
-    QStringList lines = tmp.split("\r\n");
-
-    for (int i=0; i<lines.size(); i++)
-    {
-        QString line = lines.at(i);
-        QStringList items = line.split(',');
-        if (items.size() >= 10)
-        {
-            QString byte = items.at(6);
-            uint8_t dataID = byte.toUInt(0, 16);
-
-            if (dataID > 0x12)
-            {
-                QString byte = items.at(8);
-                uint32_t length = (((uint8_t)items.at(8).toUInt(0, 16)) << 8);
-                byte = items.at(7);
-                length += items.at(7).toUInt(0, 16);
-
-                if (length > 0 && width == 0)
-                {
-                    width = length;
-                }
-
-                if (length == width)
-                {
-                    height++;
-                }
-            }
-        }
-    }
-
-    emit OnCameraMessage_Signal(QString("ReadCSVFile: %1 data per row and %2 lines detected.").arg(width).arg(height));
-
-    // transfer data from input String to data
-    rData.resize(width * height);
-
-    uint32_t counter = 0;
-    for (int i=0; i<lines.size(); i++)
-    {
-        QString line = lines.at(i);
-        QStringList items = line.split(',');
-        if (items.size() >= 10)
-        {
-            QString byte = items.at(6);
-            uint8_t dataID = byte.toUInt(0, 16);
-
-            if (dataID > 0x12)
-            {
-                QString byte = items.at(8);
-                uint32_t length = (((uint8_t)items.at(8).toUInt(0, 16)) << 8);
-                byte = items.at(7);
-                length += items.at(7).toUInt(0, 16);
-
-                if (length > 0)
-                {
-                    const uint32_t lineHeader = 10;
-                    for (unsigned int x=0; x<length; x++)
-                    {
-                        rData[counter++] =  items.at(lineHeader + x).toUInt(0, 16);
-                    }
-                }
-            }
-        }
-    }
-
-    emit OnCameraMessage_Signal(QString("ReadCSVFile: data cache filled with %1 bytes.").arg(width*height));
-	return 0;
-}
-
 
 std::string Camera::getAvtDeviceFirmwareVersion()
 {

@@ -3,6 +3,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-std=c++17)
 
+set(DCMAKE_TOOLCHAIN_FILE ./aarch64.cmake)
+
+set(CMAKE_PREFIX_PATH /home/kamil/Qt/5.13.2/gcc_64/lib/cmake/Qt5)
+
 set(MAIN_EXEC Source/main.cpp)
 
 project(V4L2_Viewer VERSION 1.0)
