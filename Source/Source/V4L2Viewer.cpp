@@ -111,7 +111,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_BLOCKING_MODE(true)
     , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
-    , m_ExtendedControls(false)
     , m_ShowFrames(true)
     , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
@@ -173,7 +172,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseUSERPTR, SIGNAL(triggered()), this, SLOT(OnUseUSERPTR()));
     connect(ui.m_TitleEnable_VIDIOC_TRY_FMT, SIGNAL(triggered()), this, SLOT(OnUseVIDIOC_TRY_FMT()));
-    connect(ui.m_TitleEnableExtendedControls, SIGNAL(triggered()), this, SLOT(OnUseExtendedControls()));
     connect(ui.m_TitleShowFrames, SIGNAL(triggered()), this, SLOT(OnShowFrames()));
     connect(ui.m_TitleClearOutputListbox, SIGNAL(triggered()), this, SLOT(OnClearOutputListbox()));
     connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
@@ -293,8 +291,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     }
 
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
-    ui.m_TitleEnableExtendedControls->setChecked((m_ExtendedControls));
-
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -355,14 +351,6 @@ void V4L2Viewer::OnUseVIDIOC_TRY_FMT()
     OnLog(QString("Use VIDIOC_TRY_FMT = %1").arg((m_VIDIOC_TRY_FMT) ? "TRUE" : "FALSE"));
 
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked(m_VIDIOC_TRY_FMT);
-}
-
-void V4L2Viewer::OnUseExtendedControls()
-{
-    m_ExtendedControls = !m_ExtendedControls;
-    OnLog(QString("Use Extended Controls = %1").arg((m_ExtendedControls) ? "TRUE" : "FALSE"));
-
-    ui.m_TitleEnableExtendedControls->setChecked(m_ExtendedControls);
 }
 
 void V4L2Viewer::OnShowFrames()
@@ -534,7 +522,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
-    ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 }
 
 // The event handler for get device info
@@ -552,7 +539,7 @@ void V4L2Viewer::OnGetDeviceInfoButtonClicked()
         deviceName = devName.left(devName.indexOf('(') - 1).toStdString();
 
         if ( !m_bIsOpen )
-            m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
+            m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
 
         OnLog("---------------------------------------------");
         OnLog("---- Device Info ");
@@ -878,7 +865,6 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
-    ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 }
 
 // The event handler to open a camera on double click event
@@ -912,7 +898,6 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
-    ui.m_TitleEnableExtendedControls->setEnabled( !m_bIsOpen );
 }
 
 // Update the viewer range
@@ -985,7 +970,7 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
     int err = 0;
 
     std::string devName = deviceName.toStdString();
-    err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
+    err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
 
     if (0 != err)
     {
@@ -1812,11 +1797,7 @@ void V4L2Viewer::GetImageInformation()
     }
     OnCropCapabilities();
 
-    if (0 != m_Camera.EnumAllControlNewStyle())
-    {
-        OnCameraWarning("Didn't get Controls with new style.");
-        m_Camera.EnumAllControlOldStyle();
-    }
+    m_Camera.EnumAllControlNewStyle();
 }
 
 void V4L2Viewer::UpdateCameraFormat()
@@ -1861,7 +1842,7 @@ void V4L2Viewer::Check4IOReadAbility()
         deviceName = devName.left(devName.indexOf('(') - 1).toStdString();
         bool ioRead;
 
-        m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT, m_ExtendedControls);
+        m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
         m_Camera.GetCameraReadCapability(ioRead);
         m_Camera.CloseDevice();
 
