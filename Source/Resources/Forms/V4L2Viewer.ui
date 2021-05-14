@@ -1473,7 +1473,6 @@
     <addaction name="m_TitleShowFrames"/>
     <addaction name="m_TitleFlipHorizontal"/>
     <addaction name="m_TitleFlipVertical"/>
-    <addaction name="m_TitleEnableExtendedControls"/>
     <addaction name="m_TitleEnable_VIDIOC_TRY_FMT"/>
     <addaction name="separator"/>
     <addaction name="m_TitleEnableMessageListbox"/>

@@ -61,7 +61,6 @@ private:
     IO_METHOD_TYPE m_MMAP_BUFFER;
     bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
-    bool m_ExtendedControls;
 
     // The currently streaming camera
     Camera m_Camera;
@@ -138,8 +137,6 @@ private slots:
     void OnUseUSERPTR();
     // The event handler to set VIDIOC_TRY_FMT
     void OnUseVIDIOC_TRY_FMT();
-    // The event handler to set Extended Controls
-    void OnUseExtendedControls();
     // The event handler to open a next viewer
     void OnMenuOpenNextViewer();
     // Prints out some logging

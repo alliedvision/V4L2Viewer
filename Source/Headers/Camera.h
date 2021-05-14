@@ -51,7 +51,7 @@ public:
     virtual ~Camera();
 
     int OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,
-                   bool v4l2TryFmt, bool extendedControls);
+                   bool v4l2TryFmt);
     int CloseDevice();
 
     int DeviceDiscoveryStart();
@@ -107,11 +107,6 @@ public:
     int SetBlueBalance(int32_t value);
     int ReadFrameRate(uint32_t &numerator, uint32_t &denominator, uint32_t width, uint32_t height, uint32_t pixelFormat);
     int SetFrameRate(uint32_t numerator, uint32_t denominator);
-    int SetControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName);
-    int ReadControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
-
-    int SetControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName);
-    int ReadControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName);
 
     int SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
@@ -124,7 +119,6 @@ public:
 
 
     int EnumAllControlNewStyle();
-    int EnumAllControlOldStyle();
     int ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
                              uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
                              uint32_t &aspectnum, uint32_t &aspectdenum);
@@ -171,7 +165,6 @@ private:
     bool                m_BlockingMode;
     bool                m_ShowFrames;
     bool                m_UseV4L2TryFmt;
-    bool                m_UseExtendedControls;
     bool                m_Recording;
     bool                m_IsAvtCamera;
 
