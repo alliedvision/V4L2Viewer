@@ -156,16 +156,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     // Setup blocking mode radio buttons
     m_BlockingModeRadioButtonGroup = new QButtonGroup();
     m_BlockingModeRadioButtonGroup->setExclusive(true);
-    m_BlockingModeRadioButtonGroup->addButton(ui.m_radioBlocking);
-    m_BlockingModeRadioButtonGroup->addButton(ui.m_radioNonBlocking);
-    if (m_BLOCKING_MODE)
-    {
-        ui.m_radioBlocking->setChecked(true);
-    }
-    else
-    {
-        ui.m_radioNonBlocking->setChecked(true);
-    }
+
 
     connect(m_BlockingModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(OnBlockingMode(QAbstractButton*)));
     connect(ui.m_TitleUseRead, SIGNAL(triggered()), this, SLOT(OnUseRead()));
@@ -189,14 +180,14 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     // connect the buttons for Image m_ControlRequestTimer
     connect(ui.m_edWidth, SIGNAL(returnPressed()), this, SLOT(OnWidth()));
     connect(ui.m_edHeight, SIGNAL(returnPressed()), this, SLOT(OnHeight()));
-    connect(ui.m_edPixelFormat, SIGNAL(returnPressed()), this, SLOT(OnPixelFormat()));
+
+
     connect(ui.m_edGain, SIGNAL(returnPressed()), this, SLOT(OnGain()));
     connect(ui.m_chkAutoGain, SIGNAL(clicked()), this, SLOT(OnAutoGain()));
     connect(ui.m_edExposure, SIGNAL(returnPressed()), this, SLOT(OnExposure()));
     connect(ui.m_edExposureAbs, SIGNAL(returnPressed()), this, SLOT(OnExposureAbs()));
     connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
-    connect(ui.m_liPixelFormats, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnPixelFormatDBLClick(QListWidgetItem *)));
-    connect(ui.m_liFrameSizes, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnFrameSizesDBLClick(QListWidgetItem *)));
+
     connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
     connect(ui.m_edSharpness, SIGNAL(returnPressed()), this, SLOT(OnSharpness()));
     connect(ui.m_edBrightness, SIGNAL(returnPressed()), this, SLOT(OnBrightness()));
@@ -212,7 +203,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edCropYOffset, SIGNAL(returnPressed()), this, SLOT(OnCropYOffset()));
     connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
     connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
-    connect(ui.m_butCropCapabilities, SIGNAL(clicked()), this, SLOT(OnCropCapabilities()));
+
     connect(ui.m_butReadValues, SIGNAL(clicked()), this, SLOT(OnReadAllValues()));
 
     // Set the splitter stretch factors
@@ -311,7 +302,7 @@ void V4L2Viewer::OnMenuCloseTriggered()
 
 void V4L2Viewer::OnBlockingMode(QAbstractButton* button)
 {
-    m_BLOCKING_MODE = ui.m_radioBlocking->isChecked();
+    // m_BLOCKING_MODE = ui.m_radioBlocking->isChecked();
     OnLog(QString("Use BLOCKING_MODE = %1").arg((m_BLOCKING_MODE) ? "TRUE" : "FALSE"));
 }
 
@@ -516,8 +507,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
     }
 
     ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
-    ui.m_radioBlocking->setEnabled( !m_bIsOpen );
-    ui.m_radioNonBlocking->setEnabled( !m_bIsOpen );
+
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
@@ -644,12 +634,12 @@ void V4L2Viewer::OnCameraMessage(const QString &text)
 
 void V4L2Viewer::OnCameraPixelFormat(const QString& pixelFormat)
 {
-    ui.m_liPixelFormats->addItem(pixelFormat);
+    //ui.m_liPixelFormats->addItem(pixelFormat);
 }
 
 void V4L2Viewer::OnCameraFrameSize(const QString& frameSize)
 {
-    ui.m_liFrameSizes->addItem(frameSize);
+    //ui.m_liFrameSizes->addItem(frameSize);
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
@@ -691,7 +681,6 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
         {
             OnLog("Acquisition started ...");
             m_bIsStreaming = true;
-            ui.m_StreamLabel->setText(QString("Stream#%1").arg(++m_nStreamNumber));
         }
 
         UpdateViewerLayout();
@@ -859,8 +848,6 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
     }
 
     ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
-    ui.m_radioBlocking->setEnabled( !m_bIsOpen );
-    ui.m_radioNonBlocking->setEnabled( !m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
@@ -892,8 +879,6 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_GetDeviceInfoButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_GetStreamStatisticsButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
-    ui.m_radioBlocking->setEnabled( !m_bIsOpen );
-    ui.m_radioNonBlocking->setEnabled( !m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
@@ -922,7 +907,6 @@ void V4L2Viewer::UpdateViewerLayout()
     ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FramesPerSecondLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FrameIdLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
-    ui.m_StreamLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
 
     UpdateZoomButtons();
 }
@@ -1018,7 +1002,6 @@ void V4L2Viewer::OnWidth()
         OnLog(QString("Frame size set to %1x%2").arg(ui.m_edWidth->text().toInt()).arg(ui.m_edHeight->text().toInt()));
 
         m_Camera.ReadPayloadSize(payloadSize);
-        ui.m_edPayloadSize->setText(QString("%1").arg(payloadSize));
     }
 }
 
@@ -1037,7 +1020,6 @@ void V4L2Viewer::OnHeight()
         OnLog(QString("Frame size set to %1x%2").arg(ui.m_edWidth->text().toInt()).arg(ui.m_edHeight->text().toInt()));
 
         m_Camera.ReadPayloadSize(payloadSize);
-        ui.m_edPayloadSize->setText(QString("%1").arg(payloadSize));
     }
 
     m_Camera.ReadFrameSize(width, height);
@@ -1047,30 +1029,30 @@ void V4L2Viewer::OnHeight()
 
 void V4L2Viewer::OnPixelFormat()
 {
-    if (m_Camera.SetPixelFormat(ui.m_edPixelFormat->text().toInt(), "") < 0)
-    {
-        uint32_t pixelFormat = 0;
-        uint32_t bytesPerLine = 0;
-        QString pixelFormatText;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE pixel format!") );
-        m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
-        ui.m_edPixelFormat->setText(QString("%1").arg(pixelFormat));
-        ui.m_edPixelFormatText->setText(QString("%1").arg(pixelFormatText));
-    }
-    else
-    {
-        uint32_t pixelFormat = 0;
-        uint32_t bytesPerLine = 0;
-        QString pixelFormatText;
-        // Readback to verify
-        m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
-        ui.m_edPixelFormat->setText(QString("%1").arg(pixelFormat));
-        ui.m_edPixelFormatText->setText(QString("%1").arg(pixelFormatText));
+//    if (m_Camera.SetPixelFormat(ui.m_edPixelFormat->text().toInt(), "") < 0)
+//    {
+//        uint32_t pixelFormat = 0;
+//        uint32_t bytesPerLine = 0;
+//        QString pixelFormatText;
+//        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE pixel format!") );
+//        m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
+////        ui.m_edPixelFormat->setText(QString("%1").arg(pixelFormat));
+////        ui.m_edPixelFormatText->setText(QString("%1").arg(pixelFormatText));
+//    }
+//    else
+//    {
+//        uint32_t pixelFormat = 0;
+//        uint32_t bytesPerLine = 0;
+//        QString pixelFormatText;
+//        // Readback to verify
+//        m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
+////        ui.m_edPixelFormat->setText(QString("%1").arg(pixelFormat));
+////        ui.m_edPixelFormatText->setText(QString("%1").arg(pixelFormatText));
 
-        OnLog(QString("Pixel format set to %1").arg(ui.m_edPixelFormat->text().toInt()));
-    }
+////        OnLog(QString("Pixel format set to %1").arg(ui.m_edPixelFormat->text().toInt()));
+//    }
 
-    OnReadAllValues();
+//    OnReadAllValues();
 }
 
 
@@ -1213,8 +1195,8 @@ void V4L2Viewer::OnPixelFormatDBLClick(QListWidgetItem *item)
         result += *s++ << 24;
     }
 
-    ui.m_edPixelFormat->setText(QString("%1").arg(result));
-    ui.m_edPixelFormatText->setText(QString("%1").arg(v4l2helper::ConvertPixelFormat2EnumString(result).c_str()));
+//    ui.m_edPixelFormat->setText(QString("%1").arg(result));
+//    ui.m_edPixelFormatText->setText(QString("%1").arg(v4l2helper::ConvertPixelFormat2EnumString(result).c_str()));
 
     OnPixelFormat();
 }
@@ -1587,36 +1569,38 @@ void V4L2Viewer::OnCropCapabilities()
                                       defrectx, defrecty, defrectw, defrecth,
                                       aspectnum, aspectdenum) == 0)
     {
-        ui.m_edBoundsX->setEnabled(true);
-        ui.m_edBoundsX->setText(QString("%1").arg(boundsx));
-        ui.m_edBoundsY->setEnabled(true);
-        ui.m_edBoundsY->setText(QString("%1").arg(boundsy));
-        ui.m_edBoundsW->setEnabled(true);
-        ui.m_edBoundsW->setText(QString("%1").arg(boundsw));
-        ui.m_edBoundsH->setEnabled(true);
-        ui.m_edBoundsH->setText(QString("%1").arg(boundsh));
-        ui.m_edDefrectX->setEnabled(true);
-        ui.m_edDefrectX->setText(QString("%1").arg(defrectx));
-        ui.m_edDefrectY->setEnabled(true);
-        ui.m_edDefrectY->setText(QString("%1").arg(defrecty));
-        ui.m_edDefrectW->setEnabled(true);
-        ui.m_edDefrectW->setText(QString("%1").arg(defrectw));
-        ui.m_edDefrectH->setEnabled(true);
-        ui.m_edDefrectH->setText(QString("%1").arg(defrecth));
-        ui.m_edAspect->setEnabled(true);
-        ui.m_edAspect->setText(QString("%1/%2").arg(aspectnum).arg(aspectdenum));
+//        ui.m_edBoundsX->setEnabled(true);
+//        ui.m_edBoundsX->setText(QString("%1").arg(boundsx));
+//        ui.m_edBoundsY->setEnabled(true);
+//        ui.m_edBoundsY->setText(QString("%1").arg(boundsy));
+
+//        ui.m_edBoundsW->setEnabled(true);
+//        ui.m_edBoundsW->setText(QString("%1").arg(boundsw));
+//        ui.m_edBoundsH->setEnabled(true);
+//        ui.m_edBoundsH->setText(QString("%1").arg(boundsh));
+
+//        ui.m_edDefrectX->setEnabled(true);
+//        ui.m_edDefrectX->setText(QString("%1").arg(defrectx));
+//        ui.m_edDefrectY->setEnabled(true);
+//        ui.m_edDefrectY->setText(QString("%1").arg(defrecty));
+//        ui.m_edDefrectW->setEnabled(true);
+//        ui.m_edDefrectW->setText(QString("%1").arg(defrectw));
+//        ui.m_edDefrectH->setEnabled(true);
+//        ui.m_edDefrectH->setText(QString("%1").arg(defrecth));
+//        ui.m_edAspect->setEnabled(true);
+//        ui.m_edAspect->setText(QString("%1/%2").arg(aspectnum).arg(aspectdenum));
     }
     else
     {
-        ui.m_edBoundsX->setEnabled(false);
-        ui.m_edBoundsY->setEnabled(false);
-        ui.m_edBoundsW->setEnabled(false);
-        ui.m_edBoundsH->setEnabled(false);
-        ui.m_edDefrectX->setEnabled(false);
-        ui.m_edDefrectY->setEnabled(false);
-        ui.m_edDefrectW->setEnabled(false);
-        ui.m_edDefrectH->setEnabled(false);
-        ui.m_edAspect->setEnabled(false);
+//        ui.m_edBoundsX->setEnabled(false);
+//        ui.m_edBoundsY->setEnabled(false);
+//        ui.m_edBoundsW->setEnabled(false);
+//        ui.m_edBoundsH->setEnabled(false);
+//        ui.m_edDefrectX->setEnabled(false);
+//        ui.m_edDefrectY->setEnabled(false);
+//        ui.m_edDefrectW->setEnabled(false);
+//        ui.m_edDefrectH->setEnabled(false);
+//        ui.m_edAspect->setEnabled(false);
     }
 }
 
@@ -1810,20 +1794,18 @@ void V4L2Viewer::UpdateCameraFormat()
     QString pixelFormatText;
     uint32_t bytesPerLine = 0;
 
-    ui.m_liPixelFormats->clear();
-    ui.m_liFrameSizes->clear();
+//    ui.m_liPixelFormats->clear();
+//    ui.m_liFrameSizes->clear();
 
-    // Get the payload size first to setup the streaming channel
     result = m_Camera.ReadPayloadSize(payloadSize);
-    ui.m_edPayloadSize->setText(QString("%1").arg(payloadSize));
 
     result = m_Camera.ReadFrameSize(width, height);
     ui.m_edWidth->setText(QString("%1").arg(width));
     ui.m_edHeight->setText(QString("%1").arg(height));
 
     result = m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
-    ui.m_edPixelFormat->setText(QString("%1").arg(pixelFormat));
-    ui.m_edPixelFormatText->setText(QString("%1").arg(pixelFormatText));
+//    ui.m_edPixelFormat->setText(QString("%1").arg(pixelFormat));
+//    ui.m_edPixelFormatText->setText(QString("%1").arg(pixelFormatText));
 
     result = m_Camera.ReadFormats();
 }

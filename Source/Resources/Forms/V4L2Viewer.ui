@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>963</width>
-    <height>688</height>
+    <width>1090</width>
+    <height>668</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -23,11 +23,130 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Lib CSI Testtool</string>
+   <string>Lib CSI</string>
   </property>
   <property name="windowIcon">
    <iconset>
     <normaloff>Viewer.png</normaloff>Viewer.png</iconset>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow{
+background-color: rgb(103, 103, 103);
+}
+
+QWidget{
+background-color: rgb(50, 50, 50);
+}
+
+QScrollBar:vertical {
+     background: transparent;
+     width: 13px;
+     margin: 0px 0 0px 0;
+ }
+ QScrollBar::handle:vertical {
+     background: gray;
+     min-height: 13px;
+	 border-radius:6px;
+ }
+ QScrollBar::add-line:vertical {
+     border: none;
+     background: none;
+     height: 0;
+     subcontrol-position: top;
+     subcontrol-origin: margin;
+ }
+
+ QScrollBar::sub-line:vertical {
+     border: none;
+     background: none;
+     height: 0;
+     subcontrol-position: top;
+     subcontrol-origin: margin;
+ }
+
+ QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+     border: none;
+     width: 0;
+     height: 0;
+     background: none;
+ }
+
+ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+     background: none;
+ }
+
+
+QScrollBar:horizontal {
+     background: transparent;
+     height: 13px;
+     margin: 0px 0 0px 0;
+ }
+ QScrollBar::handle:horizontal {
+     background: gray;
+     min-width: 13px;
+	 border-radius:6px;
+ }
+ QScrollBar::add-line:horizontal {
+     border: none;
+     background: none;
+     height: 0;
+     subcontrol-position: left;
+     subcontrol-origin: margin;
+ }
+
+ QScrollBar::sub-line:horizontal {
+     border: none;
+     background: none;
+     width: 0;
+     subcontrol-position: left;
+     subcontrol-origin: margin;
+ }
+
+ QScrollBar::up-arrow:horizontal, QScrollBar::down-arrow:horizontal {
+     border: none;
+     width: 0;
+     height: 0;
+     background: none;
+ }
+
+ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+     background: none;
+ }
+
+
+
+QPushButton{
+color:white;
+border: 1px solid rgb(94, 94, 94);
+background-color:rgb(69, 69, 69);
+min-height:30px;
+border-radius:6px;
+}
+
+QPushButton::disabled{
+ background-color: rgb(39, 39, 39);
+ color: rgb(59, 59, 59);
+ border: 1px solid rgb(59, 59, 59);
+}
+
+QPushButton::hover{
+background-color:rgb(149, 149, 149);
+}
+
+QPushButton::pressed{
+background-color:rgb(166, 166, 166);
+}
+
+QLineEdit{
+background-color:rgb(59, 59, 59);
+border: 1px solid rgb(79, 79, 79);
+}
+
+QLineEdit::disabled{
+background-color:rgb(39, 39, 39);
+border: 1px solid rgb(49, 49, 49);
+}
+</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="maximumSize">
@@ -36,36 +155,18 @@
      <height>16777215</height>
     </size>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
-    <item>
-     <widget class="QSplitter" name="m_Splitter3">
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_16">
+    <item row="0" column="1">
+     <widget class="QSplitter" name="m_SplitterMain">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QSplitter" name="m_Splitter1">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Plain</enum>
-       </property>
-       <property name="lineWidth">
-        <number>0</number>
-       </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="opaqueResize">
-        <bool>true</bool>
-       </property>
-       <property name="handleWidth">
-        <number>5</number>
        </property>
        <widget class="QWidget" name="layoutWidget1">
         <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -89,17 +190,20 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="styleSheet">
+            <string notr="true">color:white;</string>
+           </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="m_OpenCloseButton">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
-             <height>0</height>
+             <height>32</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -107,6 +211,9 @@
              <width>16777215</width>
              <height>16777215</height>
             </size>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="text">
             <string>Open Camera</string>
@@ -116,7 +223,10 @@
          <item>
           <widget class="QPushButton" name="m_GetDeviceInfoButton">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="text">
             <string>Get Device Info</string>
@@ -126,7 +236,10 @@
          <item>
           <widget class="QPushButton" name="m_GetStreamStatisticsButton">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="text">
             <string>Get Stream Statistics</string>
@@ -135,74 +248,10 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="layoutWidget2">
+       <widget class="QWidget" name="">
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QPushButton" name="m_StartButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Start acquisition</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../V4L2Viewer.qrc">
-               <normaloff>:/V4L2Viewer/play128.png</normaloff>:/V4L2Viewer/play128.png</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="m_StopButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Stop acquisition</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../V4L2Viewer.qrc">
-               <normaloff>:/V4L2Viewer/stop4.png</normaloff>:/V4L2Viewer/stop4.png</iconset>
-             </property>
-            </widget>
-           </item>
            <item>
             <widget class="Line" name="line_1">
              <property name="lineWidth">
@@ -210,139 +259,6 @@
              </property>
              <property name="orientation">
               <enum>Qt::Vertical</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="m_ZoomFitButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Fit to Window</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../V4L2Viewer.qrc">
-               <normaloff>:/V4L2Viewer/magnifying-glass1.png</normaloff>:/V4L2Viewer/magnifying-glass1.png</iconset>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="m_ZoomInButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Switch the resize.</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../V4L2Viewer.qrc">
-               <normaloff>:/V4L2Viewer/zoom75.png</normaloff>:/V4L2Viewer/zoom75.png</iconset>
-             </property>
-             <property name="autoRepeat">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="m_ZoomOutButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Switch the resize.</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../V4L2Viewer.qrc">
-               <normaloff>:/V4L2Viewer/magnifying-glass2.png</normaloff>:/V4L2Viewer/magnifying-glass2.png</iconset>
-             </property>
-             <property name="autoRepeat">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="m_ZoomLabel">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>40</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>40</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>100%</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
@@ -391,13 +307,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="m_StreamLabel">
-             <property name="text">
-              <string>Stream#0</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -414,6 +323,9 @@
          </item>
          <item>
           <widget class="QScrollArea" name="scrollArea">
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
            <property name="widgetResizable">
             <bool>true</bool>
            </property>
@@ -422,8 +334,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>640</width>
-              <height>342</height>
+              <width>701</width>
+              <height>184</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -437,16 +349,251 @@
               <number>2</number>
              </property>
              <item>
-              <widget class="QGraphicsView" name="m_ImageView"/>
+              <widget class="QGraphicsView" name="m_ImageView">
+               <property name="styleSheet">
+                <string notr="true">QGraphicsView{
+background-color: rgb(33, 33, 33);
+}</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>
           </widget>
          </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QPushButton" name="m_StartButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="cursor">
+              <cursorShape>PointingHandCursor</cursorShape>
+             </property>
+             <property name="toolTip">
+              <string>Start acquisition</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/play128.png</normaloff>:/V4L2Viewer/play128.png</iconset>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="m_StopButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="cursor">
+              <cursorShape>PointingHandCursor</cursorShape>
+             </property>
+             <property name="toolTip">
+              <string>Stop acquisition</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/stop4.png</normaloff>:/V4L2Viewer/stop4.png</iconset>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="m_ZoomFitButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="cursor">
+              <cursorShape>PointingHandCursor</cursorShape>
+             </property>
+             <property name="toolTip">
+              <string>Fit to Window</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/magnifying-glass1.png</normaloff>:/V4L2Viewer/magnifying-glass1.png</iconset>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="m_ZoomInButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="cursor">
+              <cursorShape>PointingHandCursor</cursorShape>
+             </property>
+             <property name="toolTip">
+              <string>Switch the resize.</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/zoom75.png</normaloff>:/V4L2Viewer/zoom75.png</iconset>
+             </property>
+             <property name="autoRepeat">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="m_ZoomOutButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="cursor">
+              <cursorShape>PointingHandCursor</cursorShape>
+             </property>
+             <property name="toolTip">
+              <string>Switch the resize.</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../V4L2Viewer.qrc">
+               <normaloff>:/V4L2Viewer/magnifying-glass2.png</normaloff>:/V4L2Viewer/magnifying-glass2.png</iconset>
+             </property>
+             <property name="autoRepeat">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="m_ZoomLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>40</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>40</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>100%</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
         </layout>
        </widget>
       </widget>
-      <widget class="QSplitter" name="m_Splitter2">
+      <widget class="QSplitter" name="m_Splitter3">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -463,11 +610,20 @@
           <height>100</height>
          </size>
         </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPlainTextEdit{
+background-color: rgb(33, 33, 33);
+color:white;
+}</string>
+        </property>
         <property name="verticalScrollBarPolicy">
          <enum>Qt::ScrollBarAlwaysOn</enum>
         </property>
         <property name="horizontalScrollBarPolicy">
-         <enum>Qt::ScrollBarAlwaysOn</enum>
+         <enum>Qt::ScrollBarAlwaysOff</enum>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -483,6 +639,9 @@
           <height>0</height>
          </size>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color:white;</string>
+        </property>
         <property name="tabPosition">
          <enum>QTabWidget::South</enum>
         </property>
@@ -493,952 +652,855 @@
          <attribute name="title">
           <string>Image control</string>
          </attribute>
-         <widget class="QLineEdit" name="m_edWidth">
-          <property name="geometry">
-           <rect>
-            <x>110</x>
-            <y>10</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edHeight">
-          <property name="geometry">
-           <rect>
-            <x>110</x>
-            <y>30</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>66</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Width:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_4">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>30</y>
-            <width>66</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Height:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_5">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>50</y>
-            <width>81</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>PayloadSize:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edPayloadSize">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>110</x>
-            <y>50</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edPixelFormat">
-          <property name="geometry">
-           <rect>
-            <x>570</x>
-            <y>220</y>
-            <width>201</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_6">
-          <property name="geometry">
-           <rect>
-            <x>570</x>
-            <y>200</y>
-            <width>81</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>PixelFormat:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edGain">
-          <property name="geometry">
-           <rect>
-            <x>110</x>
-            <y>70</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QListWidget" name="m_liFrameSizes">
-          <property name="geometry">
-           <rect>
-            <x>570</x>
-            <y>10</y>
-            <width>201</width>
-            <height>91</height>
-           </rect>
-          </property>
-         </widget>
-         <widget class="QListWidget" name="m_liPixelFormats">
-          <property name="geometry">
-           <rect>
-            <x>570</x>
-            <y>110</y>
-            <width>201</width>
-            <height>81</height>
-           </rect>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_7">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>70</y>
-            <width>91</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Gain:</string>
-          </property>
-         </widget>
-         <widget class="QCheckBox" name="m_chkAutoGain">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>90</y>
-            <width>181</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Auto-Gain</string>
-          </property>
-         </widget>
-         <widget class="QCheckBox" name="m_chkAutoExposure">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>150</y>
-            <width>181</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Auto-Exposure</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edExposure">
-          <property name="geometry">
-           <rect>
-            <x>110</x>
-            <y>110</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_8">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>110</y>
-            <width>71</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Exposure:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edPixelFormatText">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>570</x>
-            <y>240</y>
-            <width>201</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edBrightness">
-          <property name="geometry">
-           <rect>
-            <x>290</x>
-            <y>10</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_10">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>10</y>
-            <width>81</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Brightness:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_11">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>30</y>
-            <width>81</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Contrast:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edContrast">
-          <property name="geometry">
-           <rect>
-            <x>290</x>
-            <y>30</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_12">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>50</y>
-            <width>81</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Saturation:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edSaturation">
-          <property name="geometry">
-           <rect>
-            <x>290</x>
-            <y>50</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edHue">
-          <property name="geometry">
-           <rect>
-            <x>290</x>
-            <y>70</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_13">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>70</y>
-            <width>81</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Hue:</string>
-          </property>
-         </widget>
-         <widget class="QCheckBox" name="m_chkContWhiteBalance">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>90</y>
-            <width>171</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Cont-WhiteBalance</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_15">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>130</y>
-            <width>91</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>RedBalance:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edRedBalance">
-          <property name="geometry">
-           <rect>
-            <x>310</x>
-            <y>130</y>
-            <width>71</width>
-            <height>16</height>
-           </rect>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edBlueBalance">
-          <property name="geometry">
-           <rect>
-            <x>310</x>
-            <y>150</y>
-            <width>71</width>
-            <height>16</height>
-           </rect>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_16">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>150</y>
-            <width>91</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>BlueBalance:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_14">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>170</y>
-            <width>71</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Gamma:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edGamma">
-          <property name="geometry">
-           <rect>
-            <x>110</x>
-            <y>170</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_19">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>170</y>
-            <width>91</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Sharpness:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edSharpness">
-          <property name="geometry">
-           <rect>
-            <x>310</x>
-            <y>170</y>
-            <width>71</width>
-            <height>16</height>
-           </rect>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_20">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>190</y>
-            <width>101</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>FrameInterval:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edFrameRate">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>210</y>
-            <width>171</width>
-            <height>16</height>
-           </rect>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="m_butWhiteBalanceOnce">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>110</y>
-            <width>171</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>WhiteBalance Once</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_21">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>130</y>
-            <width>91</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>ExposureAbs:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="m_edExposureAbs">
-          <property name="geometry">
-           <rect>
-            <x>110</x>
-            <y>130</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="maxLength">
-           <number>10</number>
-          </property>
-         </widget>
-         <widget class="QGroupBox" name="groupBox_4">
-          <property name="geometry">
-           <rect>
-            <x>390</x>
-            <y>60</y>
-            <width>161</width>
-            <height>101</height>
-           </rect>
-          </property>
-          <property name="autoFillBackground">
-           <bool>true</bool>
-          </property>
-          <property name="title">
-           <string>Crop</string>
-          </property>
-          <property name="flat">
-           <bool>false</bool>
-          </property>
-          <widget class="QLabel" name="label_22">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>left:</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="m_edCropXOffset">
-           <property name="geometry">
-            <rect>
-             <x>70</x>
-             <y>20</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="maxLength">
-            <number>10</number>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_23">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>40</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>top:</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="m_edCropYOffset">
-           <property name="geometry">
-            <rect>
-             <x>70</x>
-             <y>40</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="maxLength">
-            <number>10</number>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_24">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>60</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>width:</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="m_edCropWidth">
-           <property name="geometry">
-            <rect>
-             <x>70</x>
-             <y>60</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="maxLength">
-            <number>10</number>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_25">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>80</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>height:</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="m_edCropHeight">
-           <property name="geometry">
-            <rect>
-             <x>70</x>
-             <y>80</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-          </widget>
-         </widget>
-         <widget class="QGroupBox" name="groupBox_6">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>240</y>
-            <width>161</width>
-            <height>101</height>
-           </rect>
-          </property>
-          <property name="title">
-           <string>CropCap bounds</string>
-          </property>
-          <property name="flat">
-           <bool>false</bool>
-          </property>
-          <widget class="QLineEdit" name="m_edBoundsH">
-           <property name="geometry">
-            <rect>
-             <x>70</x>
-             <y>80</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_34">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>80</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>height:</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_35">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>40</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>top:</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="m_edBoundsW">
-           <property name="geometry">
-            <rect>
-             <x>70</x>
-             <y>60</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="m_edBoundsY">
-           <property name="geometry">
-            <rect>
-             <x>70</x>
-             <y>40</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_36">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>left:</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_37">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>60</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>width:</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="m_edBoundsX">
-           <property name="geometry">
-            <rect>
-             <x>70</x>
-             <y>20</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </widget>
-         <widget class="QGroupBox" name="groupBox_5">
-          <property name="geometry">
-           <rect>
-            <x>390</x>
-            <y>240</y>
-            <width>151</width>
-            <height>101</height>
-           </rect>
-          </property>
-          <property name="title">
-           <string>CropCap defrect</string>
-          </property>
-          <widget class="QLineEdit" name="m_edDefrectH">
-           <property name="geometry">
-            <rect>
-             <x>60</x>
-             <y>80</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_29">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>80</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>height:</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_26">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>40</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>top:</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="m_edDefrectW">
-           <property name="geometry">
-            <rect>
-             <x>60</x>
-             <y>60</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="m_edDefrectY">
-           <property name="geometry">
-            <rect>
-             <x>60</x>
-             <y>40</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_28">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>left:</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_27">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>60</y>
-             <width>51</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>width:</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="m_edDefrectX">
-           <property name="geometry">
-            <rect>
-             <x>60</x>
-             <y>20</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </widget>
-         <widget class="QPushButton" name="m_butCropCapabilities">
-          <property name="geometry">
-           <rect>
-            <x>390</x>
-            <y>30</y>
-            <width>161</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Crop Capabilities</string>
-          </property>
-         </widget>
-         <widget class="QGroupBox" name="groupBox_7">
-          <property name="geometry">
-           <rect>
-            <x>390</x>
-            <y>170</y>
-            <width>161</width>
-            <height>41</height>
-           </rect>
-          </property>
-          <property name="title">
-           <string>CropCap aspect</string>
-          </property>
-          <widget class="QLineEdit" name="m_edAspect">
-           <property name="geometry">
-            <rect>
-             <x>70</x>
-             <y>20</y>
-             <width>81</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_38">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>61</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>fraction:</string>
-           </property>
-          </widget>
-         </widget>
-         <widget class="QPushButton" name="m_butReadValues">
-          <property name="geometry">
-           <rect>
-            <x>390</x>
-            <y>10</y>
-            <width>161</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Read all values</string>
-          </property>
-         </widget>
-         <widget class="QRadioButton" name="m_radioBlocking">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>230</y>
-            <width>151</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Blocking Mode</string>
-          </property>
-         </widget>
-         <widget class="QRadioButton" name="m_radioNonBlocking">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>260</y>
-            <width>181</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Non-Blocking Mode</string>
-          </property>
-         </widget>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="0" rowspan="3">
+           <layout class="QGridLayout" name="gridLayout_5">
+            <property name="horizontalSpacing">
+             <number>2</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>4</number>
+            </property>
+            <item row="1" column="0" colspan="2">
+             <widget class="QLabel" name="label_21">
+              <property name="text">
+               <string>ExposureAbs:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLineEdit" name="m_edExposureAbs">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0" colspan="3">
+             <widget class="Line" name="line_4">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="2">
+             <widget class="QLineEdit" name="m_edGain">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0" colspan="3">
+             <widget class="QWidget" name="m_expAutoOnceWidget" native="true">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QWidget{
+border-radius:0px;
+}</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_9">
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <property name="horizontalSpacing">
+                <number>0</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QCheckBox" name="m_chkAutoExposure">
+                 <property name="minimumSize">
+                  <size>
+                   <width>70</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="layoutDirection">
+                  <enum>Qt::LeftToRight</enum>
+                 </property>
+                 <property name="autoFillBackground">
+                  <bool>false</bool>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QCheckBox{
+background-color:rgb(38, 38, 38);
+border-top-left-radius: 12px;
+border-bottom-left-radius: 12px;
+}
+
+QCheckBox:checked {
+background-color:rgb(149, 149, 149);
+}
+
+QCheckBox::indicator{
+border:none;
+width:0;
+height:0;
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Auto</string>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                 <property name="tristate">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QPushButton" name="m_butOnceExposure">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>70</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton{
+background-color:rgb(94, 94, 94);
+border:none;
+border-top-right-radius: 12px;
+border-bottom-right-radius: 12px;
+min-height:25px;
+}
+
+QPushButton::pressed{
+background-color:rgb(149, 149, 149);
+}
+
+QPushButton::hover{
+background-color:rgb(103, 103, 103);
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Once</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QLineEdit" name="m_edExposure">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0" colspan="3">
+             <widget class="QWidget" name="m_gainAutoOnceWidget" native="true">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QWidget{
+border-radius:0px;
+}</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_2">
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <property name="horizontalSpacing">
+                <number>0</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QCheckBox" name="m_chkAutoGain">
+                 <property name="minimumSize">
+                  <size>
+                   <width>70</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="layoutDirection">
+                  <enum>Qt::LeftToRight</enum>
+                 </property>
+                 <property name="autoFillBackground">
+                  <bool>false</bool>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QCheckBox{
+background-color:rgb(38, 38, 38);
+border-top-left-radius: 12px;
+border-bottom-left-radius: 12px;
+}
+
+QCheckBox:checked {
+background-color:rgb(149, 149, 149);
+}
+
+QCheckBox::indicator{
+border:none;
+width:0;
+height:0;
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Auto</string>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                 <property name="tristate">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QPushButton" name="m_butOnceGain">
+                 <property name="minimumSize">
+                  <size>
+                   <width>70</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton{
+background-color:rgb(94, 94, 94);
+border:none;
+border-top-right-radius: 12px;
+border-bottom-right-radius: 12px;
+min-height:25px;
+}
+
+QPushButton::pressed{
+background-color:rgb(149, 149, 149);
+}
+
+QPushButton::hover{
+background-color:rgb(103, 103, 103);
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Once</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="5" column="0" colspan="2">
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>Gain:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0" colspan="2">
+             <widget class="QLabel" name="label_8">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="text">
+               <string>Exposure:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="0" colspan="3">
+             <spacer name="verticalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1" rowspan="3" colspan="2">
+           <widget class="Line" name="line_10">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3" rowspan="3">
+           <layout class="QGridLayout" name="gridLayout_6">
+            <property name="horizontalSpacing">
+             <number>2</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>4</number>
+            </property>
+            <item row="11" column="2">
+             <widget class="QLineEdit" name="m_edGamma">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="2">
+             <widget class="QLineEdit" name="m_edContrast">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0" colspan="3">
+             <widget class="Line" name="line_9">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="2">
+             <widget class="QLineEdit" name="m_edBrightness">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0" colspan="2">
+             <widget class="QLabel" name="label_12">
+              <property name="text">
+               <string>Saturation:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="0" colspan="2">
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>Brightness:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0" colspan="3">
+             <widget class="QLabel" name="label_2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>WhiteBalance</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="2">
+             <widget class="QLineEdit" name="m_edHue">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="2">
+             <widget class="QLineEdit" name="m_edSaturation">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QLineEdit" name="m_edRedBalance">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0" colspan="2">
+             <widget class="QLabel" name="label_16">
+              <property name="text">
+               <string>BlueBalance:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="3">
+             <widget class="QWidget" name="m_whiteBalanceAutoOnceWidget" native="true">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QWidget{
+border-radius:0px;
+}</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_10">
+               <property name="horizontalSpacing">
+                <number>0</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QCheckBox" name="m_chkContWhiteBalance">
+                 <property name="minimumSize">
+                  <size>
+                   <width>70</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="layoutDirection">
+                  <enum>Qt::LeftToRight</enum>
+                 </property>
+                 <property name="autoFillBackground">
+                  <bool>false</bool>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QCheckBox{
+background-color:rgb(38, 38, 38);
+border-top-left-radius: 12px;
+border-bottom-left-radius: 12px;
+}
+
+QCheckBox:checked {
+background-color:rgb(149, 149, 149);
+}
+
+QCheckBox::indicator{
+border:none;
+width:0;
+height:0;
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Auto</string>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                 <property name="tristate">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QPushButton" name="m_butWhiteBalanceOnce">
+                 <property name="minimumSize">
+                  <size>
+                   <width>70</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton{
+background-color:rgb(94, 94, 94);
+border:none;
+border-top-right-radius: 12px;
+border-bottom-right-radius: 12px;
+min-height:25px;
+}
+
+QPushButton::pressed{
+background-color:rgb(149, 149, 149);
+}
+
+QPushButton::hover{
+background-color:rgb(103, 103, 103);
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Once</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="7" column="0" colspan="3">
+             <widget class="Line" name="line_5">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="0" colspan="2">
+             <widget class="QLabel" name="label_14">
+              <property name="text">
+               <string>Gamma:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="0" colspan="2">
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>Contrast:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0" colspan="2">
+             <widget class="QLabel" name="label_13">
+              <property name="text">
+               <string>Hue:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="2">
+             <widget class="QLineEdit" name="m_edBlueBalance"/>
+            </item>
+            <item row="3" column="0" colspan="2">
+             <widget class="QLabel" name="label_15">
+              <property name="text">
+               <string>RedBalance:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="12" column="0" colspan="3">
+             <spacer name="verticalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="4" rowspan="3">
+           <widget class="Line" name="line_11">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="5" rowspan="3">
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="0" column="3">
+             <widget class="QLineEdit" name="m_edFrameRate"/>
+            </item>
+            <item row="7" column="1" colspan="3">
+             <widget class="QLineEdit" name="m_edCropYOffset">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1" colspan="3">
+             <widget class="QLineEdit" name="m_edCropXOffset">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="4">
+             <widget class="Line" name="line_6">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="0">
+             <widget class="QLabel" name="label_25">
+              <property name="text">
+               <string>height:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0" colspan="4">
+             <widget class="QLabel" name="label_3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Crop</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2" colspan="2">
+             <widget class="QComboBox" name="m_pixelFormats"/>
+            </item>
+            <item row="9" column="1" colspan="3">
+             <widget class="QLineEdit" name="m_edCropHeight"/>
+            </item>
+            <item row="0" column="0" colspan="3">
+             <widget class="QLabel" name="label_20">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>FrameInterval:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0" colspan="4">
+             <widget class="Line" name="line_7">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_22">
+              <property name="text">
+               <string>left:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0">
+             <widget class="QLabel" name="label_24">
+              <property name="text">
+               <string>width:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0" colspan="2">
+             <widget class="QLabel" name="label_6">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>PixelFormat:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="0">
+             <widget class="QLabel" name="label_23">
+              <property name="text">
+               <string>top:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="1" colspan="3">
+             <widget class="QLineEdit" name="m_edCropWidth">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="0" colspan="4">
+             <spacer name="verticalSpacer_8">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="6" rowspan="3" colspan="2">
+           <widget class="Line" name="line_12">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="8">
+           <layout class="QGridLayout" name="gridLayout">
+            <property name="horizontalSpacing">
+             <number>2</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>4</number>
+            </property>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="m_edWidth">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Height:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Width:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="m_edHeight">
+              <property name="maxLength">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="8">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="label_19">
+              <property name="text">
+               <string>Sharpness:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="m_edSharpness"/>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="7" rowspan="3" colspan="2">
+           <spacer name="verticalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>197</width>
+              <height>124</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>205</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="3" column="2" rowspan="2" colspan="5">
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>216</width>
+              <height>174</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="4" column="0">
+           <widget class="QPushButton" name="m_butReadValues">
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
+            <property name="text">
+             <string>Read all values</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </widget>
       </widget>
@@ -1451,7 +1513,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>963</width>
+     <width>1090</width>
      <height>22</height>
     </rect>
    </property>
@@ -1482,6 +1544,17 @@
    </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
   </widget>
   <action name="m_MenuClose">
    <property name="text">
