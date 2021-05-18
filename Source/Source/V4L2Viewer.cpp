@@ -46,7 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ZOOM_INCREMENT (2.0)
 
 #define MANUF_NAME_AV       "Allied Vision"
-#define APP_NAME            "Video4Linux2 Testtool"
+#define APP_NAME            "Video4Linux2 Viewer"
 #define APP_VERSION_MAJOR   1
 #define APP_VERSION_MINOR   41
 #define APP_VERSION_PATCH   0
@@ -215,10 +215,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_butReadValues, SIGNAL(clicked()), this, SLOT(OnReadAllValues()));
 
     // Set the splitter stretch factors
-    ui.m_Splitter1->setStretchFactor(0, 75);
-    ui.m_Splitter1->setStretchFactor(1, 25);
-    ui.m_Splitter3->setStretchFactor(0, 45);
-    ui.m_Splitter3->setStretchFactor(1, 55);
+    ui.m_Splitter1->setStretchFactor(0, 45);
+    ui.m_Splitter1->setStretchFactor(1, 55);
+    ui.m_Splitter2->setStretchFactor(0, 75);
+    ui.m_Splitter2->setStretchFactor(1, 25);
 
     // Set the viewer scene
 

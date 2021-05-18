@@ -23,6 +23,8 @@
         <file>play128.png</file>
         <file>stop4.png</file>
         <file>Viewer.png</file>
+        <file>triangle-copy.png</file>
+        <file>triangle-copy-3.png</file>
     </qresource>
     <qresource prefix="/Fonts">
         <file>Open_Sans/OpenSans-Bold.ttf</file>
