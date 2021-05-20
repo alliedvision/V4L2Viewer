@@ -145,13 +145,32 @@ background-color:rgb(39, 39, 39);
 border: 1px solid rgb(49, 49, 49);
 }
 
-
-
 QMenuBar{
 color:white;
-background-color: qlineargradient(x1:0, y1:0, x1:1, y1:6, stop: 0.9#39393b, stop:1#39393b);
+background-color: rgb(57,57,59);
 border:none;
 }
+
+QMenu{
+background-color: rgb(57,57,59);
+border:none;
+color:white;
+}
+
+QMenu::item:selected{
+background-color:rgb(89, 89, 89);
+}
+
+QMenu::separator {
+height:1px;
+background-color:rgb(49, 49, 49);
+}
+
+QMenu::disabled{
+background-color: rgb(59,59,59);
+color:rgb(79,79,79);
+}
+
 </string>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -418,8 +437,8 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>906</width>
-              <height>251</height>
+              <width>908</width>
+              <height>271</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1756,7 +1775,8 @@ color:transparent;
 
 QComboBox::item{
 color:white;
-}</string>
+}
+</string>
              </property>
             </widget>
            </item>
@@ -1981,7 +2001,13 @@ background-color:rgb(166, 166, 166);
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="m_MenuAbout_Qt"/>
+    <widget class="QMenu" name="m_MenuAbout">
+     <property name="title">
+      <string>About Qt</string>
+     </property>
+     <addaction name="separator"/>
+    </widget>
+    <addaction name="m_MenuAbout"/>
     <addaction name="m_MenuOpenNextViewer"/>
     <addaction name="separator"/>
     <addaction name="m_MenuClose"/>
@@ -1990,9 +2016,16 @@ background-color:rgb(166, 166, 166);
     <property name="title">
      <string>Settings</string>
     </property>
-    <addaction name="m_TitleUseRead"/>
-    <addaction name="m_TitleUseMMAP"/>
-    <addaction name="m_TitleUseUSERPTR"/>
+    <widget class="QMenu" name="m_MenuBuffer">
+     <property name="title">
+      <string>Buffer</string>
+     </property>
+     <addaction name="m_TitleUseMMAP"/>
+     <addaction name="m_TitleUseUSERPTR"/>
+     <addaction name="m_TitleUseRead"/>
+    </widget>
+    <addaction name="m_MenuBuffer"/>
+    <addaction name="actionSave_Options"/>
     <addaction name="m_TitleEnable_VIDIOC_TRY_FMT"/>
     <addaction name="separator"/>
     <addaction name="m_TitleEnableMessageListbox"/>
@@ -2135,9 +2168,9 @@ background-color:rgb(166, 166, 166);
     <string>IO Read Method</string>
    </property>
   </action>
-  <action name="m_MenuAbout_Qt">
+  <action name="actionSave_Options">
    <property name="text">
-    <string>About Qt</string>
+    <string>Save Options</string>
    </property>
   </action>
  </widget>

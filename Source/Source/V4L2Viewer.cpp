@@ -28,6 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <V4L2Helper.h>
 #include "Logger.h"
 #include "V4L2Viewer.h"
+#include "AboutWidget.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -160,7 +161,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)), this, SLOT(OnCameraFrameSize(const QString &)));
 
     // Setup blocking mode radio buttons
-    m_BlockingModeRadioButtonGroup = new QButtonGroup();
+    m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
     m_BlockingModeRadioButtonGroup->setExclusive(true);
 
 
@@ -173,8 +174,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_TitleClearOutputListbox, SIGNAL(triggered()), this, SLOT(OnClearOutputListbox()));
     connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
 
-    m_Camera.DeviceDiscoveryStart();
 
+
+    m_Camera.DeviceDiscoveryStart();
     connect(ui.m_CamerasListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemDoubleClicked(QListWidgetItem *)));
 
     // Connect the handler to show the frames per second
@@ -245,11 +247,18 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     // put the layout into a widget
     QWidget *widgetNum = new QWidget(this);
     widgetNum->setLayout(layoutNum);
+    widgetNum->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(79,79,79);}");
 
     // add the widget into the menu bar
     m_NumberOfUsedFramesWidgetAction = new QWidgetAction(this);
     m_NumberOfUsedFramesWidgetAction->setDefaultWidget(widgetNum);
-    ui.m_MenuOptions->addAction(m_NumberOfUsedFramesWidgetAction);
+    ui.m_MenuBuffer->addAction(m_NumberOfUsedFramesWidgetAction);
+
+    // add about widget to the menu bar
+    AboutWidget *aboutWidget = new AboutWidget(this);
+    QWidgetAction *aboutWidgetAction = new QWidgetAction(this);
+    aboutWidgetAction->setDefaultWidget(aboutWidget);
+    ui.m_MenuAbout->addAction(aboutWidgetAction);
 
     ui.menuBar->setNativeMenuBar(false);
 
@@ -286,7 +295,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
         ui.m_TitleUseMMAP->setChecked(false);
     }
 
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
+    ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT)); 
 }
 
 V4L2Viewer::~V4L2Viewer()

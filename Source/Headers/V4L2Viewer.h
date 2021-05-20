@@ -90,7 +90,6 @@ private:
     QGraphicsPixmapItem *m_PixmapItem;
     // store radio buttons for blocking/non-blocking mode in a group
     QButtonGroup* m_BlockingModeRadioButtonGroup;
-    // frames received for live deviation calc
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);

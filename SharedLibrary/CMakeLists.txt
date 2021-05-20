@@ -25,6 +25,7 @@ ${HEADERS_PATH}/Thread.h
 ${HEADERS_PATH}/V4L2Helper.h
 ${HEADERS_PATH}/V4L2Viewer.h
 ${HEADERS_PATH}/videodev2_av.h
+${HEADERS_PATH}/AboutWidget.h
 )
 
 list(APPEND SOURCE_FILES
@@ -45,6 +46,7 @@ ${SOURCES_PATH}/MyFrameQueue.cpp
 ${SOURCES_PATH}/Thread.cpp
 ${SOURCES_PATH}/V4L2Helper.cpp
 ${SOURCES_PATH}/V4L2Viewer.cpp
+${SOURCES_PATH}/AboutWidget.cpp
 )
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${RESOURCES_PATH}/Forms)
