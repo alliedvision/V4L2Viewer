@@ -38,4 +38,7 @@
         <file>Open_Sans/OpenSans-SemiBold.ttf</file>
         <file>Open_Sans/OpenSans-SemiBoldItalic.ttf</file>
     </qresource>
+    <qresource prefix="/Translations">
+        <file>Translations/german.qm</file>
+    </qresource>
 </RCC>

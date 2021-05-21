@@ -171,6 +171,12 @@ background-color: rgb(59,59,59);
 color:rgb(79,79,79);
 }
 
+QToolTip {
+background-color: rgb(29,29,29);
+color:white;
+border-radius:12px;
+border:none;
+}
 </string>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -314,6 +320,10 @@ background:transparent;</string>
              <property name="cursor">
               <cursorShape>PointingHandCursor</cursorShape>
              </property>
+             <property name="toolTip">
+              <string>&lt;p&gt;&lt;b&gt;Open/Close Camera&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will open/close selected camera.&lt;/span&gt;</string>
+             </property>
              <property name="text">
               <string>Open Camera</string>
              </property>
@@ -327,6 +337,10 @@ background:transparent;</string>
              <property name="cursor">
               <cursorShape>PointingHandCursor</cursorShape>
              </property>
+             <property name="toolTip">
+              <string>&lt;p&gt;&lt;b&gt;Get Device Info&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will print device info below.&lt;/span&gt;</string>
+             </property>
              <property name="text">
               <string>Get Device Info</string>
              </property>
@@ -339,6 +353,10 @@ background:transparent;</string>
              </property>
              <property name="cursor">
               <cursorShape>PointingHandCursor</cursorShape>
+             </property>
+             <property name="toolTip">
+              <string>&lt;p&gt;&lt;b&gt;Get Stream Statistics&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will print stream statistics info below.&lt;/span&gt;</string>
              </property>
              <property name="text">
               <string>Get Stream Statistics</string>
@@ -577,7 +595,8 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Start acquisition</string>
+               <string>&lt;p&gt;&lt;b&gt;Start acquisition&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will start image acquisition.&lt;/span&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -595,6 +614,10 @@ QCheckBox::disabled {
               </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>&lt;p&gt;&lt;b&gt;Flip Horizontal&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will flip image area horizontally.&lt;/span&gt;</string>
               </property>
               <property name="styleSheet">
                <string notr="true"/>
@@ -628,7 +651,8 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Stop acquisition</string>
+               <string>&lt;p&gt;&lt;b&gt;Stop acquisition&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will stop image acquisition.&lt;/span&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -663,7 +687,8 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Switch the resize.</string>
+               <string>&lt;p&gt;&lt;b&gt;Switch the resize&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will zoom in image area.&lt;/span&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -701,7 +726,8 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Switch the resize.</string>
+               <string>&lt;p&gt;&lt;b&gt;Switch the resize&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will zoom out image area.&lt;/span&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -739,7 +765,8 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Fit to Window</string>
+               <string>&lt;p&gt;&lt;b&gt;Fit to Window&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will fit image area to window.&lt;/span&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -795,6 +822,10 @@ QCheckBox::disabled {
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
+              <property name="toolTip">
+               <string>&lt;p&gt;&lt;b&gt;Display on/off&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will switch displaying image area.&lt;/span&gt;</string>
+              </property>
               <property name="styleSheet">
                <string notr="true"/>
               </property>
@@ -826,6 +857,10 @@ QCheckBox::disabled {
               </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>&lt;p&gt;&lt;b&gt;Flip Vertical&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will flip image area vertically.&lt;/span&gt;</string>
               </property>
               <property name="styleSheet">
                <string notr="true"/>
@@ -987,6 +1022,10 @@ background:none;
                 </property>
                 <property name="cursor">
                  <cursorShape>PointingHandCursor</cursorShape>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;p&gt;&lt;b&gt;Auto Exposure&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will turn on/off the continuous exposure feature.&lt;/span&gt;</string>
                 </property>
                 <property name="layoutDirection">
                  <enum>Qt::LeftToRight</enum>
@@ -1186,6 +1225,10 @@ background:none;
                 </property>
                 <property name="cursor">
                  <cursorShape>PointingHandCursor</cursorShape>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;p&gt;&lt;b&gt;Auto Gain&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will turn on/off the continuous gain feature.&lt;/span&gt;</string>
                 </property>
                 <property name="layoutDirection">
                  <enum>Qt::LeftToRight</enum>
@@ -1496,6 +1539,10 @@ background:none;
                 <property name="cursor">
                  <cursorShape>PointingHandCursor</cursorShape>
                 </property>
+                <property name="toolTip">
+                 <string>&lt;p&gt;&lt;b&gt;Auto WhiteBalance&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will turn on/off the continuous white balance feature.&lt;/span&gt;</string>
+                </property>
                 <property name="layoutDirection">
                  <enum>Qt::LeftToRight</enum>
                 </property>
@@ -1745,6 +1792,10 @@ QPushButton::disabled{
              <property name="enabled">
               <bool>true</bool>
              </property>
+             <property name="toolTip">
+              <string>&lt;p&gt;&lt;b&gt;Pixel Formats&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will show all available pixel formats.&lt;/span&gt;</string>
+             </property>
              <property name="styleSheet">
               <string notr="true">QComboBox{
 border-radius:6px;
@@ -1953,6 +2004,10 @@ color:white;
            <property name="cursor">
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
+           <property name="toolTip">
+            <string>&lt;p&gt;&lt;b&gt;Read values&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will fill all available values from the camera to the inputs above.&lt;/span&gt;</string>
+           </property>
            <property name="styleSheet">
             <string notr="true">QPushButton{
 color:rgb(21,21,21);
@@ -1998,6 +2053,9 @@ background-color:rgb(166, 166, 166);
     </rect>
    </property>
    <widget class="QMenu" name="m_MenuFile">
+    <property name="toolTip">
+     <string/>
+    </property>
     <property name="title">
      <string>File</string>
     </property>
@@ -2040,10 +2098,18 @@ background-color:rgb(166, 166, 166);
    <property name="text">
     <string>Close</string>
    </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;&lt;b&gt;Close Viewer&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will close current viewer window.&lt;/span&gt;</string>
+   </property>
   </action>
   <action name="m_MenuOpenNextViewer">
    <property name="text">
     <string>Open Next Viewer ...</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;&lt;b&gt;Open Next Viewer&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will open new viewer window.&lt;/span&gt;</string>
    </property>
   </action>
   <action name="m_UseMMAP">
@@ -2073,7 +2139,8 @@ background-color:rgb(166, 166, 166);
     <string>MMAP/USERPTR</string>
    </property>
    <property name="toolTip">
-    <string>MMAP/USERPTR</string>
+    <string>&lt;p&gt;&lt;b&gt;MMAP/USERPTR&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will change buffer into MMAP/USERPTR.&lt;/span&gt;</string>
    </property>
   </action>
   <action name="m_TitleNonBlockingMode">
@@ -2088,6 +2155,10 @@ background-color:rgb(166, 166, 166);
    <property name="text">
     <string>Clear Message Listbox</string>
    </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;&lt;b&gt;Clear Message Listbox&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will clear log box below.&lt;/span&gt;</string>
+   </property>
   </action>
   <action name="m_TitleLogtofile">
    <property name="checkable">
@@ -2098,6 +2169,10 @@ background-color:rgb(166, 166, 166);
    </property>
    <property name="text">
     <string>Log to file</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;&lt;b&gt;Log to file&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will turn on/off logging into the file.&lt;/span&gt;</string>
    </property>
   </action>
   <action name="m_TitleToggleStreamRandom">
@@ -2121,6 +2196,10 @@ background-color:rgb(166, 166, 166);
    <property name="text">
     <string>Enable Message Listbox</string>
    </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;&lt;b&gt;Enable Message Listbox&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will enable/disable printing into the log box below.&lt;/span&gt;</string>
+   </property>
   </action>
   <action name="m_TitleEnable_VIDIOC_TRY_FMT">
    <property name="checkable">
@@ -2131,6 +2210,10 @@ background-color:rgb(166, 166, 166);
    </property>
    <property name="text">
     <string>Enable VIDIOC_TRY_FMT</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;&lt;b&gt;Enable VIDIOC_TRY_FMT&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will enable/disable VIDIOC_TRY_FMT control.&lt;/span&gt;</string>
    </property>
   </action>
   <action name="m_TitleEnableExtendedControls">
@@ -2159,6 +2242,10 @@ background-color:rgb(166, 166, 166);
    <property name="text">
     <string>IO USERPTR Method</string>
    </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;&lt;b&gt;IO USERPTR&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will change buffer into IO USERPTR.&lt;/span&gt;</string>
+   </property>
   </action>
   <action name="m_TitleUseRead">
    <property name="checkable">
@@ -2166,6 +2253,10 @@ background-color:rgb(166, 166, 166);
    </property>
    <property name="text">
     <string>IO Read Method</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;&lt;b&gt;IO Read&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will change buffer into IO Read.&lt;/span&gt;</string>
    </property>
   </action>
   <action name="actionSave_Options">

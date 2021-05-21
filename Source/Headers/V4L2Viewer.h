@@ -40,6 +40,7 @@
 #include <QMainWindow>
 #include <QtWidgets>
 #include <QTimer>
+#include <QTranslator>
 
 #define VIEWER_MASTER       0
 
@@ -90,6 +91,8 @@ private:
     QGraphicsPixmapItem *m_PixmapItem;
     // store radio buttons for blocking/non-blocking mode in a group
     QButtonGroup* m_BlockingModeRadioButtonGroup;
+
+    QTranslator *m_pGermanTranslator;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);

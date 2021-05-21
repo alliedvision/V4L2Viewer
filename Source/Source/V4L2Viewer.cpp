@@ -122,6 +122,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     font.setFamily("Open Sans");
     qApp->setFont(font);
 
+    m_pGermanTranslator = new QTranslator(this);
+    m_pGermanTranslator->load(":/Translations/Translations/german.qm");
+    qApp->installTranslator(m_pGermanTranslator);
+
     srand((unsigned)time(0));
 
     Logger::InitializeLogger("V4L2ViewerLog.log");
@@ -295,7 +299,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
         ui.m_TitleUseMMAP->setChecked(false);
     }
 
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT)); 
+    ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
 }
 
 V4L2Viewer::~V4L2Viewer()
