@@ -2,6 +2,13 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de_DE" sourcelanguage="en_US">
 <context>
+    <name>AboutWidget</name>
+    <message>
+        <source>This program uses Qt version 5.13.2 &lt;br&gt;&lt;br&gt;Qt is a C++ toolkit for cross-platform application development. &lt;br&gt;&lt;br&gt;Qt provides single-source portability across all major desktop operating systems. It is also available for embedded Linux and other embedded and mobile operating systems. &lt;br&gt;&lt;br&gt;Qt is available under multiple licensing options designed to accommodate the needs of our various users. &lt;br&gt;&lt;br&gt;Qt licensed under our commercial license agreement is appropriate for development of proprietary/commercial software where you do not want to share any source code with third parties or otherwise cannot comply with the terms of GNU (L)GPL.&lt;br&gt;&lt;br&gt;Qt licensed under GNU (L)GPL is appropriate for the development of Qt applications provided you can comply with the terms and conditions of the respective licenses.&lt;br&gt;&lt;br&gt;Please see &lt;a&gt;qt.io/icensing&lt;/a&gt; for and overview of Qt licensing.&lt;br&gt;&lt;br&gt;Copyright (C) 2020 The Qt Company Ltd and other contributors.&lt;br&gt;&lt;br&gt;Qt and the Qt logo are trademarks of The Qt Company Ltd.&lt;br&gt;&lt;br&gt;Qt is The Qt Company Ltd product developed as an open source project. See &lt;a&gt;qt.io&lt;/a&gt; for more information.</source>
+        <translation>Dieses Programm verwendet Qt Version 5.13.2&lt;br&gt;&lt;br&gt;Qt ist ein C ++ - Toolkit für die plattformübergreifende Anwendungsentwicklung. &lt;br&gt;&lt;br&gt;Qt bietet Portabilität aus einer Hand für alle wichtigen Desktop-Betriebssysteme. Es ist auch für Embedded Linux und andere Embedded- und Mobile-Betriebssysteme verfügbar. &lt;br&gt;&lt;br&gt;Qt ist unter mehreren Lizenzoptionen verfügbar, die auf die Bedürfnisse unserer verschiedenen Benutzer zugeschnitten sind. &lt;br&gt;&lt;br&gt;Qt, das im Rahmen unserer kommerziellen Lizenzvereinbarung lizenziert wurde, eignet sich für die Entwicklung von proprietärer / kommerzieller Software, bei der Sie keinen Quellcode an Dritte weitergeben möchten oder auf andere Weise die Bestimmungen der GNU (L) GPL nicht einhalten können.&lt;br&gt;&lt;br&gt;Qt, das unter der GNU (L) GPL lizenziert ist, eignet sich für die Entwicklung von Qt-Anwendungen, sofern Sie die Bedingungen der jeweiligen Lizenzen einhalten können.&lt;br&gt;&lt;br&gt;Bitte sehen Sie &lt;a&gt;qt.io/icensing&lt;/a&gt; für und Übersicht über die Qt-Lizenzierung.&lt;br&gt;&lt;br&gt;Copyright (C) 2020 Die Qt Company Ltd und andere Mitwirkende.&lt;br&gt;&lt;br&gt;Qt und das Qt-Logo sind Marken von The Qt Company Ltd..&lt;br&gt;&lt;br&gt;Qt ist das Produkt von Qt Company Ltd, das als Open Source-Projekt entwickelt wurde. Sehen &lt;a&gt;qt.io&lt;/a&gt; für mehr Informationen.</translation>
+    </message>
+</context>
+<context>
     <name>V4L2Viewer</name>
     <message>
         <source>Video4Linux</source>
@@ -58,6 +65,10 @@
     <message>
         <source>IO Read not available with this camera. V4L2_CAP_VIDEO_CAPTURE not set. Switched to IO MMAP.</source>
         <translation>O Read ist mit dieser Kamera nicht verfügbar. V4L2_CAP_VIDEO_CAPTURE nicht festgelegt. Auf IO MMAP umgestellt.</translation>
+    </message>
+    <message>
+        <source>Language has been already set!</source>
+        <translation>Sprache wurde bereits eingestellt!</translation>
     </message>
 </context>
 <context>
@@ -156,7 +167,7 @@
     </message>
     <message>
         <source>Display Images</source>
-        <translation>Display Images</translation>
+        <translation>Bilder anzeigen</translation>
     </message>
     <message>
         <source>&lt;p&gt;&lt;b&gt;Flip Vertical&lt;/b&gt;&lt;/p&gt;
@@ -431,6 +442,18 @@
     <message>
         <source>Save Options</source>
         <translation>Optionen speichern</translation>
+    </message>
+    <message>
+        <source>Language</source>
+        <translation>Sprache</translation>
+    </message>
+    <message>
+        <source>German</source>
+        <translation>Deutsche</translation>
+    </message>
+    <message>
+        <source>English</source>
+        <translation>Englisch</translation>
     </message>
 </context>
 </TS>

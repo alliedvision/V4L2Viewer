@@ -2065,7 +2065,15 @@ background-color:rgb(166, 166, 166);
      </property>
      <addaction name="separator"/>
     </widget>
+    <widget class="QMenu" name="m_MenuLang">
+     <property name="title">
+      <string>Language</string>
+     </property>
+     <addaction name="m_TitleLangEnglish"/>
+     <addaction name="m_TitleLangGerman"/>
+    </widget>
     <addaction name="m_MenuAbout"/>
+    <addaction name="m_MenuLang"/>
     <addaction name="m_MenuOpenNextViewer"/>
     <addaction name="separator"/>
     <addaction name="m_MenuClose"/>
@@ -2262,6 +2270,16 @@ background-color:rgb(166, 166, 166);
   <action name="actionSave_Options">
    <property name="text">
     <string>Save Options</string>
+   </property>
+  </action>
+  <action name="m_TitleLangGerman">
+   <property name="text">
+    <string>German</string>
+   </property>
+  </action>
+  <action name="m_TitleLangEnglish">
+   <property name="text">
+    <string>English</string>
    </property>
   </action>
  </widget>

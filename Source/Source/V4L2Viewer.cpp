@@ -28,7 +28,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <V4L2Helper.h>
 #include "Logger.h"
 #include "V4L2Viewer.h"
-#include "AboutWidget.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -124,7 +123,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     m_pGermanTranslator = new QTranslator(this);
     m_pGermanTranslator->load(":/Translations/Translations/german.qm");
-    qApp->installTranslator(m_pGermanTranslator);
 
     srand((unsigned)time(0));
 
@@ -178,7 +176,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_TitleClearOutputListbox, SIGNAL(triggered()), this, SLOT(OnClearOutputListbox()));
     connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
 
-
+    connect(ui.m_TitleLangEnglish, SIGNAL(triggered()), this, SLOT(OnLanguageChange()));
+    connect(ui.m_TitleLangGerman, SIGNAL(triggered()), this, SLOT(OnLanguageChange()));
 
     m_Camera.DeviceDiscoveryStart();
     connect(ui.m_CamerasListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemDoubleClicked(QListWidgetItem *)));
@@ -217,7 +216,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edCropYOffset, SIGNAL(returnPressed()), this, SLOT(OnCropYOffset()));
     connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
     connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
-
     connect(ui.m_butReadValues, SIGNAL(clicked()), this, SLOT(OnReadAllValues()));
 
     // Set the splitter stretch factors
@@ -259,9 +257,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     ui.m_MenuBuffer->addAction(m_NumberOfUsedFramesWidgetAction);
 
     // add about widget to the menu bar
-    AboutWidget *aboutWidget = new AboutWidget(this);
+    m_AboutWidget = new AboutWidget(this);
     QWidgetAction *aboutWidgetAction = new QWidgetAction(this);
-    aboutWidgetAction->setDefaultWidget(aboutWidget);
+    aboutWidgetAction->setDefaultWidget(m_AboutWidget);
     ui.m_MenuAbout->addAction(aboutWidgetAction);
 
     ui.menuBar->setNativeMenuBar(false);
@@ -423,6 +421,19 @@ void V4L2Viewer::wheelEvent(QWheelEvent *event)
     }
     else
         event->ignore();
+}
+
+void V4L2Viewer::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange)
+    {
+        ui.retranslateUi(this);
+        m_AboutWidget->UpdateStrings();
+    }
+    else
+    {
+        QMainWindow::changeEvent(event);
+    }
 }
 
 void V4L2Viewer::mousePressEvent(QMouseEvent *event)
@@ -660,6 +671,23 @@ void V4L2Viewer::OnCameraPixelFormat(const QString& pixelFormat)
 void V4L2Viewer::OnCameraFrameSize(const QString& frameSize)
 {
     //ui.m_liFrameSizes->addItem(frameSize);
+}
+
+void V4L2Viewer::OnLanguageChange()
+{
+    QAction *senderAction = qobject_cast<QAction*>(sender());
+    if (QString::compare(senderAction->text(), "German", Qt::CaseInsensitive) == 0)
+    {
+        qApp->installTranslator(m_pGermanTranslator);
+    }
+    else if (QString::compare(senderAction->text(), "Englisch", Qt::CaseInsensitive) == 0)
+    {
+        qApp->removeTranslator(m_pGermanTranslator);
+    }
+    else
+    {
+        QMessageBox::warning( this, tr("Video4Linux"), tr("Language has been already set!") );
+    }
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)

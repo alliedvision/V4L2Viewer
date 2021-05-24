@@ -32,6 +32,7 @@
 #include "DeviationCalculator.h"
 #include "FrameObserver.h"
 #include "MyFrame.h"
+#include "AboutWidget.h"
 
 #include "ui_V4L2Viewer.h"
 
@@ -93,6 +94,7 @@ private:
     QButtonGroup* m_BlockingModeRadioButtonGroup;
 
     QTranslator *m_pGermanTranslator;
+    AboutWidget *m_AboutWidget;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -110,17 +112,14 @@ private:
     virtual void closeEvent(QCloseEvent *event);
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void wheelEvent(QWheelEvent *event);
+    virtual void changeEvent(QEvent *event);
 
     // called by master viewer window
     void RemoteClose();
-
     void GetImageInformation();
-
     // Check if IO Read was checked and remove it when not capable
     void Check4IOReadAbility();
-
     void SetTitleText(QString additionalText);
-
     void UpdateCameraFormat();
 
 private slots:
@@ -210,6 +209,7 @@ private slots:
 
     void OnCameraPixelFormat(const QString &);
     void OnCameraFrameSize(const QString &);
+    void OnLanguageChange();
 };
 
 #endif // V4L2VIEWER_H
