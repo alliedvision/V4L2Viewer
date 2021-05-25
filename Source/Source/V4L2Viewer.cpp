@@ -146,6 +146,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_ZoomFitButton,               SIGNAL(clicked()),         this, SLOT(OnZoomFitButtonClicked()));
     connect(ui.m_ZoomInButton,                SIGNAL(clicked()),         this, SLOT(OnZoomInButtonClicked()));
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
+    connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
 
     OnLog("Starting Application");
 
@@ -175,9 +176,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_DisplayImagesCheckBox, SIGNAL(clicked()), this, SLOT(OnShowFrames()));
     connect(ui.m_TitleClearOutputListbox, SIGNAL(triggered()), this, SLOT(OnClearOutputListbox()));
     connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
-
     connect(ui.m_TitleLangEnglish, SIGNAL(triggered()), this, SLOT(OnLanguageChange()));
     connect(ui.m_TitleLangGerman, SIGNAL(triggered()), this, SLOT(OnLanguageChange()));
+    connect(ui.m_TitleSavePNG, SIGNAL(triggered()), this, SLOT(OnSavePNG()));
+    connect(ui.m_TitleSaveRAW, SIGNAL(triggered()), this, SLOT(OnSaveRAW()));
 
     m_Camera.DeviceDiscoveryStart();
     connect(ui.m_CamerasListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemDoubleClicked(QListWidgetItem *)));
@@ -697,6 +699,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
+    ui.m_SaveImageButton->setEnabled(false);
     QApplication::processEvents();
 
     m_nDroppedFrames = 0;
@@ -749,6 +752,7 @@ void V4L2Viewer::OnStopButtonClicked()
 {
     // disable the stop button to show that the stop acquisition is in process
     ui.m_StopButton->setEnabled(false);
+    ui.m_SaveImageButton->setEnabled(true);
 
     int err = m_Camera.StopStreamChannel();
     if (0 != err)
@@ -814,6 +818,33 @@ void V4L2Viewer::OnZoomOutButtonClicked()
     ui.m_ImageView->setTransform(transformation);
 
     UpdateZoomButtons();
+}
+
+void V4L2Viewer::OnSaveImageClicked()
+{
+    if (ui.m_TitleSavePNG->isChecked())
+    {
+        QString format;
+        format = "png";
+        QPixmap pixmap = m_PixmapItem->pixmap();
+        QImage image = pixmap.toImage();
+        QString filename = QFileDialog::getSaveFileName(this, tr("Save file"), QDir::homePath(), ".png");
+        image.save(filename,"png");
+    }
+    else
+    {
+        QString format;
+        format = "raw";
+        QPixmap pixmap = m_PixmapItem->pixmap();
+        QImage image = pixmap.toImage();
+        int size = image.sizeInBytes();
+        QByteArray data(reinterpret_cast<const char*>(image.bits()), size);
+        QString filename = QFileDialog::getSaveFileName(this, tr("Save file"), QDir::homePath(), ".raw");
+        QFile file(filename);
+        file.open(QIODevice::WriteOnly);
+        file.write(data);
+        file.close();
+    }
 }
 
 // The event handler to show the processed frame
@@ -906,6 +937,30 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
 void V4L2Viewer::OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item)
 {
     OnOpenCloseButtonClicked();
+}
+
+void V4L2Viewer::OnSavePNG()
+{
+    if (ui.m_TitleSavePNG->isChecked())
+    {
+        ui.m_TitleSaveRAW->setChecked(false);
+    }
+    else
+    {
+        ui.m_TitleSavePNG->setChecked(true);
+    }
+}
+
+void V4L2Viewer::OnSaveRAW()
+{
+    if (ui.m_TitleSaveRAW->isChecked())
+    {
+        ui.m_TitleSavePNG->setChecked(false);
+    }
+    else
+    {
+        ui.m_TitleSaveRAW->setChecked(true);
+    }
 }
 
 // Queries and lists all known camera

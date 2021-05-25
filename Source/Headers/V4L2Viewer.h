@@ -159,6 +159,7 @@ private slots:
     // The event handler for resize the image
     void OnZoomInButtonClicked();
     void OnZoomOutButtonClicked();
+    void OnSaveImageClicked();
     // The event handler to show the frames received
     void OnUpdateFramesReceived();
     // The event handler to show the processed frame
@@ -177,6 +178,9 @@ private slots:
     void OnCameraMessage(const QString &text);
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
+
+    void OnSavePNG();
+    void OnSaveRAW();
 
     void OnCropXOffset();
     void OnCropYOffset();
