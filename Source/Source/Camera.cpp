@@ -1152,16 +1152,6 @@ int Camera::SetReverseY(int32_t value)
     return SetExtControl(value, V4L2_CID_VFLIP, "SetReverseY", "V4L2_CID_VFLIP", V4L2_CTRL_CLASS_USER);
 }
 
-int Camera::ReadSharpness(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_SHARPNESS, "ReadSharpness", "V4L2_CID_SHARPNESS", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetSharpness(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_SHARPNESS, "SetSharpness", "V4L2_CID_SHARPNESS", V4L2_CTRL_CLASS_USER);
-}
-
 int Camera::ReadBrightness(int32_t &value)
 {
     return ReadExtControl(value, V4L2_CID_BRIGHTNESS, "ReadBrightness", "V4L2_CID_BRIGHTNESS", V4L2_CTRL_CLASS_USER);

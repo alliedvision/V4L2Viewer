@@ -87,8 +87,6 @@ public:
     int SetReverseX(int32_t value);
     int ReadReverseY(int32_t &value);
     int SetReverseY(int32_t value);
-    int ReadSharpness(int32_t &value);
-    int SetSharpness(int32_t value);
     int ReadBrightness(int32_t &value);
     int SetBrightness(int32_t value);
     int ReadContrast(int32_t &value);

@@ -204,8 +204,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_pixelFormats, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnPixelFormatChanged(const QString &)));
 
     connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
-    connect(ui.m_edSharpness, SIGNAL(returnPressed()), this, SLOT(OnSharpness()));
-    connect(ui.m_edBrightness, SIGNAL(returnPressed()), this, SLOT(OnBrightness()));
+
+    connect(ui.m_edBlackLevel, SIGNAL(returnPressed()), this, SLOT(OnBrightness()));
     connect(ui.m_edContrast, SIGNAL(returnPressed()), this, SLOT(OnContrast()));
     connect(ui.m_edSaturation, SIGNAL(returnPressed()), this, SLOT(OnSaturation()));
     connect(ui.m_edHue, SIGNAL(returnPressed()), this, SLOT(OnHue()));
@@ -441,11 +441,40 @@ void V4L2Viewer::changeEvent(QEvent *event)
 void V4L2Viewer::mousePressEvent(QMouseEvent *event)
 {
     // Detect if the click is in the view.
-    QPoint imageViewPoint = ui.m_ImageView->mapFrom( this, event->pos() );
-    if (ui.m_ImageView->rect().contains(imageViewPoint))
-    {
-        QTransform transformation = ui.m_ImageView->transform();
 
+    QPoint imageViewPoint = ui.m_ImageView->mapFrom( this, event->pos() );
+    QPoint test = ui.m_ImageView->mapToGlobal(event->pos());
+
+    QPointF test_3 = m_PixmapItem->mapToScene(event->pos());
+
+    if (m_PixmapItem != nullptr /*&& m_PixmapItem->pixmap().rect().contains(imageViewPoint)*/)
+    {
+        QPointF pos =  ui.m_ImageView->mapToScene(event->pos());
+
+//        int widthScene = m_pScene->width()*m_dScaleFactor;
+//        int widthImageView = ui.m_ImageView->width();
+
+//        double x = 1.0;
+//        int difference = 0;
+//        int posX = 0;
+//        if (widthImageView > widthScene)
+//        {
+//            difference = widthImageView - widthScene;
+//        }
+
+//        int offsetX = 0;
+//        int offsetY = 0;
+
+//        if (ui.m_ImageView->horizontalScrollBar()->width() > image.width())
+//            offsetX = (ui.m_ImageView->horizontalScrollBar()->width() - image.width()) / 2;
+//        if (ui.m_ImageView->verticalScrollBar()->height() > image.height())
+//            offsetY = (ui.m_ImageView->verticalScrollBar()->width() - image.height()) / 2;
+
+//        posX = ((imageViewPoint.x() + offsetX) - (difference/2));
+
+//        qDebug()<< posX;
+
+        QTransform transformation = ui.m_ImageView->transform();
         if (m_dScaleFactor >= 1)
         {
             QImage image = m_PixmapItem->pixmap().toImage();
@@ -1314,37 +1343,16 @@ void V4L2Viewer::OnGamma()
     }
 }
 
-void V4L2Viewer::OnSharpness()
-{
-    int32_t nVal = int64_2_int32(ui.m_edSharpness->text().toLongLong());
-
-    if (m_Camera.SetSharpness(nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE sharpness!") );
-        m_Camera.ReadSharpness(tmp);
-        ui.m_edSharpness->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        int32_t tmp = 0;
-        OnLog(QString("Sharpness set to %1").arg(nVal));
-
-        m_Camera.ReadSharpness(tmp);
-        ui.m_edSharpness->setText(QString("%1").arg(tmp));
-    }
-}
-
 void V4L2Viewer::OnBrightness()
 {
-    int32_t nVal = int64_2_int32(ui.m_edBrightness->text().toLongLong());
+    int32_t nVal = int64_2_int32(ui.m_edBlackLevel->text().toLongLong());
 
     if (m_Camera.SetBrightness(nVal) < 0)
     {
         int32_t tmp = 0;
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE brightness!") );
         m_Camera.ReadBrightness(tmp);
-        ui.m_edBrightness->setText(QString("%1").arg(tmp));
+        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
     }
     else
     {
@@ -1352,7 +1360,7 @@ void V4L2Viewer::OnBrightness()
         OnLog(QString("Brightness set to %1").arg(nVal));
 
         m_Camera.ReadBrightness(tmp);
-        ui.m_edBrightness->setText(QString("%1").arg(tmp));
+        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
     }
 }
 
@@ -1791,29 +1799,16 @@ void V4L2Viewer::GetImageInformation()
     }
 
     nSVal = 0;
-    if (m_Camera.ReadSharpness(nSVal) != -2)
-    {
-        ui.m_edSharpness->setEnabled(true);
-        ui.m_labelSharpness->setEnabled(true);
-        ui.m_edSharpness->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        ui.m_edSharpness->setEnabled(false);
-        ui.m_labelSharpness->setEnabled(false);
-    }
-
-    nSVal = 0;
     if (m_Camera.ReadBrightness(nSVal) != -2)
     {
-        ui.m_edBrightness->setEnabled(true);
-        ui.m_labelBrightness->setEnabled(true);
-        ui.m_edBrightness->setText(QString("%1").arg(nSVal));
+        ui.m_edBlackLevel->setEnabled(true);
+        ui.m_labelBlackLevel->setEnabled(true);
+        ui.m_edBlackLevel->setText(QString("%1").arg(nSVal));
     }
     else
     {
-        ui.m_edBrightness->setEnabled(false);
-        ui.m_labelBrightness->setEnabled(false);
+        ui.m_edBlackLevel->setEnabled(false);
+        ui.m_labelBlackLevel->setEnabled(false);
     }
 
     nSVal = 0;

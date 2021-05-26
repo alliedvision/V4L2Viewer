@@ -198,7 +198,6 @@ private slots:
     void OnPixelFormatChanged(const QString &);
     void OnFrameSizesDBLClick(QListWidgetItem *);
     void OnGamma();
-    void OnSharpness();
     void OnBrightness();
     void OnContrast();
     void OnSaturation();
