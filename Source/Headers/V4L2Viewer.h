@@ -122,6 +122,9 @@ private:
     void SetTitleText(QString additionalText);
     void UpdateCameraFormat();
 
+    // The function for get device info
+    QString GetDeviceInfo();
+
 private slots:
     void OnLogToFile();
     void OnClearOutputListbox();
@@ -144,8 +147,6 @@ private slots:
     void OnLog(const QString &strMsg);
     // The event handler for open / close camera
     void OnOpenCloseButtonClicked();
-    // The event handler for get device info
-    void OnGetDeviceInfoButtonClicked();
     // The event handler for the camera list changed event
     void OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info);
     // The event handler for starting acquisition

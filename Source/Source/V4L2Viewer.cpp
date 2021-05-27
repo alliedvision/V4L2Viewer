@@ -28,6 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <V4L2Helper.h>
 #include "Logger.h"
 #include "V4L2Viewer.h"
+#include "CameraListCustomItem.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -139,7 +140,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     // Connect GUI events with event handlers
     connect(ui.m_OpenCloseButton,             SIGNAL(clicked()),         this, SLOT(OnOpenCloseButtonClicked()));
-    connect(ui.m_GetDeviceInfoButton,         SIGNAL(clicked()),         this, SLOT(OnGetDeviceInfoButtonClicked()));
     connect(ui.m_StartButton,                 SIGNAL(clicked()),         this, SLOT(OnStartButtonClicked()));
     connect(ui.m_StopButton,                  SIGNAL(clicked()),         this, SLOT(OnStopButtonClicked()));
     connect(ui.m_ZoomFitButton,               SIGNAL(clicked()),         this, SLOT(OnZoomFitButtonClicked()));
@@ -473,7 +473,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
     if (-1 < nRow)
     {
-        QString devName = ui.m_CamerasListBox->item(nRow)->text();
+        QString devName = dynamic_cast<CameraListCustomItem*>(ui.m_CamerasListBox->itemWidget(ui.m_CamerasListBox->item(nRow)))->GetCameraName();
         QString deviceName = devName.right(devName.length() - devName.indexOf(':') - 2);
 
         deviceName = deviceName.left(deviceName.indexOf('(') - 1);
@@ -487,8 +487,14 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             {
                 OnLog("Camera opened successfully");
                 GetImageInformation();
-
                 SetTitleText(deviceName);
+
+                ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
+                CameraListCustomItem *newItem = new CameraListCustomItem(devName, this);
+                QString devInfo = GetDeviceInfo();
+                newItem->SetCameraInformation(devInfo);
+                ui.m_CamerasListBox->item(nRow)->setSizeHint(newItem->sizeHint());
+                ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
             }
             else
                 CloseCamera(m_cameras[nRow]);
@@ -532,50 +538,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
-}
-
-// The event handler for get device info
-void V4L2Viewer::OnGetDeviceInfoButtonClicked()
-{
-    int nRow = ui.m_CamerasListBox->currentRow();
-
-    if (-1 != nRow)
-    {
-        QString devName = ui.m_CamerasListBox->item(nRow)->text();
-        std::string deviceName;
-        std::string tmp;
-
-        devName = devName.right(devName.length() - devName.indexOf(':') - 2);
-        deviceName = devName.left(devName.indexOf('(') - 1).toStdString();
-
-        if ( !m_bIsOpen )
-            m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
-
-        OnLog("---------------------------------------------");
-        OnLog("---- Device Info ");
-        OnLog("---------------------------------------------");
-
-        OnLog(QString("Camera FW Version = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion())));
-        OnLog(QString("Camera Device Temperature = %1C").arg(QString::fromStdString(m_Camera.getAvtDeviceTemperature())));
-        OnLog(QString("Camera Serial Number = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceSerialNumber())));
-
-
-        m_Camera.GetCameraDriverName(tmp);
-        OnLog(QString("Driver name = %1").arg(tmp.c_str()));
-        m_Camera.GetCameraDeviceName(tmp);
-        OnLog(QString("Device name = %1").arg(tmp.c_str()));
-        m_Camera.GetCameraBusInfo(tmp);
-        OnLog(QString("Bus info = %1").arg(tmp.c_str()));
-        m_Camera.GetCameraDriverVersion(tmp);
-        OnLog(QString("Driver version = %1").arg(tmp.c_str()));
-        m_Camera.GetCameraCapabilities(tmp);
-        OnLog(QString("Capabilities = %1").arg(tmp.c_str()));
-
-        OnLog("---------------------------------------------");
-
-        if ( !m_bIsOpen )
-            m_Camera.CloseDevice();
-    }
 }
 
 // The event handler for starting
@@ -929,7 +891,11 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
 
     strCameraName = "Camera#";
 
-    ui.m_CamerasListBox->addItem(QString::fromStdString(strCameraName + ": ") + deviceName + QString(" (") + info + QString(")"));
+    QListWidgetItem *item = new QListWidgetItem(ui.m_CamerasListBox);
+    CameraListCustomItem *customItem = new CameraListCustomItem(QString::fromStdString(strCameraName + ": ") + deviceName + QString(" (") + info + QString(")"), this);
+    item->setSizeHint(customItem->sizeHint());
+    ui.m_CamerasListBox->setItemWidget(item, customItem);
+
     m_cameras.push_back(cardNumber);
 
     // select the first camera if there is no camera selected
@@ -939,7 +905,6 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
     }
 
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
-    ui.m_GetDeviceInfoButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
@@ -954,11 +919,9 @@ void V4L2Viewer::UpdateViewerLayout()
     if (!m_bIsOpen)
     {
         QPixmap pix(":/V4L2Viewer/Viewer.png");
-
         m_pScene->setSceneRect(0, 0, pix.width(), pix.height());
         m_PixmapItem->setPixmap(pix);
         ui.m_ImageView->show();
-
         m_bIsStreaming = false;
     }
 
@@ -1867,6 +1830,26 @@ void V4L2Viewer::UpdateCameraFormat()
 
     result = m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
     result = m_Camera.ReadFormats();
+}
+
+QString V4L2Viewer::GetDeviceInfo()
+{
+    std::string tmp;
+
+    QString firmware = QString("Camera FW Version = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion()));
+    QString devTemp = QString("Camera Device Temperature = %1C").arg(QString::fromStdString(m_Camera.getAvtDeviceTemperature()));
+    QString devSerial = QString("Camera Serial Number = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceSerialNumber()));
+
+    m_Camera.GetCameraDriverName(tmp);
+    QString driverName = QString("Driver name = %1").arg(tmp.c_str());
+    m_Camera.GetCameraBusInfo(tmp);
+    QString busInfo = QString("Bus info = %1").arg(tmp.c_str());
+    m_Camera.GetCameraDriverVersion(tmp);
+    QString driverVer = QString("Driver version = %1").arg(tmp.c_str());
+    m_Camera.GetCameraCapabilities(tmp);
+    QString capabilities = QString("Capabilities = %1").arg(tmp.c_str());
+    return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities);
+
 }
 
 // Check if IO Read was checked and remove it when not capable
