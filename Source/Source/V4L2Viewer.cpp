@@ -140,7 +140,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     // Connect GUI events with event handlers
     connect(ui.m_OpenCloseButton,             SIGNAL(clicked()),         this, SLOT(OnOpenCloseButtonClicked()));
     connect(ui.m_GetDeviceInfoButton,         SIGNAL(clicked()),         this, SLOT(OnGetDeviceInfoButtonClicked()));
-    connect(ui.m_GetStreamStatisticsButton,   SIGNAL(clicked()),         this, SLOT(OnGetStreamStatisticsButtonClicked()));
     connect(ui.m_StartButton,                 SIGNAL(clicked()),         this, SLOT(OnStartButtonClicked()));
     connect(ui.m_StopButton,                  SIGNAL(clicked()),         this, SLOT(OnStopButtonClicked()));
     connect(ui.m_ZoomFitButton,               SIGNAL(clicked()),         this, SLOT(OnZoomFitButtonClicked()));
@@ -210,7 +209,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edSaturation, SIGNAL(returnPressed()), this, SLOT(OnSaturation()));
     connect(ui.m_edHue, SIGNAL(returnPressed()), this, SLOT(OnHue()));
     connect(ui.m_chkContWhiteBalance, SIGNAL(clicked()), this, SLOT(OnContinousWhiteBalance()));
-    connect(ui.m_butWhiteBalanceOnce, SIGNAL(clicked()), this, SLOT(OnWhiteBalanceOnce()));
     connect(ui.m_edRedBalance, SIGNAL(returnPressed()), this, SLOT(OnRedBalance()));
     connect(ui.m_edBlueBalance, SIGNAL(returnPressed()), this, SLOT(OnBlueBalance()));
     connect(ui.m_edFrameRate, SIGNAL(returnPressed()), this, SLOT(OnFrameRate()));
@@ -227,7 +225,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     ui.m_Splitter2->setStretchFactor(1, 25);
 
     // Set the viewer scene
-
     m_pScene = QSharedPointer<QGraphicsScene>(new QGraphicsScene());
 
     m_PixmapItem = new QGraphicsPixmapItem();
@@ -442,19 +439,18 @@ void V4L2Viewer::mousePressEvent(QMouseEvent *event)
 {
     QPoint imageViewPoint = ui.m_ImageView->mapFrom(this, event->pos());
     QPointF imageScenePointF = ui.m_ImageView->mapToScene(imageViewPoint);
-    QPoint imageScenePoint = imageScenePointF.toPoint();
 
-    if (m_PixmapItem != nullptr && m_PixmapItem->pixmap().rect().contains(imageScenePoint))
+    if (m_PixmapItem != nullptr && m_PixmapItem->pixmap().rect().contains(imageScenePointF.toPoint()))
     {
         if (m_dScaleFactor >= 1)
         {
             QImage image = m_PixmapItem->pixmap().toImage();
-            QColor myPixel = image.pixel(imageScenePoint);
+            QColor myPixel = image.pixel(static_cast<int>(imageScenePointF.x()), static_cast<int>(imageScenePointF.y()));
             QToolTip::showText(ui.m_ImageView->mapToGlobal(imageViewPoint), QString("x:%1, y:%2, r:%3/g:%4/b:%5")
-                               .arg(imageScenePoint.x()).arg(imageScenePoint.y())
+                               .arg(static_cast<int>(imageScenePointF.x())).arg(static_cast<int>(imageScenePointF.y()))
                                .arg(myPixel.red())
                                .arg(myPixel.green())
-                               .arg(myPixel.blue()));
+                               .arg(myPixel.blue()), this);
         }
     }
 }
@@ -580,36 +576,6 @@ void V4L2Viewer::OnGetDeviceInfoButtonClicked()
         if ( !m_bIsOpen )
             m_Camera.CloseDevice();
     }
-}
-
-// The event handler for stream statistics
-void V4L2Viewer::OnGetStreamStatisticsButtonClicked()
-{
-    OnLog("---------------------------------------------");
-    OnLog("---- Stream Statistics ");
-    OnLog("---------------------------------------------");
-
-    uint64_t FramesCount;
-    uint64_t PacketCRCError;
-    uint64_t FramesUnderrun;
-    uint64_t FramesIncomplete;
-    double CurrentFrameRate;
-
-    if( m_Camera.getDriverStreamStat(FramesCount, PacketCRCError, FramesUnderrun, FramesIncomplete, CurrentFrameRate) )
-    {
-        OnLog("Stream statistics as reported from kernel driver:");
-        OnLog(QString("FramesCount=%1").arg(FramesCount));
-        OnLog(QString("PacketCRCError=%1").arg(PacketCRCError));
-        OnLog(QString("FramesUnderrun=%1").arg(FramesUnderrun));
-        OnLog(QString("FramesIncomplete=%1").arg(FramesIncomplete));
-        OnLog(QString("CurrentFrameRate=")+QString::number(CurrentFrameRate, 'f', 2));
-    }
-    else
-    {
-        OnLog("Driver does not support stream statistics custom ioctl VIDIOC_STREAMSTAT.");
-    }
-
-    OnLog("---------------------------------------------");
 }
 
 // The event handler for starting
@@ -974,7 +940,6 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
 
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_GetDeviceInfoButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
-    ui.m_GetStreamStatisticsButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
     ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
@@ -1690,7 +1655,6 @@ void V4L2Viewer::GetImageInformation()
 
     UpdateCameraFormat();
 
-    ui.m_butWhiteBalanceOnce->setEnabled(m_Camera.IsWhiteBalanceOnceSupported());
     ui.m_chkContWhiteBalance->setEnabled(m_Camera.IsAutoWhiteBalanceSupported());
 
     if (m_Camera.ReadGain(gain) != -2)

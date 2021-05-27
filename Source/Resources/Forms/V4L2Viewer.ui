@@ -223,41 +223,6 @@ background-color: rgb(45,45,45);
         <property name="spacing">
          <number>0</number>
         </property>
-        <item row="1" column="0">
-         <widget class="QPlainTextEdit" name="m_LogTextEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>100</height>
-           </size>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">QPlainTextEdit{
-background-color: rgb(19,20,21);
-color:white;
-border:none;
-}</string>
-          </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAsNeeded</enum>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="0">
          <widget class="QWidget" name="m_LeftPanelWidget" native="true">
           <property name="minimumSize">
@@ -346,24 +311,42 @@ background:transparent;</string>
              </property>
             </widget>
            </item>
-           <item row="3" column="0">
-            <widget class="QPushButton" name="m_GetStreamStatisticsButton">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="cursor">
-              <cursorShape>PointingHandCursor</cursorShape>
-             </property>
-             <property name="toolTip">
-              <string>&lt;p&gt;&lt;b&gt;Get Stream Statistics&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will print stream statistics info below.&lt;/span&gt;</string>
-             </property>
-             <property name="text">
-              <string>Get Stream Statistics</string>
-             </property>
-            </widget>
-           </item>
           </layout>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPlainTextEdit" name="m_LogTextEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPlainTextEdit{
+background-color: rgb(19,20,21);
+color:white;
+border:none;
+}</string>
+          </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAsNeeded</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
        </layout>
@@ -455,7 +438,7 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>908</width>
+              <width>905</width>
               <height>271</height>
              </rect>
             </property>
@@ -481,7 +464,8 @@ border:none;
                 <string notr="true">QGraphicsView{
 background-color: rgb(19,20,21);
 border:none;
-}</string>
+}
+</string>
                </property>
               </widget>
              </item>
@@ -1062,8 +1046,7 @@ background:none;
                 <property name="styleSheet">
                  <string notr="true">QCheckBox{
 max-width:100px;
-border-top-left-radius: 12px;
-border-bottom-left-radius: 12px;
+border-radius:12px;
 spacing:-65;
 min-width:100px;
 min-height:25px;
@@ -1105,62 +1088,6 @@ QCheckBox::disabled{
                </widget>
               </item>
               <item row="0" column="2">
-               <widget class="QPushButton" name="m_butOnceExposure">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>101</width>
-                  <height>27</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>101</width>
-                  <height>25</height>
-                 </size>
-                </property>
-                <property name="cursor">
-                 <cursorShape>PointingHandCursor</cursorShape>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton{
-border-top-right-radius: 12px;
-border-bottom-right-radius: 12px;
-min-height:25px;
-min-width:100px;
-max-width:100px;
-border:1px solid rgb(89,89,89);
-border-left:none;
-}
-
-QPushButton:pressed{
-background-color:rgb(149, 149, 149);
-}
-
-QPushButton:hover{
-background-color:rgb(139,140,142);
-}
-
-QPushButton::disabled{
- background-color: rgb(39, 39, 39);
- color: rgb(59, 59, 59);
- border: 1px solid rgb(59, 59, 59);
-}</string>
-                </property>
-                <property name="text">
-                 <string>Once</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
                <spacer name="horizontalSpacer_5">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -1265,8 +1192,7 @@ background:none;
                 <property name="styleSheet">
                  <string notr="true">QCheckBox{
 max-width:100px;
-border-top-left-radius: 12px;
-border-bottom-left-radius: 12px;
+border-radius:12px;
 spacing:-65;
 min-width:100px;
 min-height:25px;
@@ -1308,53 +1234,6 @@ QCheckBox::disabled{
                </widget>
               </item>
               <item row="0" column="2">
-               <widget class="QPushButton" name="m_butOnceGain">
-                <property name="minimumSize">
-                 <size>
-                  <width>101</width>
-                  <height>27</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>101</width>
-                  <height>25</height>
-                 </size>
-                </property>
-                <property name="cursor">
-                 <cursorShape>PointingHandCursor</cursorShape>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton{
-border-top-right-radius: 12px;
-border-bottom-right-radius: 12px;
-min-height:25px;
-min-width:100px;
-max-width:100px;
-border:1px solid rgb(89,89,89);
-border-left:none;
-}
-
-QPushButton:pressed{
-background-color:rgb(149, 149, 149);
-}
-
-QPushButton:hover{
-background-color:rgb(139,140,142);
-}
-
-QPushButton::disabled{
- background-color: rgb(39, 39, 39);
- color: rgb(59, 59, 59);
- border: 1px solid rgb(59, 59, 59);
-}</string>
-                </property>
-                <property name="text">
-                 <string>Once</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
                <spacer name="horizontalSpacer_7">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -1578,8 +1457,7 @@ background:none;
                 <property name="styleSheet">
                  <string notr="true">QCheckBox{
 max-width:100px;
-border-top-left-radius: 12px;
-border-bottom-left-radius: 12px;
+border-radius:12px;
 spacing:-65;
 min-width:100px;
 min-height:25px;
@@ -1621,56 +1499,6 @@ QCheckBox::disabled{
                </widget>
               </item>
               <item row="0" column="2">
-               <widget class="QPushButton" name="m_butWhiteBalanceOnce">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>101</width>
-                  <height>27</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>101</width>
-                  <height>25</height>
-                 </size>
-                </property>
-                <property name="cursor">
-                 <cursorShape>PointingHandCursor</cursorShape>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton{
-border-top-right-radius: 12px;
-border-bottom-right-radius: 12px;
-min-height:25px;
-min-width:100px;
-max-width:100px;
-border:1px solid rgb(89,89,89);
-border-left:none;
-}
-
-QPushButton:pressed{
-background-color:rgb(149, 149, 149);
-}
-
-QPushButton:hover{
-background-color:rgb(139,140,142);
-}
-
-QPushButton::disabled{
- background-color: rgb(39, 39, 39);
- color: rgb(59, 59, 59);
- border: 1px solid rgb(59, 59, 59);
-}</string>
-                </property>
-                <property name="text">
-                 <string>Once</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
                <spacer name="horizontalSpacer_3">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>

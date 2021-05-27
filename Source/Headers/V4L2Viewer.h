@@ -146,8 +146,6 @@ private slots:
     void OnOpenCloseButtonClicked();
     // The event handler for get device info
     void OnGetDeviceInfoButtonClicked();
-    // The event handler for stream statistics
-    void OnGetStreamStatisticsButtonClicked();
     // The event handler for the camera list changed event
     void OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info);
     // The event handler for starting acquisition
