@@ -440,57 +440,21 @@ void V4L2Viewer::changeEvent(QEvent *event)
 
 void V4L2Viewer::mousePressEvent(QMouseEvent *event)
 {
-    // Detect if the click is in the view.
+    QPoint imageViewPoint = ui.m_ImageView->mapFrom(this, event->pos());
+    QPointF imageScenePointF = ui.m_ImageView->mapToScene(imageViewPoint);
+    QPoint imageScenePoint = imageScenePointF.toPoint();
 
-    QPoint imageViewPoint = ui.m_ImageView->mapFrom( this, event->pos() );
-    QPoint test = ui.m_ImageView->mapToGlobal(event->pos());
-
-    QPointF test_3 = m_PixmapItem->mapToScene(event->pos());
-
-    if (m_PixmapItem != nullptr /*&& m_PixmapItem->pixmap().rect().contains(imageViewPoint)*/)
+    if (m_PixmapItem != nullptr && m_PixmapItem->pixmap().rect().contains(imageScenePoint))
     {
-        QPointF pos =  ui.m_ImageView->mapToScene(event->pos());
-
-//        int widthScene = m_pScene->width()*m_dScaleFactor;
-//        int widthImageView = ui.m_ImageView->width();
-
-//        double x = 1.0;
-//        int difference = 0;
-//        int posX = 0;
-//        if (widthImageView > widthScene)
-//        {
-//            difference = widthImageView - widthScene;
-//        }
-
-//        int offsetX = 0;
-//        int offsetY = 0;
-
-//        if (ui.m_ImageView->horizontalScrollBar()->width() > image.width())
-//            offsetX = (ui.m_ImageView->horizontalScrollBar()->width() - image.width()) / 2;
-//        if (ui.m_ImageView->verticalScrollBar()->height() > image.height())
-//            offsetY = (ui.m_ImageView->verticalScrollBar()->width() - image.height()) / 2;
-
-//        posX = ((imageViewPoint.x() + offsetX) - (difference/2));
-
-//        qDebug()<< posX;
-
-        QTransform transformation = ui.m_ImageView->transform();
         if (m_dScaleFactor >= 1)
         {
             QImage image = m_PixmapItem->pixmap().toImage();
-            int offsetX = 0;
-            int offsetY = 0;
-
-            if (ui.m_ImageView->horizontalScrollBar()->width() > image.width())
-                offsetX = (ui.m_ImageView->horizontalScrollBar()->width() - image.width()) / 2;
-            if (ui.m_ImageView->verticalScrollBar()->height() > image.height())
-                offsetY = (ui.m_ImageView->verticalScrollBar()->width() - image.height()) / 2;
-
-            QPoint scalePoint = QPoint((imageViewPoint.x() - offsetX + ui.m_ImageView->horizontalScrollBar()->value()) / m_dScaleFactor,
-                                       (imageViewPoint.y() - offsetY + ui.m_ImageView->verticalScrollBar()->value()) / m_dScaleFactor);
-            QColor myPixel = image.pixel(scalePoint);
-
-            QToolTip::showText(ui.m_ImageView->mapToGlobal(imageViewPoint), QString("x:%1, y:%2, r:%3/g:%4/b:%5").arg(scalePoint.x()).arg(scalePoint.y()).arg(myPixel.red()).arg(myPixel.green()).arg(myPixel.blue()));
+            QColor myPixel = image.pixel(imageScenePoint);
+            QToolTip::showText(ui.m_ImageView->mapToGlobal(imageViewPoint), QString("x:%1, y:%2, r:%3/g:%4/b:%5")
+                               .arg(imageScenePoint.x()).arg(imageScenePoint.y())
+                               .arg(myPixel.red())
+                               .arg(myPixel.green())
+                               .arg(myPixel.blue()));
         }
     }
 }
