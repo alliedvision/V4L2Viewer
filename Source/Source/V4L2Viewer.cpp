@@ -468,6 +468,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 newItem->SetCameraInformation(devInfo);
                 ui.m_CamerasListBox->item(nRow)->setSizeHint(newItem->sizeHint());
                 ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
+                ui.m_Splitter1->setSizes(QList<int>{0,1});
             }
             else
                 CloseCamera(m_cameras[nRow]);
