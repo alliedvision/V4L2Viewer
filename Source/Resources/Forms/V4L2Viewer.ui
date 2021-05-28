@@ -266,8 +266,19 @@ background:transparent;
 }
 
 QListWidget::item:selected {
-background-color:rgb(128,128,128);
-}</string>
+background-color:rgb(98, 98, 98);
+}
+
+QListWidget::item QWidget{
+color:white;
+padding:0;
+margin:0;
+}
+
+</string>
+             </property>
+             <property name="isWrapping" stdset="0">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -301,41 +312,6 @@ background-color:rgb(128,128,128);
             </widget>
            </item>
           </layout>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QPlainTextEdit" name="m_LogTextEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>100</height>
-           </size>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">QPlainTextEdit{
-background-color: rgb(19,20,21);
-color:white;
-border:none;
-}</string>
-          </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAsNeeded</enum>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
          </widget>
         </item>
        </layout>
@@ -1941,8 +1917,6 @@ background-color:rgb(166, 166, 166);
     <addaction name="actionSave_Options"/>
     <addaction name="m_TitleEnable_VIDIOC_TRY_FMT"/>
     <addaction name="separator"/>
-    <addaction name="m_TitleEnableMessageListbox"/>
-    <addaction name="m_TitleClearOutputListbox"/>
     <addaction name="m_TitleLogtofile"/>
     <addaction name="separator"/>
    </widget>

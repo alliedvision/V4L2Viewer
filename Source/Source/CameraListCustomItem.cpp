@@ -5,13 +5,18 @@ CameraListCustomItem::CameraListCustomItem(QString cameraName, QWidget *parent) 
     m_CameraName(cameraName),
     m_CameraDesc("")
 {
-    m_CameraDesc.setTextFormat(Qt::RichText);
     m_CameraName.setTextFormat(Qt::RichText);
-    m_CameraDesc.setStyleSheet("background:transparent");
     m_CameraName.setStyleSheet("background:transparent");
+
+    m_CameraDesc.setTextFormat(Qt::RichText);
+    m_CameraDesc.setStyleSheet("background:transparent");
     m_CameraDesc.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     m_pMainLayout = new QGridLayout(this);
     m_pMainLayout->addWidget(&m_CameraName, 0, 0);
+
+    m_pMainLayout->setMargin(0);
+    setLayout(m_pMainLayout);
 }
 
 void CameraListCustomItem::SetCameraInformation(QString cameraDesc)
