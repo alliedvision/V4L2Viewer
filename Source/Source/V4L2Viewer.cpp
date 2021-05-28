@@ -488,7 +488,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 OnLog("Camera opened successfully");
                 GetImageInformation();
                 SetTitleText(deviceName);
-
                 ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
                 CameraListCustomItem *newItem = new CameraListCustomItem(devName, this);
                 QString devInfo = GetDeviceInfo();
@@ -515,7 +514,13 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
             err = CloseCamera(m_cameras[nRow]);
             if (0 == err)
+            {
                 OnLog("Camera closed successfully");
+                ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
+                CameraListCustomItem *newItem = new CameraListCustomItem(devName, this);
+                ui.m_CamerasListBox->item(nRow)->setSizeHint(newItem->sizeHint());
+                ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
+            }
 
             SetTitleText("");
         }
@@ -925,7 +930,25 @@ void V4L2Viewer::UpdateViewerLayout()
         m_bIsStreaming = false;
     }
 
-    ui.m_CamerasListBox->setEnabled(!m_bIsOpen);
+    // Hide all cameras when not needed and block signals to avoid
+    // unnecessary reopening of the current camera
+    ui.m_CamerasListBox->blockSignals(m_bIsOpen);
+    int currentIndex = ui.m_CamerasListBox->currentRow();
+    if (currentIndex >= 0)
+    {
+        unsigned int items = ui.m_CamerasListBox->count();
+        for (unsigned int i=0; i<items; i++)
+        {
+            if (i == currentIndex)
+            {
+                continue;
+            }
+            else
+            {
+                ui.m_CamerasListBox->item(i)->setHidden(m_bIsOpen);
+            }
+        }
+    }
 
     ui.m_StartButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
@@ -1859,7 +1882,7 @@ void V4L2Viewer::Check4IOReadAbility()
 
     if (-1 != nRow)
     {
-        QString devName = ui.m_CamerasListBox->item(nRow)->text();
+        QString devName = dynamic_cast<CameraListCustomItem*>(ui.m_CamerasListBox->itemWidget(ui.m_CamerasListBox->item(nRow)))->GetCameraName();
         std::string deviceName;
 
         devName = devName.right(devName.length() - devName.indexOf(':') - 2);

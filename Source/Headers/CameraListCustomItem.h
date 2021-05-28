@@ -11,6 +11,7 @@ class CameraListCustomItem : public QWidget
 public:
     explicit CameraListCustomItem(QString cameraName, QWidget *parent = nullptr);
     void SetCameraInformation(QString cameraDesc);
+    void RemoveCameraInformation();
     QString GetCameraName();
 
 private:

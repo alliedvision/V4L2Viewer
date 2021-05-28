@@ -20,6 +20,11 @@ void CameraListCustomItem::SetCameraInformation(QString cameraDesc)
     m_pMainLayout->addWidget(&m_CameraDesc, 1, 0);
 }
 
+void CameraListCustomItem::RemoveCameraInformation()
+{
+    m_pMainLayout->removeWidget(&m_CameraDesc);
+}
+
 QString CameraListCustomItem::GetCameraName()
 {
     return m_CameraName.text();
