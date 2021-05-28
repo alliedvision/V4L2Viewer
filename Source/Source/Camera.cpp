@@ -139,8 +139,6 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
     connect(m_pFrameObserver.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
-    connect(m_pFrameObserver.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessage(const QString &)));
-    connect(m_pFrameObserver.data(), SIGNAL(OnError_Signal(const QString &)), this, SLOT(OnError(const QString &)));
 
     if (-1 == m_nFileDescriptor)
     {
@@ -152,14 +150,12 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
         if (m_nFileDescriptor == -1)
         {
             Logger::LogEx("Camera::OpenDevice open '%s' failed errno=%d=%s", deviceName.c_str(), errno, ConvertErrno2String(errno).c_str());
-            emit OnCameraError_Signal("OpenDevice: open '" + QString(deviceName.c_str()) + "' failed errno=" + QString((int)errno) + "=" + QString(ConvertErrno2String(errno).c_str()) + ".");
         }
         else
         {
             getAvtDeviceFirmwareVersion();
 
             Logger::LogEx("Camera::OpenDevice open %s OK", deviceName.c_str());
-            emit OnCameraMessage_Signal("OpenDevice: open " + QString(deviceName.c_str()) + " OK");
 
             m_DeviceName = deviceName;
 
@@ -169,7 +165,6 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
     else
     {
         Logger::LogEx("Camera::OpenDevice open %s failed because %s is already open", deviceName.c_str(), m_DeviceName.c_str());
-        emit OnCameraError_Signal("OpenDevice: open " + QString(deviceName.c_str()) + " failed because " + QString(m_DeviceName.c_str()) + " is already open");
     }
 
     return result;
@@ -184,13 +179,10 @@ int Camera::CloseDevice()
         if (-1 == close(m_nFileDescriptor))
         {
             Logger::LogEx("Camera::CloseDevice close '%s' failed errno=%d=%s", m_DeviceName.c_str(), errno, ConvertErrno2String(errno).c_str());
-            emit OnCameraError_Signal("CloseDevice: close '" + QString(m_DeviceName.c_str()) + "' failed errno=" + QString((int)errno) + "+" + QString(ConvertErrno2String(errno).c_str()) + ".");
         }
         else
         {
             Logger::LogEx("Camera::CloseDevice close %s OK", m_DeviceName.c_str());
-            emit OnCameraMessage_Signal("CloseDevice: close " + QString(m_DeviceName.c_str()) + " OK");
-
             result = 0;
         }
     }
@@ -222,18 +214,6 @@ void Camera::OnDisplayFrame(const unsigned long long &frameID)
     emit OnCameraDisplayFrame_Signal(frameID);
 }
 
-// Event will be called when text notification must be made
-void Camera::OnMessage(const QString &msg)
-{
-    emit OnCameraMessage_Signal(msg);
-}
-
-// Event will be called when error text notification must be made
-void Camera::OnError(const QString &msg)
-{
-    emit OnCameraError_Signal(msg);
-}
-
 // The event handler to set or remove devices
 void Camera::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info)
 {
@@ -263,20 +243,17 @@ int Camera::DeviceDiscoveryStart()
             v4l2_capability cap;
 
             Logger::LogEx("Camera::DeviceDiscovery open %s found", deviceName.toLatin1().data());
-            emit OnCameraMessage_Signal("DeviceDiscovery: open " + deviceName + " found");
 
             // query device capabilities
             if (-1 == iohelper::xioctl(fileDiscriptor, VIDIOC_QUERYCAP, &cap))
             {
                 Logger::LogEx("Camera::DeviceDiscovery %s is no V4L2 device", deviceName.toLatin1().data());
-                emit OnCameraError_Signal("DeviceDiscovery: " + deviceName + " is no V4L2 device");
             }
             else
             {
                 if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
                 {
                     Logger::LogEx("Camera::DeviceDiscovery %s is no video capture device", deviceName.toLatin1().data());
-                    emit OnCameraError_Signal("DeviceDiscovery: " + deviceName + " is no video capture device");
                 }
                 else
                 {
@@ -288,7 +265,6 @@ int Camera::DeviceDiscoveryStart()
             if (-1 == close(fileDiscriptor))
             {
                 Logger::LogEx("Camera::DeviceDiscoveryStart close %s failed", deviceName.toLatin1().data());
-                emit OnCameraError_Signal("DeviceDiscoveryStart: close " + deviceName + " failed");
             }
             else
             {
@@ -330,7 +306,6 @@ int Camera::StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint3
 
     // start stream returns always success
     Logger::LogEx("Camera::StartStreamChannel OK.");
-    emit OnCameraMessage_Signal("Camera::StartStreamChannel OK.");
 
     return nResult;
 }
@@ -346,12 +321,10 @@ int Camera::StopStreamChannel()
     if (nResult == 0)
     {
        Logger::LogEx("Camera::StopStreamChannel OK.");
-       emit OnCameraMessage_Signal("Camera::StopStreamChannel OK.");
     }
     else
     {
        Logger::LogEx("Camera::StopStreamChannel failed.");
-       emit OnCameraError_Signal("Camera::StopStreamChannel failed.");
     }
 
     m_CsvData.resize(0);
@@ -373,12 +346,10 @@ int Camera::StartStreaming()
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_STREAMON, &type))
     {
         Logger::LogEx("Camera::StartStreaming VIDIOC_STREAMON failed");
-        emit OnCameraError_Signal("StartStreaming: VIDIOC_STREAMON failed.");
     }
     else
     {
         Logger::LogEx("Camera::StartStreaming VIDIOC_STREAMON OK");
-        emit OnCameraMessage_Signal("StartStreaming: VIDIOC_STREAMON OK.");
 
         result = 0;
     }
@@ -396,12 +367,10 @@ int Camera::StopStreaming()
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_STREAMOFF, &type))
     {
         Logger::LogEx("Camera::StopStreaming VIDIOC_STREAMOFF failed");
-        emit OnCameraError_Signal("StopStreaming: VIDIOC_STREAMOFF failed.");
     }
     else
     {
         Logger::LogEx("Camera::StopStreaming VIDIOC_STREAMOFF OK");
-        emit OnCameraMessage_Signal("StopStreaming: VIDIOC_STREAMOFF OK.");
 
         result = 0;
     }
@@ -420,7 +389,6 @@ int Camera::ReadPayloadSize(uint32_t &payloadSize)
     if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
         Logger::LogEx("Camera::ReadPayloadSize VIDIOC_G_FMT OK =%d", fmt.fmt.pix.sizeimage);
-        emit OnCameraMessage_Signal(QString("ReadPayloadSize VIDIOC_G_FMT: OK =%1.").arg(fmt.fmt.pix.sizeimage));
 
         payloadSize = fmt.fmt.pix.sizeimage;
 
@@ -429,7 +397,6 @@ int Camera::ReadPayloadSize(uint32_t &payloadSize)
     else
     {
         Logger::LogEx("Camera::ReadPayloadSize VIDIOC_G_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("ReadPayloadSize VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -446,7 +413,6 @@ int Camera::ReadFrameSize(uint32_t &width, uint32_t &height)
     if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
         Logger::LogEx("Camera::ReadFrameSize VIDIOC_G_FMT OK =%dx%d", fmt.fmt.pix.width, fmt.fmt.pix.height);
-        emit OnCameraMessage_Signal(QString("ReadFrameSize VIDIOC_G_FMT: OK =%1x%2.").arg(fmt.fmt.pix.width).arg(fmt.fmt.pix.height));
 
         width = fmt.fmt.pix.width;
         height = fmt.fmt.pix.height;
@@ -456,7 +422,6 @@ int Camera::ReadFrameSize(uint32_t &width, uint32_t &height)
     else
     {
         Logger::LogEx("Camera::ReadFrameSize VIDIOC_G_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("ReadFrameSize VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -473,7 +438,6 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
     if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
         Logger::LogEx("Camera::SetFrameSize VIDIOC_G_FMT OK");
-        emit OnCameraMessage_Signal(QString("SetFrameSize VIDIOC_G_FMT: OK."));
 
         fmt.fmt.pix.width = width;
         fmt.fmt.pix.height = height;
@@ -486,7 +450,6 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
             if (result != 0)
             {
                 Logger::LogEx("Camera::SetFrameSize VIDIOC_TRY_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-                emit OnCameraError_Signal(QString("SetFrameSize VIDIOC_TRY_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
             }
         }
         else
@@ -498,7 +461,6 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
             if (-1 != result)
             {
                 Logger::LogEx("Camera::SetFrameSize VIDIOC_S_FMT OK =%dx%d", width, height);
-                emit OnCameraMessage_Signal(QString("SetFrameSize VIDIOC_S_FMT: OK =%1x%2.").arg(fmt.fmt.pix.width).arg(fmt.fmt.pix.height));
 
                 result = 0;
             }
@@ -507,7 +469,6 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
     else
     {
         Logger::LogEx("Camera::SetFrameSize VIDIOC_G_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("SetFrameSize VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -524,7 +485,6 @@ int Camera::SetWidth(uint32_t width)
     if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
         Logger::LogEx("Camera::SetWidth VIDIOC_G_FMT OK");
-        emit OnCameraMessage_Signal(QString("SetWidth VIDIOC_G_FMT: OK."));
 
         fmt.fmt.pix.width = width;
         fmt.fmt.pix.field = V4L2_FIELD_ANY;
@@ -536,7 +496,6 @@ int Camera::SetWidth(uint32_t width)
             if (result != 0)
             {
                 Logger::LogEx("Camera::SetWidth VIDIOC_TRY_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-                emit OnCameraError_Signal(QString("SetWidth VIDIOC_TRY_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
             }
         }
         else
@@ -548,7 +507,6 @@ int Camera::SetWidth(uint32_t width)
             if (-1 != result)
             {
                 Logger::LogEx("Camera::SetWidth VIDIOC_S_FMT OK =%d", width);
-                emit OnCameraMessage_Signal(QString("SetWidth VIDIOC_S_FMT: OK =%1.").arg(width));
 
                 result = 0;
             }
@@ -557,7 +515,6 @@ int Camera::SetWidth(uint32_t width)
     else
     {
         Logger::LogEx("Camera::SetWidth VIDIOC_G_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("SetWidth VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -574,7 +531,6 @@ int Camera::ReadWidth(uint32_t &width)
     if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
         Logger::LogEx("Camera::ReadWidth VIDIOC_G_FMT OK =%d", width);
-        emit OnCameraMessage_Signal(QString("ReadWidth VIDIOC_G_FMT: OK =%1.").arg(width));
 
         width = fmt.fmt.pix.width;
 
@@ -583,7 +539,6 @@ int Camera::ReadWidth(uint32_t &width)
     else
     {
         Logger::LogEx("Camera::ReadWidth VIDIOC_G_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("ReadWidth VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -600,7 +555,6 @@ int Camera::SetHeight(uint32_t height)
     if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
         Logger::LogEx("Camera::SetHeight VIDIOC_G_FMT OK");
-        emit OnCameraMessage_Signal(QString("SetHeight VIDIOC_G_FMT: OK."));
 
         fmt.fmt.pix.height = height;
         fmt.fmt.pix.field = V4L2_FIELD_ANY;
@@ -612,7 +566,6 @@ int Camera::SetHeight(uint32_t height)
             if (result != 0)
             {
                 Logger::LogEx("Camera::SetHeight VIDIOC_TRY_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-                emit OnCameraError_Signal(QString("SetHeight VIDIOC_TRY_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
             }
         }
         else
@@ -626,7 +579,6 @@ int Camera::SetHeight(uint32_t height)
             if (-1 != result)
             {
                 Logger::LogEx("Camera::SetHeight VIDIOC_S_FMT OK =%d", height);
-                emit OnCameraMessage_Signal(QString("SetHeight VIDIOC_S_FMT: OK =%1.").arg(height));
 
                 result = 0;
             }
@@ -635,7 +587,6 @@ int Camera::SetHeight(uint32_t height)
     else
     {
         Logger::LogEx("Camera::SetHeight VIDIOC_G_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("SetHeight VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -652,7 +603,6 @@ int Camera::ReadHeight(uint32_t &height)
     if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
         Logger::LogEx("Camera::ReadHeight VIDIOC_G_FMT OK =%d", fmt.fmt.pix.height);
-        emit OnCameraMessage_Signal(QString("ReadHeight VIDIOC_G_FMT: OK =%1.").arg(fmt.fmt.pix.height));
 
         height = fmt.fmt.pix.height;
 
@@ -661,7 +611,6 @@ int Camera::ReadHeight(uint32_t &height)
     else
     {
         Logger::LogEx("Camera::ReadHeight VIDIOC_G_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("ReadHeight VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -679,13 +628,9 @@ int Camera::ReadFormats()
     {
         std::string tmp = (char*)fmt.description;
         Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FMT index = %d", fmt.index);
-        emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FMT: index = " + QString("%1").arg(fmt.index) + ".");
         Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FMT type = %d", fmt.type);
-        emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FMT: type = " + QString("%1").arg(fmt.type) + ".");
         Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FMT pixel format = %d = %s", fmt.pixelformat, v4l2helper::ConvertPixelFormat2EnumString(fmt.pixelformat).c_str());
-        emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FMT: pixel format = " + QString("%1").arg(fmt.pixelformat) + " = " + QString(v4l2helper::ConvertPixelFormat2EnumString(fmt.pixelformat).c_str()) + ".");
         Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FMT description = %s", fmt.description);
-        emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FMT: description = " + QString(tmp.c_str()) + ".");
 
         emit OnCameraPixelFormat_Signal(QString("%1").arg(QString(ConvertPixelFormat2String(fmt.pixelformat).c_str())));
 
@@ -700,9 +645,7 @@ int Camera::ReadFormats()
                 v4l2_frmivalenum fmtival;
 
                 Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete width = %d", fmtsize.discrete.width);
-                emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete width = " + QString("%1").arg(fmtsize.discrete.width) + ".");
                 Logger::LogEx("Camera::ReadFormats size VIDIOC_ENUM_FRAMESIZES enum discrete height = %d", fmtsize.discrete.height);
-                emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete height = " + QString("%1").arg(fmtsize.discrete.height) + ".");
 
                 emit OnCameraFrameSize_Signal(QString("disc:%1x%2").arg(fmtsize.discrete.width).arg(fmtsize.discrete.height));
 
@@ -719,17 +662,11 @@ int Camera::ReadFormats()
             else if (fmtsize.type == V4L2_FRMSIZE_TYPE_STEPWISE)
             {
                 Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_width = %d", fmtsize.stepwise.min_width);
-                emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_width = " + QString("%1").arg(fmtsize.stepwise.min_width) + ".");
                 Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_height = %d", fmtsize.stepwise.min_height);
-                emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_height = " + QString("%1").arg(fmtsize.stepwise.min_height) + ".");
                 Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise max_width = %d", fmtsize.stepwise.max_width);
-                emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise max_width = " + QString("%1").arg(fmtsize.stepwise.max_width) + ".");
                 Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise max_height = %d", fmtsize.stepwise.max_height);
-                emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise max_height = " + QString("%1").arg(fmtsize.stepwise.max_height) + ".");
                 Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_width = %d", fmtsize.stepwise.step_width);
-                emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_width = " + QString("%1").arg(fmtsize.stepwise.step_width) + ".");
                 Logger::LogEx("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_height = %d", fmtsize.stepwise.step_height);
-                emit OnCameraMessage_Signal("ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_height = " + QString("%1").arg(fmtsize.stepwise.step_height) + ".");
 
                 emit OnCameraFrameSize_Signal(QString("min:%1x%2,max:%3x%4,step:%5x%6").arg(fmtsize.stepwise.min_width).arg(fmtsize.stepwise.min_height).arg(fmtsize.stepwise.max_width).arg(fmtsize.stepwise.max_height).arg(fmtsize.stepwise.step_width).arg(fmtsize.stepwise.step_height));
             }
@@ -742,7 +679,6 @@ int Camera::ReadFormats()
         if (fmtsize.index >= 100)
         {
             Logger::LogEx("Camera::ReadFormats no VIDIOC_ENUM_FRAMESIZES never terminated with EINVAL within 100 loops.");
-            emit OnCameraError_Signal("ReadFormats: no VIDIOC_ENUM_FRAMESIZES never terminated with EINVAL within 100 loops.");
         }
 
         fmt.index++;
@@ -751,7 +687,6 @@ int Camera::ReadFormats()
     if (fmt.index >= 100)
     {
         Logger::LogEx("Camera::ReadFormats no VIDIOC_ENUM_FMT never terminated with EINVAL within 100 loops.");
-        emit OnCameraError_Signal("ReadFormats: get VIDIOC_ENUM_FMT never terminated with EINVAL within 100 loops.");
     }
 
     return result;
@@ -768,7 +703,6 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
     if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
         Logger::LogEx("Camera::SetPixelFormat VIDIOC_G_FMT OK");
-        emit OnCameraMessage_Signal(QString("Set pixel format VIDIOC_G_FMT: OK."));
 
         fmt.fmt.pix.pixelformat = pixelFormat;
         fmt.fmt.pix.field = V4L2_FIELD_ANY;
@@ -780,7 +714,6 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
             if (result != 0)
             {
                 Logger::LogEx("Camera::SetPixelFormat VIDIOC_TRY_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-                emit OnCameraError_Signal(QString("Set pixel format VIDIOC_TRY_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
             }
         }
         else
@@ -794,14 +727,12 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
             if (-1 != result)
             {
                 Logger::LogEx("Camera::SetPixelFormat VIDIOC_S_FMT to %d OK", pixelFormat);
-                emit OnCameraMessage_Signal(QString("Set pixel format VIDIOC_S_FMT: to %1 OK.").arg(pixelFormat));
 
                 result = 0;
             }
             else
             {
                 Logger::LogEx("Camera::SetPixelFormat VIDIOC_S_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-                emit OnCameraError_Signal(QString("Set pixel format VIDIOC_S_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
             }
         }
 
@@ -809,7 +740,6 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
     else
     {
         Logger::LogEx("Camera::SetPixelFormat VIDIOC_G_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("Set pixel format VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -826,7 +756,6 @@ int Camera::ReadPixelFormat(uint32_t &pixelFormat, uint32_t &bytesPerLine, QStri
     if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
         Logger::LogEx("Camera::ReadPixelFormat VIDIOC_G_FMT OK =%d", fmt.fmt.pix.pixelformat);
-        emit OnCameraMessage_Signal(QString("Read pixel format VIDIOC_G_FMT: OK =%1.").arg(fmt.fmt.pix.pixelformat));
 
         pixelFormat = fmt.fmt.pix.pixelformat;
         bytesPerLine = fmt.fmt.pix.bytesperline;
@@ -837,7 +766,6 @@ int Camera::ReadPixelFormat(uint32_t &pixelFormat, uint32_t &bytesPerLine, QStri
     else
     {
         Logger::LogEx("Camera::ReadPixelFormat VIDIOC_G_FMT failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("Read pixel format VIDIOC_G_FMT: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -859,7 +787,6 @@ int Camera::EnumAllControlNewStyle()
         if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
         {
             Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
-            emit OnCameraMessage_Signal(QString("EnumAllControlNewStyle VIDIOC_QUERYCTRL: id=%1=%2, min=%3, max=%4, default=%5.").arg(qctrl.id).arg(v4l2helper::ConvertControlID2String(qctrl.id).c_str()).arg(qctrl.minimum).arg(qctrl.maximum).arg(qctrl.default_value));
             cidCount++;
         }
 
@@ -868,12 +795,10 @@ int Camera::EnumAllControlNewStyle()
     if (0 == cidCount)
     {
         Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL returned error, no controls can be enumerated.");
-        emit OnCameraMessage_Signal(QString("EnumAllControlNewStyle VIDIOC_QUERYCTRL returned error: no controls can be enumerated."));
     }
     else
     {
         Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL: NumControls=%d", cidCount);
-        emit OnCameraMessage_Signal(QString("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL: NumControls=%1.").arg(cidCount));
         result = 0;
     }
     return result;
@@ -893,7 +818,6 @@ int Camera::ReadExtControl(uint32_t &value, uint32_t controlID, const char *func
         v4l2_ext_control extCtrl;
 
         Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
-        emit OnCameraMessage_Signal(QString("%1 VIDIOC_QUERYCTRL %2: OK, min=%3, max=%4, default=%5.").arg(functionName).arg(controlName).arg(ctrl.minimum).arg(ctrl.maximum).arg(ctrl.default_value));
 
         CLEAR(extCtrls);
         CLEAR(extCtrl);
@@ -906,7 +830,6 @@ int Camera::ReadExtControl(uint32_t &value, uint32_t controlID, const char *func
         if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
         {
             Logger::LogEx("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
-            emit OnCameraMessage_Signal(QString("%1 VIDIOC_G_EXT_CTRLS: %2 OK =%3.").arg(functionName).arg(controlName).arg(extCtrl.value));
 
             value = extCtrl.value;
 
@@ -915,7 +838,6 @@ int Camera::ReadExtControl(uint32_t &value, uint32_t controlID, const char *func
         else
         {
             Logger::LogEx("Camera::%s VIDIOC_G_CTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
-            emit OnCameraError_Signal(QString("%1 VIDIOC_G_CTRL: %2 failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(ConvertErrno2String(errno).c_str()));
 
             result = -2;
         }
@@ -923,7 +845,6 @@ int Camera::ReadExtControl(uint32_t &value, uint32_t controlID, const char *func
     else
     {
         Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraMessage_Signal(QString("%1 VIDIOC_QUERYCTRL %2: failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(ConvertErrno2String(errno).c_str()));
 
         result = -2;
     }
@@ -951,19 +872,16 @@ int Camera::SetExtControl(uint32_t value, uint32_t controlID, const char *functi
         if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_S_EXT_CTRLS, &extCtrls))
         {
             Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
-            emit OnCameraMessage_Signal(QString("%1 VIDIOC_S_EXT_CTRLS: %2 to %3 OK.").arg(functionName).arg(controlName).arg(value));
             result = 0;
         }
         else
         {
             Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
-            emit OnCameraError_Signal(QString("%1 VIDIOC_S_EXT_CTRLS: %2 failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(ConvertErrno2String(errno).c_str()));
         }
     }
     else
     {
         Logger::LogEx("Camera::%s VIDIOC_TRY_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("%1 VIDIOC_TRY_EXT_CTRLS: %2 failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -983,7 +901,6 @@ int Camera::ReadExtControl(int32_t &value, uint32_t controlID, const char *funct
         v4l2_ext_control extCtrl;
 
         Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
-        emit OnCameraMessage_Signal(QString("%1 VIDIOC_QUERYCTRL %2: OK, min=%3, max=%4, default=%5.").arg(functionName).arg(controlName).arg(ctrl.minimum).arg(ctrl.maximum).arg(ctrl.default_value));
 
         CLEAR(extCtrls);
         CLEAR(extCtrl);
@@ -996,7 +913,6 @@ int Camera::ReadExtControl(int32_t &value, uint32_t controlID, const char *funct
         if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
         {
             Logger::LogEx("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
-            emit OnCameraMessage_Signal(QString("%1 VIDIOC_G_EXT_CTRLS: %2 OK =%3.").arg(functionName).arg(controlName).arg(extCtrl.value));
 
             value = extCtrl.value;
 
@@ -1005,7 +921,6 @@ int Camera::ReadExtControl(int32_t &value, uint32_t controlID, const char *funct
         else
         {
             Logger::LogEx("Camera::%s VIDIOC_G_CTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
-            emit OnCameraError_Signal(QString("%1 VIDIOC_G_CTRL: %2 failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(ConvertErrno2String(errno).c_str()));
 
             result = -2;
         }
@@ -1013,7 +928,6 @@ int Camera::ReadExtControl(int32_t &value, uint32_t controlID, const char *funct
     else
     {
         Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraMessage_Signal(QString("%1 VIDIOC_QUERYCTRL %2: failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(ConvertErrno2String(errno).c_str()));
 
         result = -2;
     }
@@ -1041,19 +955,16 @@ int Camera::SetExtControl(int32_t value, uint32_t controlID, const char *functio
         if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_S_EXT_CTRLS, &extCtrls))
         {
             Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
-            emit OnCameraMessage_Signal(QString("%1 VIDIOC_S_EXT_CTRLS: %2 to %3 OK.").arg(functionName).arg(controlName).arg(value));
             result = 0;
         }
         else
         {
             Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
-            emit OnCameraError_Signal(QString("%1 VIDIOC_S_EXT_CTRLS: %2 failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(ConvertErrno2String(errno).c_str()));
         }
     }
     else
     {
         Logger::LogEx("Camera::%s VIDIOC_TRY_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraError_Signal(QString("%1 VIDIOC_TRY_EXT_CTRLS: %2 failed errno=%3=%4.").arg(functionName).arg(controlName).arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -1283,12 +1194,10 @@ int Camera::ReadFrameRate(uint32_t &numerator, uint32_t &denominator, uint32_t w
         {
             frmival.index++;
             Logger::LogEx("Camera::ReadFrameRate type=%d", frmival.type);
-            emit OnCameraMessage_Signal(QString("ReadFrameRate type=%1").arg(frmival.type));
         }
         if (frmival.index == 0)
         {
             Logger::LogEx("Camera::ReadFrameRate VIDIOC_ENUM_FRAMEINTERVALS failed");
-            emit OnCameraMessage_Signal(QString("ReadFrameRate VIDIOC_ENUM_FRAMEINTERVALS failed"));
         }
 
         v4l2_streamparm parm;
@@ -1300,14 +1209,11 @@ int Camera::ReadFrameRate(uint32_t &numerator, uint32_t &denominator, uint32_t w
             numerator = parm.parm.capture.timeperframe.numerator;
             denominator = parm.parm.capture.timeperframe.denominator;
             Logger::LogEx("Camera::ReadFrameRate %d/%dOK", numerator, denominator);
-            emit OnCameraMessage_Signal(QString("ReadFrameRate OK %1/%2").arg(numerator).arg(denominator));
         }
     }
     else
     {
         Logger::LogEx("Camera::ReadFrameRate VIDIOC_G_PARM V4L2_CAP_TIMEPERFRAME failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraMessage_Signal(QString("ReadFrameRate VIDIOC_G_PARM V4L2_CAP_TIMEPERFRAME: failed errno=%3=%4.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
-
         result = -2;
     }
 
@@ -1330,13 +1236,11 @@ int Camera::SetFrameRate(uint32_t numerator, uint32_t denominator)
             if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_S_PARM, &parm))
             {
                 Logger::LogEx("Camera::SetFrameRate VIDIOC_S_PARM to %d/%d (%.2f) OK", numerator, denominator, numerator/denominator);
-                emit OnCameraMessage_Signal(QString("SetFrameRate VIDIOC_S_PARM: %1/%2 OK.").arg(numerator).arg(denominator));
                 result = 0;
             }
             else
             {
                 Logger::LogEx("Camera::SetFrameRate VIDIOC_S_PARM failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-                emit OnCameraError_Signal(QString("SetFrameRate VIDIOC_S_PARM: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
             }
         }
     }
@@ -1368,16 +1272,11 @@ int Camera::ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t 
         aspectdenum = cropcap.pixelaspect.denominator;
         Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP bx=%d, by=%d, bw=%d, bh=%d, dx=%d, dy=%d, dw=%d, dh=%d, num=%d, denum=%d OK",
                 boundsx, boundsy, boundsw, boundsh, defrectx, defrecty, defrectw, defrecth, aspectnum, aspectdenum);
-        emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_CROPCAP OK bx=%1,by=%2, bw=%3, bh=%4, dx=%5, dy=%6, dw=%7, dh=%8, num=%9, denum=%10")
-                .arg(boundsx).arg(boundsy).arg(boundsw).arg(boundsh).arg(defrectx).arg(defrecty).arg(defrectw).arg(defrecth).arg(aspectnum).arg(aspectdenum));
-
         result = 0;
     }
     else
     {
         Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_CROPCAP: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
-
         result = -2;
     }
 
@@ -1399,14 +1298,12 @@ int Camera::ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint
         width = crop.c.width;
         height = crop.c.height;
         Logger::LogEx("Camera::ReadCrop VIDIOC_G_CROP x=%d, y=%d, w=%d, h=%d OK", xOffset, yOffset, width, height);
-        emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_G_CROP OK %1,%2, %3, %4").arg(xOffset).arg(yOffset).arg(width).arg(height));
 
         result = 0;
     }
     else
     {
         Logger::LogEx("Camera::ReadCrop VIDIOC_G_CROP failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraMessage_Signal(QString("ReadCrop VIDIOC_G_CROP: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
 
         result = -2;
     }
@@ -1429,14 +1326,12 @@ int Camera::SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t
     if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_S_CROP, &crop) >= 0)
     {
         Logger::LogEx("Camera::SetCrop VIDIOC_S_CROP %d, %d, %d, %d OK", xOffset, yOffset, width, height);
-        emit OnCameraMessage_Signal(QString("SetCrop VIDIOC_S_CROP %1, %2, %3, %4 OK ").arg(xOffset).arg(yOffset).arg(width).arg(height));
 
         result = 0;
     }
     else
     {
         Logger::LogEx("Camera::SetCrop VIDIOC_S_CROP failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        emit OnCameraMessage_Signal(QString("SetCrop VIDIOC_S_CROP: failed errno=%1=%2.").arg(errno).arg(ConvertErrno2String(errno).c_str()));
     }
 
     return result;
@@ -1493,7 +1388,6 @@ int Camera::GetCameraDriverName(std::string &strText)
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
         Logger::LogEx("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s is no V4L2 device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraDriverName VIDIOC_QUERYCAP " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
         return -1;
     }
     else
@@ -1504,7 +1398,6 @@ int Camera::GetCameraDriverName(std::string &strText)
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraDriverName %s is no video capture device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraDriverName " + QString(m_DeviceName.c_str()) + " is no video capture device.");
         return -1;
     }
     else
@@ -1526,7 +1419,6 @@ int Camera::GetCameraDeviceName(std::string &strText)
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
         Logger::LogEx("Camera::GetCameraDeviceName %s is no V4L2 device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraDeviceName " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
         return -1;
     }
     else
@@ -1537,7 +1429,6 @@ int Camera::GetCameraDeviceName(std::string &strText)
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraDeviceName %s is no video capture device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraDeviceName " + QString(m_DeviceName.c_str()) + " is no video capture device.");
         return -1;
     }
     else
@@ -1559,7 +1450,6 @@ int Camera::GetCameraBusInfo(std::string &strText)
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
         Logger::LogEx("Camera::GetCameraBusInfo %s is no V4L2 device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraBusInfo " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
         return -1;
     }
     else
@@ -1570,7 +1460,6 @@ int Camera::GetCameraBusInfo(std::string &strText)
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraBusInfo %s is no video capture device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraBusInfo " + QString(m_DeviceName.c_str()) + " is no video capture device.");
         return -1;
     }
     else
@@ -1593,7 +1482,6 @@ int Camera::GetCameraDriverVersion(std::string &strText)
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
         Logger::LogEx("Camera::GetCameraDriverVersion %s is no V4L2 device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraDriverVersion " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
         return -1;
     }
     else
@@ -1604,7 +1492,6 @@ int Camera::GetCameraDriverVersion(std::string &strText)
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraDriverVersion %s is no video capture device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraDriverVersion " + QString(m_DeviceName.c_str()) + " is no video capture device.");
         return -1;
     }
     else
@@ -1629,7 +1516,6 @@ int Camera::GetCameraReadCapability(bool &flag)
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
         Logger::LogEx("Camera::GetCameraReadCapability %s is no V4L2 device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraReadCapability " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
         return -1;
     }
     else
@@ -1640,7 +1526,6 @@ int Camera::GetCameraReadCapability(bool &flag)
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraReadCapability %s is no video capture device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraReadCapability " + QString(m_DeviceName.c_str()) + " is no video capture device.");
         return -1;
     }
     else
@@ -1668,7 +1553,6 @@ int Camera::GetCameraCapabilities(std::string &strText)
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
         Logger::LogEx("Camera::GetCameraCapabilities %s is no V4L2 device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraCapabilities " + QString(m_DeviceName.c_str()) + " is no V4L2 device.");
         return -1;
     }
     else
@@ -1686,7 +1570,6 @@ int Camera::GetCameraCapabilities(std::string &strText)
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         Logger::LogEx("Camera::GetCameraCapabilities %s is no video capture device\n", m_DeviceName.c_str());
-        emit OnCameraError_Signal("Camera::GetCameraCapabilities " + QString(m_DeviceName.c_str()) + " is no video capture device.");
         return -1;
     }
     else

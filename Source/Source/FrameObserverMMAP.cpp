@@ -120,12 +120,10 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
             if (EINVAL == errno)
             {
                 Logger::LogEx("FrameObserverMMAP::CreateUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
-                emit OnError_Signal("FrameObserverMMAP::CreateUserBuffer: VIDIOC_REQBUFS does not support user pointer i/o.");
             }
             else
             {
                 Logger::LogEx("FrameObserverMMAP::CreateUserBuffer VIDIOC_REQBUFS error");
-                emit OnError_Signal("FrameObserverMMAP::CreateUserBuffer: VIDIOC_REQBUFS error.");
             }
         }
         else
@@ -133,7 +131,6 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
             base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
             Logger::LogEx("FrameObserverMMAP::CreateUserBuffer VIDIOC_REQBUFS OK");
-            emit OnMessage_Signal("FrameObserverMMAP::CreateUserBuffer: VIDIOC_REQBUFS OK.");
 
             // create local buffer container
             m_UserBufferContainerList.resize(bufferCount);
@@ -142,7 +139,6 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
             {
                 m_UserBufferContainerList.resize(0);
                 Logger::LogEx("FrameObserverMMAP::CreateUserBuffer buffer container error");
-                emit OnError_Signal("FrameObserverMMAP::CreateUserBuffer: buffer container error.");
                 return -1;
             }
 
@@ -157,12 +153,10 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
                 if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYBUF, &buf))
                 {
                     Logger::LogEx("FrameObserverMMAP::CreateUserBuffer VIDIOC_QUERYBUF error");
-                    emit OnError_Signal("FrameObserverMMAP::CreateUserBuffer: VIDIOC_QUERYBUF error.");
                     return -1;
                 }
 
                 Logger::LogEx("FrameObserverMMAP::CreateUserBuffer VIDIOC_QUERYBUF MMAP OK length=%d", buf.length);
-                emit OnMessage_Signal(QString("FrameObserverMMAP::CreateUserBuffer: VIDIOC_QUERYBUF OK length=%1.").arg(buf.length));
 
                 UserBuffer* pTmpBuffer = new UserBuffer;
                 pTmpBuffer->nBufferlength = buf.length;

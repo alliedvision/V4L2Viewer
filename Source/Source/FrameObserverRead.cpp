@@ -105,7 +105,6 @@ int FrameObserverRead::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
         Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS OK");
-        emit OnMessage_Signal("FrameObserverUSER::CreateUserBuffer: VIDIOC_REQBUFS OK.");
 
         // create local buffer container
         m_UserBufferContainerList.resize(bufferCount);
@@ -113,7 +112,6 @@ int FrameObserverRead::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         if (m_UserBufferContainerList.size() != bufferCount)
         {
             Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer container error");
-            emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: buffer container error.");
             return -1;
         }
 
@@ -129,7 +127,6 @@ int FrameObserverRead::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
             {
                 delete pTmpBuffer;
                 Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer creation error");
-                emit OnError_Signal("FrameObserverUSER::CreateUserBuffer: buffer creation error.");
                 m_UserBufferContainerList.resize(0);
                 return -1;
             }

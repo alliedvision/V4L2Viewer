@@ -147,18 +147,12 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
 
-    OnLog("Starting Application");
-
     SetTitleText("");
 
     // Start Camera
     connect(&m_Camera, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
     connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
-    connect(&m_Camera, SIGNAL(OnCameraEventReady_Signal(const QString &)), this, SLOT(OnCameraEventReady(const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraRegisterValueReady_Signal(unsigned long long)), this, SLOT(OnCameraRegisterValueReady(unsigned long long)));
-    connect(&m_Camera, SIGNAL(OnCameraError_Signal(const QString &)), this, SLOT(OnCameraError(const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraMessage_Signal(const QString &)), this, SLOT(OnCameraMessage(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)), this, SLOT(OnCameraPixelFormat(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)), this, SLOT(OnCameraFrameSize(const QString &)));
 
@@ -167,13 +161,12 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_BlockingModeRadioButtonGroup->setExclusive(true);
 
 
-    connect(m_BlockingModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(OnBlockingMode(QAbstractButton*)));
     connect(ui.m_TitleUseRead, SIGNAL(triggered()), this, SLOT(OnUseRead()));
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseUSERPTR, SIGNAL(triggered()), this, SLOT(OnUseUSERPTR()));
     connect(ui.m_TitleEnable_VIDIOC_TRY_FMT, SIGNAL(triggered()), this, SLOT(OnUseVIDIOC_TRY_FMT()));
     connect(ui.m_DisplayImagesCheckBox, SIGNAL(clicked()), this, SLOT(OnShowFrames()));
-    connect(ui.m_TitleClearOutputListbox, SIGNAL(triggered()), this, SLOT(OnClearOutputListbox()));
+
     connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
     connect(ui.m_TitleLangEnglish, SIGNAL(triggered()), this, SLOT(OnLanguageChange()));
     connect(ui.m_TitleLangGerman, SIGNAL(triggered()), this, SLOT(OnLanguageChange()));
@@ -315,16 +308,9 @@ void V4L2Viewer::OnMenuCloseTriggered()
     close();
 }
 
-void V4L2Viewer::OnBlockingMode(QAbstractButton* button)
-{
-    // m_BLOCKING_MODE = ui.m_radioBlocking->isChecked();
-    OnLog(QString("Use BLOCKING_MODE = %1").arg((m_BLOCKING_MODE) ? "TRUE" : "FALSE"));
-}
-
 void V4L2Viewer::OnUseRead()
 {
     m_MMAP_BUFFER = IO_METHOD_READ;
-    OnLog(QString("Use IO Read"));
 
     ui.m_TitleUseMMAP->setChecked(false);
     ui.m_TitleUseUSERPTR->setChecked(false);
@@ -334,7 +320,6 @@ void V4L2Viewer::OnUseRead()
 void V4L2Viewer::OnUseMMAP()
 {
     m_MMAP_BUFFER = IO_METHOD_MMAP;
-    OnLog(QString("Use IO MMAP"));
 
     ui.m_TitleUseMMAP->setChecked(true);
     ui.m_TitleUseUSERPTR->setChecked(false);
@@ -344,7 +329,6 @@ void V4L2Viewer::OnUseMMAP()
 void V4L2Viewer::OnUseUSERPTR()
 {
     m_MMAP_BUFFER = IO_METHOD_USERPTR;
-    OnLog(QString("Use IO USERPTR"));
 
     ui.m_TitleUseMMAP->setChecked(false);
     ui.m_TitleUseUSERPTR->setChecked(true);
@@ -354,22 +338,13 @@ void V4L2Viewer::OnUseUSERPTR()
 void V4L2Viewer::OnUseVIDIOC_TRY_FMT()
 {
     m_VIDIOC_TRY_FMT = !m_VIDIOC_TRY_FMT;
-    OnLog(QString("Use VIDIOC_TRY_FMT = %1").arg((m_VIDIOC_TRY_FMT) ? "TRUE" : "FALSE"));
-
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked(m_VIDIOC_TRY_FMT);
 }
 
 void V4L2Viewer::OnShowFrames()
 {
     m_ShowFrames = !m_ShowFrames;
-    OnLog(QString("Show Frames = %1").arg((m_ShowFrames) ? "TRUE" : "FALSE"));
-
     m_Camera.SwitchFrameTransfer2GUI(m_ShowFrames);
-}
-
-void V4L2Viewer::OnClearOutputListbox()
-{
-    ui.m_LogTextEdit->clear();
 }
 
 void V4L2Viewer::OnLogToFile()
@@ -485,7 +460,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             // Set up Qt image
             if (0 == err)
             {
-                OnLog("Camera opened successfully");
                 GetImageInformation();
                 SetTitleText(deviceName);
                 ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
@@ -515,7 +489,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             err = CloseCamera(m_cameras[nRow]);
             if (0 == err)
             {
-                OnLog("Camera closed successfully");
                 ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
                 CameraListCustomItem *newItem = new CameraListCustomItem(devName, this);
                 ui.m_CamerasListBox->item(nRow)->setSizeHint(newItem->sizeHint());
@@ -558,35 +531,11 @@ void V4L2Viewer::OnStartButtonClicked()
 
     // Get the payload size first to setup the streaming channel
     result = m_Camera.ReadPayloadSize(payloadSize);
-    OnLog(QString("Received payload size = %1").arg(payloadSize));
     result = m_Camera.ReadFrameSize(width, height);
-    OnLog(QString("Received width = %1").arg(width));
-    OnLog(QString("Received height = %1").arg(height));
     result = m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
-    OnLog(QString("Received pixel format = %1 = 0x%2 = %3").arg(pixelFormat).arg(pixelFormat, 8, 16, QChar('0')).arg(pixelFormatText));
 
     if (result == 0)
         StartStreaming(pixelFormat, payloadSize, width, height, bytesPerLine);
-}
-
-void V4L2Viewer::OnCameraRegisterValueReady(unsigned long long value)
-{
-    OnLog(QString("Received value = %1").arg(value));
-}
-
-void V4L2Viewer::OnCameraError(const QString &text)
-{
-    OnLog(QString("Error = %1").arg(text));
-}
-
-void V4L2Viewer::OnCameraWarning(const QString &text)
-{
-    OnLog(QString("Warning = %1").arg(text));
-}
-
-void V4L2Viewer::OnCameraMessage(const QString &text)
-{
-    OnLog(QString("Message = %1").arg(text));
 }
 
 void V4L2Viewer::OnCameraPixelFormat(const QString& pixelFormat)
@@ -635,15 +584,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
     if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadSize) == 0)
     {
         m_Camera.QueueAllUserBuffer();
-        OnLog("Starting Stream...");
-        if (m_Camera.StartStreaming() == 0)
-        {
-            OnLog("Start Stream OK.");
-        }
-        else
-        {
-            OnLog("Start Stream failed.");
-        }
+        m_Camera.StartStreaming();
         err = m_Camera.StartStreamChannel(pixelFormat,
                                           payloadSize,
                                           width,
@@ -652,11 +593,8 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
                                           NULL,
                                           ui.m_TitleLogtofile->isChecked());
 
-        if (0 != err)
-            OnLog("Start Acquisition failed during SI Start channel.");
-        else
+        if (0 == err)
         {
-            OnLog("Acquisition started ...");
             m_bIsStreaming = true;
         }
 
@@ -664,12 +602,6 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
         m_FramesReceivedTimer.start(1000);
         m_Camera.QueueAllUserBuffer();
-
-        OnLog("Starting Stream...");
-    }
-    else
-    {
-        OnLog("Creating user buffers failed.");
     }
 }
 
@@ -680,25 +612,13 @@ void V4L2Viewer::OnStopButtonClicked()
     ui.m_StopButton->setEnabled(false);
     ui.m_SaveImageButton->setEnabled(true);
 
-    int err = m_Camera.StopStreamChannel();
-    if (0 != err)
-        OnLog("Stop stream channel failed.");
-
-    OnLog("Stopping Stream...");
-    if (m_Camera.StopStreaming() == 0)
-    {
-        OnLog("Stop Stream OK.");
-    }
-    else
-    {
-        OnLog("Stop Stream failed.");
-    }
+    m_Camera.StopStreamChannel();
+    m_Camera.StopStreaming();
 
     QApplication::processEvents();
 
     m_bIsStreaming = false;
     UpdateViewerLayout();
-    OnLog("Stream channel stopped ...");
 
     m_FramesReceivedTimer.stop();
 
@@ -817,12 +737,6 @@ void V4L2Viewer::OnFrameID(const unsigned long long &frameId)
     ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
 }
 
-// The event handler to show the event data
-void V4L2Viewer::OnCameraEventReady(const QString &eventText)
-{
-    OnLog("Event received.");
-}
-
 // This event handler is triggered through a Qt signal posted by the camera observer
 void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info)
 {
@@ -835,11 +749,9 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
 
         std::string manuName;
         std::string devName = deviceName.toLatin1().data();
-        OnLog(QString("Camera list changed. A new camera was discovered, cardNumber=%1, deviceID=%2, cardName=%3.").arg(cardNumber).arg(deviceID).arg(info));
     }
     else if (UpdateTriggerPluggedOut == reason)
     {
-        OnLog(QString("Camera list changed. A camera was disconnected, cardNumber=%1, deviceID=%2.").arg(cardNumber).arg(deviceID));
         if ( true == m_bIsOpen )
         {
             OnOpenCloseButtonClicked();
@@ -985,16 +897,6 @@ void V4L2Viewer::UpdateZoomButtons()
     ui.m_ZoomLabel->setEnabled(m_bIsOpen && m_bIsStreaming && !ui.m_ZoomFitButton->isChecked());
 }
 
-// Prints out some logging without error
-void V4L2Viewer::OnLog(const QString &strMsg)
-{
-    if (ui.m_TitleEnableMessageListbox->isChecked())
-    {
-        ui.m_LogTextEdit->appendPlainText(strMsg);
-        ui.m_LogTextEdit->verticalScrollBar()->setValue(ui.m_LogTextEdit->verticalScrollBar()->maximum());
-    }
-}
-
 // Open/Close the camera
 int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName)
 {
@@ -1002,11 +904,6 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
 
     std::string devName = deviceName.toStdString();
     err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
-
-    if (0 != err)
-    {
-        OnLog("Open device failed");
-    }
 
     return err;
 }
@@ -1016,8 +913,6 @@ int V4L2Viewer::CloseCamera(const uint32_t cardNumber)
     int err = 0;
 
     err = m_Camera.CloseDevice();
-    if (0 != err)
-        OnLog("Close device failed.");
 
     return err;
 }
@@ -1046,7 +941,6 @@ void V4L2Viewer::OnWidth()
     else
     {
         uint32_t payloadSize = 0;
-        OnLog(QString("Frame size set to %1x%2").arg(ui.m_edWidth->text().toInt()).arg(ui.m_edHeight->text().toInt()));
 
         m_Camera.ReadPayloadSize(payloadSize);
     }
@@ -1064,8 +958,6 @@ void V4L2Viewer::OnHeight()
     else
     {
         uint32_t payloadSize = 0;
-        OnLog(QString("Frame size set to %1x%2").arg(ui.m_edWidth->text().toInt()).arg(ui.m_edHeight->text().toInt()));
-
         m_Camera.ReadPayloadSize(payloadSize);
     }
 
@@ -1217,14 +1109,7 @@ void V4L2Viewer::OnPixelFormatChanged(const QString &item)
         result += *s++ << 24;
     }
 
-    if (m_Camera.SetPixelFormat(result, "") < 0)
-    {
-        OnLog(QString("Failed to save pixel format to %1").arg(item));
-    }
-    else
-    {
-        OnLog(QString("Pixel format changed to %1").arg(item));
-    }
+    m_Camera.SetPixelFormat(result, "");
 }
 
 void V4L2Viewer::OnFrameSizesDBLClick(QListWidgetItem *item)
@@ -1251,7 +1136,6 @@ void V4L2Viewer::OnGamma()
     else
     {
         int32_t tmp = 0;
-        OnLog(QString("Gamma set to %1").arg(nVal));
 
         m_Camera.ReadGamma(tmp);
         ui.m_edGamma->setText(QString("%1").arg(tmp));
@@ -1272,7 +1156,6 @@ void V4L2Viewer::OnBrightness()
     else
     {
         int32_t tmp = 0;
-        OnLog(QString("Brightness set to %1").arg(nVal));
 
         m_Camera.ReadBrightness(tmp);
         ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
@@ -1293,7 +1176,6 @@ void V4L2Viewer::OnContrast()
     else
     {
         int32_t tmp = 0;
-        OnLog(QString("Contrast set to %1").arg(nVal));
 
         m_Camera.ReadContrast(tmp);
         ui.m_edContrast->setText(QString("%1").arg(tmp));
@@ -1314,7 +1196,6 @@ void V4L2Viewer::OnSaturation()
     else
     {
         int32_t tmp = 0;
-        OnLog(QString("Saturation set to %1").arg(nVal));
 
         m_Camera.ReadSaturation(tmp);
         ui.m_edSaturation->setText(QString("%1").arg(tmp));
@@ -1335,7 +1216,6 @@ void V4L2Viewer::OnHue()
     else
     {
         int32_t tmp = 0;
-        OnLog(QString("Hue set to %1").arg(nVal));
 
         m_Camera.ReadHue(tmp);
         ui.m_edHue->setText(QString("%1").arg(tmp));
@@ -1366,7 +1246,6 @@ void V4L2Viewer::OnRedBalance()
     else
     {
         int32_t tmp = 0;
-        OnLog(QString("RedBalance set to %1").arg(nVal));
 
         m_Camera.ReadRedBalance(tmp);
         ui.m_edRedBalance->setText(QString("%1").arg(tmp));
@@ -1387,7 +1266,6 @@ void V4L2Viewer::OnBlueBalance()
     else
     {
         int32_t tmp = 0;
-        OnLog(QString("BlueBalance set to %1").arg(nVal));
 
         m_Camera.ReadBlueBalance(tmp);
         ui.m_edBlueBalance->setText(QString("%1").arg(tmp));
@@ -1424,7 +1302,6 @@ void V4L2Viewer::OnFrameRate()
     }
     else
     {
-        OnLog(QString("Frame rate set to %1").arg(ui.m_edFrameRate->text() + QString(" (") + QString::number((double)numerator/(double)denominator, 'f', 3) + QString(")") ));
         m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
         ui.m_edFrameRate->setText(QString("%1/%2").arg(numerator).arg(denominator));
     }
@@ -1438,7 +1315,6 @@ void V4L2Viewer::OnCropXOffset()
     uint32_t height;
     uint32_t tmp;
 
-    OnLog("Read org cropping values");
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
         xOffset = ui.m_edCropXOffset->text().toInt();
@@ -1446,16 +1322,12 @@ void V4L2Viewer::OnCropXOffset()
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
             // readback to show it was set correct
-            OnLog("Verifing new cropping values");
             if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
             {
                 ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
                 ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
                 ui.m_edCropWidth->setText(QString("%1").arg(width));
                 ui.m_edCropHeight->setText(QString("%1").arg(height));
-                if (tmp != xOffset)
-                    OnLog("Error: value not set !!!");
-
                 UpdateCameraFormat();
             }
         }
@@ -1470,7 +1342,6 @@ void V4L2Viewer::OnCropYOffset()
     uint32_t height;
     uint32_t tmp;
 
-    OnLog("Read org cropping values");
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
         yOffset = ui.m_edCropYOffset->text().toInt();
@@ -1478,15 +1349,12 @@ void V4L2Viewer::OnCropYOffset()
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
             // readback to show it was set correct
-            OnLog("Verifing new cropping values");
             if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
             {
                 ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
                 ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
                 ui.m_edCropWidth->setText(QString("%1").arg(width));
                 ui.m_edCropHeight->setText(QString("%1").arg(height));
-                if (tmp != yOffset)
-                    OnLog("Error: value not set !!!");
             }
         }
     }
@@ -1500,7 +1368,6 @@ void V4L2Viewer::OnCropWidth()
     uint32_t height;
     uint32_t tmp;
 
-    OnLog("Read org cropping values");
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
         width = ui.m_edCropWidth->text().toInt();
@@ -1508,15 +1375,12 @@ void V4L2Viewer::OnCropWidth()
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
             // readback to show it was set correct
-            OnLog("Verifing new cropping values");
             if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
             {
                 ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
                 ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
                 ui.m_edCropWidth->setText(QString("%1").arg(width));
                 ui.m_edCropHeight->setText(QString("%1").arg(height));
-                if (tmp != width)
-                    OnLog("Error: value not set !!!");
             }
         }
     }
@@ -1532,7 +1396,6 @@ void V4L2Viewer::OnCropHeight()
     uint32_t height;
     uint32_t tmp;
 
-    OnLog("Read org cropping values");
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
         height = ui.m_edCropHeight->text().toInt();
@@ -1540,15 +1403,12 @@ void V4L2Viewer::OnCropHeight()
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
             // readback to show it was set correct
-            OnLog("Verifing new cropping values");
             if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
             {
                 ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
                 ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
                 ui.m_edCropWidth->setText(QString("%1").arg(width));
                 ui.m_edCropHeight->setText(QString("%1").arg(height));
-                if (tmp != height)
-                    OnLog("Error: value not set !!!");
             }
         }
     }
@@ -1569,7 +1429,6 @@ void V4L2Viewer::OnCropCapabilities()
     uint32_t aspectnum;
     uint32_t aspectdenum;
 
-    OnLog("Read cropping capabilities");
     if (m_Camera.ReadCropCapabilities(boundsx, boundsy, boundsw, boundsh,
                                       defrectx, defrecty, defrectw, defrecth,
                                       aspectnum, aspectdenum) == 0)

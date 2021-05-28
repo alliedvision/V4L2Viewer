@@ -127,12 +127,9 @@ private:
 
 private slots:
     void OnLogToFile();
-    void OnClearOutputListbox();
     void OnShowFrames();
     // The event handler to close the program
     void OnMenuCloseTriggered();
-    // The event handler to set blocking mode
-    void OnBlockingMode(QAbstractButton* button);
     // The event handler to set IO Read
     void OnUseRead();
     // The event handler to set IO MMAP
@@ -143,8 +140,6 @@ private slots:
     void OnUseVIDIOC_TRY_FMT();
     // The event handler to open a next viewer
     void OnMenuOpenNextViewer();
-    // Prints out some logging
-    void OnLog(const QString &strMsg);
     // The event handler for open / close camera
     void OnOpenCloseButtonClicked();
     // The event handler for the camera list changed event
@@ -165,16 +160,6 @@ private slots:
     void OnFrameReady(const QImage &image, const unsigned long long &frameId);
     // The event handler to show the processed frame ID
     void OnFrameID(const unsigned long long &frameId);
-    // The event handler to show the event data
-    void OnCameraEventReady(const QString &eventText);
-    // The event handler to show the received values
-    void OnCameraRegisterValueReady(unsigned long long value);
-    // Event will be called on error
-    void OnCameraError(const QString &text);
-    // Event will be called on warning
-    void OnCameraWarning(const QString &text);
-    // Event will be called on message
-    void OnCameraMessage(const QString &text);
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
 

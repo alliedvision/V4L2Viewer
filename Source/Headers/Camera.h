@@ -181,14 +181,6 @@ signals:
     void OnCameraFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
     // Event will be called when a frame ID is processed by the internal thread and ready to show
     void OnCameraFrameID_Signal(const unsigned long long &frameId);
-    // Event will be called when the event data are processed by the internal thread and ready to show
-    void OnCameraEventReady_Signal(const QString &eventText);
-    // Event will be called when the any other data arrieved
-    void OnCameraRegisterValueReady_Signal(unsigned long long value);
-    // Event will be called on error
-    void OnCameraError_Signal(const QString &text);
-    // Event will be called on message
-    void OnCameraMessage_Signal(const QString &text);
     // Event will be called when the a frame is recorded
     void OnCameraRecordFrame_Signal(const QSharedPointer<MyFrame>&);
     // Event will be called when the a frame is displayed
@@ -206,10 +198,6 @@ private slots:
     void OnFrameID(const unsigned long long &frameId);
     // Event will be called when the a frame is displayed
     void OnDisplayFrame(const unsigned long long &frameID);
-    // Event will be called when for text notification
-    void OnMessage(const QString &msg);
-    // Event will be called when for text notification
-    void OnError(const QString &msg);
 };
 
 #endif // CAMERA_H
