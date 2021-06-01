@@ -13,12 +13,14 @@ public:
     CustomOptionWidget *GetBlueBalanceWidget();
     CustomOptionWidget *GetSaturationWidget();
     CustomOptionWidget *GetHueWidget();
+    CustomOptionWidget *GetContrastWidget();
 
 private:
     CustomOptionWidget *m_pRedBalance;
     CustomOptionWidget *m_pBlueBalance;
     CustomOptionWidget *m_pSaturation;
     CustomOptionWidget *m_pHue;
+    CustomOptionWidget *m_pContrast;
     QGridLayout *m_pMainLyout;
 };
 

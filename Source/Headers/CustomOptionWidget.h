@@ -12,6 +12,7 @@ class CustomOptionWidget : public QWidget
 public:
     explicit CustomOptionWidget(QString text, QWidget *parent = nullptr);
     QLineEdit *GetLineEditWidget();
+    QLabel *GetLabelWidget();
 
 private:
     QLabel *m_pTextLabel;

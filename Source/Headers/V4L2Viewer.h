@@ -180,7 +180,7 @@ private slots:
     void OnExposure();
     void OnAutoExposure();
     void OnExposureAbs();
-    void OnPixelFormatChanged(const QString &);
+    void OnPixelFormatChanged(const QString &item);
     void OnFrameSizesDBLClick(QListWidgetItem *);
     void OnGamma();
     void OnBrightness();

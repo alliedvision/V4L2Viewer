@@ -138,6 +138,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     else
         ui.m_MenuOpenNextViewer->setEnabled(false);
 
+    // Initialization of the Settings widget
+    m_pSettingsActionWidget = new SettingsActionWidget(this);
+
     // Connect GUI events with event handlers
     connect(ui.m_OpenCloseButton,             SIGNAL(clicked()),         this, SLOT(OnOpenCloseButtonClicked()));
     connect(ui.m_StartButton,                 SIGNAL(clicked()),         this, SLOT(OnStartButtonClicked()));
@@ -192,18 +195,17 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edExposure, SIGNAL(returnPressed()), this, SLOT(OnExposure()));
     connect(ui.m_edExposureAbs, SIGNAL(returnPressed()), this, SLOT(OnExposureAbs()));
     connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
-
     connect(ui.m_pixelFormats, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnPixelFormatChanged(const QString &)));
-
     connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
-
     connect(ui.m_edBlackLevel, SIGNAL(returnPressed()), this, SLOT(OnBrightness()));
-    connect(ui.m_edContrast, SIGNAL(returnPressed()), this, SLOT(OnContrast()));
-    connect(ui.m_edSaturation, SIGNAL(returnPressed()), this, SLOT(OnSaturation()));
-    connect(ui.m_edHue, SIGNAL(returnPressed()), this, SLOT(OnHue()));
+
+    connect(m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget(),    SIGNAL(returnPressed()), this, SLOT(OnRedBalance()));
+    connect(m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget(),   SIGNAL(returnPressed()), this, SLOT(OnBlueBalance()));
+    connect(m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget(),    SIGNAL(returnPressed()), this, SLOT(OnSaturation()));
+    connect(m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget(),           SIGNAL(returnPressed()), this, SLOT(OnHue()));
+    connect(m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget(),      SIGNAL(returnPressed()), this, SLOT(OnContrast()));
+
     connect(ui.m_chkContWhiteBalance, SIGNAL(clicked()), this, SLOT(OnContinousWhiteBalance()));
-    connect(ui.m_edRedBalance, SIGNAL(returnPressed()), this, SLOT(OnRedBalance()));
-    connect(ui.m_edBlueBalance, SIGNAL(returnPressed()), this, SLOT(OnBlueBalance()));
     connect(ui.m_edFrameRate, SIGNAL(returnPressed()), this, SLOT(OnFrameRate()));
     connect(ui.m_edCropXOffset, SIGNAL(returnPressed()), this, SLOT(OnCropXOffset()));
     connect(ui.m_edCropYOffset, SIGNAL(returnPressed()), this, SLOT(OnCropYOffset()));
@@ -247,8 +249,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_NumberOfUsedFramesWidgetAction = new QWidgetAction(this);
     m_NumberOfUsedFramesWidgetAction->setDefaultWidget(widgetNum);
     ui.m_MenuBuffer->addAction(m_NumberOfUsedFramesWidgetAction);
-
-    m_pSettingsActionWidget = new SettingsActionWidget(this);
 
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
@@ -1184,61 +1184,61 @@ void V4L2Viewer::OnBrightness()
 
 void V4L2Viewer::OnContrast()
 {
-    int32_t nVal = int64_2_int32(ui.m_edContrast->text().toLongLong());
+    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->text().toLongLong());
 
     if (m_Camera.SetContrast(nVal) < 0)
     {
         int32_t tmp = 0;
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE contrast!") );
         m_Camera.ReadContrast(tmp);
-        ui.m_edContrast->setText(QString("%1").arg(tmp));
+        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
     }
     else
     {
         int32_t tmp = 0;
 
         m_Camera.ReadContrast(tmp);
-        ui.m_edContrast->setText(QString("%1").arg(tmp));
+        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
     }
 }
 
 void V4L2Viewer::OnSaturation()
 {
-    int32_t nVal = int64_2_int32(ui.m_edSaturation->text().toLongLong());
+    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->text().toLongLong());
 
     if (m_Camera.SetSaturation(nVal) < 0)
     {
         int32_t tmp = 0;
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE saturation!") );
         m_Camera.ReadSaturation(tmp);
-        ui.m_edSaturation->setText(QString("%1").arg(tmp));
+        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
     }
     else
     {
         int32_t tmp = 0;
 
         m_Camera.ReadSaturation(tmp);
-        ui.m_edSaturation->setText(QString("%1").arg(tmp));
+        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
     }
 }
 
 void V4L2Viewer::OnHue()
 {
-    int32_t nVal = int64_2_int32(ui.m_edHue->text().toLongLong());
+    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->text().toLongLong());
 
     if (m_Camera.SetHue(nVal) < 0)
     {
         int32_t tmp = 0;
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE hue!") );
         m_Camera.ReadHue(tmp);
-        ui.m_edHue->setText(QString("%1").arg(tmp));
+        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
     }
     else
     {
         int32_t tmp = 0;
 
         m_Camera.ReadHue(tmp);
-        ui.m_edHue->setText(QString("%1").arg(tmp));
+        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
     }
 }
 
@@ -1254,41 +1254,41 @@ void V4L2Viewer::OnWhiteBalanceOnce()
 
 void V4L2Viewer::OnRedBalance()
 {
-    int32_t nVal = int64_2_int32(ui.m_edRedBalance->text().toLongLong());
+    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->text().toLongLong());
 
     if (m_Camera.SetRedBalance((uint32_t)nVal) < 0)
     {
         int32_t tmp = 0;
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE red balance!") );
         m_Camera.ReadRedBalance(tmp);
-        ui.m_edRedBalance->setText(QString("%1").arg(tmp));
+        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
     }
     else
     {
         int32_t tmp = 0;
 
         m_Camera.ReadRedBalance(tmp);
-        ui.m_edRedBalance->setText(QString("%1").arg(tmp));
+        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
     }
 }
 
 void V4L2Viewer::OnBlueBalance()
 {
-    int32_t nVal = int64_2_int32(ui.m_edBlueBalance->text().toLongLong());
+    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->text().toLongLong());
 
     if (m_Camera.SetBlueBalance((uint32_t)nVal) < 0)
     {
         int32_t tmp = 0;
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE blue balance!") );
         m_Camera.ReadBlueBalance(tmp);
-        ui.m_edBlueBalance->setText(QString("%1").arg(tmp));
+        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
     }
     else
     {
         int32_t tmp = 0;
 
         m_Camera.ReadBlueBalance(tmp);
-        ui.m_edBlueBalance->setText(QString("%1").arg(tmp));
+        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
     }
 }
 
@@ -1607,66 +1607,66 @@ void V4L2Viewer::GetImageInformation()
     nSVal = 0;
     if (m_Camera.ReadContrast(nSVal) != -2)
     {
-        ui.m_edContrast->setEnabled(true);
-        ui.m_labelContrast->setEnabled(true);
-        ui.m_edContrast->setText(QString("%1").arg(nSVal));
+        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setEnabled(true);
+        m_pSettingsActionWidget->GetContrastWidget()->GetLabelWidget()->setEnabled(true);
+        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
     }
     else
     {
-        ui.m_edContrast->setEnabled(false);
-        ui.m_labelContrast->setEnabled(false);
+        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setEnabled(false);
+        m_pSettingsActionWidget->GetContrastWidget()->GetLabelWidget()->setEnabled(false);
     }
 
     nSVal = 0;
     if (m_Camera.ReadSaturation(nSVal) != -2)
     {
-        ui.m_edSaturation->setEnabled(true);
-        ui.m_labelSaturation->setEnabled(true);
-        ui.m_edSaturation->setText(QString("%1").arg(nSVal));
+        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setEnabled(true);
+        m_pSettingsActionWidget->GetSaturationWidget()->GetLabelWidget()->setEnabled(true);
+        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
     }
     else
     {
-        ui.m_edSaturation->setEnabled(false);
-        ui.m_labelSaturation->setEnabled(false);
+        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setEnabled(false);
+        m_pSettingsActionWidget->GetSaturationWidget()->GetLabelWidget()->setEnabled(false);
     }
 
     nSVal = 0;
     if (m_Camera.ReadHue(nSVal) != -2)
     {
-        ui.m_edHue->setEnabled(true);
-        ui.m_labelHue->setEnabled(true);
-        ui.m_edHue->setText(QString("%1").arg(nSVal));
+        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setEnabled(true);
+        m_pSettingsActionWidget->GetHueWidget()->GetLabelWidget()->setEnabled(true);
+        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
     }
     else
     {
-        ui.m_edHue->setEnabled(false);
-        ui.m_labelHue->setEnabled(false);
+        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setEnabled(false);
+        m_pSettingsActionWidget->GetHueWidget()->GetLabelWidget()->setEnabled(false);
     }
 
     nSVal = 0;
     if (m_Camera.ReadRedBalance(nSVal) != -2)
     {
-        ui.m_edRedBalance->setEnabled(true);
-        ui.m_labelRedBalance->setEnabled(true);
-        ui.m_edRedBalance->setText(QString("%1").arg(nSVal));
+        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setEnabled(true);
+        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLabelWidget()->setEnabled(true);
+        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
     }
     else
     {
-        ui.m_edRedBalance->setEnabled(false);
-        ui.m_labelRedBalance->setEnabled(false);
+        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setEnabled(false);
+        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLabelWidget()->setEnabled(false);
     }
 
     nSVal = 0;
     if (m_Camera.ReadBlueBalance(nSVal) != -2)
     {
-        ui.m_edBlueBalance->setEnabled(true);
-        ui.m_labelBlueBalance->setEnabled(true);
-        ui.m_edBlueBalance->setText(QString("%1").arg(nSVal));
+        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setEnabled(true);
+        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLabelWidget()->setEnabled(true);
+        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
     }
     else
     {
-        ui.m_edBlueBalance->setEnabled(false);
-        ui.m_labelBlueBalance->setEnabled(false);
+        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setEnabled(false);
+        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLabelWidget()->setEnabled(false);
     }
 
     m_Camera.ReadFrameSize(width, height);
