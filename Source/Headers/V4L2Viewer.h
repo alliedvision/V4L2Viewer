@@ -95,7 +95,9 @@ private:
 
     QTranslator *m_pGermanTranslator;
     AboutWidget *m_pAboutWidget;
+
     SettingsActionWidget *m_pSettingsActionWidget;
+    QMenu *m_pSettingsMenu;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);

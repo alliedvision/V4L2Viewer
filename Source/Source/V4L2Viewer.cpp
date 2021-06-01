@@ -139,7 +139,11 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
         ui.m_MenuOpenNextViewer->setEnabled(false);
 
     // Initialization of the Settings widget
+    QWidgetAction *widgetAction = new QWidgetAction(this);
     m_pSettingsActionWidget = new SettingsActionWidget(this);
+    m_pSettingsMenu = new QMenu(this);
+    widgetAction->setDefaultWidget(m_pSettingsActionWidget);
+    m_pSettingsMenu->addAction(widgetAction);
 
     // Connect GUI events with event handlers
     connect(ui.m_OpenCloseButton,             SIGNAL(clicked()),         this, SLOT(OnOpenCloseButtonClicked()));
@@ -294,6 +298,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
 
     connect(ui.m_SettingsButton, SIGNAL(clicked()), this, SLOT(OnSettingsButtonClicked()));
+
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -574,17 +579,10 @@ void V4L2Viewer::OnLanguageChange()
 
 void V4L2Viewer::OnSettingsButtonClicked()
 {
-    QWidgetAction *widgetAction = new QWidgetAction(this);
-    widgetAction->setDefaultWidget(m_pSettingsActionWidget);
-    QMenu *menu = new QMenu(this);
-    menu->addAction(widgetAction);
     QPoint point = ui.m_SettingsButton->pos();
     point = ui.m_ImageControlFrame->mapToGlobal(point);
     point.setY(point.y()+ui.m_SettingsButton->height());
-
-    //menu->setGeometry(point.x(), point.y(), ui.m_SettingsButton->width(), menu->height());
-
-    menu->exec(point);
+    m_pSettingsMenu->exec(point);
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
