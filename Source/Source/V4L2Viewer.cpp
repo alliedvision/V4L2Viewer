@@ -248,10 +248,12 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_NumberOfUsedFramesWidgetAction->setDefaultWidget(widgetNum);
     ui.m_MenuBuffer->addAction(m_NumberOfUsedFramesWidgetAction);
 
+    m_pSettingsActionWidget = new SettingsActionWidget(this);
+
     // add about widget to the menu bar
-    m_AboutWidget = new AboutWidget(this);
+    m_pAboutWidget = new AboutWidget(this);
     QWidgetAction *aboutWidgetAction = new QWidgetAction(this);
-    aboutWidgetAction->setDefaultWidget(m_AboutWidget);
+    aboutWidgetAction->setDefaultWidget(m_pAboutWidget);
     ui.m_MenuAbout->addAction(aboutWidgetAction);
 
     ui.menuBar->setNativeMenuBar(false);
@@ -290,6 +292,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     }
 
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
+
+    connect(ui.m_SettingsButton, SIGNAL(clicked()), this, SLOT(OnSettingsButtonClicked()));
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -402,7 +406,7 @@ void V4L2Viewer::changeEvent(QEvent *event)
     if (event->type() == QEvent::LanguageChange)
     {
         ui.retranslateUi(this);
-        m_AboutWidget->UpdateStrings();
+        m_pAboutWidget->UpdateStrings();
     }
     else
     {
@@ -566,6 +570,21 @@ void V4L2Viewer::OnLanguageChange()
     {
         QMessageBox::warning( this, tr("Video4Linux"), tr("Language has been already set!") );
     }
+}
+
+void V4L2Viewer::OnSettingsButtonClicked()
+{
+    QWidgetAction *widgetAction = new QWidgetAction(this);
+    widgetAction->setDefaultWidget(m_pSettingsActionWidget);
+    QMenu *menu = new QMenu(this);
+    menu->addAction(widgetAction);
+    QPoint point = ui.m_SettingsButton->pos();
+    point = ui.m_ImageControlFrame->mapToGlobal(point);
+    point.setY(point.y()+ui.m_SettingsButton->height());
+
+    //menu->setGeometry(point.x(), point.y(), ui.m_SettingsButton->width(), menu->height());
+
+    menu->exec(point);
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)

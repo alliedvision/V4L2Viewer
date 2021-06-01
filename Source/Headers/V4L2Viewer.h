@@ -33,7 +33,7 @@
 #include "FrameObserver.h"
 #include "MyFrame.h"
 #include "AboutWidget.h"
-
+#include "SettingsActionWidget.h"
 #include "ui_V4L2Viewer.h"
 
 #include <list>
@@ -94,7 +94,8 @@ private:
     QButtonGroup* m_BlockingModeRadioButtonGroup;
 
     QTranslator *m_pGermanTranslator;
-    AboutWidget *m_AboutWidget;
+    AboutWidget *m_pAboutWidget;
+    SettingsActionWidget *m_pSettingsActionWidget;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -197,6 +198,8 @@ private slots:
     void OnCameraPixelFormat(const QString &);
     void OnCameraFrameSize(const QString &);
     void OnLanguageChange();
+
+    void OnSettingsButtonClicked();
 };
 
 #endif // V4L2VIEWER_H
