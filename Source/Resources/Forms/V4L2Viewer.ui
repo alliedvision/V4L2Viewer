@@ -533,6 +533,45 @@ QCheckBox::disabled {
               </property>
              </spacer>
             </item>
+            <item row="0" column="5">
+             <widget class="QPushButton" name="m_ZoomFitButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>&lt;p&gt;&lt;b&gt;Fit to Window&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will fit image area to window.&lt;/span&gt;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../V4L2Viewer.qrc">
+                <normaloff>:/V4L2Viewer/magnifying-glass1.png</normaloff>:/V4L2Viewer/magnifying-glass1.png</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
             <item row="0" column="3">
              <widget class="QPushButton" name="m_ZoomInButton">
               <property name="sizePolicy">
@@ -566,6 +605,94 @@ QCheckBox::disabled {
               <property name="icon">
                <iconset resource="../V4L2Viewer.qrc">
                 <normaloff>:/V4L2Viewer/zoom75.png</normaloff>:/V4L2Viewer/zoom75.png</iconset>
+              </property>
+              <property name="autoRepeat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QPushButton" name="m_StopButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>&lt;p&gt;&lt;b&gt;Stop acquisition&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will stop image acquisition.&lt;/span&gt;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../V4L2Viewer.qrc">
+                <normaloff>:/V4L2Viewer/stop4.png</normaloff>:/V4L2Viewer/stop4.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="11">
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>214</width>
+                <height>28</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="4">
+             <widget class="QPushButton" name="m_ZoomOutButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="toolTip">
+               <string>&lt;p&gt;&lt;b&gt;Switch the resize&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will zoom out image area.&lt;/span&gt;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../V4L2Viewer.qrc">
+                <normaloff>:/V4L2Viewer/magnifying-glass2.png</normaloff>:/V4L2Viewer/magnifying-glass2.png</iconset>
               </property>
               <property name="autoRepeat">
                <bool>true</bool>
@@ -611,117 +738,23 @@ QCheckBox::disabled {
               </property>
              </widget>
             </item>
-            <item row="0" column="2">
-             <widget class="QPushButton" name="m_StopButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Stop acquisition&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will stop image acquisition.&lt;/span&gt;</string>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../V4L2Viewer.qrc">
-                <normaloff>:/V4L2Viewer/stop4.png</normaloff>:/V4L2Viewer/stop4.png</iconset>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="5">
-             <widget class="QPushButton" name="m_ZoomFitButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Fit to Window&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will fit image area to window.&lt;/span&gt;</string>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../V4L2Viewer.qrc">
-                <normaloff>:/V4L2Viewer/magnifying-glass1.png</normaloff>:/V4L2Viewer/magnifying-glass1.png</iconset>
-              </property>
-              <property name="checkable">
+            <item row="0" column="9">
+             <widget class="QCheckBox" name="m_FlipVerticalCheckBox">
+              <property name="enabled">
                <bool>true</bool>
               </property>
-             </widget>
-            </item>
-            <item row="0" column="4">
-             <widget class="QPushButton" name="m_ZoomOutButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Switch the resize&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will zoom out image area.&lt;/span&gt;</string>
+               <string>&lt;p&gt;&lt;b&gt;Flip Vertical&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will flip image area vertically.&lt;/span&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
               </property>
               <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../V4L2Viewer.qrc">
-                <normaloff>:/V4L2Viewer/magnifying-glass2.png</normaloff>:/V4L2Viewer/magnifying-glass2.png</iconset>
-              </property>
-              <property name="autoRepeat">
-               <bool>true</bool>
+               <string>Flip Y</string>
               </property>
              </widget>
             </item>
@@ -745,39 +778,6 @@ QCheckBox::disabled {
               </property>
              </widget>
             </item>
-            <item row="0" column="11">
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>214</width>
-                <height>28</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="9">
-             <widget class="QCheckBox" name="m_FlipVerticalCheckBox">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Flip Vertical&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will flip image area vertically.&lt;/span&gt;</string>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="text">
-               <string>Flip Y</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="10">
              <widget class="QCheckBox" name="m_DisplayImagesCheckBox">
               <property name="enabled">
@@ -787,6 +787,12 @@ QCheckBox::disabled {
                <size>
                 <width>0</width>
                 <height>32</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
                </size>
               </property>
               <property name="cursor">
@@ -801,6 +807,15 @@ QCheckBox::disabled {
               </property>
               <property name="text">
                <string>Display Images</string>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
               </property>
               <property name="checked">
                <bool>true</bool>
@@ -1215,19 +1230,6 @@ QCheckBox::disabled{
              </layout>
             </widget>
            </item>
-           <item row="0" column="0" colspan="3">
-            <widget class="QLabel" name="label_2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>WhiteBalance</string>
-             </property>
-            </widget>
-           </item>
            <item row="7" column="0" colspan="3">
             <widget class="QPushButton" name="m_SettingsButton">
              <property name="cursor">
@@ -1260,6 +1262,22 @@ background-color:rgb(166, 166, 166);
               <string>Settings</string>
              </property>
             </widget>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QLabel" name="label_2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>WhiteBalance</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLineEdit" name="m_edWhiteBalance"/>
            </item>
           </layout>
          </item>

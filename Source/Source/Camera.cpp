@@ -36,6 +36,7 @@
 
 #include <QStringList>
 #include <QSysInfo>
+#include <QMutexLocker>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -90,10 +91,15 @@ Camera::Camera()
     , m_IsAvtCamera(true)
 {
     connect(&m_CameraObserver, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
+    m_pAutoReader = new AutoReader();
+    connect(m_pAutoReader->GetAutoReaderWorker(), SIGNAL(ReadExposureSignal()), this, SLOT(PassExposureValue()));
 }
 
 Camera::~Camera()
 {
+    m_pAutoReader->DeleteThread();
+    delete m_pAutoReader;
+    m_pAutoReader = nullptr;
     m_CameraObserver.SetTerminateFlag();
     if (NULL != m_pFrameObserver.data())
         m_pFrameObserver->StopStream();
@@ -727,7 +733,6 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
             if (-1 != result)
             {
                 Logger::LogEx("Camera::SetPixelFormat VIDIOC_S_FMT to %d OK", pixelFormat);
-
                 result = 0;
             }
             else
@@ -889,6 +894,7 @@ int Camera::SetExtControl(uint32_t value, uint32_t controlID, const char *functi
 
 int Camera::ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass)
 {
+    QMutexLocker locker(&m_ReadExtControlMutex);
     int result = -1;
     v4l2_queryctrl ctrl;
 
@@ -992,6 +998,14 @@ int Camera::ReadAutoExposure(bool &flag)
 
 int Camera::SetAutoExposure(bool value)
 {
+    if (value)
+    {
+        m_pAutoReader->StartThread();
+    }
+    else
+    {
+        m_pAutoReader->StopThread();
+    }
     return SetExtControl(value ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
 }
 
@@ -1140,9 +1154,13 @@ bool Camera::IsWhiteBalanceOnceSupported()
 int Camera::SetContinousWhiteBalance(bool flag)
 {
     if (flag)
+    {
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance on", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
+    }
     else
+    {
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
+    }
 }
 
 int Camera::DoWhiteBalanceOnce()
@@ -1875,3 +1893,21 @@ std::string Camera::ConvertPixelFormat2String(int pixelFormat)
 
     return s;
 }
+
+void Camera::PassGainValue()
+{
+
+}
+
+void Camera::PassExposureValue()
+{
+    int32_t value = 0;
+    int result = ReadExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
+    emit PassAutoExposureValue(value);
+}
+
+void Camera::PassAutoWhiteBalanceValue()
+{
+
+}
+

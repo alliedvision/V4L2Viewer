@@ -163,6 +163,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)), this, SLOT(OnCameraPixelFormat(const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)), this, SLOT(OnCameraFrameSize(const QString &)));
 
+    connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
+
     // Setup blocking mode radio buttons
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
     m_BlockingModeRadioButtonGroup->setExclusive(true);
@@ -583,6 +585,12 @@ void V4L2Viewer::OnSettingsButtonClicked()
     point = ui.m_ImageControlFrame->mapToGlobal(point);
     point.setY(point.y()+ui.m_SettingsButton->height());
     m_pSettingsMenu->exec(point);
+}
+
+void V4L2Viewer::OnUpdateAutoExposure(int32_t value)
+{
+    ui.m_edExposure->setText(QString::number(value));
+    qDebug() << value;
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
@@ -1126,7 +1134,6 @@ void V4L2Viewer::OnPixelFormatChanged(const QString &item)
         result += *s++ << 16;
         result += *s++ << 24;
     }
-
     m_Camera.SetPixelFormat(result, "");
 }
 

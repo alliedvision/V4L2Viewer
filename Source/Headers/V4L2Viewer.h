@@ -200,8 +200,9 @@ private slots:
     void OnCameraPixelFormat(const QString &);
     void OnCameraFrameSize(const QString &);
     void OnLanguageChange();
-
     void OnSettingsButtonClicked();
+
+    void OnUpdateAutoExposure(int32_t value);
 };
 
 #endif // V4L2VIEWER_H

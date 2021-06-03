@@ -32,8 +32,118 @@
 #include "CameraObserver.h"
 
 #include <QObject>
-
+#include <QMutex>
+#include <QThread>
+#include <QTimer>
+#include <QDebug>
 #include <vector>
+
+class AutoReaderWorker : public QObject {
+    Q_OBJECT
+
+public:
+    AutoReaderWorker(QObject *parent = nullptr): timer(nullptr)
+    {
+        counter = 0;
+    }
+    ~AutoReaderWorker()
+    {
+        if (timer->isActive())
+        {
+            timer->stop();
+        }
+        delete timer;
+        timer = nullptr;
+    }
+
+signals:
+    void ReadExposureSignal();
+    void ReadGainSignal();
+    void ReadWhiteBalance();
+    void finished();
+
+public slots:
+
+    void Process()
+    {
+        if (timer == nullptr)
+        {
+            timer = new QTimer();
+            connect(timer, SIGNAL(timeout()), this, SLOT(ReadData()));
+            timer->setInterval(1000);
+        }
+    }
+
+    void StartProcess()
+    {
+        timer->start();
+    }
+
+    void StopProcess()
+    {
+        timer->stop();
+    }
+
+private slots:
+    void ReadData()
+    {
+        qDebug()<<"ReadData From thread";
+        emit ReadExposureSignal();
+    }
+
+private:
+    int counter = 0;
+    QTimer *timer;
+};
+
+class AutoReader : public QObject {
+
+    Q_OBJECT
+
+public:
+    AutoReader(QObject *parent=nullptr)
+    {
+        m_pThread = new QThread;
+        m_pAutoReaderWorker = new AutoReaderWorker();
+        connect(this, SIGNAL(StartTimer()), m_pAutoReaderWorker, SLOT(StartProcess()));
+        connect(this, SIGNAL(StopTimer()), m_pAutoReaderWorker, SLOT(StopProcess()));
+        connect(m_pThread, SIGNAL(started()), m_pAutoReaderWorker, SLOT(Process()));
+        m_pAutoReaderWorker->moveToThread(m_pThread);
+        m_pThread->start();
+    }
+
+    void StartThread()
+    {
+        emit StartTimer();
+    }
+
+    void StopThread()
+    {
+        emit StopTimer();
+    }
+
+    void DeleteThread()
+    {
+        emit StopTimer();
+        m_pThread->quit();
+        m_pThread->deleteLater();
+    }
+
+    AutoReaderWorker *GetAutoReaderWorker()
+    {
+        return m_pAutoReaderWorker;
+    }
+
+signals:
+    void StopTimer();
+    void StartTimer();
+
+private:
+    QThread *m_pThread;
+    AutoReaderWorker *m_pAutoReaderWorker;
+};
+
+
 
 enum IO_METHOD_TYPE
 {
@@ -157,6 +267,14 @@ public:
     static std::string ConvertPixelFormat2EnumString(int pixelFormat);
     static std::string ConvertControlID2String(uint32_t controlID);
 
+
+public slots:
+    void PassGainValue();
+    void PassExposureValue();
+    void PassAutoWhiteBalanceValue();
+
+
+
 private:
     std::string         m_DeviceName;
     int                 m_nFileDescriptor;
@@ -165,6 +283,8 @@ private:
     bool                m_UseV4L2TryFmt;
     bool                m_Recording;
     bool                m_IsAvtCamera;
+    QMutex              m_ReadExtControlMutex;
+    AutoReader          *m_pAutoReader;
 
     CameraObserver                  m_CameraObserver;
     QSharedPointer<FrameObserver>   m_pFrameObserver;
@@ -173,6 +293,7 @@ private:
 
     size_t fsize(const char *filename);
     void reverseBytes(void* start, int size);
+
 
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
@@ -185,9 +306,10 @@ signals:
     void OnCameraRecordFrame_Signal(const QSharedPointer<MyFrame>&);
     // Event will be called when the a frame is displayed
     void OnCameraDisplayFrame_Signal(const unsigned long long &);
-
     void OnCameraPixelFormat_Signal(const QString &);
     void OnCameraFrameSize_Signal(const QString &);
+
+    void PassAutoExposureValue(int32_t value);
 
 private slots:
     // The event handler to set or remove devices
