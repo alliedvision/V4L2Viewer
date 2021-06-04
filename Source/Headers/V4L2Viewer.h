@@ -203,6 +203,8 @@ private slots:
     void OnSettingsButtonClicked();
 
     void OnUpdateAutoExposure(int32_t value);
+    void OnUpdateAutoGain(int32_t value);
+    void OnUpdateAutoWhiteBalance(int32_t value);
 };
 
 #endif // V4L2VIEWER_H

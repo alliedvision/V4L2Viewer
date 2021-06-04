@@ -164,6 +164,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)), this, SLOT(OnCameraFrameSize(const QString &)));
 
     connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
+    connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)));
+    connect(&m_Camera, SIGNAL(PassAutoWhiteBalanceValue(int32_t)), this, SLOT(OnUpdateAutoWhiteBalance(int32_t)));
 
     // Setup blocking mode radio buttons
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
@@ -590,7 +592,16 @@ void V4L2Viewer::OnSettingsButtonClicked()
 void V4L2Viewer::OnUpdateAutoExposure(int32_t value)
 {
     ui.m_edExposure->setText(QString::number(value));
-    qDebug() << value;
+}
+
+void V4L2Viewer::OnUpdateAutoGain(int32_t value)
+{
+    ui.m_edGain->setText(QString::number(value));
+}
+
+void V4L2Viewer::OnUpdateAutoWhiteBalance(int32_t value)
+{
+    ui.m_edWhiteBalance->setText(QString::number(value));
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
