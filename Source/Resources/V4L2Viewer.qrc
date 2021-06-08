@@ -25,8 +25,8 @@
         <file>Viewer.png</file>
         <file>triangle-copy-3.png</file>
         <file>Qt_logo_2016.png</file>
-        <file>icon-camera.svg</file>
         <file>g7848.png</file>
+        <file>icon-camera.svg</file>
     </qresource>
     <qresource prefix="/Fonts">
         <file>Open_Sans/OpenSans-Bold.ttf</file>
