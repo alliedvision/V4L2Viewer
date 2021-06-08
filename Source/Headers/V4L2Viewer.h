@@ -75,7 +75,9 @@ private:
     // The menu widget to setup the number of used frames
     QWidgetAction *m_NumberOfUsedFramesWidgetAction;
     // The line which holds the number of used frames
-    QLineEdit *m_NumberOfUsedFramesLineEdit;   
+    QLineEdit *m_NumberOfUsedFramesLineEdit;
+    QWidgetAction *m_NumberOfFixedFrameRateWidgetAction;
+    QLineEdit *m_NumberOfFixedFrameRate;
     // A list of known camera IDs
     std::vector<uint32_t> m_cameras;
     // Is a camera open?
@@ -98,6 +100,8 @@ private:
 
     SettingsActionWidget *m_pSettingsActionWidget;
     QMenu *m_pSettingsMenu;
+
+    bool m_bIsFixedRate;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -213,6 +217,9 @@ private slots:
 
     void OnCameraListButtonClicked();
     void OnMenuSplitterMoved(int pos, int index);
+
+    void OnFixedFrameRateButtonClicked();
+    void DetermineFixedFrameRate(int framesCount);
 };
 
 #endif // V4L2VIEWER_H

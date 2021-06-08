@@ -116,6 +116,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_ShowFrames(true)
     , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
+    , m_bIsFixedRate(false)
 {
     QFontDatabase::addApplicationFont(":/Fonts/Open_Sans/OpenSans-Regular.ttf");
     QFont font;
@@ -165,7 +166,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
     connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)));
-    connect(&m_Camera, SIGNAL(PassAutoWhiteBalanceValue(int32_t)), this, SLOT(OnUpdateAutoWhiteBalance(int32_t)));
 
     // Setup blocking mode radio buttons
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
@@ -228,6 +228,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
     connect(ui.m_butReadValues, SIGNAL(clicked()), this, SLOT(OnReadAllValues()));
 
+    connect(ui.m_fixedRateStartButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
+
     // Set the splitter stretch factors
     ui.m_Splitter1->setStretchFactor(0, 45);
     ui.m_Splitter1->setStretchFactor(1, 55);
@@ -265,6 +267,19 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_NumberOfUsedFramesWidgetAction->setDefaultWidget(widgetNum);
     ui.m_MenuBuffer->addAction(m_NumberOfUsedFramesWidgetAction);
 
+    QHBoxLayout *layoutFixedFrameRate = new QHBoxLayout;
+    QLabel *labelFixedFrameRate = new QLabel("Fixed frame rate:" ,this);
+    QWidget *widgetFixedFrameRate = new QWidget(this);
+    m_NumberOfFixedFrameRateWidgetAction = new QWidgetAction(this);
+    m_NumberOfFixedFrameRate = new QLineEdit("60", this);
+    m_NumberOfFixedFrameRate->setValidator(new QIntValidator(5, 100000, this));
+    layoutFixedFrameRate->addWidget(labelFixedFrameRate);
+    layoutFixedFrameRate->addWidget(m_NumberOfFixedFrameRate);
+    widgetFixedFrameRate->setLayout(layoutFixedFrameRate);
+    widgetFixedFrameRate->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(79,79,79);}");
+    m_NumberOfFixedFrameRateWidgetAction->setDefaultWidget(widgetFixedFrameRate);
+    ui.m_MenuFixedFrameRate->addAction(m_NumberOfFixedFrameRateWidgetAction);
+
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
     QWidgetAction *aboutWidgetAction = new QWidgetAction(this);
@@ -277,6 +292,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     UpdateViewerLayout();
     UpdateZoomButtons();
+
 
     // set check boxes state for mmap according to variable m_MMAP_BUFFER
     if (IO_METHOD_READ == m_MMAP_BUFFER)
@@ -655,6 +671,26 @@ void V4L2Viewer::OnMenuSplitterMoved(int pos, int index)
     }
 }
 
+void V4L2Viewer::OnFixedFrameRateButtonClicked()
+{
+    OnStartButtonClicked();
+    m_bIsFixedRate = true;
+}
+
+void V4L2Viewer::DetermineFixedFrameRate(int framesCount)
+{
+    if (!m_bIsFixedRate)
+    {
+        return;
+    }
+
+    int framesMax = m_NumberOfFixedFrameRate->text().toInt();
+    if (framesCount >= framesMax)
+    {
+        OnStopButtonClicked();
+    }
+}
+
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
     int err = 0;
@@ -663,6 +699,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
     ui.m_SaveImageButton->setEnabled(false);
+    ui.m_fixedRateStartButton->setEnabled(false);
     QApplication::processEvents();
 
     m_nDroppedFrames = 0;
@@ -699,12 +736,14 @@ void V4L2Viewer::OnStopButtonClicked()
     // disable the stop button to show that the stop acquisition is in process
     ui.m_StopButton->setEnabled(false);
     ui.m_SaveImageButton->setEnabled(true);
+    ui.m_fixedRateStartButton->setEnabled(true);
 
     m_Camera.StopStreamChannel();
     m_Camera.StopStreaming();
 
     QApplication::processEvents();
 
+    m_bIsFixedRate = false;
     m_bIsStreaming = false;
     UpdateViewerLayout();
 
@@ -817,6 +856,8 @@ void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &fra
     }
     else
         ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
+
+    DetermineFixedFrameRate(frameId);
 }
 
 // The event handler to show the processed frame
@@ -950,6 +991,7 @@ void V4L2Viewer::UpdateViewerLayout()
         }
     }
 
+    ui.m_fixedRateStartButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StartButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FramesPerSecondLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
