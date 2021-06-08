@@ -1839,9 +1839,11 @@ void V4L2Viewer::GetImageInformation()
     max = 0;
     if (m_Camera.ReadMinMaxExposure(min, max) != -2)
     {
+        ui.m_sliderExposure->blockSignals(true);
         ui.m_sliderExposure->setEnabled(true);
         ui.m_sliderExposure->setMinimum(min);
         ui.m_sliderExposure->setMaximum(max);
+        ui.m_sliderExposure->blockSignals(false);
         m_MinimumExposure = min;
         m_MaximumExposure = max;
         int32_t result = GetSliderValueFromLog(exposure);

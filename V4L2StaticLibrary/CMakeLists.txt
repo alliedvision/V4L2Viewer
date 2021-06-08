@@ -84,9 +84,9 @@ list(APPEND RESOURCES
 ${RESOURCES_PATH}/V4L2Viewer.rc
 )
 
-add_library(SharedLibraryLib SHARED ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
-target_link_libraries(SharedLibraryLib ${QT_LIBRARIES})
-target_include_directories(SharedLibraryLib PUBLIC ${HEADERS_PATH})
+add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
+target_link_libraries(V4L2StaticLib ${QT_LIBRARIES})
+target_include_directories(V4L2StaticLib PUBLIC ${HEADERS_PATH})
 
 
 

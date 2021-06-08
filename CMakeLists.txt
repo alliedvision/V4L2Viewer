@@ -8,11 +8,11 @@ set(MAIN_EXEC Source/main.cpp)
 project(V4L2_Viewer VERSION 1.0)
 set(TARGET_NAME V4L2_Viewer)
 
-add_subdirectory(SharedLibrary)
-set(LIBRARIES SharedLibraryLib)
+add_subdirectory(V4L2StaticLibrary)
+set(LIBRARIES V4L2StaticLib)
 
-include_directories(SharedLibrary)
-link_directories(SharedLibrary)
+include_directories(V4L2StaticLibrary)
+link_directories(V4L2StaticLibrary)
 
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 find_package(Threads REQUIRED)
@@ -26,9 +26,9 @@ Threads::Threads
 
 add_executable(${TARGET_NAME} ${MAIN_EXEC})
 
-target_include_directories(${TARGET_NAME} PUBLIC Main/include ${CMAKE_CURRENT_BINARY_DIR}/SharedLibrary/SharedLibraryLib_autogen/include)
+target_include_directories(${TARGET_NAME} PUBLIC Main/include ${CMAKE_CURRENT_BINARY_DIR}/V4L2StaticLibrary/V4L2StaticLib_autogen/include)
 target_link_libraries(${TARGET_NAME} ${LIBRARIES} ${QT_LIBRARIES})
 
-target_include_directories(${TARGET_NAME} PUBLIC SharedLibrary)
+target_include_directories(${TARGET_NAME} PUBLIC V4L2StaticLibrary)
 
 
