@@ -1077,7 +1077,7 @@ void V4L2Viewer::UpdateViewerLayout()
 
     if (!m_bIsOpen)
     {
-        QPixmap pix(":/V4L2Viewer/icon-camera.svg");
+        QPixmap pix(":/V4L2Viewer/icon_camera_256.png");
         m_pScene->setSceneRect(0, 0, pix.width(), pix.height());
         m_PixmapItem->setPixmap(pix);
         ui.m_ImageView->show();

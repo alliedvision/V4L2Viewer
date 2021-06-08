@@ -27,7 +27,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="../V4L2Viewer.qrc">
-    <normaloff>:/V4L2Viewer/icon-camera.svg</normaloff>:/V4L2Viewer/icon-camera.svg</iconset>
+    <normaloff>:/V4L2Viewer/icon_camera.png</normaloff>:/V4L2Viewer/icon_camera.png</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true">QMainWindow{

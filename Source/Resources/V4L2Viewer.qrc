@@ -26,7 +26,8 @@
         <file>triangle-copy-3.png</file>
         <file>Qt_logo_2016.png</file>
         <file>g7848.png</file>
-        <file>icon-camera.svg</file>
+        <file>icon_camera.png</file>
+        <file>icon_camera_256.png</file>
     </qresource>
     <qresource prefix="/Fonts">
         <file>Open_Sans/OpenSans-Bold.ttf</file>
