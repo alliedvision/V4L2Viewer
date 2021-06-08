@@ -644,6 +644,7 @@ void V4L2Viewer::OnSliderExposureValueChange(int value)
 
     double outValue = exp(minExp + scale*(value-minSliderVal));
     m_sliderExposureValue = static_cast<int32_t>(outValue);
+    ui.m_edExposure->setText(QString("%1").arg(m_sliderExposureValue));
 }
 
 void V4L2Viewer::OnSliderGainValueChange(int value)
