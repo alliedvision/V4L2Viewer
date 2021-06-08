@@ -188,6 +188,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_TitleSavePNG, SIGNAL(triggered()), this, SLOT(OnSavePNG()));
     connect(ui.m_TitleSaveRAW, SIGNAL(triggered()), this, SLOT(OnSaveRAW()));
 
+    connect(ui.m_camerasListButton, SIGNAL(clicked()), this, SLOT(OnCameraListButtonClicked()));
+
+    connect(ui.m_Splitter1, SIGNAL(splitterMoved(int, int)), this, SLOT(OnMenuSplitterMoved(int, int)));
+
     m_Camera.DeviceDiscoveryStart();
     connect(ui.m_CamerasListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemDoubleClicked(QListWidgetItem *)));
 
@@ -305,7 +309,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
 
     connect(ui.m_SettingsButton, SIGNAL(clicked()), this, SLOT(OnSettingsButtonClicked()));
-
+    ui.m_camerasListButton->hide();
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -485,6 +489,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 ui.m_CamerasListBox->item(nRow)->setSizeHint(newItem->sizeHint());
                 ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
                 ui.m_Splitter1->setSizes(QList<int>{0,1});
+                ui.m_camerasListButton->show();
             }
             else
                 CloseCamera(m_cameras[nRow]);
@@ -630,6 +635,24 @@ void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
     slider->blockSignals(true);
     slider->setValue(value);
     slider->blockSignals(false);
+}
+
+void V4L2Viewer::OnCameraListButtonClicked()
+{
+    ui.m_Splitter1->setSizes(QList<int>{1,1});
+    ui.m_camerasListButton->hide();
+}
+
+void V4L2Viewer::OnMenuSplitterMoved(int pos, int index)
+{
+    if (pos == 0)
+    {
+        ui.m_camerasListButton->show();
+    }
+    else
+    {
+        ui.m_camerasListButton->hide();
+    }
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)

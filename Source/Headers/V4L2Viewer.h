@@ -209,8 +209,10 @@ private slots:
     void OnSliderGainValueChange(int value);
     void OnSliderGammaValueChange(int value);
     void OnSliderBlackLevelValueChange(int value);
-
     void UpdateSlidersPositions(QSlider *slider, int32_t value);
+
+    void OnCameraListButtonClicked();
+    void OnMenuSplitterMoved(int pos, int index);
 };
 
 #endif // V4L2VIEWER_H
