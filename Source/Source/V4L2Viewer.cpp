@@ -117,6 +117,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
     , m_bIsFixedRate(false)
+    , m_sliderGainValue(0)
+    , m_sliderBlackLevelValue(0)
+    , m_sliderGammaValue(0)
+    , m_sliderExposureValue(0)
 {
     QFontDatabase::addApplicationFont(":/Fonts/Open_Sans/OpenSans-Regular.ttf");
     QFont font;
@@ -171,10 +175,15 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
     m_BlockingModeRadioButtonGroup->setExclusive(true);
 
-    connect(ui.m_sliderExposure, SIGNAL(valueChanged(int)), this, SLOT(OnSliderExposureValueChange(int)));
-    connect(ui.m_sliderGain, SIGNAL(valueChanged(int)), this, SLOT(OnSliderGainValueChange(int)));
-    connect(ui.m_sliderBlackLevel, SIGNAL(valueChanged(int)), this, SLOT(OnSliderBlackLevelValueChange(int)));
-    connect(ui.m_sliderGamma, SIGNAL(valueChanged(int)), this, SLOT(OnSliderGammaValueChange(int)));
+    connect(ui.m_sliderExposure,    SIGNAL(valueChanged(int)), this, SLOT(OnSliderExposureValueChange(int)));
+    connect(ui.m_sliderGain,        SIGNAL(valueChanged(int)), this, SLOT(OnSliderGainValueChange(int)));
+    connect(ui.m_sliderBlackLevel,  SIGNAL(valueChanged(int)), this, SLOT(OnSliderBlackLevelValueChange(int)));
+    connect(ui.m_sliderGamma,       SIGNAL(valueChanged(int)), this, SLOT(OnSliderGammaValueChange(int)));
+
+    connect(ui.m_sliderExposure,    SIGNAL(sliderReleased()), this, SLOT(OnSliderExposureReleased()));
+    connect(ui.m_sliderGain,        SIGNAL(sliderReleased()), this, SLOT(OnSliderGainReleased()));
+    connect(ui.m_sliderBlackLevel,  SIGNAL(sliderReleased()), this, SLOT(OnSliderBlackLevelReleased()));
+    connect(ui.m_sliderGamma,       SIGNAL(sliderReleased()), this, SLOT(OnSliderGammaReleased()));
 
     connect(ui.m_TitleUseRead, SIGNAL(triggered()), this, SLOT(OnUseRead()));
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
@@ -625,25 +634,117 @@ void V4L2Viewer::OnUpdateAutoGain(int32_t value)
 
 void V4L2Viewer::OnSliderExposureValueChange(int value)
 {
-    // Mathematical calculation
+    int minSliderVal = ui.m_sliderExposure->minimum();
+    int maxSliderVal = ui.m_sliderExposure->maximum();
+
+    double minExp = log(m_MinimumExposure);
+    double maxExp = log(m_MaximumExposure);
+
+    double scale = (maxExp - minExp) / (maxSliderVal-minSliderVal);
+
+    double outValue = exp(minExp + scale*(value-minSliderVal));
+    m_sliderExposureValue = static_cast<int32_t>(outValue);
 }
 
 void V4L2Viewer::OnSliderGainValueChange(int value)
 {
     ui.m_edGain->setText(QString::number(value));
-    m_Camera.SetGain(static_cast<int32_t>(value));
+    m_sliderGainValue = static_cast<int32_t>(value);
 }
 
 void V4L2Viewer::OnSliderGammaValueChange(int value)
 {
     ui.m_edGamma->setText(QString::number(value));
-    m_Camera.SetGamma(static_cast<int32_t>(value));
+    m_sliderGammaValue = static_cast<int32_t>(value);
 }
 
 void V4L2Viewer::OnSliderBlackLevelValueChange(int value)
 {
     ui.m_edBlackLevel->setText(QString::number(value));
-    m_Camera.SetBrightness(static_cast<int32_t>(value));
+    m_sliderBlackLevelValue = static_cast<int32_t>(value);
+}
+
+void V4L2Viewer::OnSliderExposureReleased()
+{
+    int32_t exposure = 0;
+    int32_t exposureAbs = 0;
+    m_Camera.SetExposure(m_sliderExposureValue);
+
+    if (m_Camera.ReadExposure(exposure) != -2)
+    {
+        ui.m_edExposure->setEnabled(true);
+        ui.m_sliderExposure->setEnabled(true);
+        ui.m_edExposure->setText(QString("%1").arg(exposure));
+    }
+    else
+    {
+        ui.m_edExposure->setEnabled(false);
+        ui.m_sliderExposure->setEnabled(false);
+    }
+
+    if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
+    {
+        ui.m_edExposureAbs->setEnabled(true);
+        ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
+    }
+    else
+    {
+        ui.m_edExposureAbs->setEnabled(false);
+    }
+}
+
+void V4L2Viewer::OnSliderGainReleased()
+{
+    int32_t gain = 0;
+    m_Camera.SetGain(m_sliderGainValue);
+
+    if (m_Camera.ReadGain(gain) != -2)
+    {
+        ui.m_edGain->setEnabled(true);
+        ui.m_sliderGain->setEnabled(true);
+        ui.m_edGain->setText(QString("%1").arg(gain));
+    }
+    else
+    {
+        ui.m_edGain->setEnabled(false);
+        ui.m_sliderGain->setEnabled(false);
+    }
+}
+
+void V4L2Viewer::OnSliderBlackLevelReleased()
+{
+    int32_t blackLevel = 0;
+    m_Camera.SetBrightness(m_sliderBlackLevelValue);
+
+    if (m_Camera.ReadBrightness(blackLevel) != -2)
+    {
+        ui.m_edBlackLevel->setEnabled(true);
+        ui.m_sliderBlackLevel->setEnabled(true);
+        ui.m_edBlackLevel->setText(QString("%1").arg(blackLevel));
+    }
+    else
+    {
+        ui.m_edBlackLevel->setEnabled(false);
+        ui.m_sliderBlackLevel->setEnabled(false);
+    }
+}
+
+void V4L2Viewer::OnSliderGammaReleased()
+{
+    int32_t gamma = 0;
+    m_Camera.SetGamma(m_sliderGammaValue);
+
+    if (m_Camera.ReadGamma(gamma) != -2)
+    {
+        ui.m_edGamma->setEnabled(true);
+        ui.m_sliderGamma->setEnabled(true);
+        ui.m_edGamma->setText(QString("%1").arg(gamma));
+    }
+    else
+    {
+        ui.m_edGamma->setEnabled(false);
+        ui.m_sliderGamma->setEnabled(false);
+    }
 }
 
 void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
@@ -689,6 +790,17 @@ void V4L2Viewer::CheckAquiredFixedFrames(int framesCount)
     {
         OnStopButtonClicked();
     }
+}
+
+int32_t V4L2Viewer::GetSliderValueFromLog(int32_t value)
+{
+    double logExpMin = log(m_MinimumExposure);
+    double logExpMax = log(m_MaximumExposure);
+    int32_t minimumSliderExposure = ui.m_sliderExposure->minimum();
+    int32_t maximumSliderExposure = ui.m_sliderExposure->maximum();
+    double scale = (logExpMax - logExpMin) / (maximumSliderExposure - minimumSliderExposure);
+    double result = minimumSliderExposure + ( log(value) - logExpMin ) / scale;
+    return static_cast<int32_t>(result);
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
@@ -1110,6 +1222,7 @@ void V4L2Viewer::OnGain()
 
     if (m_Camera.ReadGain(gain) != -2)
     {
+        ui.m_sliderGain->setEnabled(true);
         ui.m_edGain->setEnabled(true);
         ui.m_edGain->setText(QString("%1").arg(gain));
         UpdateSlidersPositions(ui.m_sliderGain, gain);
@@ -1150,18 +1263,27 @@ void V4L2Viewer::OnExposure()
 
     if (m_Camera.ReadExposure(exposure) != -2)
     {
+        ui.m_sliderExposure->setEnabled(true);
         ui.m_edExposure->setEnabled(true);
         ui.m_edExposure->setText(QString("%1").arg(exposure));
+        int32_t result = GetSliderValueFromLog(exposure);
+        UpdateSlidersPositions(ui.m_sliderExposure, result);
     }
     else
+    {
+        ui.m_sliderExposure->setEnabled(false);
         ui.m_edExposure->setEnabled(false);
+    }
+
     if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
     {
         ui.m_edExposureAbs->setEnabled(true);
         ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
     }
     else
+    {
         ui.m_edExposureAbs->setEnabled(false);
+    }
 
     if (m_Camera.ReadAutoExposure(autoexposure) != -2)
     {
@@ -1190,14 +1312,23 @@ void V4L2Viewer::OnExposureAbs()
         ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
     }
     else
+    {
         ui.m_edExposureAbs->setEnabled(false);
+    }
+
     if (m_Camera.ReadExposure(exposure) != -2)
     {
         ui.m_edExposure->setEnabled(true);
+        ui.m_sliderExposure->setEnabled(true);
         ui.m_edExposure->setText(QString("%1").arg(exposure));
+        int32_t result = GetSliderValueFromLog(exposure);
+        UpdateSlidersPositions(ui.m_sliderExposure, result);
     }
     else
+    {
         ui.m_edExposure->setEnabled(false);
+        ui.m_sliderExposure->setEnabled(false);
+    }
 
     if (m_Camera.ReadAutoExposure(autoexposure) != -2)
     {
@@ -1671,12 +1802,10 @@ void V4L2Viewer::GetImageInformation()
 
     if (m_Camera.ReadMinMaxGain(min, max) != -2)
     {
-        ui.m_sliderGain->blockSignals(true);
         ui.m_sliderGain->setEnabled(true);
         ui.m_sliderGain->setMinimum(min);
         ui.m_sliderGain->setMaximum(max);
-        ui.m_sliderGain->setValue(gain);
-        ui.m_sliderGain->blockSignals(false);
+        UpdateSlidersPositions(ui.m_sliderGain, gain);
     }
     else
     {
@@ -1709,12 +1838,13 @@ void V4L2Viewer::GetImageInformation()
     max = 0;
     if (m_Camera.ReadMinMaxExposure(min, max) != -2)
     {
-        ui.m_sliderExposure->blockSignals(true);
         ui.m_sliderExposure->setEnabled(true);
         ui.m_sliderExposure->setMinimum(min);
         ui.m_sliderExposure->setMaximum(max);
-        ui.m_sliderExposure->setValue(exposure);
-        ui.m_sliderExposure->blockSignals(false);
+        m_MinimumExposure = min;
+        m_MaximumExposure = max;
+        int32_t result = GetSliderValueFromLog(exposure);
+        UpdateSlidersPositions(ui.m_sliderExposure, result);
     }
     else
     {
@@ -1760,12 +1890,10 @@ void V4L2Viewer::GetImageInformation()
     max = 0;
     if (m_Camera.ReadMinMaxGamma(min, max) != -2)
     {
-        ui.m_sliderGamma->blockSignals(true);
         ui.m_sliderGamma->setEnabled(true);
         ui.m_sliderGamma->setMinimum(min);
         ui.m_sliderGamma->setMaximum(max);
-        ui.m_sliderGamma->setValue(nSVal);
-        ui.m_sliderGamma->blockSignals(false);
+        UpdateSlidersPositions(ui.m_sliderGamma, nSVal);
     }
     else
     {
@@ -1789,12 +1917,10 @@ void V4L2Viewer::GetImageInformation()
     max = 0;
     if (m_Camera.ReadMinMaxBrightness(min, max) != -2)
     {
-        ui.m_sliderBlackLevel->blockSignals(true);
         ui.m_sliderBlackLevel->setEnabled(true);
         ui.m_sliderBlackLevel->setMinimum(min);
         ui.m_sliderBlackLevel->setMaximum(max);
-        ui.m_sliderBlackLevel->setValue(nSVal);
-        ui.m_sliderBlackLevel->blockSignals(false);
+        UpdateSlidersPositions(ui.m_sliderBlackLevel, nSVal);
     }
     else
     {

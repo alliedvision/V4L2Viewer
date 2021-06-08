@@ -103,6 +103,14 @@ private:
 
     bool m_bIsFixedRate;
 
+    int32_t m_MinimumExposure;
+    int32_t m_MaximumExposure;
+
+    int32_t m_sliderGainValue;
+    int32_t m_sliderBlackLevelValue;
+    int32_t m_sliderGammaValue;
+    int32_t m_sliderExposureValue;
+
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
     // Update the viewer range
@@ -213,6 +221,12 @@ private slots:
     void OnSliderGainValueChange(int value);
     void OnSliderGammaValueChange(int value);
     void OnSliderBlackLevelValueChange(int value);
+
+    void OnSliderExposureReleased();
+    void OnSliderGainReleased();
+    void OnSliderBlackLevelReleased();
+    void OnSliderGammaReleased();
+
     void UpdateSlidersPositions(QSlider *slider, int32_t value);
 
     void OnCameraListButtonClicked();
@@ -220,6 +234,9 @@ private slots:
 
     void OnFixedFrameRateButtonClicked();
     void CheckAquiredFixedFrames(int framesCount);
+
+    int32_t GetSliderValueFromLog(int32_t value);
+
 };
 
 #endif // V4L2VIEWER_H

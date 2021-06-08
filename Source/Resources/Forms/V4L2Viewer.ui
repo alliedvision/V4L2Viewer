@@ -443,7 +443,7 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>885</width>
+              <width>884</width>
               <height>280</height>
              </rect>
             </property>
@@ -1383,7 +1383,7 @@ background-color:rgb(166, 166, 166);
            <item row="1" column="0" colspan="2">
             <widget class="QLabel" name="m_labelExposureAbs">
              <property name="text">
-              <string>ExposureAbs[ms]:</string>
+              <string>ExposureAbs:</string>
              </property>
             </widget>
            </item>
@@ -1712,7 +1712,7 @@ QCheckBox::disabled{
               <bool>true</bool>
              </property>
              <property name="text">
-              <string>Exposure[μs]:</string>
+              <string>Exposure:</string>
              </property>
             </widget>
            </item>
@@ -1733,6 +1733,9 @@ QCheckBox::disabled{
             <widget class="QSlider" name="m_sliderExposure">
              <property name="enabled">
               <bool>true</bool>
+             </property>
+             <property name="maximum">
+              <number>10000</number>
              </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
