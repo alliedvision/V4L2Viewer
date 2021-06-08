@@ -419,7 +419,7 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>879</width>
+              <width>883</width>
               <height>280</height>
              </rect>
             </property>
@@ -1056,7 +1056,7 @@ background-color:rgb(166, 166, 166);
              </property>
             </widget>
            </item>
-           <item row="6" column="0" colspan="2">
+           <item row="7" column="0" colspan="2">
             <widget class="QLabel" name="m_labelGamma">
              <property name="text">
               <string>Gamma:</string>
@@ -1070,7 +1070,7 @@ background-color:rgb(166, 166, 166);
              </property>
             </widget>
            </item>
-           <item row="6" column="2">
+           <item row="7" column="2">
             <widget class="QLineEdit" name="m_edGamma">
              <property name="maxLength">
               <number>10</number>
@@ -1084,7 +1084,7 @@ background-color:rgb(166, 166, 166);
              </property>
             </widget>
            </item>
-           <item row="8" column="0" colspan="3">
+           <item row="10" column="0" colspan="3">
             <spacer name="verticalSpacer_6">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1230,7 +1230,7 @@ QCheckBox::disabled{
              </layout>
             </widget>
            </item>
-           <item row="7" column="0" colspan="3">
+           <item row="9" column="0" colspan="3">
             <widget class="QPushButton" name="m_SettingsButton">
              <property name="cursor">
               <cursorShape>PointingHandCursor</cursorShape>
@@ -1263,7 +1263,21 @@ background-color:rgb(166, 166, 166);
              </property>
             </widget>
            </item>
-           <item row="0" column="0" colspan="2">
+           <item row="6" column="0" colspan="3">
+            <widget class="QSlider" name="m_sliderBlackLevel">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0" colspan="3">
+            <widget class="QSlider" name="m_sliderGamma">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="3">
             <widget class="QLabel" name="label_2">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1275,9 +1289,6 @@ background-color:rgb(166, 166, 166);
               <string>WhiteBalance</string>
              </property>
             </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QLineEdit" name="m_edWhiteBalance"/>
            </item>
           </layout>
          </item>
@@ -1303,7 +1314,7 @@ background-color:rgb(166, 166, 166);
              </property>
             </widget>
            </item>
-           <item row="3" column="0" colspan="3">
+           <item row="4" column="0" colspan="3">
             <widget class="Line" name="line_4">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -1316,14 +1327,14 @@ background-color:rgb(166, 166, 166);
              </property>
             </widget>
            </item>
-           <item row="5" column="2">
+           <item row="6" column="2">
             <widget class="QLineEdit" name="m_edGain">
              <property name="maxLength">
               <number>10</number>
              </property>
             </widget>
            </item>
-           <item row="2" column="0" colspan="3">
+           <item row="3" column="0" colspan="3">
             <widget class="QWidget" name="m_expAutoOnceWidget" native="true">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1472,7 +1483,7 @@ QCheckBox::disabled{
              </property>
             </widget>
            </item>
-           <item row="6" column="0" colspan="3">
+           <item row="8" column="0" colspan="3">
             <widget class="QWidget" name="m_gainAutoOnceWidget" native="true">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1608,7 +1619,7 @@ QCheckBox::disabled{
              </layout>
             </widget>
            </item>
-           <item row="5" column="0" colspan="2">
+           <item row="6" column="0" colspan="2">
             <widget class="QLabel" name="m_labelGain">
              <property name="text">
               <string>Gain:</string>
@@ -1625,7 +1636,7 @@ QCheckBox::disabled{
              </property>
             </widget>
            </item>
-           <item row="7" column="0" colspan="3">
+           <item row="9" column="0" colspan="3">
             <spacer name="verticalSpacer_5">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1637,6 +1648,20 @@ QCheckBox::disabled{
               </size>
              </property>
             </spacer>
+           </item>
+           <item row="2" column="0" colspan="3">
+            <widget class="QSlider" name="m_sliderExposure">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0" colspan="3">
+            <widget class="QSlider" name="m_sliderGain">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>

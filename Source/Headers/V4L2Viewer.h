@@ -204,7 +204,13 @@ private slots:
 
     void OnUpdateAutoExposure(int32_t value);
     void OnUpdateAutoGain(int32_t value);
-    void OnUpdateAutoWhiteBalance(int32_t value);
+
+    void OnSliderExposureValueChange(int value);
+    void OnSliderGainValueChange(int value);
+    void OnSliderGammaValueChange(int value);
+    void OnSliderBlackLevelValueChange(int value);
+
+    void UpdateSlidersPositions(QSlider *slider, int32_t value);
 };
 
 #endif // V4L2VIEWER_H

@@ -74,24 +74,35 @@ public:
     int ReadPixelFormat(uint32_t &pixelFormat, uint32_t &bytesPerLine, QString &pfText);
     int SetPixelFormat(uint32_t pixelFormat, QString pfText);
     int ReadFormats();
+
     int ReadGain(int32_t &gain);
     int SetGain(int32_t gain);
+    int ReadMinMaxGain(int32_t &min, int32_t &max);
     int ReadAutoGain(bool &autogain);
     int SetAutoGain(bool autogain);
+
     int ReadExposure(int32_t &exposure);
     int ReadExposureAbs(int32_t &exposure);
     int SetExposure(int32_t exposure);
     int SetExposureAbs(int32_t exposure);
+    int ReadMinMaxExposure(int32_t &min, int32_t &max);
+    int ReadMinMaxExposureAbs(int32_t &min, int32_t &max);
     int ReadAutoExposure(bool &autoexposure);
     int SetAutoExposure(bool autoexposure);
+
     int ReadGamma(int32_t &value);
     int SetGamma(int32_t value);
+    int ReadMinMaxGamma(int32_t &min, int32_t &max);
+
     int ReadReverseX(int32_t &value);
     int SetReverseX(int32_t value);
     int ReadReverseY(int32_t &value);
     int SetReverseY(int32_t value);
+
     int ReadBrightness(int32_t &value);
     int SetBrightness(int32_t value);
+    int ReadMinMaxBrightness(int32_t &min, int32_t &max);
+
     int ReadContrast(int32_t &value);
     int SetContrast(int32_t value);
     int ReadSaturation(int32_t &value);
@@ -114,6 +125,9 @@ public:
 
     int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+
+    int ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
+    int ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
 
     int ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
     int WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);

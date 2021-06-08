@@ -171,6 +171,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
     m_BlockingModeRadioButtonGroup->setExclusive(true);
 
+    connect(ui.m_sliderExposure, SIGNAL(valueChanged(int)), this, SLOT(OnSliderExposureValueChange(int)));
+    connect(ui.m_sliderGain, SIGNAL(valueChanged(int)), this, SLOT(OnSliderGainValueChange(int)));
+    connect(ui.m_sliderBlackLevel, SIGNAL(valueChanged(int)), this, SLOT(OnSliderBlackLevelValueChange(int)));
+    connect(ui.m_sliderGamma, SIGNAL(valueChanged(int)), this, SLOT(OnSliderGammaValueChange(int)));
 
     connect(ui.m_TitleUseRead, SIGNAL(triggered()), this, SLOT(OnUseRead()));
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
@@ -196,7 +200,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     // connect the buttons for Image m_ControlRequestTimer
     connect(ui.m_edWidth, SIGNAL(returnPressed()), this, SLOT(OnWidth()));
     connect(ui.m_edHeight, SIGNAL(returnPressed()), this, SLOT(OnHeight()));
-
 
     connect(ui.m_edGain, SIGNAL(returnPressed()), this, SLOT(OnGain()));
     connect(ui.m_chkAutoGain, SIGNAL(clicked()), this, SLOT(OnAutoGain()));
@@ -599,9 +602,34 @@ void V4L2Viewer::OnUpdateAutoGain(int32_t value)
     ui.m_edGain->setText(QString::number(value));
 }
 
-void V4L2Viewer::OnUpdateAutoWhiteBalance(int32_t value)
+void V4L2Viewer::OnSliderExposureValueChange(int value)
 {
-    ui.m_edWhiteBalance->setText(QString::number(value));
+    // Mathematical calculation
+}
+
+void V4L2Viewer::OnSliderGainValueChange(int value)
+{
+    ui.m_edGain->setText(QString::number(value));
+    m_Camera.SetGain(static_cast<int32_t>(value));
+}
+
+void V4L2Viewer::OnSliderGammaValueChange(int value)
+{
+    ui.m_edGamma->setText(QString::number(value));
+    m_Camera.SetGamma(static_cast<int32_t>(value));
+}
+
+void V4L2Viewer::OnSliderBlackLevelValueChange(int value)
+{
+    ui.m_edBlackLevel->setText(QString::number(value));
+    m_Camera.SetBrightness(static_cast<int32_t>(value));
+}
+
+void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
+{
+    slider->blockSignals(true);
+    slider->setValue(value);
+    slider->blockSignals(false);
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
@@ -1019,10 +1047,12 @@ void V4L2Viewer::OnGain()
     {
         ui.m_edGain->setEnabled(true);
         ui.m_edGain->setText(QString("%1").arg(gain));
+        UpdateSlidersPositions(ui.m_sliderGain, gain);
     }
     else
     {
         ui.m_edGain->setEnabled(false);
+        ui.m_sliderGain->setEnabled(false);
     }
 }
 
@@ -1168,13 +1198,14 @@ void V4L2Viewer::OnGamma()
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE gamma!") );
         m_Camera.ReadGamma(tmp);
         ui.m_edGamma->setText(QString("%1").arg(tmp));
+        UpdateSlidersPositions(ui.m_sliderGamma, tmp);
     }
     else
     {
         int32_t tmp = 0;
-
         m_Camera.ReadGamma(tmp);
         ui.m_edGamma->setText(QString("%1").arg(tmp));
+        UpdateSlidersPositions(ui.m_sliderGamma, tmp);
     }
 }
 
@@ -1188,13 +1219,14 @@ void V4L2Viewer::OnBrightness()
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE brightness!") );
         m_Camera.ReadBrightness(tmp);
         ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
+        UpdateSlidersPositions(ui.m_sliderBlackLevel, tmp);
     }
     else
     {
         int32_t tmp = 0;
-
         m_Camera.ReadBrightness(tmp);
         ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
+        UpdateSlidersPositions(ui.m_sliderBlackLevel, tmp);
     }
 }
 
@@ -1519,6 +1551,8 @@ void V4L2Viewer::GetImageInformation()
     uint32_t xOffset = 0;
     uint32_t yOffset = 0;
     int32_t gain = 0;
+    int32_t min = 0;
+    int32_t max = 0;
     bool autogain = false;
     int32_t exposure = 0;
     int32_t exposureAbs = 0;
@@ -1538,6 +1572,7 @@ void V4L2Viewer::GetImageInformation()
 
     ui.m_chkContWhiteBalance->setEnabled(m_Camera.IsAutoWhiteBalanceSupported());
 
+
     if (m_Camera.ReadGain(gain) != -2)
     {
         ui.m_edGain->setEnabled(true);
@@ -1548,6 +1583,20 @@ void V4L2Viewer::GetImageInformation()
     {
         ui.m_edGain->setEnabled(false);
         ui.m_labelGain->setEnabled(false);
+    }
+
+    if (m_Camera.ReadMinMaxGain(min, max) != -2)
+    {
+        ui.m_sliderGain->blockSignals(true);
+        ui.m_sliderGain->setEnabled(true);
+        ui.m_sliderGain->setMinimum(min);
+        ui.m_sliderGain->setMaximum(max);
+        ui.m_sliderGain->setValue(gain);
+        ui.m_sliderGain->blockSignals(false);
+    }
+    else
+    {
+        ui.m_sliderGain->setEnabled(false);
     }
 
     if (m_Camera.ReadAutoGain(autogain) != -2)
@@ -1570,6 +1619,22 @@ void V4L2Viewer::GetImageInformation()
     {
         ui.m_edExposure->setEnabled(false);
         ui.m_labelExposure->setEnabled(false);
+    }
+
+    min = 0;
+    max = 0;
+    if (m_Camera.ReadMinMaxExposure(min, max) != -2)
+    {
+        ui.m_sliderExposure->blockSignals(true);
+        ui.m_sliderExposure->setEnabled(true);
+        ui.m_sliderExposure->setMinimum(min);
+        ui.m_sliderExposure->setMaximum(max);
+        ui.m_sliderExposure->setValue(exposure);
+        ui.m_sliderExposure->blockSignals(false);
+    }
+    else
+    {
+        ui.m_sliderExposure->setEnabled(false);
     }
 
     if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
@@ -1607,6 +1672,22 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelGamma->setEnabled(false);
     }
 
+    min = 0;
+    max = 0;
+    if (m_Camera.ReadMinMaxGamma(min, max) != -2)
+    {
+        ui.m_sliderGamma->blockSignals(true);
+        ui.m_sliderGamma->setEnabled(true);
+        ui.m_sliderGamma->setMinimum(min);
+        ui.m_sliderGamma->setMaximum(max);
+        ui.m_sliderGamma->setValue(nSVal);
+        ui.m_sliderGamma->blockSignals(false);
+    }
+    else
+    {
+        ui.m_sliderGamma->setEnabled(false);
+    }
+
     nSVal = 0;
     if (m_Camera.ReadBrightness(nSVal) != -2)
     {
@@ -1618,6 +1699,22 @@ void V4L2Viewer::GetImageInformation()
     {
         ui.m_edBlackLevel->setEnabled(false);
         ui.m_labelBlackLevel->setEnabled(false);
+    }
+
+    min = 0;
+    max = 0;
+    if (m_Camera.ReadMinMaxBrightness(min, max) != -2)
+    {
+        ui.m_sliderBlackLevel->blockSignals(true);
+        ui.m_sliderBlackLevel->setEnabled(true);
+        ui.m_sliderBlackLevel->setMinimum(min);
+        ui.m_sliderBlackLevel->setMaximum(max);
+        ui.m_sliderBlackLevel->setValue(nSVal);
+        ui.m_sliderBlackLevel->blockSignals(false);
+    }
+    else
+    {
+        ui.m_sliderBlackLevel->setEnabled(false);
     }
 
     nSVal = 0;

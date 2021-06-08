@@ -959,6 +959,52 @@ int Camera::ReadExtControl(int32_t &value, uint32_t controlID, const char *funct
     return result;
 }
 
+int Camera::ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const char *functionName, const char *controlName)
+{
+    int result = -1;
+    v4l2_queryctrl ctrl;
+
+    CLEAR(ctrl);
+    ctrl.id = controlID;
+
+    if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
+        min = ctrl.minimum;
+        max = ctrl.maximum;
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+        result = -2;
+    }
+
+    return result;
+}
+
+int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char *controlName)
+{
+    int result = -1;
+    v4l2_queryctrl ctrl;
+
+    CLEAR(ctrl);
+    ctrl.id = controlID;
+
+    if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
+        min = ctrl.minimum;
+        max = ctrl.maximum;
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+        result = -2;
+    }
+
+    return result;
+}
+
 int Camera::SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass)
 {
     int result = -1;
@@ -1005,6 +1051,16 @@ int Camera::SetExposureAbs(int32_t value)
     return SetExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "SetExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
 }
 
+int Camera::ReadMinMaxExposure(int32_t &min, int32_t &max)
+{
+    return ReadMinMax(min, max, V4L2_CID_EXPOSURE, "ReadExposureMinMax", "V4L2_CID_EXPOSURE");
+}
+
+int Camera::ReadMinMaxExposureAbs(int32_t &min, int32_t &max)
+{
+    return ReadMinMax(min, max, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureMinMaxAbs", "V4L2_CID_EXPOSURE_ABSOLUTE");
+}
+
 int Camera::ReadAutoExposure(bool &flag)
 {
     int result = 0;
@@ -1037,6 +1093,11 @@ int Camera::ReadGain(int32_t &value)
 int Camera::SetGain(int32_t value)
 {
     return SetExtControl(value, V4L2_CID_GAIN, "SetGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
+}
+
+int Camera::ReadMinMaxGain(int32_t &min, int32_t &max)
+{
+    return ReadMinMax(min, max, V4L2_CID_GAIN, "ReadMinMaxGain", "V4L2_CID_GAIN");
 }
 
 int Camera::ReadAutoGain(bool &flag)
@@ -1083,6 +1144,11 @@ int Camera::SetGamma(int32_t value)
     return SetExtControl(value, V4L2_CID_GAMMA, "SetGamma", "V4L2_CID_GAMMA", V4L2_CTRL_CLASS_USER);
 }
 
+int Camera::ReadMinMaxGamma(int32_t &min, int32_t &max)
+{
+    return ReadMinMax(min, max, V4L2_CID_GAMMA, "ReadMinMaxGamma", "V4L2_CID_GAMMA");
+}
+
 int Camera::ReadReverseX(int32_t &value)
 {
     return ReadExtControl(value, V4L2_CID_HFLIP, "ReadReverseX", "V4L2_CID_HFLIP", V4L2_CTRL_CLASS_USER);
@@ -1111,6 +1177,11 @@ int Camera::ReadBrightness(int32_t &value)
 int Camera::SetBrightness(int32_t value)
 {
     return SetExtControl(value, V4L2_CID_BRIGHTNESS, "SetBrightness", "V4L2_CID_BRIGHTNESS", V4L2_CTRL_CLASS_USER);
+}
+
+int Camera::ReadMinMaxBrightness(int32_t &min, int32_t &max)
+{
+    return ReadMinMax(min, max, V4L2_CID_BRIGHTNESS, "ReadMinMaxBrightness", "V4L2_CID_BRIGHTNESS");
 }
 
 int Camera::ReadContrast(int32_t &value)
