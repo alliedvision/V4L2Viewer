@@ -977,7 +977,39 @@ color:rgb(87,88,89);;
 
 Line{
 border-top:1px solid rgb(66,67,68);
-}</string>
+}
+
+QSlider{
+background:transparent;
+}
+
+QSlider::groove:horizontal{
+border: none;
+background: rgb(41,41,41);
+height:1px;
+border-bottom:1px solid rgb(51,51,51);
+}
+
+QSlider::handle:horizontal {
+background: rgb(114,114,114);
+width: 12px;
+height: 18px;
+border-radius: 2px;
+margin: -5px 0; 
+}
+
+QSlider::sub-page:horizontal {
+    background: rgb(0, 100, 207);
+}
+
+QSlider::groove:horizontal::disabled{
+border: none;
+background: rgb(81,81,81);
+height:1px;
+border-bottom:1px solid rgb(71,71,71);
+}
+
+</string>
         </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
@@ -1699,6 +1731,9 @@ QCheckBox::disabled{
            </item>
            <item row="2" column="0" colspan="3">
             <widget class="QSlider" name="m_sliderExposure">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -1821,7 +1856,7 @@ color:white;
               </sizepolicy>
              </property>
              <property name="text">
-              <string>FrameInterval:</string>
+              <string>FrameInterval/FPS:</string>
              </property>
             </widget>
            </item>

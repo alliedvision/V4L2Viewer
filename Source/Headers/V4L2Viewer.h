@@ -219,7 +219,7 @@ private slots:
     void OnMenuSplitterMoved(int pos, int index);
 
     void OnFixedFrameRateButtonClicked();
-    void DetermineFixedFrameRate(int framesCount);
+    void CheckAquiredFixedFrames(int framesCount);
 };
 
 #endif // V4L2VIEWER_H

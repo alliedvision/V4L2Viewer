@@ -677,7 +677,7 @@ void V4L2Viewer::OnFixedFrameRateButtonClicked()
     m_bIsFixedRate = true;
 }
 
-void V4L2Viewer::DetermineFixedFrameRate(int framesCount)
+void V4L2Viewer::CheckAquiredFixedFrames(int framesCount)
 {
     if (!m_bIsFixedRate)
     {
@@ -857,7 +857,7 @@ void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &fra
     else
         ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
 
-    DetermineFixedFrameRate(frameId);
+    CheckAquiredFixedFrames(frameId);
 }
 
 // The event handler to show the processed frame
@@ -1414,15 +1414,34 @@ void V4L2Viewer::OnFrameRate()
     QString pixelFormatText;
     QString frameRate = ui.m_edFrameRate->text();
     QStringList frameRateList = frameRate.split('/');
+    uint32_t numerator = 0;
+    uint32_t denominator = 0;
 
     if (frameRateList.size() < 2)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1/100!") );
-        return;
+        bool bIsConverted = false;
+        uint32_t value = frameRate.toInt(&bIsConverted);
+        if (!bIsConverted)
+        {
+            QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1/100 or normal value!") );
+            return;
+        }
+        numerator = 1;
+        denominator = value;
     }
+    else
+    {
+        bool bIsNumeratorConverted = false;
+        bool bIsDenominatorConverted = true;
+        numerator = frameRateList.at(0).toInt(&bIsNumeratorConverted);
+        denominator = frameRateList.at(1).toInt(&bIsDenominatorConverted);
 
-    uint32_t numerator = frameRateList.at(0).toInt();
-    uint32_t denominator = frameRateList.at(1).toInt();
+        if (!bIsNumeratorConverted || !bIsDenominatorConverted)
+        {
+            QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1/100 or normal value!") );
+            return;
+        }
+    }
 
     m_Camera.ReadFrameSize(width, height);
     m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
