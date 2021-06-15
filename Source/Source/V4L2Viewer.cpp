@@ -196,7 +196,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_TitleSavePNG, SIGNAL(triggered()), this, SLOT(OnSavePNG()));
     connect(ui.m_TitleSaveRAW, SIGNAL(triggered()), this, SLOT(OnSaveRAW()));
 
-    connect(ui.m_camerasListButton, SIGNAL(clicked()), this, SLOT(OnCameraListButtonClicked()));
+    connect(ui.m_camerasListCheckBox, SIGNAL(clicked()), this, SLOT(OnCameraListButtonClicked()));
 
     connect(ui.m_Splitter1, SIGNAL(splitterMoved(int, int)), this, SLOT(OnMenuSplitterMoved(int, int)));
 
@@ -333,7 +333,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
 
     connect(ui.m_SettingsButton, SIGNAL(clicked()), this, SLOT(OnSettingsButtonClicked()));
-    ui.m_camerasListButton->hide();
+    ui.m_camerasListCheckBox->setChecked(true);
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -513,7 +513,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 ui.m_CamerasListBox->item(nRow)->setSizeHint(newItem->sizeHint());
                 ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
                 ui.m_Splitter1->setSizes(QList<int>{0,1});
-                ui.m_camerasListButton->show();
+                ui.m_camerasListCheckBox->setChecked(false);
             }
             else
                 CloseCamera(m_cameras[nRow]);
@@ -683,19 +683,25 @@ void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
 
 void V4L2Viewer::OnCameraListButtonClicked()
 {
-    ui.m_Splitter1->setSizes(QList<int>{1,1});
-    ui.m_camerasListButton->hide();
+    if (!ui.m_camerasListCheckBox->isChecked())
+    {
+        ui.m_Splitter1->setSizes(QList<int>{0,1});
+    }
+    else
+    {
+        ui.m_Splitter1->setSizes(QList<int>{250,1});
+    }
 }
 
 void V4L2Viewer::OnMenuSplitterMoved(int pos, int index)
 {
     if (pos == 0)
     {
-        ui.m_camerasListButton->show();
+        ui.m_camerasListCheckBox->setChecked(false);
     }
     else
     {
-        ui.m_camerasListButton->hide();
+        ui.m_camerasListCheckBox->setChecked(true);
     }
 }
 
