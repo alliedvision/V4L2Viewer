@@ -134,7 +134,7 @@ private:
     void GetImageInformation();
     // Check if IO Read was checked and remove it when not capable
     void Check4IOReadAbility();
-    void SetTitleText(QString additionalText);
+    void SetTitleText();
     void UpdateCameraFormat();
 
     // The function for get device info
@@ -195,6 +195,7 @@ private slots:
     void OnAutoExposure();
     void OnExposureAbs();
     void OnPixelFormatChanged(const QString &item);
+    void UpdateCurrentPixelFormatOnList(QString pixelFormat);
     void OnFrameSizesDBLClick(QListWidgetItem *);
     void OnGamma();
     void OnBrightness();
@@ -202,7 +203,6 @@ private slots:
     void OnSaturation();
     void OnHue();
     void OnContinousWhiteBalance();
-    void OnWhiteBalanceOnce();
     void OnRedBalance();
     void OnBlueBalance();
     void OnFrameRate();
@@ -222,11 +222,7 @@ private slots:
     void OnSliderGammaValueChange(int value);
     void OnSliderBlackLevelValueChange(int value);
 
-    void OnSliderExposureReleased();
-    void OnSliderGainReleased();
-    void OnSliderBlackLevelReleased();
-    void OnSliderGammaReleased();
-
+    void OnSlidersReleased();
     void UpdateSlidersPositions(QSlider *slider, int32_t value);
 
     void OnCameraListButtonClicked();
