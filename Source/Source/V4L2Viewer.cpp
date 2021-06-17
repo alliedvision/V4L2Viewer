@@ -29,6 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Logger.h"
 #include "V4L2Viewer.h"
 #include "CameraListCustomItem.h"
+#include "EnumeratorInterface/IntegerEnumerationControl.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -159,6 +160,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
 
+    connect(ui.m_testButton,                  SIGNAL(clicked()),         this, SLOT(ShowHideEnumerationControlWidget()));
+
     SetTitleText();
 
     // Start Camera
@@ -170,6 +173,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
     connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)));
+
+    connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, QString)), this, SLOT(GetIntDataToEnumerationWidget(int32_t, int32_t, int32_t, QString)));
 
     // Setup blocking mode radio buttons
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
@@ -334,6 +339,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     connect(ui.m_SettingsButton, SIGNAL(clicked()), this, SLOT(OnSettingsButtonClicked()));
     ui.m_camerasListCheckBox->setChecked(true);
+
+    m_EnumerationControlWidget.hide();
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -343,7 +350,6 @@ V4L2Viewer::~V4L2Viewer()
     // if we are streaming stop streaming
     if ( true == m_bIsOpen )
         OnOpenCloseButtonClicked();
-
 }
 
 // The event handler to close the program
@@ -734,6 +740,24 @@ int32_t V4L2Viewer::GetSliderValueFromLog(int32_t value)
     double scale = (logExpMax - logExpMin) / (maximumSliderExposure - minimumSliderExposure);
     double result = minimumSliderExposure + ( log(value) - logExpMin ) / scale;
     return static_cast<int32_t>(result);
+}
+
+void V4L2Viewer::ShowHideEnumerationControlWidget()
+{
+    if (m_EnumerationControlWidget.isHidden())
+    {
+        m_EnumerationControlWidget.show();
+    }
+    else
+    {
+        m_EnumerationControlWidget.hide();
+    }
+}
+
+void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, QString name)
+{
+    IControlEnumerationHolder *ptr = new IntegerEnumerationControl(name, this);
+    m_EnumerationControlWidget.AddElement(ptr);
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)

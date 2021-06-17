@@ -1191,7 +1191,7 @@ background-color:rgb(166, 166, 166);
              </property>
             </widget>
            </item>
-           <item row="10" column="0" colspan="3">
+           <item row="11" column="0" colspan="3">
             <spacer name="verticalSpacer_6">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1394,6 +1394,13 @@ background-color:rgb(166, 166, 166);
              </property>
              <property name="text">
               <string>WhiteBalance</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="0" colspan="3">
+            <widget class="QPushButton" name="m_testButton">
+             <property name="text">
+              <string>Test</string>
              </property>
             </widget>
            </item>

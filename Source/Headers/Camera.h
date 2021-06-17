@@ -134,6 +134,8 @@ public:
 
 
     int EnumAllControlNewStyle();
+    int EnumerateMenu(int32_t menuId, v4l2_queryctrl &queryCtrl);
+
     int ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
                              uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
                              uint32_t &aspectnum, uint32_t &aspectdenum);
@@ -222,6 +224,11 @@ signals:
     void PassAutoExposureValue(int32_t value);
     void PassAutoGainValue(int32_t value);
     void PassAutoWhiteBalanceValue(int32_t value);
+
+    void SendIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, QString name);
+    void SendBoolDataToEnumerationWidget(bool value, QString name);
+    void SendListDataToEnumerationWidget(QList<QString> list, QString name);
+    void SendListIntDataToEnumerationWidget(QList<int64_t> list, QString name);
 
 private slots:
     // The event handler to set or remove devices

@@ -799,9 +799,12 @@ int Camera::EnumAllControlNewStyle()
 {
     int result = -1;
     v4l2_queryctrl qctrl;
+    v4l2_querymenu queryMenu;
     int cidCount = 0;
 
     CLEAR(qctrl);
+    CLEAR(queryMenu);
+
     qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
 
     while (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl))
@@ -810,6 +813,81 @@ int Camera::EnumAllControlNewStyle()
         {
             Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
             cidCount++;
+
+            qDebug() << "Name " << (const char*)qctrl.name;
+            qDebug()<< "ID " << v4l2helper::ConvertControlID2String(qctrl.id).c_str() << " Type " << qctrl.type;
+            qDebug()<< "Flags " << qctrl.flags;
+
+            QString name = QString((const char*)qctrl.name);
+
+            if (qctrl.type == V4L2_CTRL_TYPE_INTEGER)
+            {
+                int32_t value;
+                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
+                qDebug() << value;
+                qDebug() << qctrl.maximum;
+                qDebug() << qctrl.minimum;
+                qDebug() << qctrl.step;
+
+                emit SendIntDataToEnumerationWidget(0, 0, 0, name);
+            }
+            else if (qctrl.type == V4L2_CTRL_TYPE_BOOLEAN)
+            {
+                int32_t value;
+                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
+                qDebug() << value;
+                qDebug() << qctrl.step;
+            }
+            else if (qctrl.type == V4L2_CTRL_TYPE_MENU)
+            {
+                QList<QString> list;
+                queryMenu.id = qctrl.id;
+                for (queryMenu.index = qctrl.minimum;
+                     queryMenu.index <= qctrl.maximum;
+                     queryMenu.index++) {
+                    if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
+                        list.append(QString((const char*)queryMenu.name));
+                        qDebug() << (const char*)queryMenu.name;
+                    }
+                }
+                emit SendListDataToEnumerationWidget(list , name);
+            }
+            else if (qctrl.type == V4L2_CTRL_TYPE_BUTTON)
+            {
+                int32_t value;
+                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
+                qDebug() << value;
+                qDebug() << qctrl.step;
+            }
+            else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER64)
+            {
+                int32_t value;
+                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
+                qDebug() << value;
+                qDebug() << qctrl.maximum;
+                qDebug() << qctrl.minimum;
+                qDebug() << qctrl.step;
+            }
+            else if (qctrl.type == V4L2_CTRL_TYPE_CTRL_CLASS)
+            {
+                int32_t value;
+                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
+                qDebug() << value;
+            }
+            else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
+            {
+                QList<int64_t> intList;
+                queryMenu.id = qctrl.id;
+                for (queryMenu.index = qctrl.minimum;
+                     queryMenu.index <= qctrl.maximum;
+                     queryMenu.index++) {
+                    if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
+                        intList.append(queryMenu.value);
+                        qDebug() << queryMenu.value;
+                    }
+                }
+                emit SendListIntDataToEnumerationWidget(intList , name);
+            }
         }
 
         qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
@@ -824,6 +902,11 @@ int Camera::EnumAllControlNewStyle()
         result = 0;
     }
     return result;
+}
+
+int Camera::EnumerateMenu(int32_t menuId, v4l2_queryctrl &queryCtrl)
+{
+
 }
 
 int Camera::ReadExtControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass)

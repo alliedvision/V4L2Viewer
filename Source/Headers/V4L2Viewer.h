@@ -35,6 +35,7 @@
 #include "AboutWidget.h"
 #include "SettingsActionWidget.h"
 #include "ui_V4L2Viewer.h"
+#include "EnumeratorInterface/ControlsHolderWidget.h"
 
 #include <list>
 
@@ -110,6 +111,8 @@ private:
     int32_t m_sliderBlackLevelValue;
     int32_t m_sliderGammaValue;
     int32_t m_sliderExposureValue;
+
+    ControlsHolderWidget m_EnumerationControlWidget;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -231,8 +234,11 @@ private slots:
     void OnFixedFrameRateButtonClicked();
     void CheckAquiredFixedFrames(int framesCount);
 
+
     int32_t GetSliderValueFromLog(int32_t value);
 
+    void ShowHideEnumerationControlWidget();
+    void GetIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, QString name);
 };
 
 #endif // V4L2VIEWER_H
