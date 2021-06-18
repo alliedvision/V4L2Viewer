@@ -6,6 +6,8 @@
 #include <QGridLayout>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QCheckBox>
+#include <QPushButton>
 
 class IControlEnumerationHolder : public QWidget
 {

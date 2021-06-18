@@ -1,4 +1,4 @@
-#include "EnumeratorInterface/ControlsHolderWidget.h"
+#include "ControlsHolderWidget.h"
 
 ControlsHolderWidget::ControlsHolderWidget(QWidget *parent) : QWidget(parent)
 {

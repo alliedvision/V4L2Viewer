@@ -1,6 +1,6 @@
-#include "IntegerEnumerationControl.h"
+#include "Integer64EnumerationControl.h"
 
-IntegerEnumerationControl::IntegerEnumerationControl(int32_t min, int32_t max, int32_t step, int32_t value, QString name, QWidget *parent):
+Integer64EnumerationControl::Integer64EnumerationControl(int64_t min, int64_t max, int64_t step, int64_t value, QString name, QWidget *parent):
     IControlEnumerationHolder(name, parent),
     m_Min(min),
     m_Max(max),
@@ -14,8 +14,8 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t min, int32_t max, i
     connect(&m_LineEdit, SIGNAL(returnPressed()), this, SLOT(OnLineEditPressed()));
 }
 
-void IntegerEnumerationControl::OnLineEditPressed()
+void Integer64EnumerationControl::OnLineEditPressed()
 {
-    int32_t value = m_LineEdit.text().toInt();
+    int64_t value = static_cast<int64_t>(m_LineEdit.text().toLongLong());
     emit PassNewValue(value);
 }

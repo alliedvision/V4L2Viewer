@@ -35,7 +35,7 @@
 #include "AboutWidget.h"
 #include "SettingsActionWidget.h"
 #include "ui_V4L2Viewer.h"
-#include "EnumeratorInterface/ControlsHolderWidget.h"
+#include "ControlsHolderWidget.h"
 
 #include <list>
 
@@ -234,11 +234,14 @@ private slots:
     void OnFixedFrameRateButtonClicked();
     void CheckAquiredFixedFrames(int framesCount);
 
-
     int32_t GetSliderValueFromLog(int32_t value);
 
     void ShowHideEnumerationControlWidget();
-    void GetIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, QString name);
+
+    void GetIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, int32_t value, QString name);
+    void GetIntDataToEnumerationWidget(int64_t step, int64_t min, int64_t max, int64_t value, QString name);
+    void GetBoolDataToEnumerationWidget(bool value, QString name);
+    void GetButtonDataToEnumerationWidget(QString name);
 };
 
 #endif // V4L2VIEWER_H

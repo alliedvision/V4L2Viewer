@@ -29,7 +29,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Logger.h"
 #include "V4L2Viewer.h"
 #include "CameraListCustomItem.h"
-#include "EnumeratorInterface/IntegerEnumerationControl.h"
+#include "IntegerEnumerationControl.h"
+#include "Integer64EnumerationControl.h"
+#include "BooleanEnumerationControl.h"
+#include "ButtonEnumerationControl.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -174,7 +177,11 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
     connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)));
 
-    connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, QString)), this, SLOT(GetIntDataToEnumerationWidget(int32_t, int32_t, int32_t, QString)));
+    connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString)), this, SLOT(GetIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString)));
+    connect(&m_Camera, SIGNAL(SentInt64DataToEnumerationWidget(int64_t, int64_t, int64_t, int64_t, QString)), this, SLOT(GetIntDataToEnumerationWidget(int64_t, int64_t, int64_t, int64_t, QString)));
+
+    connect(&m_Camera, SIGNAL(SendBoolDataToEnumerationWidget(bool, QString)), this, SLOT(GetBoolDataToEnumerationWidget(bool, QString)));
+    connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(QString)), this, SLOT(GetButtonDataToEnumerationWidget(QString)));
 
     // Setup blocking mode radio buttons
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
@@ -754,9 +761,27 @@ void V4L2Viewer::ShowHideEnumerationControlWidget()
     }
 }
 
-void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, QString name)
+void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, int32_t value, QString name)
 {
-    IControlEnumerationHolder *ptr = new IntegerEnumerationControl(name, this);
+    IControlEnumerationHolder *ptr = new IntegerEnumerationControl(min, max, step, value, name, this);
+    m_EnumerationControlWidget.AddElement(ptr);
+}
+
+void V4L2Viewer::GetIntDataToEnumerationWidget(int64_t step, int64_t min, int64_t max, int64_t value, QString name)
+{
+    IControlEnumerationHolder *ptr = new Integer64EnumerationControl(min, max, step, value, name, this);
+    m_EnumerationControlWidget.AddElement(ptr);
+}
+
+void V4L2Viewer::GetBoolDataToEnumerationWidget(bool value, QString name)
+{
+    IControlEnumerationHolder *ptr = new BooleanEnumerationControl(value, name, this);
+    m_EnumerationControlWidget.AddElement(ptr);
+}
+
+void V4L2Viewer::GetButtonDataToEnumerationWidget(QString name)
+{
+    IControlEnumerationHolder *ptr = new ButtonEnumerationControl(name, this);
     m_EnumerationControlWidget.AddElement(ptr);
 }
 

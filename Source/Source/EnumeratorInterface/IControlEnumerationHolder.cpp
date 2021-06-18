@@ -1,4 +1,4 @@
-#include "EnumeratorInterface/IControlEnumerationHolder.h"
+#include "IControlEnumerationHolder.h"
 
 IControlEnumerationHolder::IControlEnumerationHolder(QString name, QWidget *parent) : QWidget(parent)
 {

@@ -823,20 +823,32 @@ int Camera::EnumAllControlNewStyle()
             if (qctrl.type == V4L2_CTRL_TYPE_INTEGER)
             {
                 int32_t value;
-                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
+                int32_t max = qctrl.maximum;
+                int32_t min = qctrl.minimum;
+                int32_t step = qctrl.step;
+                ReadExtControl(value, qctrl.id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER", V4L2_CTRL_CLASS_USER);
                 qDebug() << value;
-                qDebug() << qctrl.maximum;
-                qDebug() << qctrl.minimum;
-                qDebug() << qctrl.step;
+                qDebug() << max;
+                qDebug() << min;
+                qDebug() << step;
 
-                emit SendIntDataToEnumerationWidget(0, 0, 0, name);
+                emit SendIntDataToEnumerationWidget(step, min, max, value, name);
+            }
+            else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER64)
+            {
+                int64_t value = -1;
+                int64_t max = -1;
+                int64_t min = -1;
+                int64_t step = -1;
+
+                emit SentInt64DataToEnumerationWidget(step, min, max, value, name);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_BOOLEAN)
             {
                 int32_t value;
                 ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
                 qDebug() << value;
-                qDebug() << qctrl.step;
+                emit SendBoolDataToEnumerationWidget(static_cast<bool>(value), name);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_MENU)
             {
@@ -856,37 +868,28 @@ int Camera::EnumAllControlNewStyle()
             {
                 int32_t value;
                 ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
-                qDebug() << value;
-                qDebug() << qctrl.step;
-            }
-            else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER64)
-            {
-                int32_t value;
-                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
-                qDebug() << value;
-                qDebug() << qctrl.maximum;
-                qDebug() << qctrl.minimum;
-                qDebug() << qctrl.step;
+
+                SendButtonDataToEnumerationWidget(name);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_CTRL_CLASS)
             {
                 int32_t value;
                 ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
-                qDebug() << value;
+                // How should it be handled?
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
             {
-                QList<int64_t> intList;
+                QList<int64_t> list;
                 queryMenu.id = qctrl.id;
                 for (queryMenu.index = qctrl.minimum;
                      queryMenu.index <= qctrl.maximum;
                      queryMenu.index++) {
                     if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
-                        intList.append(queryMenu.value);
+                        list.append(queryMenu.value);
                         qDebug() << queryMenu.value;
                     }
                 }
-                emit SendListIntDataToEnumerationWidget(intList , name);
+                emit SendListIntDataToEnumerationWidget(list , name);
             }
         }
 

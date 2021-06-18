@@ -225,8 +225,11 @@ signals:
     void PassAutoGainValue(int32_t value);
     void PassAutoWhiteBalanceValue(int32_t value);
 
-    void SendIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, QString name);
+    void SendIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, int32_t value, QString name);
+    void SentInt64DataToEnumerationWidget(int64_t step, int64_t min, int64_t max, int64_t value, QString name);
     void SendBoolDataToEnumerationWidget(bool value, QString name);
+    void SendButtonDataToEnumerationWidget(QString name);
+
     void SendListDataToEnumerationWidget(QList<QString> list, QString name);
     void SendListIntDataToEnumerationWidget(QList<int64_t> list, QString name);
 
