@@ -798,7 +798,7 @@ int Camera::ReadPixelFormat(uint32_t &pixelFormat, uint32_t &bytesPerLine, QStri
 int Camera::EnumAllControlNewStyle()
 {
     int result = -1;
-    v4l2_queryctrl qctrl;
+    v4l2_query_ext_ctrl qctrl;
     v4l2_querymenu queryMenu;
     int cidCount = 0;
 
@@ -807,7 +807,7 @@ int Camera::EnumAllControlNewStyle()
 
     qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
 
-    while (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl))
+    while (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERY_EXT_CTRL, &qctrl))
     {
         if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
         {
@@ -816,7 +816,6 @@ int Camera::EnumAllControlNewStyle()
 
             qDebug() << "Name " << (const char*)qctrl.name;
             qDebug()<< "ID " << v4l2helper::ConvertControlID2String(qctrl.id).c_str() << " Type " << qctrl.type;
-            qDebug()<< "Flags " << qctrl.flags;
 
             QString name = QString((const char*)qctrl.name);
 
@@ -827,19 +826,23 @@ int Camera::EnumAllControlNewStyle()
                 int32_t min = qctrl.minimum;
                 int32_t step = qctrl.step;
                 ReadExtControl(value, qctrl.id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER", V4L2_CTRL_CLASS_USER);
-                qDebug() << value;
-                qDebug() << max;
-                qDebug() << min;
-                qDebug() << step;
 
                 emit SendIntDataToEnumerationWidget(step, min, max, value, name);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER64)
             {
-                int64_t value = -1;
-                int64_t max = -1;
-                int64_t min = -1;
-                int64_t step = -1;
+                int32_t value;
+                int64_t max = qctrl.maximum;
+                int64_t min = qctrl.minimum;
+                int64_t step = qctrl.step;
+
+                ReadExtControl(value, qctrl.id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_CLASS_USER);
+
+                qDebug() << "64 integer:";
+                qDebug() << "value" << value;
+                qDebug() << "min " << min;
+                qDebug() << "max " << max;
+                qDebug() << "step " << step;
 
                 emit SentInt64DataToEnumerationWidget(step, min, max, value, name);
             }
@@ -847,8 +850,20 @@ int Camera::EnumAllControlNewStyle()
             {
                 int32_t value;
                 ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
-                qDebug() << value;
                 emit SendBoolDataToEnumerationWidget(static_cast<bool>(value), name);
+            }
+            else if (qctrl.type == V4L2_CTRL_TYPE_BUTTON)
+            {
+                int32_t value;
+                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
+
+                SendButtonDataToEnumerationWidget(name);
+            }
+            else if (qctrl.type == V4L2_CTRL_TYPE_CTRL_CLASS)
+            {
+                int32_t value;
+                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
+                // How should it be handled?
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_MENU)
             {
@@ -863,19 +878,6 @@ int Camera::EnumAllControlNewStyle()
                     }
                 }
                 emit SendListDataToEnumerationWidget(list , name);
-            }
-            else if (qctrl.type == V4L2_CTRL_TYPE_BUTTON)
-            {
-                int32_t value;
-                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
-
-                SendButtonDataToEnumerationWidget(name);
-            }
-            else if (qctrl.type == V4L2_CTRL_TYPE_CTRL_CLASS)
-            {
-                int32_t value;
-                ReadExtControl(value, qctrl.id, "", "", V4L2_CTRL_CLASS_USER);
-                // How should it be handled?
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
             {
@@ -895,6 +897,7 @@ int Camera::EnumAllControlNewStyle()
 
         qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
     }
+
     if (0 == cidCount)
     {
         Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL returned error, no controls can be enumerated.");

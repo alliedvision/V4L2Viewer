@@ -242,6 +242,8 @@ private slots:
     void GetIntDataToEnumerationWidget(int64_t step, int64_t min, int64_t max, int64_t value, QString name);
     void GetBoolDataToEnumerationWidget(bool value, QString name);
     void GetButtonDataToEnumerationWidget(QString name);
+    void GetListDataToEnumerationWidget(QList<QString> list, QString name);
+    void GetListDataToEnumerationWidget(QList<int64_t> list, QString name);
 };
 
 #endif // V4L2VIEWER_H

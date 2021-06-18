@@ -33,6 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Integer64EnumerationControl.h"
 #include "BooleanEnumerationControl.h"
 #include "ButtonEnumerationControl.h"
+#include "ListEnumerationControl.h"
+#include "ListIntEnumerationControl.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -182,6 +184,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     connect(&m_Camera, SIGNAL(SendBoolDataToEnumerationWidget(bool, QString)), this, SLOT(GetBoolDataToEnumerationWidget(bool, QString)));
     connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(QString)), this, SLOT(GetButtonDataToEnumerationWidget(QString)));
+
+    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(QList<QString>, QString)), this, SLOT(GetListDataToEnumerationWidget(QList<QString>, QString)));
+    connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(QList<int64_t>, QString)), this, SLOT(GetListDataToEnumerationWidget(QList<int64_t>, QString)));
 
     // Setup blocking mode radio buttons
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
@@ -554,6 +559,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
             }
 
+            m_EnumerationControlWidget.RemoveElements();
             SetTitleText();
         }
 
@@ -782,6 +788,18 @@ void V4L2Viewer::GetBoolDataToEnumerationWidget(bool value, QString name)
 void V4L2Viewer::GetButtonDataToEnumerationWidget(QString name)
 {
     IControlEnumerationHolder *ptr = new ButtonEnumerationControl(name, this);
+    m_EnumerationControlWidget.AddElement(ptr);
+}
+
+void V4L2Viewer::GetListDataToEnumerationWidget(QList<QString> list, QString name)
+{
+    IControlEnumerationHolder *ptr = new ListEnumerationControl(list, name, this);
+    m_EnumerationControlWidget.AddElement(ptr);
+}
+
+void V4L2Viewer::GetListDataToEnumerationWidget(QList<int64_t> list, QString name)
+{
+    IControlEnumerationHolder *ptr = new ListIntEnumerationControl(list, name, this);
     m_EnumerationControlWidget.AddElement(ptr);
 }
 

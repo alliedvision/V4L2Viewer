@@ -18,4 +18,16 @@ ControlsHolderWidget::ControlsHolderWidget(QWidget *parent) : QWidget(parent)
 void ControlsHolderWidget::AddElement(IControlEnumerationHolder *controlWidget)
 {
     m_pScrollAreaGrid->addWidget(controlWidget);
+    itemVector.append(controlWidget);
 }
+
+void ControlsHolderWidget::RemoveElements()
+{
+    for(QVector<IControlEnumerationHolder*>::iterator it = itemVector.begin(); it<itemVector.end(); ++it)
+    {
+        m_pScrollAreaGrid->removeWidget(*it);
+        delete *it;
+        *it = nullptr;
+    }
+}
+

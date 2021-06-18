@@ -12,6 +12,7 @@ class ControlsHolderWidget : public QWidget
 public:
     explicit ControlsHolderWidget(QWidget *parent = nullptr);
     void AddElement(IControlEnumerationHolder *controlWidget);
+    void RemoveElements();
 
 private:
     QWidget     *m_pScrollAreaWidget;
@@ -19,6 +20,8 @@ private:
 
     QGridLayout *m_pScrollAreaGrid;
     QGridLayout *m_pMainLayout;
+
+    QVector<IControlEnumerationHolder*> itemVector;
 };
 
 #endif // CONTROLSHOLDERWIDGET_H
