@@ -821,82 +821,123 @@ int Camera::EnumAllControlNewStyle()
 
             if (qctrl.type == V4L2_CTRL_TYPE_INTEGER)
             {
+                int result = -1;
                 int32_t value;
                 int32_t max = qctrl.maximum;
                 int32_t min = qctrl.minimum;
                 int32_t step = qctrl.step;
                 int32_t id = qctrl.id;
 
-                ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER", V4L2_CTRL_CLASS_USER);
+                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER", V4L2_CTRL_CLASS_USER);
 
-                emit SendIntDataToEnumerationWidget(id, step, min, max, value, name);
+                if (result < 0)
+                {
+                    result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER", V4L2_CTRL_CLASS_CAMERA);
+                }
+
+                if (result == 0)
+                {
+                    emit SendIntDataToEnumerationWidget(id, step, min, max, value, name);
+                }
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER64)
             {
-                int32_t value;
+                int result = -1;
+                int64_t value;
                 int64_t max = qctrl.maximum;
                 int64_t min = qctrl.minimum;
                 int64_t step = qctrl.step;
                 int32_t id = qctrl.id;
 
-                ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_CLASS_USER);
+                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_CLASS_USER);
 
-                qDebug() << "64 integer:";
-                qDebug() << "value" << value;
-                qDebug() << "min " << min;
-                qDebug() << "max " << max;
-                qDebug() << "step " << step;
+                if (result < 0)
+                {
+                    result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_CLASS_CAMERA);
+                }
 
-                emit SentInt64DataToEnumerationWidget(id, step, min, max, value, name);
+                if (result == 0)
+                {
+                    emit SentInt64DataToEnumerationWidget(id, step, min, max, value, name);
+                }
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_BOOLEAN)
             {
+                int result = -1;
                 int32_t value;
                 int32_t id = qctrl.id;
-                ReadExtControl(value, id, "", "", V4L2_CTRL_CLASS_USER);
-                emit SendBoolDataToEnumerationWidget(id, static_cast<bool>(value), name);
+
+                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BOOLEAN", V4L2_CTRL_CLASS_USER);
+
+                if (result < 0)
+                {
+                    result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BOOLEAN", V4L2_CTRL_CLASS_CAMERA);
+                }
+
+                if (result == 0)
+                {
+                    emit SendBoolDataToEnumerationWidget(id, static_cast<bool>(value), name);
+                }
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_BUTTON)
             {
                 int32_t value;
                 int32_t id = qctrl.id;
-                ReadExtControl(value, id, "", "", V4L2_CTRL_CLASS_USER);
+                ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BUTTON", V4L2_CTRL_CLASS_USER);
 
                 emit SendButtonDataToEnumerationWidget(id, name);
             }
-            else if (qctrl.type == V4L2_CTRL_TYPE_CTRL_CLASS)
-            {
-                // Later On
-            }
             else if (qctrl.type == V4L2_CTRL_TYPE_MENU)
             {
+                int result = -1;
                 int32_t id = qctrl.id;
+                int32_t value;
                 QList<QString> list;
+
+                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_USER);
+
+                if (result < 0)
+                {
+                    result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_CAMERA);
+                }
+
                 queryMenu.id = qctrl.id;
                 for (queryMenu.index = qctrl.minimum;
                      queryMenu.index <= qctrl.maximum;
                      queryMenu.index++) {
                     if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
                         list.append(QString((const char*)queryMenu.name));
-                        qDebug() << (const char*)queryMenu.name;
                     }
                 }
                 emit SendListDataToEnumerationWidget(id, list , name);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
             {
+                int result = -1;
                 int32_t id = qctrl.id;
+                int32_t value;
                 QList<int64_t> list;
+
+                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER_MENU", V4L2_CTRL_CLASS_USER);
+
+                if (result < 0)
+                {
+                    result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER_MENU", V4L2_CTRL_CLASS_CAMERA);
+                }
+
                 queryMenu.id = qctrl.id;
                 for (queryMenu.index = qctrl.minimum;
                      queryMenu.index <= qctrl.maximum;
                      queryMenu.index++) {
                     if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
                         list.append(queryMenu.value);
-                        qDebug() << queryMenu.value;
                     }
                 }
                 emit SendListIntDataToEnumerationWidget(id, list , name);
+            }
+            else if (qctrl.type == V4L2_CTRL_TYPE_CTRL_CLASS)
+            {
+                // Later On
             }
         }
 
@@ -913,11 +954,6 @@ int Camera::EnumAllControlNewStyle()
         result = 0;
     }
     return result;
-}
-
-int Camera::EnumerateMenu(int32_t menuId, v4l2_queryctrl &queryCtrl)
-{
-
 }
 
 int Camera::ReadExtControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass)
@@ -1004,6 +1040,41 @@ int Camera::SetExtControl(uint32_t value, uint32_t controlID, const char *functi
     return result;
 }
 
+int Camera::SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass)
+{
+    int result = -1;
+    v4l2_ext_controls extCtrls;
+    v4l2_ext_control extCtrl;
+
+    CLEAR(extCtrls);
+    CLEAR(extCtrl);
+    extCtrl.id = controlID;
+    extCtrl.value = value;
+
+    extCtrls.controls = &extCtrl;
+    extCtrls.count = 1;
+    extCtrls.ctrl_class = controlClass;
+
+    if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_TRY_EXT_CTRLS, &extCtrls))
+    {
+        if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_S_EXT_CTRLS, &extCtrls))
+        {
+            Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
+            result = 0;
+        }
+        else
+        {
+            Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+        }
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_TRY_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+    }
+
+    return result;
+}
+
 int Camera::ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass)
 {
     QMutexLocker locker(&m_ReadExtControlMutex);
@@ -1033,6 +1104,174 @@ int Camera::ReadExtControl(int32_t &value, uint32_t controlID, const char *funct
             Logger::LogEx("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
 
             value = extCtrl.value;
+
+            result = 0;
+        }
+        else
+        {
+            Logger::LogEx("Camera::%s VIDIOC_G_CTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+
+            result = -2;
+        }
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+
+        result = -2;
+    }
+
+    return result;
+}
+
+int Camera::SetExtControl(uint64_t value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
+{
+    int result = -1;
+    v4l2_ext_controls extCtrls;
+    v4l2_ext_control extCtrl;
+
+    CLEAR(extCtrls);
+    CLEAR(extCtrl);
+    extCtrl.id = controlID;
+    extCtrl.value64 = value;
+
+    extCtrls.controls = &extCtrl;
+    extCtrls.count = 1;
+    extCtrls.ctrl_class = controlClass;
+
+    if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_TRY_EXT_CTRLS, &extCtrls))
+    {
+        if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_S_EXT_CTRLS, &extCtrls))
+        {
+            Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
+            result = 0;
+        }
+        else
+        {
+            Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+        }
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_TRY_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+    }
+
+    return result;
+}
+
+int Camera::ReadExtControl(uint64_t &value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
+{
+    QMutexLocker locker(&m_ReadExtControlMutex);
+    int result = -1;
+    v4l2_queryctrl ctrl;
+
+    CLEAR(ctrl);
+    ctrl.id = controlID;
+
+    if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
+    {
+        v4l2_ext_controls extCtrls;
+        v4l2_ext_control extCtrl;
+
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
+
+        CLEAR(extCtrls);
+        CLEAR(extCtrl);
+        extCtrl.id = controlID;
+
+        extCtrls.controls = &extCtrl;
+        extCtrls.count = 1;
+        extCtrls.ctrl_class = controlClass;
+
+        if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
+        {
+            Logger::LogEx("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
+
+            value = extCtrl.value64;
+
+            result = 0;
+        }
+        else
+        {
+            Logger::LogEx("Camera::%s VIDIOC_G_CTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+
+            result = -2;
+        }
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+
+        result = -2;
+    }
+
+    return result;
+}
+
+int Camera::SetExtControl(int64_t value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
+{
+    int result = -1;
+    v4l2_ext_controls extCtrls;
+    v4l2_ext_control extCtrl;
+
+    CLEAR(extCtrls);
+    CLEAR(extCtrl);
+    extCtrl.id = controlID;
+    extCtrl.value64 = value;
+
+    extCtrls.controls = &extCtrl;
+    extCtrls.count = 1;
+    extCtrls.ctrl_class = controlClass;
+
+    if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_TRY_EXT_CTRLS, &extCtrls))
+    {
+        if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_S_EXT_CTRLS, &extCtrls))
+        {
+            Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
+            result = 0;
+        }
+        else
+        {
+            Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+        }
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_TRY_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+    }
+
+    return result;
+}
+
+int Camera::ReadExtControl(int64_t &value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
+{
+    QMutexLocker locker(&m_ReadExtControlMutex);
+    int result = -1;
+    v4l2_queryctrl ctrl;
+
+    CLEAR(ctrl);
+    ctrl.id = controlID;
+
+    if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
+    {
+        v4l2_ext_controls extCtrls;
+        v4l2_ext_control extCtrl;
+
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
+
+        CLEAR(extCtrls);
+        CLEAR(extCtrl);
+        extCtrl.id = controlID;
+
+        extCtrls.controls = &extCtrl;
+        extCtrls.count = 1;
+        extCtrls.ctrl_class = controlClass;
+
+        if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
+        {
+            Logger::LogEx("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
+
+            value = extCtrl.value64;
 
             result = 0;
         }
@@ -1098,42 +1337,6 @@ int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const cha
 
     return result;
 }
-
-int Camera::SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass)
-{
-    int result = -1;
-    v4l2_ext_controls extCtrls;
-    v4l2_ext_control extCtrl;
-
-    CLEAR(extCtrls);
-    CLEAR(extCtrl);
-    extCtrl.id = controlID;
-    extCtrl.value = value;
-
-    extCtrls.controls = &extCtrl;
-    extCtrls.count = 1;
-    extCtrls.ctrl_class = controlClass;
-
-    if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_TRY_EXT_CTRLS, &extCtrls))
-    {
-        if (-1 != iohelper::xioctl(m_nFileDescriptor, VIDIOC_S_EXT_CTRLS, &extCtrls))
-        {
-            Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
-            result = 0;
-        }
-        else
-        {
-            Logger::LogEx("Camera::%s VIDIOC_S_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
-        }
-    }
-    else
-    {
-        Logger::LogEx("Camera::%s VIDIOC_TRY_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
-    }
-
-    return result;
-}
-
 
 int Camera::ReadExposureAbs(int32_t &value)
 {
@@ -2108,7 +2311,7 @@ void Camera::PassWhiteBalanceValue()
     emit PassAutoWhiteBalanceValue(value);
 }
 
-void Camera::SetEnumerationControlValue(int32_t id, const char *str)
+void Camera::SetEnumerationControlValueIntList(int32_t id, int64_t val)
 {
     int result = -1;
     v4l2_query_ext_ctrl qctrl;
@@ -2126,9 +2329,53 @@ void Camera::SetEnumerationControlValue(int32_t id, const char *str)
         queryMenu.id = qctrl.id;
         for (queryMenu.index = qctrl.minimum;
              queryMenu.index <= qctrl.maximum;
-             queryMenu.index++) {
-            if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
-                if ( strcmp( (const char*)queryMenu.name, str) == 0 ) {
+             queryMenu.index++)
+        {
+            if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu))
+            {
+                if ( val == queryMenu.value )
+                {
+                    result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_USER);
+                    if (result < 0)
+                    {
+                        Logger::LogEx("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class, trying V4L2_CTRL_CLASS_CAMERA...", (const char*)qctrl.name);
+                        result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_CAMERA);
+                    }
+                    if (result < 0)
+                    {
+                        Logger::LogEx("Enumeration control %s cannot be set", (const char*)qctrl.name);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void Camera::SetEnumerationControlValueList(int32_t id, const char *str)
+{
+    int result = -1;
+    v4l2_query_ext_ctrl qctrl;
+    v4l2_ext_control extCtrl;
+    v4l2_querymenu queryMenu;
+
+    CLEAR(extCtrl);
+    CLEAR(qctrl);
+    CLEAR(queryMenu);
+
+    extCtrl.id = id;
+    qctrl.id = id;
+
+    if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERY_EXT_CTRL, &qctrl)){
+        queryMenu.id = qctrl.id;
+        for (queryMenu.index = qctrl.minimum;
+             queryMenu.index <= qctrl.maximum;
+             queryMenu.index++)
+        {
+            if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu))
+            {
+                if ( strcmp( (const char*)queryMenu.name, str) == 0 )
+                {
                     result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_USER);
                     if (result < 0)
                     {

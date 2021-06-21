@@ -3,7 +3,8 @@
 BooleanEnumerationControl::BooleanEnumerationControl(int32_t id, bool value, QString name, QWidget *parent):
     IControlEnumerationHolder(id, name, parent)
 {
-    m_ControlInfo.setText("Control info here");
+    m_ControlInfo.setText(QString(tr("%1 control accepts boolean values.")
+                          .arg(name)));
     m_CheckBox.setText("On/Off");
     m_CheckBox.setChecked(value);
     m_Layout.addWidget(&m_ControlInfo, 0, 0);

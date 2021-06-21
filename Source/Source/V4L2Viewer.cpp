@@ -759,6 +759,7 @@ void V4L2Viewer::ShowHideEnumerationControlWidget()
 {
     if (m_EnumerationControlWidget.isHidden())
     {
+        m_EnumerationControlWidget.setGeometry(this->pos().x(), this->pos().y(), 600, 800);
         m_EnumerationControlWidget.show();
     }
     else
@@ -795,7 +796,7 @@ void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, QList<QString> list,
 {
     IControlEnumerationHolder *ptr = new ListEnumerationControl(id, list, name, this);
     ListEnumerationControl *objPtr = dynamic_cast<ListEnumerationControl*>(ptr);
-    connect(objPtr, SIGNAL(PassNewValue(int32_t, const char *)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, const char*)));
+    connect(objPtr, SIGNAL(PassNewValue(int32_t, const char *)), &m_Camera, SLOT(SetEnumerationControlValueList(int32_t, const char*)));
     m_EnumerationControlWidget.AddElement(ptr);
 }
 

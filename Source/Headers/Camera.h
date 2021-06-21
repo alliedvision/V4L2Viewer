@@ -126,15 +126,19 @@ public:
     int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
+    int SetExtControl(uint64_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int ReadExtControl(uint64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+
+    int SetExtControl(int64_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int ReadExtControl(int64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+
     int ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
     int ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
 
     int ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
     int WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
 
-
     int EnumAllControlNewStyle();
-    int EnumerateMenu(int32_t menuId, v4l2_queryctrl &queryCtrl);
 
     int ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
                              uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
@@ -182,7 +186,8 @@ public slots:
     void PassExposureValue();
     void PassWhiteBalanceValue();
 
-    void SetEnumerationControlValue(int32_t id, const char* str); //Values passed to controls which accept strings
+    void SetEnumerationControlValueIntList(int32_t id, int64_t val);
+    void SetEnumerationControlValueList(int32_t id, const char* str); //Values passed to controls which accept strings
     void SetEnumerationControlValue(int32_t id, int32_t val); //Values passed to controls which accept 32 bit ingegers
     void SetEnumerationControlValue(int32_t id, int64_t val); //Values passed to controls which accept 64 bit integers
     void SetEnumerationControlValue(int32_t id, bool val); //Values passed to controls which accept booleans
