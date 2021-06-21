@@ -7,7 +7,7 @@ class IntegerEnumerationControl : public IControlEnumerationHolder
 {
     Q_OBJECT
 public:
-    IntegerEnumerationControl(int32_t min, int32_t max, int32_t step, int32_t value, QString name, QWidget *parent);
+    IntegerEnumerationControl(int32_t id, int32_t min, int32_t max, int32_t step, int32_t value, QString name, QWidget *parent);
 
 signals:
     void PassNewValue(int32_t value);

@@ -1,7 +1,7 @@
 #include "ListEnumerationControl.h"
 
-ListEnumerationControl::ListEnumerationControl(QList<QString> list, QString name, QWidget *parent):
-    IControlEnumerationHolder(name, parent)
+ListEnumerationControl::ListEnumerationControl(int32_t id, QList<QString> list, QString name, QWidget *parent):
+    IControlEnumerationHolder(id, name, parent)
 {
     m_ControlInfo.setText("Control info here");
     m_Layout.addWidget(&m_ControlInfo, 0, 0);
@@ -18,5 +18,5 @@ ListEnumerationControl::ListEnumerationControl(QList<QString> list, QString name
 
 void ListEnumerationControl::OnListItemChanged(const QString &currentText)
 {
-    emit PassNewValue(QString(currentText));
+   emit PassNewValue(m_id, currentText.toStdString().c_str());
 }

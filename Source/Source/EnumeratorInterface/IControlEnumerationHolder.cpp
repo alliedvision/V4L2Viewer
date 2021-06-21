@@ -1,6 +1,6 @@
 #include "IControlEnumerationHolder.h"
 
-IControlEnumerationHolder::IControlEnumerationHolder(QString name, QWidget *parent) : QWidget(parent)
+IControlEnumerationHolder::IControlEnumerationHolder(int32_t id, QString name, QWidget *parent) : m_id(id), QWidget(parent)
 {
     m_NameOfControl.setText(name);
     m_Layout.addWidget(&m_NameOfControl, 0, 0);

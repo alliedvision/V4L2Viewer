@@ -1,7 +1,7 @@
 #include "BooleanEnumerationControl.h"
 
-BooleanEnumerationControl::BooleanEnumerationControl(bool value, QString name, QWidget *parent):
-    IControlEnumerationHolder(name, parent)
+BooleanEnumerationControl::BooleanEnumerationControl(int32_t id, bool value, QString name, QWidget *parent):
+    IControlEnumerationHolder(id, name, parent)
 {
     m_ControlInfo.setText("Control info here");
     m_CheckBox.setText("On/Off");

@@ -7,7 +7,7 @@ class Integer64EnumerationControl : public IControlEnumerationHolder
 {
     Q_OBJECT
 public:
-    Integer64EnumerationControl(int64_t min, int64_t max, int64_t step, int64_t value, QString name, QWidget *parent);
+    Integer64EnumerationControl(int32_t id, int64_t min, int64_t max, int64_t step, int64_t value, QString name, QWidget *parent);
 
 signals:
     void PassNewValue(int64_t value);

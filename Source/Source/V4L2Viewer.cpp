@@ -179,14 +179,14 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
     connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)));
 
-    connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString)), this, SLOT(GetIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString)));
-    connect(&m_Camera, SIGNAL(SentInt64DataToEnumerationWidget(int64_t, int64_t, int64_t, int64_t, QString)), this, SLOT(GetIntDataToEnumerationWidget(int64_t, int64_t, int64_t, int64_t, QString)));
+    connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, int32_t, QString)), this, SLOT(GetIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, int32_t, QString)));
+    connect(&m_Camera, SIGNAL(SentInt64DataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, int64_t, QString)), this, SLOT(GetIntDataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, int64_t, QString)));
 
-    connect(&m_Camera, SIGNAL(SendBoolDataToEnumerationWidget(bool, QString)), this, SLOT(GetBoolDataToEnumerationWidget(bool, QString)));
-    connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(QString)), this, SLOT(GetButtonDataToEnumerationWidget(QString)));
+    connect(&m_Camera, SIGNAL(SendBoolDataToEnumerationWidget(int32_t, bool, QString)), this, SLOT(GetBoolDataToEnumerationWidget(int32_t, bool, QString)));
+    connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(int32_t, QString)), this, SLOT(GetButtonDataToEnumerationWidget(int32_t, QString)));
 
-    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(QList<QString>, QString)), this, SLOT(GetListDataToEnumerationWidget(QList<QString>, QString)));
-    connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(QList<int64_t>, QString)), this, SLOT(GetListDataToEnumerationWidget(QList<int64_t>, QString)));
+    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, QList<QString>, QString)), this, SLOT(GetListDataToEnumerationWidget(int32_t, QList<QString>, QString)));
+    connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, QList<int64_t>, QString)), this, SLOT(GetListDataToEnumerationWidget(int32_t, QList<int64_t>, QString)));
 
     // Setup blocking mode radio buttons
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
@@ -767,39 +767,41 @@ void V4L2Viewer::ShowHideEnumerationControlWidget()
     }
 }
 
-void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, int32_t value, QString name)
+void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int32_t step, int32_t min, int32_t max, int32_t value, QString name)
 {
-    IControlEnumerationHolder *ptr = new IntegerEnumerationControl(min, max, step, value, name, this);
+    IControlEnumerationHolder *ptr = new IntegerEnumerationControl(id, min, max, step, value, name, this);
     m_EnumerationControlWidget.AddElement(ptr);
 }
 
-void V4L2Viewer::GetIntDataToEnumerationWidget(int64_t step, int64_t min, int64_t max, int64_t value, QString name)
+void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int64_t step, int64_t min, int64_t max, int64_t value, QString name)
 {
-    IControlEnumerationHolder *ptr = new Integer64EnumerationControl(min, max, step, value, name, this);
+    IControlEnumerationHolder *ptr = new Integer64EnumerationControl(id, min, max, step, value, name, this);
     m_EnumerationControlWidget.AddElement(ptr);
 }
 
-void V4L2Viewer::GetBoolDataToEnumerationWidget(bool value, QString name)
+void V4L2Viewer::GetBoolDataToEnumerationWidget(int32_t id, bool value, QString name)
 {
-    IControlEnumerationHolder *ptr = new BooleanEnumerationControl(value, name, this);
+    IControlEnumerationHolder *ptr = new BooleanEnumerationControl(id, value, name, this);
     m_EnumerationControlWidget.AddElement(ptr);
 }
 
-void V4L2Viewer::GetButtonDataToEnumerationWidget(QString name)
+void V4L2Viewer::GetButtonDataToEnumerationWidget(int32_t id, QString name)
 {
-    IControlEnumerationHolder *ptr = new ButtonEnumerationControl(name, this);
+    IControlEnumerationHolder *ptr = new ButtonEnumerationControl(id, name, this);
     m_EnumerationControlWidget.AddElement(ptr);
 }
 
-void V4L2Viewer::GetListDataToEnumerationWidget(QList<QString> list, QString name)
+void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name)
 {
-    IControlEnumerationHolder *ptr = new ListEnumerationControl(list, name, this);
+    IControlEnumerationHolder *ptr = new ListEnumerationControl(id, list, name, this);
+    ListEnumerationControl *objPtr = dynamic_cast<ListEnumerationControl*>(ptr);
+    connect(objPtr, SIGNAL(PassNewValue(int32_t, const char *)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, const char*)));
     m_EnumerationControlWidget.AddElement(ptr);
 }
 
-void V4L2Viewer::GetListDataToEnumerationWidget(QList<int64_t> list, QString name)
+void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name)
 {
-    IControlEnumerationHolder *ptr = new ListIntEnumerationControl(list, name, this);
+    IControlEnumerationHolder *ptr = new ListIntEnumerationControl(id, list, name, this);
     m_EnumerationControlWidget.AddElement(ptr);
 }
 

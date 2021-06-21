@@ -7,7 +7,7 @@ class ButtonEnumerationControl : public IControlEnumerationHolder
 {
     Q_OBJECT
 public:
-    ButtonEnumerationControl(QString name, QWidget *parent);
+    ButtonEnumerationControl(int32_t id, QString name, QWidget *parent);
 
 signals:
     void PassActionPerform();

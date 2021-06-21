@@ -238,12 +238,12 @@ private slots:
 
     void ShowHideEnumerationControlWidget();
 
-    void GetIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, int32_t value, QString name);
-    void GetIntDataToEnumerationWidget(int64_t step, int64_t min, int64_t max, int64_t value, QString name);
-    void GetBoolDataToEnumerationWidget(bool value, QString name);
-    void GetButtonDataToEnumerationWidget(QString name);
-    void GetListDataToEnumerationWidget(QList<QString> list, QString name);
-    void GetListDataToEnumerationWidget(QList<int64_t> list, QString name);
+    void GetIntDataToEnumerationWidget(int32_t id,  int32_t step, int32_t min, int32_t max, int32_t value, QString name);
+    void GetIntDataToEnumerationWidget(int32_t id,  int64_t step, int64_t min, int64_t max, int64_t value, QString name);
+    void GetBoolDataToEnumerationWidget(int32_t id, bool value, QString name);
+    void GetButtonDataToEnumerationWidget(int32_t id, QString name);
+    void GetListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name);
+    void GetListDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name);
 };
 
 #endif // V4L2VIEWER_H

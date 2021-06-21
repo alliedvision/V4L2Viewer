@@ -1,7 +1,7 @@
 #include "Integer64EnumerationControl.h"
 
-Integer64EnumerationControl::Integer64EnumerationControl(int64_t min, int64_t max, int64_t step, int64_t value, QString name, QWidget *parent):
-    IControlEnumerationHolder(name, parent),
+Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min, int64_t max, int64_t step, int64_t value, QString name, QWidget *parent):
+    IControlEnumerationHolder(id, name, parent),
     m_Min(min),
     m_Max(max),
     m_Step(step),

@@ -1,7 +1,7 @@
 #include "ButtonEnumerationControl.h"
 
-ButtonEnumerationControl::ButtonEnumerationControl(QString name, QWidget *parent) :
-    IControlEnumerationHolder(name, parent)
+ButtonEnumerationControl::ButtonEnumerationControl(int32_t id, QString name, QWidget *parent) :
+    IControlEnumerationHolder(id, name, parent)
 {
     m_ControlInfo.setText("Control info here");
     m_PushButton.setText("Perform");

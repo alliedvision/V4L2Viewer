@@ -1,7 +1,7 @@
 #include "IntegerEnumerationControl.h"
 
-IntegerEnumerationControl::IntegerEnumerationControl(int32_t min, int32_t max, int32_t step, int32_t value, QString name, QWidget *parent):
-    IControlEnumerationHolder(name, parent),
+IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, int32_t max, int32_t step, int32_t value, QString name, QWidget *parent):
+    IControlEnumerationHolder(id, name, parent),
     m_Min(min),
     m_Max(max),
     m_Step(step),

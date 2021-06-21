@@ -7,7 +7,7 @@ class BooleanEnumerationControl : public IControlEnumerationHolder
 {
     Q_OBJECT
 public:
-    BooleanEnumerationControl(bool value, QString name, QWidget *parent);
+    BooleanEnumerationControl(int32_t id, bool value, QString name, QWidget *parent);
 
 signals:
     void PassNewValue(bool value);

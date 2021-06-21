@@ -13,13 +13,14 @@ class IControlEnumerationHolder : public QWidget
 {
     Q_OBJECT
 public:
-    explicit IControlEnumerationHolder(QString name, QWidget *parent = nullptr);
+    explicit IControlEnumerationHolder(int32_t id, QString name, QWidget *parent = nullptr);
     virtual ~IControlEnumerationHolder() = 0;
 
 protected:
     QLabel  m_NameOfControl;
     QWidget m_MainWidget;
     QGridLayout m_Layout;
+    int32_t m_id;
 };
 
 #endif // ICONTROLENUMERATIONHOLDER_H

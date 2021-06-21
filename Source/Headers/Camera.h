@@ -182,7 +182,11 @@ public slots:
     void PassExposureValue();
     void PassWhiteBalanceValue();
 
-
+    void SetEnumerationControlValue(int32_t id, const char* str); //Values passed to controls which accept strings
+    void SetEnumerationControlValue(int32_t id, int32_t val); //Values passed to controls which accept 32 bit ingegers
+    void SetEnumerationControlValue(int32_t id, int64_t val); //Values passed to controls which accept 64 bit integers
+    void SetEnumerationControlValue(int32_t id, bool val); //Values passed to controls which accept booleans
+    void SetEnumerationControlValue(int32_t id); //Values passed to controls which performs some actions on button click
 
 private:
     std::string         m_DeviceName;
@@ -225,13 +229,13 @@ signals:
     void PassAutoGainValue(int32_t value);
     void PassAutoWhiteBalanceValue(int32_t value);
 
-    void SendIntDataToEnumerationWidget(int32_t step, int32_t min, int32_t max, int32_t value, QString name);
-    void SentInt64DataToEnumerationWidget(int64_t step, int64_t min, int64_t max, int64_t value, QString name);
-    void SendBoolDataToEnumerationWidget(bool value, QString name);
-    void SendButtonDataToEnumerationWidget(QString name);
+    void SendIntDataToEnumerationWidget(int32_t id, int32_t step, int32_t min, int32_t max, int32_t value, QString name);
+    void SentInt64DataToEnumerationWidget(int32_t id, int64_t step, int64_t min, int64_t max, int64_t value, QString name);
+    void SendBoolDataToEnumerationWidget(int32_t id, bool value, QString name);
+    void SendButtonDataToEnumerationWidget(int32_t id, QString name);
 
-    void SendListDataToEnumerationWidget(QList<QString> list, QString name);
-    void SendListIntDataToEnumerationWidget(QList<int64_t> list, QString name);
+    void SendListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name);
+    void SendListIntDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name);
 
 private slots:
     // The event handler to set or remove devices

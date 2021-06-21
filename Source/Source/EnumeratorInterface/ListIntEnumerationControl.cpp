@@ -1,7 +1,7 @@
 #include "ListIntEnumerationControl.h"
 
-ListIntEnumerationControl::ListIntEnumerationControl(QList<int64_t> list, QString name, QWidget *parent):
-    IControlEnumerationHolder(name, parent)
+ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, QList<int64_t> list, QString name, QWidget *parent):
+    IControlEnumerationHolder(id, name, parent)
 {
     m_ControlInfo.setText("Control info here");
     m_Layout.addWidget(&m_ControlInfo, 0, 0);
