@@ -5,7 +5,7 @@
 #include <QScrollArea>
 #include <QGridLayout>
 #include <EnumeratorInterface/IControlEnumerationHolder.h>
-
+#include "ui_ControlsHolderWidget.h"
 
 class ControlsHolderWidget : public QWidget
 {
@@ -17,13 +17,10 @@ public:
     bool IsControlAlreadySet(int32_t id);
     IControlEnumerationHolder* GetControlWidget(int32_t id, bool &bIsSuccess);
 
+    Ui::ControlsHolderWidget ui;
+
 private:
-    QWidget     *m_pScrollAreaWidget;
-    QScrollArea *m_pScrollArea;
-
-    QGridLayout *m_pScrollAreaGrid;
-    QGridLayout *m_pMainLayout;
-
+    QGridLayout *m_pWidgetLayout;
     QVector<IControlEnumerationHolder*> itemVector;
 };
 

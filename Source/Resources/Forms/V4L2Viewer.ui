@@ -471,7 +471,7 @@ border:none;
               <x>0</x>
               <y>0</y>
               <width>894</width>
-              <height>305</height>
+              <height>220</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">

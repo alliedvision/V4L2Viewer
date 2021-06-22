@@ -7,9 +7,6 @@ IControlEnumerationHolder::IControlEnumerationHolder(int32_t id, QString name, Q
     m_MainLayout.addWidget(&m_NameOfControl, 0, 0);
     m_MainLayout.addWidget(&m_ControlInfo, 1, 0);
     m_MainLayout.addWidget(&m_ControlWidget, 2, 0);
-    setStyleSheet("QWidget{"
-                  "border:1px solid rgb(35,35,35);"
-                  "border-radius:4px;}");
     setLayout(&m_MainLayout);
 }
 
