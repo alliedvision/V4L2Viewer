@@ -165,8 +165,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
 
-    connect(ui.m_testButton,                  SIGNAL(clicked()),         this, SLOT(ShowHideEnumerationControlWidget()));
-
     SetTitleText();
 
     // Start Camera
@@ -187,6 +185,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, QList<QString>, QString)), this, SLOT(GetListDataToEnumerationWidget(int32_t, QList<QString>, QString)));
     connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, QList<int64_t>, QString)), this, SLOT(GetListDataToEnumerationWidget(int32_t, QList<int64_t>, QString)));
+
+    connect(&m_Camera, SIGNAL(SendSignalToUpdateWidgets()), this, SLOT(OnReadAllValues()));
 
     // Setup blocking mode radio buttons
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
@@ -251,7 +251,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edCropYOffset, SIGNAL(returnPressed()), this, SLOT(OnCropYOffset()));
     connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
     connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
-    connect(ui.m_butReadValues, SIGNAL(clicked()), this, SLOT(OnReadAllValues()));
 
     connect(ui.m_fixedRateStartButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
 
@@ -349,10 +348,13 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
 
-    connect(ui.m_SettingsButton, SIGNAL(clicked()), this, SLOT(OnSettingsButtonClicked()));
+    connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
+
     ui.m_camerasListCheckBox->setChecked(true);
 
     m_EnumerationControlWidget.hide();
+
+    ui.m_ImageControlFrame->setEnabled(false);
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -522,6 +524,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             // Set up Qt image
             if (0 == err)
             {
+                ui.m_ImageControlFrame->setEnabled(true);
                 GetImageInformation();
                 SetTitleText();
                 ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
@@ -561,6 +564,8 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
             m_EnumerationControlWidget.RemoveElements();
             SetTitleText();
+
+            ui.m_ImageControlFrame->setEnabled(false);
         }
 
         if (false == m_bIsOpen)
@@ -630,14 +635,6 @@ void V4L2Viewer::OnLanguageChange()
     {
         QMessageBox::warning( this, tr("Video4Linux"), tr("Language has been already set!") );
     }
-}
-
-void V4L2Viewer::OnSettingsButtonClicked()
-{
-    QPoint point = ui.m_SettingsButton->pos();
-    point = ui.m_ImageControlFrame->mapToGlobal(point);
-    point.setY(point.y()+ui.m_SettingsButton->height());
-    m_pSettingsMenu->exec(point);
 }
 
 void V4L2Viewer::OnUpdateAutoExposure(int32_t value)
@@ -770,46 +767,112 @@ void V4L2Viewer::ShowHideEnumerationControlWidget()
 
 void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int32_t step, int32_t min, int32_t max, int32_t value, QString name)
 {
-    IControlEnumerationHolder *ptr = new IntegerEnumerationControl(id, min, max, step, value, name, this);
-    m_EnumerationControlWidget.AddElement(ptr);
+    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    {
+        IControlEnumerationHolder *ptr = new IntegerEnumerationControl(id, min, max, step, value, name, this);
+        connect(dynamic_cast<IntegerEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int32_t)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, int32_t)));
+        m_EnumerationControlWidget.AddElement(ptr);
+    }
+    else
+    {
+        bool bIsSucced;
+        IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
+        if (bIsSucced)
+        {
+            dynamic_cast<IntegerEnumerationControl*>(obj)->UpdateValue(value);
+        }
+    }
 }
 
 void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int64_t step, int64_t min, int64_t max, int64_t value, QString name)
 {
-    IControlEnumerationHolder *ptr = new Integer64EnumerationControl(id, min, max, step, value, name, this);
-    m_EnumerationControlWidget.AddElement(ptr);
+    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    {
+        IControlEnumerationHolder *ptr = new Integer64EnumerationControl(id, min, max, step, value, name, this);
+        connect(dynamic_cast<Integer64EnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int64_t)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, int64_t)));
+        m_EnumerationControlWidget.AddElement(ptr);
+    }
+    else
+    {
+        bool bIsSucced;
+        IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
+        if (bIsSucced)
+        {
+            dynamic_cast<Integer64EnumerationControl*>(obj)->UpdateValue(value);
+        }
+    }
 }
 
 void V4L2Viewer::GetBoolDataToEnumerationWidget(int32_t id, bool value, QString name)
 {
-    IControlEnumerationHolder *ptr = new BooleanEnumerationControl(id, value, name, this);
-    m_EnumerationControlWidget.AddElement(ptr);
+    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    {
+        IControlEnumerationHolder *ptr = new BooleanEnumerationControl(id, value, name, this);
+        connect(dynamic_cast<BooleanEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, bool)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, bool)));
+        m_EnumerationControlWidget.AddElement(ptr);
+    }
+    else
+    {
+        bool bIsSucced;
+        IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
+        if (bIsSucced)
+        {
+            dynamic_cast<BooleanEnumerationControl*>(obj)->UpdateValue(value);
+        }
+    }
 }
 
 void V4L2Viewer::GetButtonDataToEnumerationWidget(int32_t id, QString name)
 {
-    IControlEnumerationHolder *ptr = new ButtonEnumerationControl(id, name, this);
-    m_EnumerationControlWidget.AddElement(ptr);
+    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    {
+        IControlEnumerationHolder *ptr = new ButtonEnumerationControl(id, name, this);
+        connect(dynamic_cast<ButtonEnumerationControl*>(ptr), SIGNAL(PassActionPerform(int32_t)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t)));
+        m_EnumerationControlWidget.AddElement(ptr);
+    }
 }
 
 void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name)
 {
-    IControlEnumerationHolder *ptr = new ListEnumerationControl(id, list, name, this);
-    ListEnumerationControl *objPtr = dynamic_cast<ListEnumerationControl*>(ptr);
-    connect(objPtr, SIGNAL(PassNewValue(int32_t, const char *)), &m_Camera, SLOT(SetEnumerationControlValueList(int32_t, const char*)));
-    m_EnumerationControlWidget.AddElement(ptr);
+    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    {
+        IControlEnumerationHolder *ptr = new ListEnumerationControl(id, list, name, this);
+        connect(dynamic_cast<ListEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, const char *)), &m_Camera, SLOT(SetEnumerationControlValueList(int32_t, const char*)));
+        m_EnumerationControlWidget.AddElement(ptr);
+    }
+    else
+    {
+        bool bIsSucced;
+        IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
+        if (bIsSucced)
+        {
+            dynamic_cast<ListEnumerationControl*>(obj)->UpdateValue(list);
+        }
+    }
 }
 
 void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name)
 {
-    IControlEnumerationHolder *ptr = new ListIntEnumerationControl(id, list, name, this);
-    m_EnumerationControlWidget.AddElement(ptr);
+    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    {
+        IControlEnumerationHolder *ptr = new ListIntEnumerationControl(id, list, name, this);
+        connect(dynamic_cast<ListIntEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int64_t)), &m_Camera, SLOT(SetEnumerationControlValueIntList(int32_t, int64_t)));
+        m_EnumerationControlWidget.AddElement(ptr);
+    }
+    else
+    {
+        bool bIsSucced;
+        IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
+        if (bIsSucced)
+        {
+            dynamic_cast<ListIntEnumerationControl*>(obj)->UpdateValue(list);
+        }
+    }
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
     int err = 0;
-    int nRow = ui.m_CamerasListBox->currentRow();
 
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
@@ -1589,12 +1652,10 @@ void V4L2Viewer::OnCropXOffset()
     uint32_t yOffset;
     uint32_t width;
     uint32_t height;
-    uint32_t tmp;
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
         xOffset = ui.m_edCropXOffset->text().toInt();
-        tmp = xOffset;
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
             // readback to show it was set correct
@@ -1616,12 +1677,10 @@ void V4L2Viewer::OnCropYOffset()
     uint32_t yOffset;
     uint32_t width;
     uint32_t height;
-    uint32_t tmp;
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
         yOffset = ui.m_edCropYOffset->text().toInt();
-        tmp = yOffset;
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
             // readback to show it was set correct
@@ -1642,12 +1701,10 @@ void V4L2Viewer::OnCropWidth()
     uint32_t yOffset;
     uint32_t width;
     uint32_t height;
-    uint32_t tmp;
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
         width = ui.m_edCropWidth->text().toInt();
-        tmp = width;
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
             // readback to show it was set correct
@@ -1670,12 +1727,9 @@ void V4L2Viewer::OnCropHeight()
     uint32_t yOffset;
     uint32_t width;
     uint32_t height;
-    uint32_t tmp;
-
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
         height = ui.m_edCropHeight->text().toInt();
-        tmp = height;
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
             // readback to show it was set correct
@@ -1747,7 +1801,6 @@ void V4L2Viewer::OnCropCapabilities()
 void V4L2Viewer::OnReadAllValues()
 {
     GetImageInformation();
-    UpdateCameraFormat();
 }
 
 /////////////////////// Tools /////////////////////////////////////
@@ -2028,6 +2081,7 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelCropHeight->setEnabled(false);
     }
     OnCropCapabilities();
+
     m_Camera.EnumAllControlNewStyle();
 }
 

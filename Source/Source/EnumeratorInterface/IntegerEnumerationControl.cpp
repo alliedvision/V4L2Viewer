@@ -19,8 +19,15 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, in
     connect(&m_LineEdit, SIGNAL(returnPressed()), this, SLOT(OnLineEditPressed()));
 }
 
+void IntegerEnumerationControl::UpdateValue(int32_t value)
+{
+    m_LineEdit.blockSignals(true);
+    m_LineEdit.setText(QString::number(value));
+    m_LineEdit.blockSignals(false);
+}
+
 void IntegerEnumerationControl::OnLineEditPressed()
 {
     int32_t value = m_LineEdit.text().toInt();
-    emit PassNewValue(value);
+    emit PassNewValue(m_id, value);
 }

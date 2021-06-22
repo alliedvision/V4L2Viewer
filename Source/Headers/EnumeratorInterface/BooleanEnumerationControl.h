@@ -8,9 +8,10 @@ class BooleanEnumerationControl : public IControlEnumerationHolder
     Q_OBJECT
 public:
     BooleanEnumerationControl(int32_t id, bool value, QString name, QWidget *parent);
+    void UpdateValue(bool val);
 
 signals:
-    void PassNewValue(bool value);
+    void PassNewValue(int32_t id, bool value);
 
 private slots:
     void OnStateChanged(int state);

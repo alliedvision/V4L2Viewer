@@ -8,9 +8,10 @@ class Integer64EnumerationControl : public IControlEnumerationHolder
     Q_OBJECT
 public:
     Integer64EnumerationControl(int32_t id, int64_t min, int64_t max, int64_t step, int64_t value, QString name, QWidget *parent);
+    void UpdateValue(int64_t value);
 
 signals:
-    void PassNewValue(int64_t value);
+    void PassNewValue(int32_t id, int64_t value);
 
 private slots:
     void OnLineEditPressed();

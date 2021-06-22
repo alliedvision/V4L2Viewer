@@ -242,6 +242,8 @@ signals:
     void SendListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name);
     void SendListIntDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name);
 
+    void SendSignalToUpdateWidgets();
+
 private slots:
     // The event handler to set or remove devices
     void OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &);

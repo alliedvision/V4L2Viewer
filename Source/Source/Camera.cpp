@@ -799,13 +799,18 @@ int Camera::EnumAllControlNewStyle()
 {
     int result = -1;
     v4l2_query_ext_ctrl qctrl;
+    v4l2_ext_control extCtrl;
+    v4l2_ext_controls extCtrls;
     v4l2_querymenu queryMenu;
     int cidCount = 0;
 
     CLEAR(qctrl);
     CLEAR(queryMenu);
+    CLEAR(extCtrl);
+    CLEAR(extCtrls);
 
     qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
+
 
     while (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERY_EXT_CTRL, &qctrl))
     {
@@ -813,9 +818,6 @@ int Camera::EnumAllControlNewStyle()
         {
             Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
             cidCount++;
-
-            qDebug() << "Name " << (const char*)qctrl.name;
-            qDebug()<< "ID " << v4l2helper::ConvertControlID2String(qctrl.id).c_str() << " Type " << qctrl.type;
 
             QString name = QString((const char*)qctrl.name);
 
@@ -828,12 +830,7 @@ int Camera::EnumAllControlNewStyle()
                 int32_t step = qctrl.step;
                 int32_t id = qctrl.id;
 
-                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER", V4L2_CTRL_CLASS_USER);
-
-                if (result < 0)
-                {
-                    result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER", V4L2_CTRL_CLASS_CAMERA);
-                }
+                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER", V4L2_CTRL_ID2CLASS (qctrl.id));
 
                 if (result == 0)
                 {
@@ -849,12 +846,7 @@ int Camera::EnumAllControlNewStyle()
                 int64_t step = qctrl.step;
                 int32_t id = qctrl.id;
 
-                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_CLASS_USER);
-
-                if (result < 0)
-                {
-                    result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_CLASS_CAMERA);
-                }
+                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_ID2CLASS (qctrl.id));
 
                 if (result == 0)
                 {
@@ -867,12 +859,7 @@ int Camera::EnumAllControlNewStyle()
                 int32_t value;
                 int32_t id = qctrl.id;
 
-                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BOOLEAN", V4L2_CTRL_CLASS_USER);
-
-                if (result < 0)
-                {
-                    result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BOOLEAN", V4L2_CTRL_CLASS_CAMERA);
-                }
+                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BOOLEAN", V4L2_CTRL_ID2CLASS (qctrl.id));
 
                 if (result == 0)
                 {
@@ -883,7 +870,7 @@ int Camera::EnumAllControlNewStyle()
             {
                 int32_t value;
                 int32_t id = qctrl.id;
-                ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BUTTON", V4L2_CTRL_CLASS_USER);
+                ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BUTTON", V4L2_CTRL_ID2CLASS (qctrl.id));
 
                 emit SendButtonDataToEnumerationWidget(id, name);
             }
@@ -894,12 +881,7 @@ int Camera::EnumAllControlNewStyle()
                 int32_t value;
                 QList<QString> list;
 
-                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_USER);
-
-                if (result < 0)
-                {
-                    result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_CAMERA);
-                }
+                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_ID2CLASS (qctrl.id));
 
                 queryMenu.id = qctrl.id;
                 for (queryMenu.index = qctrl.minimum;
@@ -918,12 +900,7 @@ int Camera::EnumAllControlNewStyle()
                 int32_t value;
                 QList<int64_t> list;
 
-                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER_MENU", V4L2_CTRL_CLASS_USER);
-
-                if (result < 0)
-                {
-                    result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER_MENU", V4L2_CTRL_CLASS_CAMERA);
-                }
+                result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER_MENU", V4L2_CTRL_ID2CLASS (qctrl.id));
 
                 queryMenu.id = qctrl.id;
                 for (queryMenu.index = qctrl.minimum;
@@ -934,10 +911,6 @@ int Camera::EnumAllControlNewStyle()
                     }
                 }
                 emit SendListIntDataToEnumerationWidget(id, list , name);
-            }
-            else if (qctrl.type == V4L2_CTRL_TYPE_CTRL_CLASS)
-            {
-                // Later On
             }
         }
 
@@ -2293,21 +2266,21 @@ std::string Camera::ConvertPixelFormat2String(int pixelFormat)
 void Camera::PassGainValue()
 {
     int32_t value = 0;
-    int result = ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_CAMERA);
+    ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_CAMERA);
     emit PassAutoGainValue(value);
 }
 
 void Camera::PassExposureValue()
 {
     int32_t value = 0;
-    int result = ReadExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
+    ReadExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
     emit PassAutoExposureValue(value);
 }
 
 void Camera::PassWhiteBalanceValue()
 {
     int32_t value = 0;
-    int result = ReadExtControl(value, V4L2_CID_WHITE_BALANCE_TEMPERATURE, "ReadWhiteBalance", "V4L2_CID_WHITE_BALANCE_TEMPERATURE", V4L2_CTRL_CLASS_CAMERA);
+    ReadExtControl(value, V4L2_CID_WHITE_BALANCE_TEMPERATURE, "ReadWhiteBalance", "V4L2_CID_WHITE_BALANCE_TEMPERATURE", V4L2_CTRL_CLASS_CAMERA);
     emit PassAutoWhiteBalanceValue(value);
 }
 
@@ -2335,16 +2308,13 @@ void Camera::SetEnumerationControlValueIntList(int32_t id, int64_t val)
             {
                 if ( val == queryMenu.value )
                 {
-                    result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_USER);
+                    result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_ID2CLASS (id));
                     if (result < 0)
                     {
-                        Logger::LogEx("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class, trying V4L2_CTRL_CLASS_CAMERA...", (const char*)qctrl.name);
-                        result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_CAMERA);
+                        Logger::LogEx("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class", (const char*)qctrl.name);
                     }
-                    if (result < 0)
-                    {
-                        Logger::LogEx("Enumeration control %s cannot be set", (const char*)qctrl.name);
-                    }
+                    emit SendSignalToUpdateWidgets();
+                    qDebug() << "SETTING INT64 LIST ENUM CONTROL: " << result;
                     break;
                 }
             }
@@ -2376,16 +2346,13 @@ void Camera::SetEnumerationControlValueList(int32_t id, const char *str)
             {
                 if ( strcmp( (const char*)queryMenu.name, str) == 0 )
                 {
-                    result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_USER);
+                    result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_ID2CLASS (id));
                     if (result < 0)
                     {
-                        Logger::LogEx("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class, trying V4L2_CTRL_CLASS_CAMERA...", str);
-                        result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_CLASS_CAMERA);
+                        Logger::LogEx("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class", str);
                     }
-                    if (result < 0)
-                    {
-                        Logger::LogEx("Enumeration control %s cannot be set", str);
-                    }
+                    emit SendSignalToUpdateWidgets();
+                    qDebug() << "SETTING STRING LIST ENUM CONTROL: " << result;
                     break;
                 }
             }
@@ -2395,21 +2362,45 @@ void Camera::SetEnumerationControlValueList(int32_t id, const char *str)
 
 void Camera::SetEnumerationControlValue(int32_t id, int32_t val)
 {
-    // SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_INTEGER32", V4L2_CTRL_CLASS_USER);
+    int result = SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_INTEGER32", V4L2_CTRL_ID2CLASS (id));
+    if (result < 0)
+    {
+        Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_INTEGER32 cannot be set with V4L2_CTRL_CLASS_USER class");
+    }
+    emit SendSignalToUpdateWidgets();
+    qDebug() << "SETTING INTEGER32 ENUM CONTROL: "<< result;
 }
 
 void Camera::SetEnumerationControlValue(int32_t id, int64_t val)
 {
-    // ? SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_CLASS_USER);
+    int result = SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_ID2CLASS (id));
+    if (result < 0)
+    {
+        Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_INTEGER64 cannot be set with V4L2_CTRL_CLASS_USER class");
+    }
+    emit SendSignalToUpdateWidgets();
+    qDebug() << "SETTING INTEGER64 ENUM CONTROL: " << result;
 }
 
 void Camera::SetEnumerationControlValue(int32_t id, bool val)
 {
-    // SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_BOOL", V4L2_CTRL_CLASS_USER);
+    int result = SetExtControl(static_cast<int32_t>(val), id, "SetEnumerationControl", "V4L2_CTRL_TYPE_BOOL", V4L2_CTRL_ID2CLASS (id));
+    if (result < 0)
+    {
+        Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_BOOL cannot be set with V4L2_CTRL_CLASS_USER class");
+    }
+    emit SendSignalToUpdateWidgets();
+    qDebug() << "SETTING BOOL ENUM CONTROL: " << result;
 }
 
 void Camera::SetEnumerationControlValue(int32_t id)
 {
-    // ? Perform action on button clicked?
+    int result = SetExtControl(0, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_BUTTON", V4L2_CTRL_ID2CLASS (id));
+    if (result < 0)
+    {
+        Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_BUTTON cannot be set with V4L2_CTRL_CLASS_USER class");
+    }
+    emit SendSignalToUpdateWidgets();
+    qDebug() << "SETTING BUTTON ENUM CONTROL: " << result;
 }
 

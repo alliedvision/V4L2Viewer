@@ -1,4 +1,5 @@
 #include "ControlsHolderWidget.h"
+#include <algorithm>
 
 ControlsHolderWidget::ControlsHolderWidget(QWidget *parent) : QWidget(parent)
 {
@@ -104,11 +105,38 @@ void ControlsHolderWidget::AddElement(IControlEnumerationHolder *controlWidget)
 
 void ControlsHolderWidget::RemoveElements()
 {
-    for(QVector<IControlEnumerationHolder*>::iterator it = itemVector.begin(); it<itemVector.end(); ++it)
+    for (QVector<IControlEnumerationHolder*>::iterator it = itemVector.begin(); it<itemVector.end(); ++it)
     {
         m_pScrollAreaGrid->removeWidget(*it);
         delete *it;
         *it = nullptr;
     }
+    itemVector.clear();
+}
+
+bool ControlsHolderWidget::IsControlAlreadySet(int32_t id)
+{
+    for (QVector<IControlEnumerationHolder*>::iterator it = itemVector.begin(); it<itemVector.end(); ++it)
+    {
+        if((*it)->GetWidgetControlId() == id)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+IControlEnumerationHolder*  ControlsHolderWidget::GetControlWidget(int32_t id, bool &bIsSuccess)
+{
+    for (QVector<IControlEnumerationHolder*>::iterator it = itemVector.begin(); it<itemVector.end(); ++it)
+    {
+        if((*it)->GetWidgetControlId() == id)
+        {
+            bIsSuccess = true;
+            return (*it);
+        }
+    }
+    bIsSuccess = false;
+    return nullptr;
 }
 

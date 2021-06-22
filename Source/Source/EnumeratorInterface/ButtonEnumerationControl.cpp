@@ -14,5 +14,5 @@ ButtonEnumerationControl::ButtonEnumerationControl(int32_t id, QString name, QWi
 
 void ButtonEnumerationControl::OnButtonClicked()
 {
-    emit PassActionPerform();
+    emit PassActionPerform(m_id);
 }

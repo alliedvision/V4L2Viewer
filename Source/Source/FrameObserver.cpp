@@ -205,7 +205,6 @@ void FrameObserver::DequeueAndProcessFrame()
         {
             uint8_t *buffer = 0;
             uint32_t length = 0;
-            uint32_t logPayloadSize = m_PayloadSize;
 
             if (0 == GetFrameData(buf, buffer, length))
             {
@@ -218,7 +217,6 @@ void FrameObserver::DequeueAndProcessFrame()
                 {
                     length = InternalConvertRAW10inRAW16ToRAW10g(buffer, m_PayloadSize, g_ConversionBuffer2);
                     buffer = g_ConversionBuffer2;
-                    logPayloadSize = length;
                 }
 
                 if (length <= m_RealPayloadSize)

@@ -13,14 +13,21 @@ BooleanEnumerationControl::BooleanEnumerationControl(int32_t id, bool value, QSt
     connect(&m_CheckBox, SIGNAL(stateChanged(int)), this, SLOT(OnStateChanged(int)));
 }
 
+void BooleanEnumerationControl::UpdateValue(bool val)
+{
+    m_CheckBox.blockSignals(true);
+    m_CheckBox.setChecked(val);
+    m_CheckBox.blockSignals(false);
+}
+
 void BooleanEnumerationControl::OnStateChanged(int state)
 {
     if (state == Qt::Unchecked)
     {
-        emit PassNewValue(false);
+        emit PassNewValue(m_id, false);
     }
     else
     {
-        emit PassNewValue(true);
+        emit PassNewValue(m_id, true);
     }
 }

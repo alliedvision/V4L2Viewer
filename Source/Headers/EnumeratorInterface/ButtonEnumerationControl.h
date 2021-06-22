@@ -10,7 +10,7 @@ public:
     ButtonEnumerationControl(int32_t id, QString name, QWidget *parent);
 
 signals:
-    void PassActionPerform();
+    void PassActionPerform(int32_t id);
 
 private slots:
     void OnButtonClicked();

@@ -17,6 +17,17 @@ ListEnumerationControl::ListEnumerationControl(int32_t id, QList<QString> list, 
     connect(&m_ListWidget, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnListItemChanged(const QString &)));
 }
 
+void ListEnumerationControl::UpdateValue(QList<QString> list)
+{
+    m_ListWidget.blockSignals(true);
+    m_ListWidget.clear();
+    for (QList<QString>::iterator it = list.begin(); it<list.end(); ++it)
+    {
+        m_ListWidget.addItem(*it);
+    }
+    m_ListWidget.blockSignals(false);
+}
+
 void ListEnumerationControl::OnListItemChanged(const QString &currentText)
 {
    emit PassNewValue(m_id, currentText.toStdString().c_str());

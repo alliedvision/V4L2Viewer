@@ -17,8 +17,19 @@ ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, QList<int64_t> 
     connect(&m_ListWidget, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnListItemChanged(const QString &)));
 }
 
+void ListIntEnumerationControl::UpdateValue(QList<int64_t> list)
+{
+    m_ListWidget.blockSignals(true);
+    m_ListWidget.clear();
+    for (QList<int64_t>::iterator it = list.begin(); it<list.end(); ++it)
+    {
+        m_ListWidget.addItem(QString::number(*it));
+    }
+    m_ListWidget.blockSignals(false);
+}
+
 void ListIntEnumerationControl::OnListItemChanged(const QString &currentText)
 {
     int64_t value = static_cast<int64_t>(currentText.toLongLong());
-    emit PassNewValue(value);
+    emit PassNewValue(m_id, value);
 }

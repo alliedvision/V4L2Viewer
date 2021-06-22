@@ -9,6 +9,11 @@ IControlEnumerationHolder::IControlEnumerationHolder(int32_t id, QString name, Q
     setLayout(&m_Layout);
 }
 
+int32_t IControlEnumerationHolder::GetWidgetControlId()
+{
+    return m_id;
+}
+
 IControlEnumerationHolder::~IControlEnumerationHolder()
 {
 

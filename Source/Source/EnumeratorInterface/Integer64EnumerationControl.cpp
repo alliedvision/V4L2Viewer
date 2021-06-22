@@ -19,8 +19,15 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
     connect(&m_LineEdit, SIGNAL(returnPressed()), this, SLOT(OnLineEditPressed()));
 }
 
+void Integer64EnumerationControl::UpdateValue(int64_t value)
+{
+    m_LineEdit.blockSignals(true);
+    m_LineEdit.setText(QString::number(value));
+    m_LineEdit.blockSignals(false);
+}
+
 void Integer64EnumerationControl::OnLineEditPressed()
 {
     int64_t value = static_cast<int64_t>(m_LineEdit.text().toLongLong());
-    emit PassNewValue(value);
+    emit PassNewValue(m_id, value);
 }

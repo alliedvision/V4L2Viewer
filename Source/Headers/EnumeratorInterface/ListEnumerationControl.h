@@ -8,6 +8,7 @@ class ListEnumerationControl : public IControlEnumerationHolder
     Q_OBJECT
 public:
     ListEnumerationControl(int32_t id, QList<QString> list, QString name, QWidget *parent);
+    void UpdateValue(QList<QString> list);
 
 private slots:
     void OnListItemChanged(const QString &currentText);
