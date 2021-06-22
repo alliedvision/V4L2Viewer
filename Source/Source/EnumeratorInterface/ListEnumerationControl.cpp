@@ -5,9 +5,7 @@ ListEnumerationControl::ListEnumerationControl(int32_t id, QList<QString> list, 
 {
     m_ControlInfo.setText(QString(tr("%1 control is represented as list of strings. \n Values listed below are available for the camera")
                           .arg(name)));
-    m_Layout.addWidget(&m_ControlInfo, 0, 0);
-    m_Layout.addWidget(&m_ListWidget, 1, 0);
-    m_MainWidget.setLayout(&m_Layout);
+    m_ControlWidgetLayout.addWidget(&m_ListWidget);
 
     for (QList<QString>::iterator it = list.begin(); it<list.end(); ++it)
     {

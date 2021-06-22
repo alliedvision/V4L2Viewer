@@ -7,9 +7,7 @@ BooleanEnumerationControl::BooleanEnumerationControl(int32_t id, bool value, QSt
                           .arg(name)));
     m_CheckBox.setText("On/Off");
     m_CheckBox.setChecked(value);
-    m_Layout.addWidget(&m_ControlInfo, 0, 0);
-    m_Layout.addWidget(&m_CheckBox, 1, 0);
-    m_MainWidget.setLayout(&m_Layout);
+    m_ControlWidgetLayout.addWidget(&m_CheckBox);
     connect(&m_CheckBox, SIGNAL(stateChanged(int)), this, SLOT(OnStateChanged(int)));
 }
 

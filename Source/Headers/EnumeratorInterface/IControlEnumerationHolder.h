@@ -20,8 +20,10 @@ public:
 protected:
 
     QLabel  m_NameOfControl;
-    QWidget m_MainWidget;
-    QGridLayout m_Layout;
+    QLabel  m_ControlInfo;
+    QWidget m_ControlWidget;
+    QGridLayout m_MainLayout;
+    QGridLayout m_ControlWidgetLayout;
     int32_t m_id;
 };
 

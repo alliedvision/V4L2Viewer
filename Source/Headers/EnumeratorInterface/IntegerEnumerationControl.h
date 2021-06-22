@@ -17,8 +17,6 @@ private slots:
     void OnLineEditPressed();
 
 private:
-    QGridLayout m_Layout;
-    QLabel m_ControlInfo;
     QLineEdit m_LineEdit;
 
     int32_t m_Min;

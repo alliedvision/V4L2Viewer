@@ -6,9 +6,7 @@ ButtonEnumerationControl::ButtonEnumerationControl(int32_t id, QString name, QWi
     m_ControlInfo.setText(QString(tr("%1 control performs action after clicking button below.")
                           .arg(name)));
     m_PushButton.setText("Perform");
-    m_Layout.addWidget(&m_ControlInfo, 0, 0);
-    m_Layout.addWidget(&m_PushButton, 1, 0);
-    m_MainWidget.setLayout(&m_Layout);
+    m_ControlWidgetLayout.addWidget(&m_PushButton);
     connect(&m_PushButton, SIGNAL(clicked()), this, SLOT(OnButtonClicked()));
 }
 

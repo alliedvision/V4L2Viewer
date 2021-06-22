@@ -17,8 +17,6 @@ private slots:
     void OnStateChanged(int state);
 
 private:
-    QGridLayout m_Layout;
-    QLabel m_ControlInfo;
     QCheckBox m_CheckBox;
 
 };

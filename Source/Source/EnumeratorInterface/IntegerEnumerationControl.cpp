@@ -11,9 +11,7 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, in
                           .arg(name)
                           .arg(m_Min)
                           .arg(m_Max)));
-    m_Layout.addWidget(&m_ControlInfo, 0, 0);
-    m_Layout.addWidget(&m_LineEdit, 1, 0);
-    m_MainWidget.setLayout(&m_Layout);
+    m_ControlWidgetLayout.addWidget(&m_LineEdit);
     m_LineEdit.setValidator(new QIntValidator(m_Min, m_Max, this));
     m_LineEdit.setText(QString::number(m_Value));
     connect(&m_LineEdit, SIGNAL(returnPressed()), this, SLOT(OnLineEditPressed()));

@@ -16,8 +16,6 @@ private slots:
     void OnButtonClicked();
 
 private:
-    QGridLayout m_Layout;
-    QLabel m_ControlInfo;
     QPushButton m_PushButton;
 
 };

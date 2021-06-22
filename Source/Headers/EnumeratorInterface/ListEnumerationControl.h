@@ -17,8 +17,6 @@ signals:
     void PassNewValue(int32_t id, const char *value);
 
 private:
-    QGridLayout m_Layout;
-    QLabel m_ControlInfo;
     QListWidget m_ListWidget;
 };
 
