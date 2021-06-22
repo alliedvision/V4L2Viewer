@@ -799,15 +799,11 @@ int Camera::EnumAllControlNewStyle()
 {
     int result = -1;
     v4l2_query_ext_ctrl qctrl;
-    v4l2_ext_control extCtrl;
-    v4l2_ext_controls extCtrls;
     v4l2_querymenu queryMenu;
     int cidCount = 0;
 
     CLEAR(qctrl);
     CLEAR(queryMenu);
-    CLEAR(extCtrl);
-    CLEAR(extCtrls);
 
     qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
 
@@ -819,6 +815,7 @@ int Camera::EnumAllControlNewStyle()
             bool bIsReadOnly = false;
             if(qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
             {
+                qDebug() << (const char*)qctrl.name << " is readonly";
                 bIsReadOnly = true;
             }
 

@@ -3,6 +3,7 @@
 ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, QList<int64_t> list, QString name, bool bIsReadOnly, QWidget *parent):
     IControlEnumerationHolder(id, name, parent)
 {
+    m_ListWidget.setMinimumHeight(150);
     m_ControlInfo.setText(QString(tr("%1 control is represented as list of integers. \n Values listed below are available for the camera")
                           .arg(name)));
     m_ControlWidgetLayout.addWidget(&m_ListWidget);
