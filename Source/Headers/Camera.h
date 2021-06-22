@@ -234,13 +234,13 @@ signals:
     void PassAutoGainValue(int32_t value);
     void PassAutoWhiteBalanceValue(int32_t value);
 
-    void SendIntDataToEnumerationWidget(int32_t id, int32_t step, int32_t min, int32_t max, int32_t value, QString name);
-    void SentInt64DataToEnumerationWidget(int32_t id, int64_t step, int64_t min, int64_t max, int64_t value, QString name);
-    void SendBoolDataToEnumerationWidget(int32_t id, bool value, QString name);
-    void SendButtonDataToEnumerationWidget(int32_t id, QString name);
+    void SendIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, bool bIsReadOnly);
+    void SentInt64DataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, bool bIsReadOnly);
+    void SendBoolDataToEnumerationWidget(int32_t id, bool value, QString name, bool bIsReadOnly);
+    void SendButtonDataToEnumerationWidget(int32_t id, QString name, bool bIsReadOnly);
 
-    void SendListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name);
-    void SendListIntDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name);
+    void SendListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name, bool bIsReadOnly);
+    void SendListIntDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name, bool bIsReadOnly);
 
     void SendSignalToUpdateWidgets();
 

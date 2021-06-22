@@ -1,6 +1,6 @@
 #include "ListIntEnumerationControl.h"
 
-ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, QList<int64_t> list, QString name, QWidget *parent):
+ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, QList<int64_t> list, QString name, bool bIsReadOnly, QWidget *parent):
     IControlEnumerationHolder(id, name, parent)
 {
     m_ControlInfo.setText(QString(tr("%1 control is represented as list of integers. \n Values listed below are available for the camera")
@@ -12,7 +12,15 @@ ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, QList<int64_t> 
         m_ListWidget.addItem(QString::number(*it));
     }
 
-    connect(&m_ListWidget, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnListItemChanged(const QString &)));
+    if (bIsReadOnly)
+    {
+        setEnabled(false);
+    }
+    else
+    {
+        setEnabled(true);
+        connect(&m_ListWidget, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnListItemChanged(const QString &)));
+    }
 }
 
 void ListIntEnumerationControl::UpdateValue(QList<int64_t> list)

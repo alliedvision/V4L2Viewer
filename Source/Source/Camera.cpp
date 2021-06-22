@@ -816,6 +816,12 @@ int Camera::EnumAllControlNewStyle()
     {
         if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
         {
+            bool bIsReadOnly = false;
+            if(qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
+            {
+                bIsReadOnly = true;
+            }
+
             Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
             cidCount++;
 
@@ -827,14 +833,13 @@ int Camera::EnumAllControlNewStyle()
                 int32_t value;
                 int32_t max = qctrl.maximum;
                 int32_t min = qctrl.minimum;
-                int32_t step = qctrl.step;
                 int32_t id = qctrl.id;
 
                 result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER", V4L2_CTRL_ID2CLASS (qctrl.id));
 
                 if (result == 0)
                 {
-                    emit SendIntDataToEnumerationWidget(id, step, min, max, value, name);
+                    emit SendIntDataToEnumerationWidget(id, min, max, value, name, bIsReadOnly);
                 }
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER64)
@@ -843,14 +848,13 @@ int Camera::EnumAllControlNewStyle()
                 int64_t value;
                 int64_t max = qctrl.maximum;
                 int64_t min = qctrl.minimum;
-                int64_t step = qctrl.step;
                 int32_t id = qctrl.id;
 
                 result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_ID2CLASS (qctrl.id));
 
                 if (result == 0)
                 {
-                    emit SentInt64DataToEnumerationWidget(id, step, min, max, value, name);
+                    emit SentInt64DataToEnumerationWidget(id, min, max, value, name, bIsReadOnly);
                 }
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_BOOLEAN)
@@ -863,7 +867,7 @@ int Camera::EnumAllControlNewStyle()
 
                 if (result == 0)
                 {
-                    emit SendBoolDataToEnumerationWidget(id, static_cast<bool>(value), name);
+                    emit SendBoolDataToEnumerationWidget(id, static_cast<bool>(value), name, bIsReadOnly);
                 }
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_BUTTON)
@@ -872,7 +876,7 @@ int Camera::EnumAllControlNewStyle()
                 int32_t id = qctrl.id;
                 ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BUTTON", V4L2_CTRL_ID2CLASS (qctrl.id));
 
-                emit SendButtonDataToEnumerationWidget(id, name);
+                emit SendButtonDataToEnumerationWidget(id, name, bIsReadOnly);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_MENU)
             {
@@ -891,7 +895,7 @@ int Camera::EnumAllControlNewStyle()
                         list.append(QString((const char*)queryMenu.name));
                     }
                 }
-                emit SendListDataToEnumerationWidget(id, list , name);
+                emit SendListDataToEnumerationWidget(id, list , name, bIsReadOnly);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
             {
@@ -910,7 +914,7 @@ int Camera::EnumAllControlNewStyle()
                         list.append(queryMenu.value);
                     }
                 }
-                emit SendListIntDataToEnumerationWidget(id, list , name);
+                emit SendListIntDataToEnumerationWidget(id, list , name, bIsReadOnly);
             }
         }
 

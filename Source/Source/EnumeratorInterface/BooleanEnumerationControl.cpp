@@ -1,6 +1,6 @@
 #include "BooleanEnumerationControl.h"
 
-BooleanEnumerationControl::BooleanEnumerationControl(int32_t id, bool value, QString name, QWidget *parent):
+BooleanEnumerationControl::BooleanEnumerationControl(int32_t id, bool value, QString name, bool bIsReadOnly, QWidget *parent):
     IControlEnumerationHolder(id, name, parent)
 {
     m_ControlInfo.setText(QString(tr("%1 control accepts boolean values.")
@@ -8,7 +8,15 @@ BooleanEnumerationControl::BooleanEnumerationControl(int32_t id, bool value, QSt
     m_CheckBox.setText("On/Off");
     m_CheckBox.setChecked(value);
     m_ControlWidgetLayout.addWidget(&m_CheckBox);
-    connect(&m_CheckBox, SIGNAL(stateChanged(int)), this, SLOT(OnStateChanged(int)));
+    if (bIsReadOnly)
+    {
+        setEnabled(false);
+    }
+    else
+    {
+        setEnabled(true);
+        connect(&m_CheckBox, SIGNAL(stateChanged(int)), this, SLOT(OnStateChanged(int)));
+    }
 }
 
 void BooleanEnumerationControl::UpdateValue(bool val)
