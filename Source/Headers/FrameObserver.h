@@ -139,8 +139,6 @@ protected:
 private slots:
     //Event handler for getting the processed frame to an image
     void OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex);
-    //Event handler for sending messages to GUI
-    void OnMessageFromThread(const QString &msg);
 
 signals:
     // Event will be called when a frame is processed by the internal thread and ready to show
@@ -151,10 +149,6 @@ signals:
     //void OnFrameDone_Signal(const unsigned long long frameHandle);
     // Event will be called when the a frame is displayed
     void OnDisplayFrame_Signal(const unsigned long long &);
-    // Event will be called when for text notification
-    void OnMessage_Signal(const QString &msg);
-    // Event will be called on error
-    void OnError_Signal(const QString &text);
 };
 
 #endif /* FRAMEOBSERVER_H */

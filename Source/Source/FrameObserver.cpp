@@ -101,7 +101,6 @@ FrameObserver::FrameObserver(bool showFrames)
     m_pImageProcessingThread = QSharedPointer<ImageProcessingThread>(new ImageProcessingThread());
 
     connect(m_pImageProcessingThread.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &, const int &)), this, SLOT(OnFrameReadyFromThread(const QImage &, const unsigned long long &, const int &)));
-    connect(m_pImageProcessingThread.data(), SIGNAL(OnMessage_Signal(const QString &)), this, SLOT(OnMessageFromThread(const QString &)));
 }
 
 FrameObserver::~FrameObserver()
@@ -206,7 +205,6 @@ void FrameObserver::DequeueAndProcessFrame()
         {
             uint8_t *buffer = 0;
             uint32_t length = 0;
-            uint32_t logPayloadSize = m_PayloadSize;
 
             if (0 == GetFrameData(buf, buffer, length))
             {
@@ -219,7 +217,6 @@ void FrameObserver::DequeueAndProcessFrame()
                 {
                     length = InternalConvertRAW10inRAW16ToRAW10g(buffer, m_PayloadSize, g_ConversionBuffer2);
                     buffer = g_ConversionBuffer2;
-                    logPayloadSize = length;
                 }
 
                 if (length <= m_RealPayloadSize)
@@ -237,8 +234,6 @@ void FrameObserver::DequeueAndProcessFrame()
                 {
                     m_nDroppedFramesCounter++;
 
-                    emit OnError_Signal(QString("Received data length is higher than announced payload size. length=%1, payload size=%2").arg(length).arg(m_PayloadSize));
-
                     emit OnFrameID_Signal(m_FrameId);
                     QueueSingleUserBuffer(buf.index);
                 }
@@ -246,8 +241,6 @@ void FrameObserver::DequeueAndProcessFrame()
             else
             {
                 m_nDroppedFramesCounter++;
-
-                emit OnError_Signal("Missing buffer data.");
 
                 emit OnFrameID_Signal(m_FrameId);
                 QueueSingleUserBuffer(buf.index);
@@ -268,7 +261,6 @@ void FrameObserver::DequeueAndProcessFrame()
             if (i % 10000 == 0 || m_DQBUF_last_errno != errno)
             {
                 m_DQBUF_last_errno = errno;
-                emit OnError_Signal(QString("DQBUF error %1 times, error=%2").arg(i).arg(errno));
             }
         }
     }
@@ -277,8 +269,6 @@ void FrameObserver::DequeueAndProcessFrame()
 // Do the work within this thread
 void FrameObserver::run()
 {
-    emit OnMessage_Signal(QString("FrameObserver thread started."));
-
     m_IsStreamRunning = true;
 
     while (m_IsStreamRunning)
@@ -322,8 +312,6 @@ void FrameObserver::run()
     }
 
     m_bStreamStopped = true;
-
-    emit OnMessage_Signal(QString("FrameObserver thread stopped."));
 }
 
 // Get the number of frames
@@ -362,11 +350,6 @@ void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned l
     emit OnFrameReady_Signal(image, frameId);
 
     QueueSingleUserBuffer(bufIndex);
-}
-
-void FrameObserver::OnMessageFromThread(const QString &msg)
-{
-    emit OnMessage_Signal(msg);
 }
 
 /*********************************************************************************************************/

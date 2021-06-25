@@ -30,10 +30,13 @@
 
 #include "FrameObserver.h"
 #include "CameraObserver.h"
+#include "AutoReader.h"
 
 #include <QObject>
-
+#include <QMutex>
+#include <QDebug>
 #include <vector>
+
 
 enum IO_METHOD_TYPE
 {
@@ -71,26 +74,35 @@ public:
     int ReadPixelFormat(uint32_t &pixelFormat, uint32_t &bytesPerLine, QString &pfText);
     int SetPixelFormat(uint32_t pixelFormat, QString pfText);
     int ReadFormats();
+
     int ReadGain(int32_t &gain);
     int SetGain(int32_t gain);
+    int ReadMinMaxGain(int32_t &min, int32_t &max);
     int ReadAutoGain(bool &autogain);
     int SetAutoGain(bool autogain);
+
     int ReadExposure(int32_t &exposure);
     int ReadExposureAbs(int32_t &exposure);
     int SetExposure(int32_t exposure);
     int SetExposureAbs(int32_t exposure);
+    int ReadMinMaxExposure(int32_t &min, int32_t &max);
+    int ReadMinMaxExposureAbs(int32_t &min, int32_t &max);
     int ReadAutoExposure(bool &autoexposure);
     int SetAutoExposure(bool autoexposure);
+
     int ReadGamma(int32_t &value);
     int SetGamma(int32_t value);
+    int ReadMinMaxGamma(int32_t &min, int32_t &max);
+
     int ReadReverseX(int32_t &value);
     int SetReverseX(int32_t value);
     int ReadReverseY(int32_t &value);
     int SetReverseY(int32_t value);
-    int ReadSharpness(int32_t &value);
-    int SetSharpness(int32_t value);
+
     int ReadBrightness(int32_t &value);
     int SetBrightness(int32_t value);
+    int ReadMinMaxBrightness(int32_t &min, int32_t &max);
+
     int ReadContrast(int32_t &value);
     int SetContrast(int32_t value);
     int ReadSaturation(int32_t &value);
@@ -114,11 +126,20 @@ public:
     int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
+    int SetExtControl(uint64_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int ReadExtControl(uint64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+
+    int SetExtControl(int64_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int ReadExtControl(int64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+
+    int ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
+    int ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
+
     int ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
     int WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
 
-
     int EnumAllControlNewStyle();
+
     int ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
                              uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
                              uint32_t &aspectnum, uint32_t &aspectdenum);
@@ -159,6 +180,19 @@ public:
     static std::string ConvertPixelFormat2EnumString(int pixelFormat);
     static std::string ConvertControlID2String(uint32_t controlID);
 
+
+public slots:
+    void PassGainValue();
+    void PassExposureValue();
+    void PassWhiteBalanceValue();
+
+    void SetEnumerationControlValueIntList(int32_t id, int64_t val);
+    void SetEnumerationControlValueList(int32_t id, const char* str); //Values passed to controls which accept strings
+    void SetEnumerationControlValue(int32_t id, int32_t val); //Values passed to controls which accept 32 bit ingegers
+    void SetEnumerationControlValue(int32_t id, int64_t val); //Values passed to controls which accept 64 bit integers
+    void SetEnumerationControlValue(int32_t id, bool val); //Values passed to controls which accept booleans
+    void SetEnumerationControlValue(int32_t id); //Values passed to controls which performs some actions on button click
+
 private:
     std::string         m_DeviceName;
     int                 m_nFileDescriptor;
@@ -167,6 +201,11 @@ private:
     bool                m_UseV4L2TryFmt;
     bool                m_Recording;
     bool                m_IsAvtCamera;
+    QMutex              m_ReadExtControlMutex;
+
+    AutoReader          *m_pAutoExposureReader;
+    AutoReader          *m_pAutoGainReader;
+    AutoReader          *m_pAutoWhiteBalanceReader;
 
     CameraObserver                  m_CameraObserver;
     QSharedPointer<FrameObserver>   m_pFrameObserver;
@@ -176,6 +215,7 @@ private:
     size_t fsize(const char *filename);
     void reverseBytes(void* start, int size);
 
+
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
     void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);
@@ -183,21 +223,26 @@ signals:
     void OnCameraFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
     // Event will be called when a frame ID is processed by the internal thread and ready to show
     void OnCameraFrameID_Signal(const unsigned long long &frameId);
-    // Event will be called when the event data are processed by the internal thread and ready to show
-    void OnCameraEventReady_Signal(const QString &eventText);
-    // Event will be called when the any other data arrieved
-    void OnCameraRegisterValueReady_Signal(unsigned long long value);
-    // Event will be called on error
-    void OnCameraError_Signal(const QString &text);
-    // Event will be called on message
-    void OnCameraMessage_Signal(const QString &text);
     // Event will be called when the a frame is recorded
     void OnCameraRecordFrame_Signal(const QSharedPointer<MyFrame>&);
     // Event will be called when the a frame is displayed
     void OnCameraDisplayFrame_Signal(const unsigned long long &);
-
     void OnCameraPixelFormat_Signal(const QString &);
     void OnCameraFrameSize_Signal(const QString &);
+
+    void PassAutoExposureValue(int32_t value);
+    void PassAutoGainValue(int32_t value);
+    void PassAutoWhiteBalanceValue(int32_t value);
+
+    void SendIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, bool bIsReadOnly);
+    void SentInt64DataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, bool bIsReadOnly);
+    void SendBoolDataToEnumerationWidget(int32_t id, bool value, QString name, bool bIsReadOnly);
+    void SendButtonDataToEnumerationWidget(int32_t id, QString name, bool bIsReadOnly);
+
+    void SendListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name, bool bIsReadOnly);
+    void SendListIntDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name, bool bIsReadOnly);
+
+    void SendSignalToUpdateWidgets();
 
 private slots:
     // The event handler to set or remove devices
@@ -208,10 +253,6 @@ private slots:
     void OnFrameID(const unsigned long long &frameId);
     // Event will be called when the a frame is displayed
     void OnDisplayFrame(const unsigned long long &frameID);
-    // Event will be called when for text notification
-    void OnMessage(const QString &msg);
-    // Event will be called when for text notification
-    void OnError(const QString &msg);
 };
 
 #endif // CAMERA_H

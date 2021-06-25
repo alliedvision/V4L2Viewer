@@ -77,9 +77,6 @@ private:
 signals:
     // Event will be called when an image is processed by the thread
     void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId, const int &bufIndex);
-
-    // Event will be called when message should be displayed
-    void OnMessage_Signal(const QString &msg);
 };
 
 #endif // IMAGEPORCESSINGTHREAD_H

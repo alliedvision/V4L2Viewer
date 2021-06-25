@@ -1,6 +1,7 @@
 set(HEADERS_PATH ../Source/Headers)
 set(SOURCES_PATH ../Source/Source)
 set(RESOURCES_PATH ../Source/Resources)
+set(ENUM_INT_PATH ${HEADERS_PATH}/EnumeratorInterface)
 
 # .h files
 list(APPEND HEADER_FILES
@@ -25,6 +26,20 @@ ${HEADERS_PATH}/Thread.h
 ${HEADERS_PATH}/V4L2Helper.h
 ${HEADERS_PATH}/V4L2Viewer.h
 ${HEADERS_PATH}/videodev2_av.h
+${HEADERS_PATH}/AboutWidget.h
+${HEADERS_PATH}/SettingsActionWidget.h
+${HEADERS_PATH}/CameraListCustomItem.h
+${HEADERS_PATH}/CustomOptionWidget.h
+${HEADERS_PATH}/AutoReader.h
+${HEADERS_PATH}/AutoReaderWorker.h
+${HEADERS_PATH}/EnumeratorInterface/IControlEnumerationHolder.h
+${HEADERS_PATH}/EnumeratorInterface/IntegerEnumerationControl.h
+${HEADERS_PATH}/EnumeratorInterface/Integer64EnumerationControl.h
+${HEADERS_PATH}/EnumeratorInterface/ControlsHolderWidget.h
+${HEADERS_PATH}/EnumeratorInterface/BooleanEnumerationControl.h
+${HEADERS_PATH}/EnumeratorInterface/ButtonEnumerationControl.h
+${HEADERS_PATH}/EnumeratorInterface/ListEnumerationControl.h
+${HEADERS_PATH}/EnumeratorInterface/ListIntEnumerationControl.h
 )
 
 list(APPEND SOURCE_FILES
@@ -45,6 +60,20 @@ ${SOURCES_PATH}/MyFrameQueue.cpp
 ${SOURCES_PATH}/Thread.cpp
 ${SOURCES_PATH}/V4L2Helper.cpp
 ${SOURCES_PATH}/V4L2Viewer.cpp
+${SOURCES_PATH}/AboutWidget.cpp
+${SOURCES_PATH}/SettingsActionWidget.cpp
+${SOURCES_PATH}/CameraListCustomItem.cpp
+${SOURCES_PATH}/CustomOptionWidget.cpp
+${SOURCES_PATH}/AutoReader.cpp
+${SOURCES_PATH}/AutoReaderWorker.cpp
+${SOURCES_PATH}/EnumeratorInterface/IControlEnumerationHolder.cpp
+${SOURCES_PATH}/EnumeratorInterface/IntegerEnumerationControl.cpp
+${SOURCES_PATH}/EnumeratorInterface/Integer64EnumerationControl.cpp
+${SOURCES_PATH}/EnumeratorInterface/ControlsHolderWidget.cpp
+${SOURCES_PATH}/EnumeratorInterface/BooleanEnumerationControl.cpp
+${SOURCES_PATH}/EnumeratorInterface/ButtonEnumerationControl.cpp
+${SOURCES_PATH}/EnumeratorInterface/ListEnumerationControl.cpp
+${SOURCES_PATH}/EnumeratorInterface/ListIntEnumerationControl.cpp
 )
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${RESOURCES_PATH}/Forms)
@@ -72,9 +101,9 @@ list(APPEND RESOURCES
 ${RESOURCES_PATH}/V4L2Viewer.rc
 )
 
-add_library(SharedLibraryLib SHARED ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
-target_link_libraries(SharedLibraryLib ${QT_LIBRARIES})
-target_include_directories(SharedLibraryLib PUBLIC ${HEADERS_PATH})
+add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
+target_link_libraries(V4L2StaticLib ${QT_LIBRARIES})
+target_include_directories(V4L2StaticLib PUBLIC ${HEADERS_PATH} ${ENUM_INT_PATH})
 
 
 

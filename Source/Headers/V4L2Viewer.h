@@ -32,14 +32,17 @@
 #include "DeviationCalculator.h"
 #include "FrameObserver.h"
 #include "MyFrame.h"
-
+#include "AboutWidget.h"
+#include "SettingsActionWidget.h"
 #include "ui_V4L2Viewer.h"
+#include "ControlsHolderWidget.h"
 
 #include <list>
 
 #include <QMainWindow>
 #include <QtWidgets>
 #include <QTimer>
+#include <QTranslator>
 
 #define VIEWER_MASTER       0
 
@@ -73,7 +76,9 @@ private:
     // The menu widget to setup the number of used frames
     QWidgetAction *m_NumberOfUsedFramesWidgetAction;
     // The line which holds the number of used frames
-    QLineEdit *m_NumberOfUsedFramesLineEdit;   
+    QLineEdit *m_NumberOfUsedFramesLineEdit;
+    QWidgetAction *m_NumberOfFixedFrameRateWidgetAction;
+    QLineEdit *m_NumberOfFixedFrameRate;
     // A list of known camera IDs
     std::vector<uint32_t> m_cameras;
     // Is a camera open?
@@ -90,7 +95,24 @@ private:
     QGraphicsPixmapItem *m_PixmapItem;
     // store radio buttons for blocking/non-blocking mode in a group
     QButtonGroup* m_BlockingModeRadioButtonGroup;
-    // frames received for live deviation calc
+
+    QTranslator *m_pGermanTranslator;
+    AboutWidget *m_pAboutWidget;
+
+    SettingsActionWidget *m_pSettingsActionWidget;
+    QMenu *m_pSettingsMenu;
+
+    bool m_bIsFixedRate;
+
+    int32_t m_MinimumExposure;
+    int32_t m_MaximumExposure;
+
+    int32_t m_sliderGainValue;
+    int32_t m_sliderBlackLevelValue;
+    int32_t m_sliderGammaValue;
+    int32_t m_sliderExposureValue;
+
+    ControlsHolderWidget m_EnumerationControlWidget;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -108,27 +130,24 @@ private:
     virtual void closeEvent(QCloseEvent *event);
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void wheelEvent(QWheelEvent *event);
+    virtual void changeEvent(QEvent *event);
 
     // called by master viewer window
     void RemoteClose();
-
     void GetImageInformation();
-
     // Check if IO Read was checked and remove it when not capable
     void Check4IOReadAbility();
-
-    void SetTitleText(QString additionalText);
-
+    void SetTitleText();
     void UpdateCameraFormat();
+
+    // The function for get device info
+    QString GetDeviceInfo();
 
 private slots:
     void OnLogToFile();
-    void OnClearOutputListbox();
     void OnShowFrames();
     // The event handler to close the program
     void OnMenuCloseTriggered();
-    // The event handler to set blocking mode
-    void OnBlockingMode(QAbstractButton* button);
     // The event handler to set IO Read
     void OnUseRead();
     // The event handler to set IO MMAP
@@ -139,14 +158,8 @@ private slots:
     void OnUseVIDIOC_TRY_FMT();
     // The event handler to open a next viewer
     void OnMenuOpenNextViewer();
-    // Prints out some logging
-    void OnLog(const QString &strMsg);
     // The event handler for open / close camera
     void OnOpenCloseButtonClicked();
-    // The event handler for get device info
-    void OnGetDeviceInfoButtonClicked();
-    // The event handler for stream statistics
-    void OnGetStreamStatisticsButtonClicked();
     // The event handler for the camera list changed event
     void OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info);
     // The event handler for starting acquisition
@@ -158,24 +171,18 @@ private slots:
     // The event handler for resize the image
     void OnZoomInButtonClicked();
     void OnZoomOutButtonClicked();
+    void OnSaveImageClicked();
     // The event handler to show the frames received
     void OnUpdateFramesReceived();
     // The event handler to show the processed frame
     void OnFrameReady(const QImage &image, const unsigned long long &frameId);
     // The event handler to show the processed frame ID
     void OnFrameID(const unsigned long long &frameId);
-    // The event handler to show the event data
-    void OnCameraEventReady(const QString &eventText);
-    // The event handler to show the received values
-    void OnCameraRegisterValueReady(unsigned long long value);
-    // Event will be called on error
-    void OnCameraError(const QString &text);
-    // Event will be called on warning
-    void OnCameraWarning(const QString &text);
-    // Event will be called on message
-    void OnCameraMessage(const QString &text);
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
+
+    void OnSavePNG();
+    void OnSaveRAW();
 
     void OnCropXOffset();
     void OnCropYOffset();
@@ -190,16 +197,15 @@ private slots:
     void OnExposure();
     void OnAutoExposure();
     void OnExposureAbs();
-    void OnPixelFormatDBLClick(QListWidgetItem *);
+    void OnPixelFormatChanged(const QString &item);
+    void UpdateCurrentPixelFormatOnList(QString pixelFormat);
     void OnFrameSizesDBLClick(QListWidgetItem *);
     void OnGamma();
-    void OnSharpness();
     void OnBrightness();
     void OnContrast();
     void OnSaturation();
     void OnHue();
     void OnContinousWhiteBalance();
-    void OnWhiteBalanceOnce();
     void OnRedBalance();
     void OnBlueBalance();
     void OnFrameRate();
@@ -208,6 +214,35 @@ private slots:
 
     void OnCameraPixelFormat(const QString &);
     void OnCameraFrameSize(const QString &);
+    void OnLanguageChange();
+
+    void OnUpdateAutoExposure(int32_t value);
+    void OnUpdateAutoGain(int32_t value);
+
+    void OnSliderExposureValueChange(int value);
+    void OnSliderGainValueChange(int value);
+    void OnSliderGammaValueChange(int value);
+    void OnSliderBlackLevelValueChange(int value);
+
+    void OnSlidersReleased();
+    void UpdateSlidersPositions(QSlider *slider, int32_t value);
+
+    void OnCameraListButtonClicked();
+    void OnMenuSplitterMoved(int pos, int index);
+
+    void OnFixedFrameRateButtonClicked();
+    void CheckAquiredFixedFrames(int framesCount);
+
+    int32_t GetSliderValueFromLog(int32_t value);
+
+    void ShowHideEnumerationControlWidget();
+
+    void GetIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, bool bIsReadOnly);
+    void GetIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, bool bIsReadOnly);
+    void GetBoolDataToEnumerationWidget(int32_t id, bool value, QString name, bool bIsReadOnly);
+    void GetButtonDataToEnumerationWidget(int32_t id, QString name, bool bIsReadOnly);
+    void GetListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name, bool bIsReadOnly);
+    void GetListDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name, bool bIsReadOnly);
 };
 
 #endif // V4L2VIEWER_H
