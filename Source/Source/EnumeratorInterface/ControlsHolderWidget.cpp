@@ -3,13 +3,13 @@
 ControlsHolderWidget::ControlsHolderWidget(QWidget *parent) : QWidget(parent)
 {
     ui.setupUi(this);
-    m_pWidgetLayout = new QGridLayout;
-    ui.m_ScrollAreaWidget->setLayout(m_pWidgetLayout);
 }
 
 void ControlsHolderWidget::AddElement(IControlEnumerationHolder *controlWidget)
 {
-    m_pWidgetLayout->addWidget(controlWidget);
+    QListWidgetItem *item = new QListWidgetItem(ui.m_ControlsList);
+    item->setSizeHint(controlWidget->sizeHint());
+    ui.m_ControlsList->setItemWidget(item, controlWidget);
     itemVector.append(controlWidget);
 }
 
@@ -17,7 +17,6 @@ void ControlsHolderWidget::RemoveElements()
 {
     for (QVector<IControlEnumerationHolder*>::iterator it = itemVector.begin(); it<itemVector.end(); ++it)
     {
-        m_pWidgetLayout->removeWidget(*it);
         delete *it;
         *it = nullptr;
     }

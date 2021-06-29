@@ -20,7 +20,6 @@ public:
     Ui::ControlsHolderWidget ui;
 
 private:
-    QGridLayout *m_pWidgetLayout;
     QVector<IControlEnumerationHolder*> itemVector;
 };
 

@@ -18,7 +18,6 @@ private slots:
 
 private:
     QCheckBox m_CheckBox;
-
 };
 
 #endif // BOOLEANENUMERATIONCONTROL_H

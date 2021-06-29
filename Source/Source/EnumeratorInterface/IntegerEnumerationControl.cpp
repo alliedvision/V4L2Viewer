@@ -6,11 +6,10 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, in
     m_Max(max),
     m_Value(value)
 {
-    m_ControlInfo.setText(QString(tr("%1 control accepts 32-bit integers. \n Minimum: %2 \n Maximum: %3")
+    m_ControlInfo = QString(tr("%1 control accepts 32-bit integers. \n Minimum: %2 \n Maximum: %3")
                           .arg(name)
                           .arg(m_Min)
-                          .arg(m_Max)));
-    m_ControlWidgetLayout.addWidget(&m_LineEdit);
+                          .arg(m_Max));
     m_LineEdit.setValidator(new QIntValidator(m_Min, m_Max, this));
     m_LineEdit.setText(QString::number(m_Value));
     if (bIsReadOnly)
