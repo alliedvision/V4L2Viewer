@@ -888,11 +888,12 @@ int Camera::EnumAllControlNewStyle()
                 for (queryMenu.index = qctrl.minimum;
                      queryMenu.index <= qctrl.maximum;
                      queryMenu.index++) {
+
                     if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
                         list.append(QString((const char*)queryMenu.name));
                     }
                 }
-                emit SendListDataToEnumerationWidget(id, list , name, bIsReadOnly);
+                emit SendListDataToEnumerationWidget(id, value, list , name, bIsReadOnly);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
             {
@@ -911,7 +912,7 @@ int Camera::EnumAllControlNewStyle()
                         list.append(queryMenu.value);
                     }
                 }
-                emit SendListIntDataToEnumerationWidget(id, list , name, bIsReadOnly);
+                emit SendListIntDataToEnumerationWidget(id, value, list , name, bIsReadOnly);
             }
         }
 

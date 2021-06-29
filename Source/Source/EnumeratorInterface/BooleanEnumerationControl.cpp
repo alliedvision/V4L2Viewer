@@ -24,6 +24,7 @@ void BooleanEnumerationControl::UpdateValue(bool val)
 {
     m_CheckBox.blockSignals(true);
     m_CheckBox.setChecked(val);
+    m_CurrentValue.setText(val ? "True" : "False");
     m_CheckBox.blockSignals(false);
 }
 

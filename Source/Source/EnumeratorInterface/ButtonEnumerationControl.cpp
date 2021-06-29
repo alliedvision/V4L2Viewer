@@ -6,6 +6,7 @@ ButtonEnumerationControl::ButtonEnumerationControl(int32_t id, QString name, boo
     m_ControlInfo = QString(tr("%1 control performs action after clicking button below.")
                           .arg(name));
     m_PushButton.setText("Perform");
+    m_ControlEditWidget.m_pLayout->addWidget(&m_PushButton);
     if (bIsReadOnly)
     {
         setEnabled(false);

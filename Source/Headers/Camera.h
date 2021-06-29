@@ -239,8 +239,8 @@ signals:
     void SendBoolDataToEnumerationWidget(int32_t id, bool value, QString name, bool bIsReadOnly);
     void SendButtonDataToEnumerationWidget(int32_t id, QString name, bool bIsReadOnly);
 
-    void SendListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name, bool bIsReadOnly);
-    void SendListIntDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name, bool bIsReadOnly);
+    void SendListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, bool bIsReadOnly);
+    void SendListIntDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, bool bIsReadOnly);
 
     void SendSignalToUpdateWidgets();
 

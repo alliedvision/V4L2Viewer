@@ -19,6 +19,9 @@ public:
 
     Ui::ControlsHolderWidget ui;
 
+private slots:
+    void OnListItemChanged(int row);
+
 private:
     QVector<IControlEnumerationHolder*> itemVector;
 };

@@ -12,6 +12,8 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, in
                           .arg(m_Max));
     m_LineEdit.setValidator(new QIntValidator(m_Min, m_Max, this));
     m_LineEdit.setText(QString::number(m_Value));
+    m_CurrentValue.setText(QString::number(m_Value));
+    m_ControlEditWidget.m_pLayout->addWidget(&m_LineEdit);
     if (bIsReadOnly)
     {
         setEnabled(false);
@@ -27,6 +29,7 @@ void IntegerEnumerationControl::UpdateValue(int32_t value)
 {
     m_LineEdit.blockSignals(true);
     m_LineEdit.setText(QString::number(value));
+    m_CurrentValue.setText(QString::number(value));
     m_LineEdit.blockSignals(false);
 }
 

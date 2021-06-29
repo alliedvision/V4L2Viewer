@@ -17,6 +17,8 @@ public:
     explicit IControlEnumerationHolder(int32_t id, QString name, QWidget *parent = nullptr);
     virtual ~IControlEnumerationHolder() = 0;
     int32_t GetWidgetControlId();
+    QString GetControlInfo();
+    virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 protected:
     QLabel              m_NameOfControl;
