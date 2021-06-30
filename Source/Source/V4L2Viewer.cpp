@@ -245,7 +245,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     // prepare the layout
     QHBoxLayout *layoutNum = new QHBoxLayout;
-    QLabel *labelNum = new QLabel("Number of used Frames:");
+    QLabel *labelNum = new QLabel(tr("Number of used Frames:"));
     layoutNum->addWidget(labelNum);
     layoutNum->addWidget(m_NumberOfUsedFramesLineEdit);
 
@@ -260,7 +260,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     ui.m_MenuBuffer->addAction(m_NumberOfUsedFramesWidgetAction);
 
     QHBoxLayout *layoutFixedFrameRate = new QHBoxLayout;
-    QLabel *labelFixedFrameRate = new QLabel("Fixed frame rate:" ,this);
+    QLabel *labelFixedFrameRate = new QLabel(tr("Fixed frame rate:") ,this);
     QWidget *widgetFixedFrameRate = new QWidget(this);
     m_NumberOfFixedFrameRateWidgetAction = new QWidgetAction(this);
     m_NumberOfFixedFrameRate = new QLineEdit("60", this);
@@ -538,11 +538,11 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
         if (false == m_bIsOpen)
         {
-            ui.m_OpenCloseButton->setText(QString("Open Camera"));
+            ui.m_OpenCloseButton->setText(QString(tr("Open Camera")));
         }
         else
         {
-            ui.m_OpenCloseButton->setText(QString("Close Camera"));
+            ui.m_OpenCloseButton->setText(QString(tr("Close Camera")));
         }
 
         UpdateViewerLayout();
@@ -595,7 +595,7 @@ void V4L2Viewer::OnLanguageChange()
     {
         qApp->installTranslator(m_pGermanTranslator);
     }
-    else if (QString::compare(senderAction->text(), "Englisch", Qt::CaseInsensitive) == 0)
+    else if (QString::compare(senderAction->text(), "English", Qt::CaseInsensitive) == 0)
     {
         qApp->removeTranslator(m_pGermanTranslator);
     }
@@ -1081,7 +1081,7 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
 {
     std::string strCameraName;
 
-    strCameraName = "Camera#";
+    strCameraName = "Camera";
 
     QListWidgetItem *item = new QListWidgetItem(ui.m_CamerasListBox);
     CameraListCustomItem *customItem = new CameraListCustomItem(QString::fromStdString(strCameraName + ": ") + deviceName + QString(" (") + info + QString(")"), this);
@@ -1714,58 +1714,6 @@ void V4L2Viewer::OnCropHeight()
     OnReadAllValues();
 }
 
-void V4L2Viewer::OnCropCapabilities()
-{
-    uint32_t boundsx;
-    uint32_t boundsy;
-    uint32_t boundsw;
-    uint32_t boundsh;
-    uint32_t defrectx;
-    uint32_t defrecty;
-    uint32_t defrectw;
-    uint32_t defrecth;
-    uint32_t aspectnum;
-    uint32_t aspectdenum;
-
-    if (m_Camera.ReadCropCapabilities(boundsx, boundsy, boundsw, boundsh,
-                                      defrectx, defrecty, defrectw, defrecth,
-                                      aspectnum, aspectdenum) == 0)
-    {
-//        ui.m_edBoundsX->setEnabled(true);
-//        ui.m_edBoundsX->setText(QString("%1").arg(boundsx));
-//        ui.m_edBoundsY->setEnabled(true);
-//        ui.m_edBoundsY->setText(QString("%1").arg(boundsy));
-
-//        ui.m_edBoundsW->setEnabled(true);
-//        ui.m_edBoundsW->setText(QString("%1").arg(boundsw));
-//        ui.m_edBoundsH->setEnabled(true);
-//        ui.m_edBoundsH->setText(QString("%1").arg(boundsh));
-
-//        ui.m_edDefrectX->setEnabled(true);
-//        ui.m_edDefrectX->setText(QString("%1").arg(defrectx));
-//        ui.m_edDefrectY->setEnabled(true);
-//        ui.m_edDefrectY->setText(QString("%1").arg(defrecty));
-//        ui.m_edDefrectW->setEnabled(true);
-//        ui.m_edDefrectW->setText(QString("%1").arg(defrectw));
-//        ui.m_edDefrectH->setEnabled(true);
-//        ui.m_edDefrectH->setText(QString("%1").arg(defrecth));
-//        ui.m_edAspect->setEnabled(true);
-//        ui.m_edAspect->setText(QString("%1/%2").arg(aspectnum).arg(aspectdenum));
-    }
-    else
-    {
-//        ui.m_edBoundsX->setEnabled(false);
-//        ui.m_edBoundsY->setEnabled(false);
-//        ui.m_edBoundsW->setEnabled(false);
-//        ui.m_edBoundsH->setEnabled(false);
-//        ui.m_edDefrectX->setEnabled(false);
-//        ui.m_edDefrectY->setEnabled(false);
-//        ui.m_edDefrectW->setEnabled(false);
-//        ui.m_edDefrectH->setEnabled(false);
-//        ui.m_edAspect->setEnabled(false);
-    }
-}
-
 void V4L2Viewer::OnReadAllValues()
 {
     GetImageInformation();
@@ -2048,7 +1996,6 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelCropWidth->setEnabled(false);
         ui.m_labelCropHeight->setEnabled(false);
     }
-    OnCropCapabilities();
 
     m_Camera.EnumAllControlNewStyle();
 }
@@ -2082,18 +2029,18 @@ QString V4L2Viewer::GetDeviceInfo()
 {
     std::string tmp;
 
-    QString firmware = QString("Camera FW Version = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion()));
-    QString devTemp = QString("Camera Device Temperature = %1C").arg(QString::fromStdString(m_Camera.getAvtDeviceTemperature()));
-    QString devSerial = QString("Camera Serial Number = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceSerialNumber()));
+    QString firmware = QString(tr("Camera FW Version = %1")).arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion()));
+    QString devTemp = QString(tr("Camera Device Temperature = %1C")).arg(QString::fromStdString(m_Camera.getAvtDeviceTemperature()));
+    QString devSerial = QString(tr("Camera Serial Number = %1")).arg(QString::fromStdString(m_Camera.getAvtDeviceSerialNumber()));
 
     m_Camera.GetCameraDriverName(tmp);
-    QString driverName = QString("Driver name = %1").arg(tmp.c_str());
+    QString driverName = QString(tr("Driver name = %1")).arg(tmp.c_str());
     m_Camera.GetCameraBusInfo(tmp);
-    QString busInfo = QString("Bus info = %1").arg(tmp.c_str());
+    QString busInfo = QString(tr("Bus info = %1")).arg(tmp.c_str());
     m_Camera.GetCameraDriverVersion(tmp);
-    QString driverVer = QString("Kernel version = %1").arg(tmp.c_str());
+    QString driverVer = QString(tr("Kernel version = %1")).arg(tmp.c_str());
     m_Camera.GetCameraCapabilities(tmp);
-    QString capabilities = QString("Capabilities = %1").arg(tmp.c_str());
+    QString capabilities = QString(tr("Capabilities = %1")).arg(tmp.c_str());
     return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities);
 
 }
