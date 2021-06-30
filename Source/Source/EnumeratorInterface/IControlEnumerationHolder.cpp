@@ -1,7 +1,9 @@
 #include "IControlEnumerationHolder.h"
 #include <QMouseEvent>
 
-IControlEnumerationHolder::IControlEnumerationHolder(int32_t id, QString name, QWidget *parent) : m_id(id), QWidget(parent)
+IControlEnumerationHolder::IControlEnumerationHolder(int32_t id, QString name, QWidget *parent) :
+    QWidget(parent),
+    m_id(id)
 {
     m_NameOfControl.setText(name);
     m_MainLayout.addWidget(&m_NameOfControl, 0, 0);
@@ -23,7 +25,7 @@ QString IControlEnumerationHolder::GetControlInfo()
 void IControlEnumerationHolder::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QPoint posGlobal = mapToGlobal(event->pos());
-    m_ControlEditWidget.setGeometry(posGlobal.x(), posGlobal.y(), m_ControlEditWidget.width(), m_ControlEditWidget.height());
+    m_ControlEditWidget.setGeometry(posGlobal.x(), posGlobal.y(), this->width(), this->height());
     m_ControlEditWidget.show();
 }
 

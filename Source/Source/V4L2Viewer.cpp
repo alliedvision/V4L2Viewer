@@ -66,38 +66,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CCI_BCRM_16R                                0x0014
 
 
-static const QStringList GetImageFormats()
-{
-    QStringList formats;
-    unsigned int count = QImageReader::supportedImageFormats().count();
-
-    for ( int i = count - 1; i >= 0; i-- )
-    {
-        QString format = QString(QImageReader::supportedImageFormats().at(i)).toLower();
-        formats << format;
-    }
-
-    return formats;
-}
-
-static const QString GetImageFormatString()
-{
-    QString formatString;
-    unsigned int count = QImageReader::supportedImageFormats().count();
-
-    for ( int i = count - 1; i >= 0; i-- )
-    {
-        formatString += ".";
-        formatString += QString(QImageReader::supportedImageFormats().at(i)).toLower();
-        if ( 0 != i )
-        {
-            formatString += ";;";
-        }
-    }
-
-    return formatString;
-}
-
 static int32_t int64_2_int32(const int64_t value)
 {
     if (value > 0)
@@ -113,15 +81,15 @@ static int32_t int64_2_int32(const int64_t value)
 V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     : QMainWindow(parent, flags)
     , m_nViewerNumber(viewerNumber)
-    , m_bIsOpen(false)
-    , m_bIsStreaming(false)
-    , m_dScaleFactor(1.0)
     , m_BLOCKING_MODE(true)
     , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
     , m_ShowFrames(true)
     , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
+    , m_bIsOpen(false)
+    , m_bIsStreaming(false)
+    , m_dScaleFactor(1.0)
     , m_bIsFixedRate(false)
     , m_sliderGainValue(0)
     , m_sliderBlackLevelValue(0)
@@ -1158,7 +1126,7 @@ void V4L2Viewer::UpdateViewerLayout()
         unsigned int items = ui.m_CamerasListBox->count();
         for (unsigned int i=0; i<items; i++)
         {
-            if (i == currentIndex)
+            if (static_cast<int>(i) == currentIndex)
             {
                 continue;
             }

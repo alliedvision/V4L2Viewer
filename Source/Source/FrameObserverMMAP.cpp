@@ -221,7 +221,7 @@ int FrameObserverMMAP::QueueSingleUserBuffer(const int index)
     v4l2_buffer buf;
     base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
-    if (index < m_UserBufferContainerList.size())
+    if (index < static_cast<int>(m_UserBufferContainerList.size()))
     {
         CLEAR(buf);
         buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -247,7 +247,7 @@ int FrameObserverMMAP::DeleteAllUserBuffer()
     base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
     // delete all user buffer
-    for (int x = 0; x < m_UserBufferContainerList.size(); x++)
+    for (unsigned int x = 0; x < m_UserBufferContainerList.size(); x++)
     {
         munmap(m_UserBufferContainerList[x]->pBuffer, m_UserBufferContainerList[x]->nBufferlength);
 

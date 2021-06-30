@@ -200,7 +200,7 @@ int FrameObserverUSER::QueueSingleUserBuffer(const int index)
     v4l2_buffer buf;
     base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
-    if (index < m_UserBufferContainerList.size())
+    if (index < static_cast<int>(m_UserBufferContainerList.size()))
     {
         CLEAR(buf);
         buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;

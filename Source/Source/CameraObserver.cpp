@@ -160,7 +160,7 @@ int CameraObserver::CheckDevices()
                 bool found = false;
                 for (std::map<int, std::string>::iterator iii=m_DeviceList.begin(); iii!=m_DeviceList.end(); iii++)
                 {
-                    if (iii->first == ii)
+                    if (iii->first == static_cast<int>(ii) )
                     {
                         found = true;
                         break;
