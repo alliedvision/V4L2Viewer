@@ -595,7 +595,7 @@ void V4L2Viewer::OnLanguageChange()
     {
         qApp->installTranslator(m_pGermanTranslator);
     }
-    else if (QString::compare(senderAction->text(), "English", Qt::CaseInsensitive) == 0)
+    else if (QString::compare(senderAction->text(), "Englisch", Qt::CaseInsensitive) == 0)
     {
         qApp->removeTranslator(m_pGermanTranslator);
     }

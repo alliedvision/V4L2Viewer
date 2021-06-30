@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Lib CSI</string>
+   <string/>
   </property>
   <property name="windowIcon">
    <iconset resource="../V4L2Viewer.qrc">

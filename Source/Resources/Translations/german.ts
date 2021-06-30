@@ -24,7 +24,7 @@
     </message>
     <message>
         <source>FAILED TO SAVE sharpness!</source>
-        <translation>Schärfe konnte nicht gespeichert werden!</translation>
+        <translation type="vanished">Schärfe konnte nicht gespeichert werden!</translation>
     </message>
     <message>
         <source>FAILED TO SAVE brightness!</source>
@@ -52,7 +52,7 @@
     </message>
     <message>
         <source>Missing parameter. Format: 1/100!</source>
-        <translation>Fehlender Parameter. Format: 1/100!</translation>
+        <translation type="vanished">Fehlender Parameter. Format: 1/100!</translation>
     </message>
     <message>
         <source>FAILED TO SAVE frame rate!</source>
@@ -70,12 +70,68 @@
         <source>Language has been already set!</source>
         <translation>Sprache wurde bereits eingestellt!</translation>
     </message>
+    <message>
+        <source>Number of used Frames:</source>
+        <translation>Anzahl der verwendeten Rahmen:</translation>
+    </message>
+    <message>
+        <source>Fixed frame rate:</source>
+        <translation>Feste Bildrate:</translation>
+    </message>
+    <message>
+        <source>Open Camera</source>
+        <translation>Kamera öffnen</translation>
+    </message>
+    <message>
+        <source>Close Camera</source>
+        <translation>Kamera schließen</translation>
+    </message>
+    <message>
+        <source>Save file</source>
+        <translation>Datei speichern</translation>
+    </message>
+    <message>
+        <source>FAILED TO SET pixelFormat!</source>
+        <translation>PixelFormat konnte nicht festgelegt werden!</translation>
+    </message>
+    <message>
+        <source>Missing parameter. Format: 1/100 or normal value!</source>
+        <translation>Fehlender Parameter. Format: 1/100 oder Normalwert!</translation>
+    </message>
+    <message>
+        <source>Camera FW Version = %1</source>
+        <translation>Kamera-FW-Version = %1</translation>
+    </message>
+    <message>
+        <source>Camera Device Temperature = %1C</source>
+        <translation>Temperatur des Kamerageräts = %1C</translation>
+    </message>
+    <message>
+        <source>Camera Serial Number = %1</source>
+        <translation>Kameraseriennummer = %1</translation>
+    </message>
+    <message>
+        <source>Driver name = %1</source>
+        <translation>Treibername = %1</translation>
+    </message>
+    <message>
+        <source>Bus info = %1</source>
+        <translation>Businfo = %1</translation>
+    </message>
+    <message>
+        <source>Kernel version = %1</source>
+        <translation>Kernel-Version = %1</translation>
+    </message>
+    <message>
+        <source>Capabilities = %1</source>
+        <translation>Fähigkeiten = %1</translation>
+    </message>
 </context>
 <context>
     <name>V4L2ViewerClass</name>
     <message>
         <source>Lib CSI</source>
-        <translation>Lib CSI</translation>
+        <translation type="vanished">Lib CSI</translation>
     </message>
     <message>
         <source>&lt;p&gt;&lt;b&gt;Open/Close Camera&lt;/b&gt;&lt;/p&gt;
@@ -90,22 +146,22 @@
     <message>
         <source>&lt;p&gt;&lt;b&gt;Get Device Info&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Clicking this button will print device info below.&lt;/span&gt;</source>
-        <translation>&lt;p&gt;&lt;b&gt;Geräteinformationen abrufen&lt;/b&gt;&lt;/p&gt;
+        <translation type="vanished">&lt;p&gt;&lt;b&gt;Geräteinformationen abrufen&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Durch Klicken auf diese Schaltfläche werden die Geräteinformationen unten gedruckt.&lt;/span&gt;</translation>
     </message>
     <message>
         <source>Get Device Info</source>
-        <translation>Geräteinformationen abrufen</translation>
+        <translation type="vanished">Geräteinformationen abrufen</translation>
     </message>
     <message>
         <source>&lt;p&gt;&lt;b&gt;Get Stream Statistics&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Clicking this button will print stream statistics info below.&lt;/span&gt;</source>
-        <translation>&lt;p&gt; &lt;b&gt;Stream-Statistiken abrufen&lt;/b&gt;&lt;/p&gt;
+        <translation type="vanished">&lt;p&gt; &lt;b&gt;Stream-Statistiken abrufen&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Wenn Sie auf diese Schaltfläche klicken, werden unten Informationen zur Stream-Statistik gedruckt.&lt;/span&gt;</translation>
     </message>
     <message>
         <source>Get Stream Statistics</source>
-        <translation>Stream-Statistiken abrufen</translation>
+        <translation type="vanished">Stream-Statistiken abrufen</translation>
     </message>
     <message>
         <source>- fps [drops -]</source>
@@ -181,7 +237,7 @@
     </message>
     <message>
         <source>ExposureAbs:</source>
-        <translation>ExposureAbs:</translation>
+        <translation type="vanished">ExposureAbs:</translation>
     </message>
     <message>
         <source>&lt;p&gt;&lt;b&gt;Auto Exposure&lt;/b&gt;&lt;/p&gt;
@@ -195,7 +251,7 @@
     </message>
     <message>
         <source>Once</source>
-        <translation>Einmal</translation>
+        <translation type="vanished">Einmal</translation>
     </message>
     <message>
         <source>&lt;p&gt;&lt;b&gt;Auto Gain&lt;/b&gt;&lt;/p&gt;
@@ -209,15 +265,15 @@
     </message>
     <message>
         <source>Exposure:</source>
-        <translation>Exposition:</translation>
+        <translation type="vanished">Exposition:</translation>
     </message>
     <message>
         <source>Saturation:</source>
-        <translation>Sättigung:</translation>
+        <translation type="vanished">Sättigung:</translation>
     </message>
     <message>
         <source>Brightness:</source>
-        <translation>Helligkeit:</translation>
+        <translation type="vanished">Helligkeit:</translation>
     </message>
     <message>
         <source>WhiteBalance</source>
@@ -225,7 +281,7 @@
     </message>
     <message>
         <source>BlueBalance:</source>
-        <translation>Blaue Waage:</translation>
+        <translation type="vanished">Blaue Waage:</translation>
     </message>
     <message>
         <source>&lt;p&gt;&lt;b&gt;Auto WhiteBalance&lt;/b&gt;&lt;/p&gt;
@@ -239,15 +295,15 @@
     </message>
     <message>
         <source>Contrast:</source>
-        <translation>Kontrast:</translation>
+        <translation type="vanished">Kontrast:</translation>
     </message>
     <message>
         <source>Hue:</source>
-        <translation>Farbton:</translation>
+        <translation type="vanished">Farbton:</translation>
     </message>
     <message>
         <source>RedBalance:</source>
-        <translation>Rotabgleich:</translation>
+        <translation type="vanished">Rotabgleich:</translation>
     </message>
     <message>
         <source>height:</source>
@@ -265,7 +321,7 @@
     </message>
     <message>
         <source>FrameInterval:</source>
-        <translation>Rahmenintervall:</translation>
+        <translation type="vanished">Rahmenintervall:</translation>
     </message>
     <message>
         <source>left:</source>
@@ -289,7 +345,7 @@
     </message>
     <message>
         <source>Sharpness:</source>
-        <translation>Schärfe:</translation>
+        <translation type="vanished">Schärfe:</translation>
     </message>
     <message>
         <source>Height:</source>
@@ -298,12 +354,12 @@
     <message>
         <source>&lt;p&gt;&lt;b&gt;Read values&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Clicking this button will fill all available values from the camera to the inputs above.&lt;/span&gt;</source>
-        <translation>&lt;p&gt;&lt;b&gt;Werte lesen&lt;/b&gt;&lt;/p&gt;
+        <translation type="vanished">&lt;p&gt;&lt;b&gt;Werte lesen&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Durch Klicken auf diese Schaltfläche werden alle verfügbaren Werte von der Kamera bis zu den obigen Eingaben gefüllt.&lt;/span&gt;</translation>
     </message>
     <message>
         <source>Read all values</source>
-        <translation>Lesen Sie alle Werte</translation>
+        <translation type="vanished">Lesen Sie alle Werte</translation>
     </message>
     <message>
         <source>File</source>
@@ -454,6 +510,54 @@
     <message>
         <source>English</source>
         <translation>Englisch</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;&lt;b&gt;Save one frame&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will save one frame as image with format set in settings top-menu under given path.&lt;/span&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;Einen Rahmen speichern&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Wenn Sie auf diese Schaltfläche klicken, wird ein Frame als Bild mit dem Format gespeichert, das im oberen Menü der Einstellungen unter dem angegebenen Pfad festgelegt wurde.&lt;/span&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;&lt;b&gt;Start fixed acquisition&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Clicking this button will start fixed image acquisition. Defined number of frames will be acquired. To edit the number, please head to top menu - Settings &lt;/span&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;Feste Erfassung starten&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Wenn Sie auf diese Schaltfläche klicken, wird die feste Bildaufnahme gestartet. Eine definierte Anzahl von Frames wird erfasst. Um die Nummer zu bearbeiten, gehen Sie bitte zum oberen Menü - Einstellungen&lt;/span&gt;</translation>
+    </message>
+    <message>
+        <source>BlackLevel:</source>
+        <translation>Schwarzwert:</translation>
+    </message>
+    <message>
+        <source>All Features</source>
+        <translation>Alle Features</translation>
+    </message>
+    <message>
+        <source>ExposureAbs[100*μs]:</source>
+        <translation>ExposureAbs[100*μs]:</translation>
+    </message>
+    <message>
+        <source>Exposure[ns]:</source>
+        <translation>Exposure[ns]:</translation>
+    </message>
+    <message>
+        <source>FrameInterval/FPS:</source>
+        <translation>FrameInterval/FPS:</translation>
+    </message>
+    <message>
+        <source>Save Format</source>
+        <translation>Format speichern</translation>
+    </message>
+    <message>
+        <source>Fixed Frame Rate</source>
+        <translation>Feste Bildrate</translation>
+    </message>
+    <message>
+        <source>Save in PNG</source>
+        <translation>In PNG speichern</translation>
+    </message>
+    <message>
+        <source>Save in RAW</source>
+        <translation>In RAW speichern</translation>
     </message>
 </context>
 </TS>
