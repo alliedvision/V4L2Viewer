@@ -17,6 +17,7 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
     if (bIsReadOnly)
     {
         setEnabled(false);
+        m_ControlInfo += tr("\n Control is READONLY");
     }
     else
     {

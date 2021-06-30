@@ -26,6 +26,7 @@ ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, int32_t value, 
     if (bIsReadOnly)
     {
         setEnabled(false);
+        m_ControlInfo += tr("\n Control is READONLY");
     }
     else
     {

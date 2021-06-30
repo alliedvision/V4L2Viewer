@@ -1539,6 +1539,15 @@ int Camera::DoWhiteBalanceOnce()
     return SetExtControl(0, V4L2_CID_DO_WHITE_BALANCE, "DoWhiteBalanceOnce", "V4L2_CID_DO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
 }
 
+int Camera::ReadAutoWhiteBalance(bool &flag)
+{
+    int result = 0;
+    uint32_t value = 0;
+    result = ReadExtControl(value, V4L2_CID_AUTO_WHITE_BALANCE, "ReadAutoWhiteBalance", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
+    flag = (value == V4L2_WHITE_BALANCE_AUTO) ? true : false;
+    return result;
+}
+
 int Camera::ReadRedBalance(int32_t &value)
 {
     return ReadExtControl(value, V4L2_CID_RED_BALANCE, "ReadRedBalance", "V4L2_CID_RED_BALANCE", V4L2_CTRL_CLASS_USER);

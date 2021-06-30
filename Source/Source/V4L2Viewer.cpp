@@ -531,6 +531,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             }
 
             m_EnumerationControlWidget.RemoveElements();
+            m_EnumerationControlWidget.close();
             SetTitleText();
 
             ui.m_ImageControlFrame->setEnabled(false);
@@ -1749,6 +1750,14 @@ void V4L2Viewer::GetImageInformation()
 
     ui.m_chkContWhiteBalance->setEnabled(m_Camera.IsAutoWhiteBalanceSupported());
 
+    if (ui.m_chkContWhiteBalance->isEnabled())
+    {
+        bool bIsAutoOn;
+        if (m_Camera.ReadAutoWhiteBalance(bIsAutoOn) == 0)
+        {
+            ui.m_chkContWhiteBalance->setChecked(bIsAutoOn);
+        }
+    }
 
     if (m_Camera.ReadGain(gain) != -2)
     {

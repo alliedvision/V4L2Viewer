@@ -12,6 +12,7 @@ BooleanEnumerationControl::BooleanEnumerationControl(int32_t id, bool value, QSt
     if (bIsReadOnly)
     {
         setEnabled(false);
+        m_ControlInfo += tr("\n Control is READONLY");
     }
     else
     {

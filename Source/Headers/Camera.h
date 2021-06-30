@@ -113,6 +113,7 @@ public:
     bool IsAutoWhiteBalanceSupported();
     bool IsWhiteBalanceOnceSupported();
     int DoWhiteBalanceOnce();
+    int ReadAutoWhiteBalance(bool &flag);
     int ReadRedBalance(int32_t &value);
     int SetRedBalance(int32_t value);
     int ReadBlueBalance(int32_t &value);
