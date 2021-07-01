@@ -8,6 +8,7 @@
 #include <QListWidget>
 #include <QCheckBox>
 #include <QPushButton>
+#include "ControlEditWidget.h"
 
 class IControlEnumerationHolder : public QWidget
 {
@@ -16,15 +17,16 @@ public:
     explicit IControlEnumerationHolder(int32_t id, QString name, QWidget *parent = nullptr);
     virtual ~IControlEnumerationHolder() = 0;
     int32_t GetWidgetControlId();
+    QString GetControlInfo();
+    virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 protected:
-
-    QLabel  m_NameOfControl;
-    QLabel  m_ControlInfo;
-    QWidget m_ControlWidget;
-    QGridLayout m_MainLayout;
-    QGridLayout m_ControlWidgetLayout;
-    int32_t m_id;
+    QLabel              m_NameOfControl;
+    QString             m_ControlInfo;
+    QLabel              m_CurrentValue;
+    QGridLayout         m_MainLayout;
+    ControlEditWidget   m_ControlEditWidget;
+    int32_t             m_id;
 };
 
 #endif // ICONTROLENUMERATIONHOLDER_H

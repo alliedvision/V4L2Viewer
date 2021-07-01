@@ -19,8 +19,10 @@ public:
 
     Ui::ControlsHolderWidget ui;
 
+private slots:
+    void OnListItemChanged(int row);
+
 private:
-    QGridLayout *m_pWidgetLayout;
     QVector<IControlEnumerationHolder*> itemVector;
 };
 

@@ -66,38 +66,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CCI_BCRM_16R                                0x0014
 
 
-static const QStringList GetImageFormats()
-{
-    QStringList formats;
-    unsigned int count = QImageReader::supportedImageFormats().count();
-
-    for ( int i = count - 1; i >= 0; i-- )
-    {
-        QString format = QString(QImageReader::supportedImageFormats().at(i)).toLower();
-        formats << format;
-    }
-
-    return formats;
-}
-
-static const QString GetImageFormatString()
-{
-    QString formatString;
-    unsigned int count = QImageReader::supportedImageFormats().count();
-
-    for ( int i = count - 1; i >= 0; i-- )
-    {
-        formatString += ".";
-        formatString += QString(QImageReader::supportedImageFormats().at(i)).toLower();
-        if ( 0 != i )
-        {
-            formatString += ";;";
-        }
-    }
-
-    return formatString;
-}
-
 static int32_t int64_2_int32(const int64_t value)
 {
     if (value > 0)
@@ -113,15 +81,15 @@ static int32_t int64_2_int32(const int64_t value)
 V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     : QMainWindow(parent, flags)
     , m_nViewerNumber(viewerNumber)
-    , m_bIsOpen(false)
-    , m_bIsStreaming(false)
-    , m_dScaleFactor(1.0)
     , m_BLOCKING_MODE(true)
     , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
     , m_ShowFrames(true)
     , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
+    , m_bIsOpen(false)
+    , m_bIsStreaming(false)
+    , m_dScaleFactor(1.0)
     , m_bIsFixedRate(false)
     , m_sliderGainValue(0)
     , m_sliderBlackLevelValue(0)
@@ -183,8 +151,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(SendBoolDataToEnumerationWidget(int32_t, bool, QString, bool)), this, SLOT(GetBoolDataToEnumerationWidget(int32_t, bool, QString, bool)));
     connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(int32_t, QString, bool)), this, SLOT(GetButtonDataToEnumerationWidget(int32_t, QString, bool)));
 
-    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, QList<QString>, QString, bool)), this, SLOT(GetListDataToEnumerationWidget(int32_t, QList<QString>, QString, bool)));
-    connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, QList<int64_t>, QString, bool)), this, SLOT(GetListDataToEnumerationWidget(int32_t, QList<int64_t>, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, bool)), this, SLOT(GetListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, bool)), this, SLOT(GetListDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, bool)));
 
     connect(&m_Camera, SIGNAL(SendSignalToUpdateWidgets()), this, SLOT(OnReadAllValues()));
 
@@ -277,7 +245,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     // prepare the layout
     QHBoxLayout *layoutNum = new QHBoxLayout;
-    QLabel *labelNum = new QLabel("Number of used Frames:");
+    QLabel *labelNum = new QLabel(tr("Number of used Frames:"));
     layoutNum->addWidget(labelNum);
     layoutNum->addWidget(m_NumberOfUsedFramesLineEdit);
 
@@ -292,7 +260,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     ui.m_MenuBuffer->addAction(m_NumberOfUsedFramesWidgetAction);
 
     QHBoxLayout *layoutFixedFrameRate = new QHBoxLayout;
-    QLabel *labelFixedFrameRate = new QLabel("Fixed frame rate:" ,this);
+    QLabel *labelFixedFrameRate = new QLabel(tr("Fixed frame rate:") ,this);
     QWidget *widgetFixedFrameRate = new QWidget(this);
     m_NumberOfFixedFrameRateWidgetAction = new QWidgetAction(this);
     m_NumberOfFixedFrameRate = new QLineEdit("60", this);
@@ -563,6 +531,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             }
 
             m_EnumerationControlWidget.RemoveElements();
+            m_EnumerationControlWidget.close();
             SetTitleText();
 
             ui.m_ImageControlFrame->setEnabled(false);
@@ -570,11 +539,11 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
         if (false == m_bIsOpen)
         {
-            ui.m_OpenCloseButton->setText(QString("Open Camera"));
+            ui.m_OpenCloseButton->setText(QString(tr("Open Camera")));
         }
         else
         {
-            ui.m_OpenCloseButton->setText(QString("Close Camera"));
+            ui.m_OpenCloseButton->setText(QString(tr("Close Camera")));
         }
 
         UpdateViewerLayout();
@@ -771,6 +740,7 @@ void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t 
     {
         IControlEnumerationHolder *ptr = new IntegerEnumerationControl(id, min, max, value, name, bIsReadOnly, this);
         connect(dynamic_cast<IntegerEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int32_t)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, int32_t)));
+        connect(dynamic_cast<IntegerEnumerationControl*>(ptr), SIGNAL(PassSliderValue(int32_t, int32_t)), &m_Camera, SLOT(SetSliderEnumerationControlValue(int32_t, int32_t)));
         m_EnumerationControlWidget.AddElement(ptr);
     }
     else
@@ -790,6 +760,7 @@ void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t 
     {
         IControlEnumerationHolder *ptr = new Integer64EnumerationControl(id, min, max, value, name, bIsReadOnly, this);
         connect(dynamic_cast<Integer64EnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int64_t)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, int64_t)));
+        connect(dynamic_cast<Integer64EnumerationControl*>(ptr), SIGNAL(PassSliderValue(int32_t, int64_t)), &m_Camera, SLOT(SetSliderEnumerationControlValue(int32_t, int64_t)));
         m_EnumerationControlWidget.AddElement(ptr);
     }
     else
@@ -832,11 +803,11 @@ void V4L2Viewer::GetButtonDataToEnumerationWidget(int32_t id, QString name, bool
     }
 }
 
-void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name, bool bIsReadOnly)
+void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
-        IControlEnumerationHolder *ptr = new ListEnumerationControl(id, list, name, bIsReadOnly, this);
+        IControlEnumerationHolder *ptr = new ListEnumerationControl(id, value, list, name, bIsReadOnly, this);
         connect(dynamic_cast<ListEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, const char *)), &m_Camera, SLOT(SetEnumerationControlValueList(int32_t, const char*)));
         m_EnumerationControlWidget.AddElement(ptr);
     }
@@ -846,16 +817,16 @@ void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, QList<QString> list,
         IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
         if (bIsSucced)
         {
-            dynamic_cast<ListEnumerationControl*>(obj)->UpdateValue(list);
+            dynamic_cast<ListEnumerationControl*>(obj)->UpdateValue(list, value);
         }
     }
 }
 
-void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name, bool bIsReadOnly)
+void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
-        IControlEnumerationHolder *ptr = new ListIntEnumerationControl(id, list, name, bIsReadOnly, this);
+        IControlEnumerationHolder *ptr = new ListIntEnumerationControl(id, value, list, name, bIsReadOnly, this);
         connect(dynamic_cast<ListIntEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int64_t)), &m_Camera, SLOT(SetEnumerationControlValueIntList(int32_t, int64_t)));
         m_EnumerationControlWidget.AddElement(ptr);
     }
@@ -865,7 +836,7 @@ void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, QList<int64_t> list,
         IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
         if (bIsSucced)
         {
-            dynamic_cast<ListIntEnumerationControl*>(obj)->UpdateValue(list);
+            dynamic_cast<ListIntEnumerationControl*>(obj)->UpdateValue(list, value);
         }
     }
 }
@@ -1113,7 +1084,7 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
 {
     std::string strCameraName;
 
-    strCameraName = "Camera#";
+    strCameraName = "Camera";
 
     QListWidgetItem *item = new QListWidgetItem(ui.m_CamerasListBox);
     CameraListCustomItem *customItem = new CameraListCustomItem(QString::fromStdString(strCameraName + ": ") + deviceName + QString(" (") + info + QString(")"), this);
@@ -1158,7 +1129,7 @@ void V4L2Viewer::UpdateViewerLayout()
         unsigned int items = ui.m_CamerasListBox->count();
         for (unsigned int i=0; i<items; i++)
         {
-            if (i == currentIndex)
+            if (static_cast<int>(i) == currentIndex)
             {
                 continue;
             }
@@ -1281,22 +1252,19 @@ void V4L2Viewer::OnPixelFormat()
 
 void V4L2Viewer::OnGain()
 {
-    int32_t gain = 0;
     int32_t nVal = int64_2_int32(ui.m_edGain->text().toLongLong());
 
-    m_Camera.SetGain(nVal);
-
-    if (m_Camera.ReadGain(gain) != -2)
+    if (m_Camera.SetGain(nVal) < 0)
     {
-        ui.m_sliderGain->setEnabled(true);
-        ui.m_edGain->setEnabled(true);
-        ui.m_edGain->setText(QString("%1").arg(gain));
-        UpdateSlidersPositions(ui.m_sliderGain, gain);
+        int32_t tmp = 0;
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Gain!") );
+        m_Camera.ReadGain(tmp);
+        ui.m_edGain->setText(QString("%1").arg(tmp));
+        UpdateSlidersPositions(ui.m_sliderGain, tmp);
     }
     else
     {
-        ui.m_edGain->setEnabled(false);
-        ui.m_sliderGain->setEnabled(false);
+        GetImageInformation();
     }
 }
 
@@ -1319,91 +1287,36 @@ void V4L2Viewer::OnAutoGain()
 
 void V4L2Viewer::OnExposure()
 {
-    int32_t exposure = 0;
-    int32_t exposureAbs = 0;
-    bool autoexposure = false;
-
     int32_t nVal = int64_2_int32(ui.m_edExposure->text().toLongLong());
 
-    m_Camera.SetExposure(nVal);
-
-    if (m_Camera.ReadExposure(exposure) != -2)
+    if (m_Camera.SetExposure(nVal) < 0)
     {
-        ui.m_sliderExposure->setEnabled(true);
-        ui.m_edExposure->setEnabled(true);
-        ui.m_edExposure->setText(QString("%1").arg(exposure));
-        int32_t result = GetSliderValueFromLog(exposure);
-        UpdateSlidersPositions(ui.m_sliderExposure, result);
+        int32_t tmp = 0;
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
+        m_Camera.ReadExposure(tmp);
+        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
+        UpdateSlidersPositions(ui.m_sliderExposure, tmp);
     }
     else
     {
-        ui.m_sliderExposure->setEnabled(false);
-        ui.m_edExposure->setEnabled(false);
-    }
-
-    if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
-    {
-        ui.m_edExposureAbs->setEnabled(true);
-        ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
-    }
-    else
-    {
-        ui.m_edExposureAbs->setEnabled(false);
-    }
-
-    if (m_Camera.ReadAutoExposure(autoexposure) != -2)
-    {
-        ui.m_chkAutoExposure->setEnabled(true);
-        ui.m_chkAutoExposure->setChecked(autoexposure);
-    }
-    else
-    {
-        ui.m_chkAutoExposure->setEnabled(false);
+        GetImageInformation();
     }
 }
 
 void V4L2Viewer::OnExposureAbs()
 {
-    int32_t exposure = 0;
-    int32_t exposureAbs = 0;
-    bool autoexposure = false;
-
     int32_t nVal = int64_2_int32(ui.m_edExposureAbs->text().toLongLong());
 
-    m_Camera.SetExposureAbs(nVal);
-
-    if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
+    if (m_Camera.SetExposureAbs(nVal) < 0)
     {
-        ui.m_edExposureAbs->setEnabled(true);
-        ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
+        int32_t tmp = 0;
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ExposureAbs!") );
+        m_Camera.ReadExposureAbs(tmp);
+        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
     }
     else
     {
-        ui.m_edExposureAbs->setEnabled(false);
-    }
-
-    if (m_Camera.ReadExposure(exposure) != -2)
-    {
-        ui.m_edExposure->setEnabled(true);
-        ui.m_sliderExposure->setEnabled(true);
-        ui.m_edExposure->setText(QString("%1").arg(exposure));
-        int32_t result = GetSliderValueFromLog(exposure);
-        UpdateSlidersPositions(ui.m_sliderExposure, result);
-    }
-    else
-    {
-        ui.m_edExposure->setEnabled(false);
-        ui.m_sliderExposure->setEnabled(false);
-    }
-
-    if (m_Camera.ReadAutoExposure(autoexposure) != -2)
-    {
-        ui.m_chkAutoExposure->setEnabled(true);
-        ui.m_chkAutoExposure->setChecked(autoexposure);
-    }
-    else
-    {
-        ui.m_chkAutoExposure->setEnabled(false);
+        GetImageInformation();
     }
 }
 
@@ -1746,58 +1659,6 @@ void V4L2Viewer::OnCropHeight()
     OnReadAllValues();
 }
 
-void V4L2Viewer::OnCropCapabilities()
-{
-    uint32_t boundsx;
-    uint32_t boundsy;
-    uint32_t boundsw;
-    uint32_t boundsh;
-    uint32_t defrectx;
-    uint32_t defrecty;
-    uint32_t defrectw;
-    uint32_t defrecth;
-    uint32_t aspectnum;
-    uint32_t aspectdenum;
-
-    if (m_Camera.ReadCropCapabilities(boundsx, boundsy, boundsw, boundsh,
-                                      defrectx, defrecty, defrectw, defrecth,
-                                      aspectnum, aspectdenum) == 0)
-    {
-//        ui.m_edBoundsX->setEnabled(true);
-//        ui.m_edBoundsX->setText(QString("%1").arg(boundsx));
-//        ui.m_edBoundsY->setEnabled(true);
-//        ui.m_edBoundsY->setText(QString("%1").arg(boundsy));
-
-//        ui.m_edBoundsW->setEnabled(true);
-//        ui.m_edBoundsW->setText(QString("%1").arg(boundsw));
-//        ui.m_edBoundsH->setEnabled(true);
-//        ui.m_edBoundsH->setText(QString("%1").arg(boundsh));
-
-//        ui.m_edDefrectX->setEnabled(true);
-//        ui.m_edDefrectX->setText(QString("%1").arg(defrectx));
-//        ui.m_edDefrectY->setEnabled(true);
-//        ui.m_edDefrectY->setText(QString("%1").arg(defrecty));
-//        ui.m_edDefrectW->setEnabled(true);
-//        ui.m_edDefrectW->setText(QString("%1").arg(defrectw));
-//        ui.m_edDefrectH->setEnabled(true);
-//        ui.m_edDefrectH->setText(QString("%1").arg(defrecth));
-//        ui.m_edAspect->setEnabled(true);
-//        ui.m_edAspect->setText(QString("%1/%2").arg(aspectnum).arg(aspectdenum));
-    }
-    else
-    {
-//        ui.m_edBoundsX->setEnabled(false);
-//        ui.m_edBoundsY->setEnabled(false);
-//        ui.m_edBoundsW->setEnabled(false);
-//        ui.m_edBoundsH->setEnabled(false);
-//        ui.m_edDefrectX->setEnabled(false);
-//        ui.m_edDefrectY->setEnabled(false);
-//        ui.m_edDefrectW->setEnabled(false);
-//        ui.m_edDefrectH->setEnabled(false);
-//        ui.m_edAspect->setEnabled(false);
-    }
-}
-
 void V4L2Viewer::OnReadAllValues()
 {
     GetImageInformation();
@@ -1833,6 +1694,14 @@ void V4L2Viewer::GetImageInformation()
 
     ui.m_chkContWhiteBalance->setEnabled(m_Camera.IsAutoWhiteBalanceSupported());
 
+    if (ui.m_chkContWhiteBalance->isEnabled())
+    {
+        bool bIsAutoOn;
+        if (m_Camera.ReadAutoWhiteBalance(bIsAutoOn) == 0)
+        {
+            ui.m_chkContWhiteBalance->setChecked(bIsAutoOn);
+        }
+    }
 
     if (m_Camera.ReadGain(gain) != -2)
     {
@@ -2080,14 +1949,12 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelCropWidth->setEnabled(false);
         ui.m_labelCropHeight->setEnabled(false);
     }
-    OnCropCapabilities();
 
     m_Camera.EnumAllControlNewStyle();
 }
 
 void V4L2Viewer::UpdateCameraFormat()
 {
-    int result = -1;
     uint32_t payloadSize = 0;
     uint32_t width = 0;
     uint32_t height = 0;
@@ -2099,14 +1966,14 @@ void V4L2Viewer::UpdateCameraFormat()
     ui.m_pixelFormats->clear();
     ui.m_pixelFormats->blockSignals(false);
 
-    result = m_Camera.ReadPayloadSize(payloadSize);
+    m_Camera.ReadPayloadSize(payloadSize);
 
-    result = m_Camera.ReadFrameSize(width, height);
+    m_Camera.ReadFrameSize(width, height);
     ui.m_edWidth->setText(QString("%1").arg(width));
     ui.m_edHeight->setText(QString("%1").arg(height));
 
-    result = m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
-    result = m_Camera.ReadFormats();
+    m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
+    m_Camera.ReadFormats();
     UpdateCurrentPixelFormatOnList(QString::fromStdString(m_Camera.ConvertPixelFormat2String(pixelFormat)));
 }
 
@@ -2114,18 +1981,18 @@ QString V4L2Viewer::GetDeviceInfo()
 {
     std::string tmp;
 
-    QString firmware = QString("Camera FW Version = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion()));
-    QString devTemp = QString("Camera Device Temperature = %1C").arg(QString::fromStdString(m_Camera.getAvtDeviceTemperature()));
-    QString devSerial = QString("Camera Serial Number = %1").arg(QString::fromStdString(m_Camera.getAvtDeviceSerialNumber()));
+    QString firmware = QString(tr("Camera FW Version = %1")).arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion()));
+    QString devTemp = QString(tr("Camera Device Temperature = %1C")).arg(QString::fromStdString(m_Camera.getAvtDeviceTemperature()));
+    QString devSerial = QString(tr("Camera Serial Number = %1")).arg(QString::fromStdString(m_Camera.getAvtDeviceSerialNumber()));
 
     m_Camera.GetCameraDriverName(tmp);
-    QString driverName = QString("Driver name = %1").arg(tmp.c_str());
+    QString driverName = QString(tr("Driver name = %1")).arg(tmp.c_str());
     m_Camera.GetCameraBusInfo(tmp);
-    QString busInfo = QString("Bus info = %1").arg(tmp.c_str());
+    QString busInfo = QString(tr("Bus info = %1")).arg(tmp.c_str());
     m_Camera.GetCameraDriverVersion(tmp);
-    QString driverVer = QString("Kernel version = %1").arg(tmp.c_str());
+    QString driverVer = QString(tr("Kernel version = %1")).arg(tmp.c_str());
     m_Camera.GetCameraCapabilities(tmp);
-    QString capabilities = QString("Capabilities = %1").arg(tmp.c_str());
+    QString capabilities = QString(tr("Capabilities = %1")).arg(tmp.c_str());
     return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities);
 
 }

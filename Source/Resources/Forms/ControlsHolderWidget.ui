@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>449</width>
-    <height>408</height>
+    <height>478</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>All Features Window</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget{
@@ -134,25 +134,28 @@ QListWidget{
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QScrollArea" name="m_ScrollArea">
-     <property name="widgetResizable">
+    <widget class="QListWidget" name="m_ControlsList"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="m_DescriptionLabel">
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(45,45,45);
+border:1px solid rgb(25,25,25);
+border-radius:4px;
+padding:5px;</string>
+     </property>
+     <property name="text">
+      <string>Some Text here &lt;br&gt;
+Some Text here &lt;br&gt;
+Some Text here &lt;br&gt;
+Some Text here &lt;br&gt;
+Some Text here &lt;br&gt;
+Some Text here &lt;br&gt;
+</string>
+     </property>
+     <property name="wordWrap">
       <bool>true</bool>
      </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>431</width>
-        <height>390</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QWidget" name="m_ScrollAreaWidget" native="true"/>
-       </item>
-      </layout>
-     </widget>
     </widget>
    </item>
   </layout>

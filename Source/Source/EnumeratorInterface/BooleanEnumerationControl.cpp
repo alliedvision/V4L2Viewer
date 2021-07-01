@@ -3,14 +3,16 @@
 BooleanEnumerationControl::BooleanEnumerationControl(int32_t id, bool value, QString name, bool bIsReadOnly, QWidget *parent):
     IControlEnumerationHolder(id, name, parent)
 {
-    m_ControlInfo.setText(QString(tr("%1 control accepts boolean values.")
-                          .arg(name)));
+    m_ControlInfo = QString(tr("%1 control accepts boolean values.")
+                          .arg(name));
     m_CheckBox.setText("On/Off");
     m_CheckBox.setChecked(value);
-    m_ControlWidgetLayout.addWidget(&m_CheckBox);
+    m_ControlEditWidget.m_pLayout->addWidget(&m_CheckBox);
+    m_CurrentValue.setText(value ? "True" : "False");
     if (bIsReadOnly)
     {
         setEnabled(false);
+        m_ControlInfo += tr("\n Control is READONLY");
     }
     else
     {
@@ -23,6 +25,7 @@ void BooleanEnumerationControl::UpdateValue(bool val)
 {
     m_CheckBox.blockSignals(true);
     m_CheckBox.setChecked(val);
+    m_CurrentValue.setText(val ? "True" : "False");
     m_CheckBox.blockSignals(false);
 }
 

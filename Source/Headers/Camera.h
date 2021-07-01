@@ -113,6 +113,7 @@ public:
     bool IsAutoWhiteBalanceSupported();
     bool IsWhiteBalanceOnceSupported();
     int DoWhiteBalanceOnce();
+    int ReadAutoWhiteBalance(bool &flag);
     int ReadRedBalance(int32_t &value);
     int SetRedBalance(int32_t value);
     int ReadBlueBalance(int32_t &value);
@@ -192,6 +193,8 @@ public slots:
     void SetEnumerationControlValue(int32_t id, int64_t val); //Values passed to controls which accept 64 bit integers
     void SetEnumerationControlValue(int32_t id, bool val); //Values passed to controls which accept booleans
     void SetEnumerationControlValue(int32_t id); //Values passed to controls which performs some actions on button click
+    void SetSliderEnumerationControlValue(int32_t id, int32_t val); //Value passed to controls from the slider
+    void SetSliderEnumerationControlValue(int32_t id, int64_t val); //Value passed to controls from the slider 64 bit
 
 private:
     std::string         m_DeviceName;
@@ -239,8 +242,8 @@ signals:
     void SendBoolDataToEnumerationWidget(int32_t id, bool value, QString name, bool bIsReadOnly);
     void SendButtonDataToEnumerationWidget(int32_t id, QString name, bool bIsReadOnly);
 
-    void SendListDataToEnumerationWidget(int32_t id, QList<QString> list, QString name, bool bIsReadOnly);
-    void SendListIntDataToEnumerationWidget(int32_t id, QList<int64_t> list, QString name, bool bIsReadOnly);
+    void SendListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, bool bIsReadOnly);
+    void SendListIntDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, bool bIsReadOnly);
 
     void SendSignalToUpdateWidgets();
 

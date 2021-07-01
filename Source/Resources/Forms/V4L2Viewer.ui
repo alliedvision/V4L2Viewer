@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Lib CSI</string>
+   <string/>
   </property>
   <property name="windowIcon">
    <iconset resource="../V4L2Viewer.qrc">
@@ -471,7 +471,7 @@ border:none;
               <x>0</x>
               <y>0</y>
               <width>894</width>
-              <height>220</height>
+              <height>305</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1330,7 +1330,7 @@ background-color:rgb(166, 166, 166);
 }</string>
              </property>
              <property name="text">
-              <string>All Controls</string>
+              <string>All Features</string>
              </property>
             </widget>
            </item>

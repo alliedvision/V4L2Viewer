@@ -807,7 +807,6 @@ int Camera::EnumAllControlNewStyle()
 
     qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
 
-
     while (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERY_EXT_CTRL, &qctrl))
     {
         if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
@@ -815,7 +814,6 @@ int Camera::EnumAllControlNewStyle()
             bool bIsReadOnly = false;
             if(qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
             {
-                qDebug() << (const char*)qctrl.name << " is readonly";
                 bIsReadOnly = true;
             }
 
@@ -869,10 +867,7 @@ int Camera::EnumAllControlNewStyle()
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_BUTTON)
             {
-                int32_t value;
                 int32_t id = qctrl.id;
-                ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BUTTON", V4L2_CTRL_ID2CLASS (qctrl.id));
-
                 emit SendButtonDataToEnumerationWidget(id, name, bIsReadOnly);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_MENU)
@@ -884,15 +879,19 @@ int Camera::EnumAllControlNewStyle()
 
                 result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_ID2CLASS (qctrl.id));
 
-                queryMenu.id = qctrl.id;
-                for (queryMenu.index = qctrl.minimum;
-                     queryMenu.index <= qctrl.maximum;
-                     queryMenu.index++) {
-                    if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
-                        list.append(QString((const char*)queryMenu.name));
+                if (result == 0)
+                {
+                    queryMenu.id = qctrl.id;
+                    for (queryMenu.index = qctrl.minimum;
+                         queryMenu.index <= qctrl.maximum;
+                         queryMenu.index++) {
+
+                        if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
+                            list.append(QString((const char*)queryMenu.name));
+                        }
                     }
+                    emit SendListDataToEnumerationWidget(id, value, list , name, bIsReadOnly);
                 }
-                emit SendListDataToEnumerationWidget(id, list , name, bIsReadOnly);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
             {
@@ -903,18 +902,20 @@ int Camera::EnumAllControlNewStyle()
 
                 result = ReadExtControl(value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER_MENU", V4L2_CTRL_ID2CLASS (qctrl.id));
 
-                queryMenu.id = qctrl.id;
-                for (queryMenu.index = qctrl.minimum;
-                     queryMenu.index <= qctrl.maximum;
-                     queryMenu.index++) {
-                    if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
-                        list.append(queryMenu.value);
+                if (result == 0)
+                {
+                    queryMenu.id = qctrl.id;
+                    for (queryMenu.index = qctrl.minimum;
+                         queryMenu.index <= qctrl.maximum;
+                         queryMenu.index++) {
+                        if (0 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYMENU, &queryMenu)) {
+                            list.append(queryMenu.value);
+                        }
                     }
+                    emit SendListIntDataToEnumerationWidget(id, value, list , name, bIsReadOnly);
                 }
-                emit SendListIntDataToEnumerationWidget(id, list , name, bIsReadOnly);
             }
         }
-
         qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
     }
 
@@ -1536,6 +1537,15 @@ int Camera::SetContinousWhiteBalance(bool flag)
 int Camera::DoWhiteBalanceOnce()
 {
     return SetExtControl(0, V4L2_CID_DO_WHITE_BALANCE, "DoWhiteBalanceOnce", "V4L2_CID_DO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
+}
+
+int Camera::ReadAutoWhiteBalance(bool &flag)
+{
+    int result = 0;
+    uint32_t value = 0;
+    result = ReadExtControl(value, V4L2_CID_AUTO_WHITE_BALANCE, "ReadAutoWhiteBalance", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
+    flag = (value == V4L2_WHITE_BALANCE_AUTO) ? true : false;
+    return result;
 }
 
 int Camera::ReadRedBalance(int32_t &value)
@@ -2405,3 +2415,12 @@ void Camera::SetEnumerationControlValue(int32_t id)
     qDebug() << "SETTING BUTTON ENUM CONTROL: " << result;
 }
 
+void Camera::SetSliderEnumerationControlValue(int32_t id, int32_t val)
+{
+    SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_INTEGER32", V4L2_CTRL_ID2CLASS (id));
+}
+
+void Camera::SetSliderEnumerationControlValue(int32_t id, int64_t val)
+{
+    SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_ID2CLASS (id));
+}

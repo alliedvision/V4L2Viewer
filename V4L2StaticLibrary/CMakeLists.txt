@@ -40,6 +40,7 @@ ${HEADERS_PATH}/EnumeratorInterface/BooleanEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ButtonEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ListEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ListIntEnumerationControl.h
+${HEADERS_PATH}/EnumeratorInterface/ControlEditWidget.h
 )
 
 list(APPEND SOURCE_FILES
@@ -74,6 +75,7 @@ ${SOURCES_PATH}/EnumeratorInterface/BooleanEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ButtonEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ListEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ListIntEnumerationControl.cpp
+${SOURCES_PATH}/EnumeratorInterface/ControlEditWidget.cpp
 )
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${RESOURCES_PATH}/Forms)
@@ -99,6 +101,8 @@ qt5_add_resources(RESOURCES ${QT_RESOURCES})
 
 list(APPEND RESOURCES
 ${RESOURCES_PATH}/V4L2Viewer.rc
+${RESOURCES_PATH}/Forms/ControlsHolderWidget.ui
+${RESOURCES_PATH}/Forms/V4L2Viewer.ui
 )
 
 add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})

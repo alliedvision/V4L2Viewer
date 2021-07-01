@@ -258,7 +258,7 @@ void FrameObserver::DequeueAndProcessFrame()
         {
             static int i = 0;
             i++;
-            if (i % 10000 == 0 || m_DQBUF_last_errno != errno)
+            if (i % 10000 == 0 || static_cast<int32_t>(m_DQBUF_last_errno) != errno)
             {
                 m_DQBUF_last_errno = errno;
             }

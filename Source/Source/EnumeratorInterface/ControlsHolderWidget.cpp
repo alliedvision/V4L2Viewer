@@ -1,27 +1,33 @@
 #include "ControlsHolderWidget.h"
+#include <QDebug>
 
 ControlsHolderWidget::ControlsHolderWidget(QWidget *parent) : QWidget(parent)
 {
     ui.setupUi(this);
-    m_pWidgetLayout = new QGridLayout;
-    ui.m_ScrollAreaWidget->setLayout(m_pWidgetLayout);
+    connect(ui.m_ControlsList, SIGNAL(currentRowChanged(int)), this, SLOT(OnListItemChanged(int)));
 }
 
 void ControlsHolderWidget::AddElement(IControlEnumerationHolder *controlWidget)
 {
-    m_pWidgetLayout->addWidget(controlWidget);
+    ui.m_ControlsList->blockSignals(true);
+    QListWidgetItem *item = new QListWidgetItem(ui.m_ControlsList);
+    item->setSizeHint(controlWidget->sizeHint());
+    ui.m_ControlsList->setItemWidget(item, controlWidget);
     itemVector.append(controlWidget);
+    ui.m_ControlsList->blockSignals(false);
 }
 
 void ControlsHolderWidget::RemoveElements()
 {
+    ui.m_ControlsList->blockSignals(true);
     for (QVector<IControlEnumerationHolder*>::iterator it = itemVector.begin(); it<itemVector.end(); ++it)
     {
-        m_pWidgetLayout->removeWidget(*it);
         delete *it;
         *it = nullptr;
     }
+    ui.m_ControlsList->clear();
     itemVector.clear();
+    ui.m_ControlsList->blockSignals(false);
 }
 
 bool ControlsHolderWidget::IsControlAlreadySet(int32_t id)
@@ -50,3 +56,8 @@ IControlEnumerationHolder* ControlsHolderWidget::GetControlWidget(int32_t id, bo
     return nullptr;
 }
 
+void ControlsHolderWidget::OnListItemChanged(int row)
+{
+    QString info = dynamic_cast<IControlEnumerationHolder *>(ui.m_ControlsList->itemWidget(ui.m_ControlsList->item(row)))->GetControlInfo();
+    ui.m_DescriptionLabel->setText(info);
+}

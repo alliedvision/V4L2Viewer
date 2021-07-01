@@ -1,21 +1,32 @@
 #include "ListIntEnumerationControl.h"
 
-ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, QList<int64_t> list, QString name, bool bIsReadOnly, QWidget *parent):
+ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, int32_t value, QList<int64_t> list, QString name, bool bIsReadOnly, QWidget *parent):
     IControlEnumerationHolder(id, name, parent)
 {
     m_ListWidget.setMinimumHeight(150);
-    m_ControlInfo.setText(QString(tr("%1 control is represented as list of integers. \n Values listed below are available for the camera")
-                          .arg(name)));
-    m_ControlWidgetLayout.addWidget(&m_ListWidget);
+    m_ControlInfo = QString(tr("%1 control is represented as list of integers. \n Values listed below are available for the camera")
+                          .arg(name));
+    m_ControlEditWidget.m_pLayout->addWidget(&m_ListWidget);
 
     for (QList<int64_t>::iterator it = list.begin(); it<list.end(); ++it)
     {
         m_ListWidget.addItem(QString::number(*it));
     }
 
+    if (value >= list.count())
+    {
+        m_CurrentValue.setText("Unknown Current Value");
+    }
+    else
+    {
+        m_CurrentValue.setText(QString::number(list.at(value)));
+        m_ListWidget.setCurrentRow(value);
+    }
+
     if (bIsReadOnly)
     {
         setEnabled(false);
+        m_ControlInfo += tr("\n Control is READONLY");
     }
     else
     {
@@ -24,7 +35,7 @@ ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, QList<int64_t> 
     }
 }
 
-void ListIntEnumerationControl::UpdateValue(QList<int64_t> list)
+void ListIntEnumerationControl::UpdateValue(QList<int64_t> list, int32_t value)
 {
     m_ListWidget.blockSignals(true);
     m_ListWidget.clear();
@@ -32,6 +43,17 @@ void ListIntEnumerationControl::UpdateValue(QList<int64_t> list)
     {
         m_ListWidget.addItem(QString::number(*it));
     }
+
+    if (value >= list.count())
+    {
+        m_CurrentValue.setText("Unknown Current Value");
+    }
+    else
+    {
+        m_CurrentValue.setText(QString::number(list.at(value)));
+        m_ListWidget.setCurrentRow(value);
+    }
+
     m_ListWidget.blockSignals(false);
 }
 
