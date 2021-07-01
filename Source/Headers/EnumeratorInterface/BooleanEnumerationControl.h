@@ -7,7 +7,7 @@ class BooleanEnumerationControl : public IControlEnumerationHolder
 {
     Q_OBJECT
 public:
-    BooleanEnumerationControl(int32_t id, bool value, QString name, bool bIsReadOnly, QWidget *parent);
+    BooleanEnumerationControl(int32_t id, bool value, QString name, QString unit, bool bIsReadOnly, QWidget *parent);
     void UpdateValue(bool val);
 
 signals:

@@ -1,11 +1,12 @@
 #include "ListIntEnumerationControl.h"
 
-ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, int32_t value, QList<int64_t> list, QString name, bool bIsReadOnly, QWidget *parent):
+ListIntEnumerationControl::ListIntEnumerationControl(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly, QWidget *parent):
     IControlEnumerationHolder(id, name, parent)
 {
     m_ListWidget.setMinimumHeight(150);
-    m_ControlInfo = QString(tr("%1 control is represented as list of integers. \n Values listed below are available for the camera")
-                          .arg(name));
+    m_ControlInfo = QString(tr("%1 control is represented as list of integers. \n Unit: %2")
+                          .arg(name)
+                          .arg(unit));
     m_ControlEditWidget.m_pLayout->addWidget(&m_ListWidget);
 
     for (QList<int64_t>::iterator it = list.begin(); it<list.end(); ++it)

@@ -7,7 +7,7 @@ class ListIntEnumerationControl : public IControlEnumerationHolder
 {
     Q_OBJECT
 public:
-    ListIntEnumerationControl(int32_t id, int32_t value, QList<int64_t> list, QString name, bool bIsReadOnly, QWidget *parent);
+    ListIntEnumerationControl(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly, QWidget *parent);
     void UpdateValue(QList<int64_t> list, int32_t value);
 
 private slots:

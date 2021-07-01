@@ -2,16 +2,17 @@
 #include "linux/v4l2-controls.h"
 #include <math.h>
 
-Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min, int64_t max, int64_t value, QString name, bool bIsReadOnly, QWidget *parent):
+Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly, QWidget *parent):
     IControlEnumerationHolder(id, name, parent),
     m_Min(min),
     m_Max(max),
     m_Value(value)
 {
-    m_ControlInfo = QString(tr("%1 control accepts 64-bit integers. \n Minimum: %2 \n Maximum: %3")
+    m_ControlInfo = QString(tr("%1 control accepts 64-bit integers. \n Minimum: %2 \n Maximum: %3 \n Unit: %4")
                           .arg(name)
                           .arg(m_Min)
-                          .arg(m_Max));
+                          .arg(m_Max)
+                          .arg(unit));
     m_LineEdit.setValidator(new QIntValidator(m_Min, m_Max, this));
     m_LineEdit.setText(QString::number(m_Value));
     m_CurrentValue.setText(QString::number(m_Value));

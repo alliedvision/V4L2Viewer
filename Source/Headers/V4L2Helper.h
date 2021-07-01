@@ -36,8 +36,8 @@ namespace v4l2helper
 {
 
 std::string ConvertPixelFormat2EnumString(int pixelFormat);
-
 std::string ConvertControlID2String(uint32_t controlID);
+std::string GetControlUnit(int32_t id);
 
 } // namepsace v4l2helper
 

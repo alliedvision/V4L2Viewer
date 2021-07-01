@@ -336,4 +336,18 @@ std::string ConvertControlID2String(uint32_t controlID)
     return result;
 }
 
+std::string GetControlUnit(int32_t id)
+{
+    std::string res = "";
+    switch (id)
+    {
+        case V4L2_CID_EXPOSURE: res = "Nanoseconds [ns]"; break;
+        case V4L2_CID_EXPOSURE_ABSOLUTE: res = "100*Microseconds [100µs]"; break;
+        case V4L2_CID_GAIN: res = "Millibel (1/100 Decibel)"; break;
+        case V4L2_CID_HUE: res = "1/100 degrees [°]"; break;
+        default: res = "Not Applicable"; break;
+    }
+    return res;
+}
+
 } // namespace v4l2helper

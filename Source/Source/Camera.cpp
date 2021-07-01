@@ -822,6 +822,8 @@ int Camera::EnumAllControlNewStyle()
 
             QString name = QString((const char*)qctrl.name);
 
+            QString unit = QString::fromStdString(v4l2helper::GetControlUnit(qctrl.id));
+
             if (qctrl.type == V4L2_CTRL_TYPE_INTEGER)
             {
                 int result = -1;
@@ -834,7 +836,7 @@ int Camera::EnumAllControlNewStyle()
 
                 if (result == 0)
                 {
-                    emit SendIntDataToEnumerationWidget(id, min, max, value, name, bIsReadOnly);
+                    emit SendIntDataToEnumerationWidget(id, min, max, value, name, unit, bIsReadOnly);
                 }
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER64)
@@ -849,7 +851,7 @@ int Camera::EnumAllControlNewStyle()
 
                 if (result == 0)
                 {
-                    emit SentInt64DataToEnumerationWidget(id, min, max, value, name, bIsReadOnly);
+                    emit SentInt64DataToEnumerationWidget(id, min, max, value, name, unit, bIsReadOnly);
                 }
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_BOOLEAN)
@@ -862,13 +864,13 @@ int Camera::EnumAllControlNewStyle()
 
                 if (result == 0)
                 {
-                    emit SendBoolDataToEnumerationWidget(id, static_cast<bool>(value), name, bIsReadOnly);
+                    emit SendBoolDataToEnumerationWidget(id, static_cast<bool>(value), name, unit, bIsReadOnly);
                 }
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_BUTTON)
             {
                 int32_t id = qctrl.id;
-                emit SendButtonDataToEnumerationWidget(id, name, bIsReadOnly);
+                emit SendButtonDataToEnumerationWidget(id, name, unit, bIsReadOnly);
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_MENU)
             {
@@ -890,7 +892,7 @@ int Camera::EnumAllControlNewStyle()
                             list.append(QString((const char*)queryMenu.name));
                         }
                     }
-                    emit SendListDataToEnumerationWidget(id, value, list , name, bIsReadOnly);
+                    emit SendListDataToEnumerationWidget(id, value, list , name, unit, bIsReadOnly);
                 }
             }
             else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
@@ -912,7 +914,7 @@ int Camera::EnumAllControlNewStyle()
                             list.append(queryMenu.value);
                         }
                     }
-                    emit SendListIntDataToEnumerationWidget(id, value, list , name, bIsReadOnly);
+                    emit SendListIntDataToEnumerationWidget(id, value, list , name, unit, bIsReadOnly);
                 }
             }
         }

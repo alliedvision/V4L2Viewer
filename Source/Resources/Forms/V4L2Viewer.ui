@@ -1374,7 +1374,7 @@ background-color:rgb(166, 166, 166);
            <item row="1" column="0" colspan="2">
             <widget class="QLabel" name="m_labelExposureAbs">
              <property name="text">
-              <string>ExposureAbs[100*μs]:</string>
+              <string>ExposureAbs[100μs]:</string>
              </property>
             </widget>
            </item>
@@ -1693,7 +1693,7 @@ QCheckBox::disabled{
            <item row="6" column="0" colspan="2">
             <widget class="QLabel" name="m_labelGain">
              <property name="text">
-              <string>Gain:</string>
+              <string>Gain[1/100dB]:</string>
              </property>
             </widget>
            </item>

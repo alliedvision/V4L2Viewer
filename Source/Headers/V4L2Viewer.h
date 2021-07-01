@@ -236,12 +236,12 @@ private slots:
 
     void ShowHideEnumerationControlWidget();
 
-    void GetIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, bool bIsReadOnly);
-    void GetIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, bool bIsReadOnly);
-    void GetBoolDataToEnumerationWidget(int32_t id, bool value, QString name, bool bIsReadOnly);
-    void GetButtonDataToEnumerationWidget(int32_t id, QString name, bool bIsReadOnly);
-    void GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, bool bIsReadOnly);
-    void GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, bool bIsReadOnly);
+    void GetIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, QString unit, bool bIsReadOnly);
+    void GetIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly);
+    void GetBoolDataToEnumerationWidget(int32_t id, bool value, QString name, QString unit, bool bIsReadOnly);
+    void GetButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly);
+    void GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly);
+    void GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
 };
 
 #endif // V4L2VIEWER_H
