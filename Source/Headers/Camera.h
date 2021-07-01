@@ -193,6 +193,8 @@ public slots:
     void SetEnumerationControlValue(int32_t id, int64_t val); //Values passed to controls which accept 64 bit integers
     void SetEnumerationControlValue(int32_t id, bool val); //Values passed to controls which accept booleans
     void SetEnumerationControlValue(int32_t id); //Values passed to controls which performs some actions on button click
+    void SetSliderEnumerationControlValue(int32_t id, int32_t val); //Value passed to controls from the slider
+    void SetSliderEnumerationControlValue(int32_t id, int64_t val); //Value passed to controls from the slider 64 bit
 
 private:
     std::string         m_DeviceName;

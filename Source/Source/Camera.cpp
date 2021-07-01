@@ -2415,3 +2415,12 @@ void Camera::SetEnumerationControlValue(int32_t id)
     qDebug() << "SETTING BUTTON ENUM CONTROL: " << result;
 }
 
+void Camera::SetSliderEnumerationControlValue(int32_t id, int32_t val)
+{
+    SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_INTEGER32", V4L2_CTRL_ID2CLASS (id));
+}
+
+void Camera::SetSliderEnumerationControlValue(int32_t id, int64_t val)
+{
+    SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_ID2CLASS (id));
+}

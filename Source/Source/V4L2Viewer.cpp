@@ -740,6 +740,7 @@ void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t 
     {
         IControlEnumerationHolder *ptr = new IntegerEnumerationControl(id, min, max, value, name, bIsReadOnly, this);
         connect(dynamic_cast<IntegerEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int32_t)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, int32_t)));
+        connect(dynamic_cast<IntegerEnumerationControl*>(ptr), SIGNAL(PassSliderValue(int32_t, int32_t)), &m_Camera, SLOT(SetSliderEnumerationControlValue(int32_t, int32_t)));
         m_EnumerationControlWidget.AddElement(ptr);
     }
     else
@@ -759,6 +760,7 @@ void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t 
     {
         IControlEnumerationHolder *ptr = new Integer64EnumerationControl(id, min, max, value, name, bIsReadOnly, this);
         connect(dynamic_cast<Integer64EnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int64_t)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, int64_t)));
+        connect(dynamic_cast<Integer64EnumerationControl*>(ptr), SIGNAL(PassSliderValue(int32_t, int64_t)), &m_Camera, SLOT(SetSliderEnumerationControlValue(int32_t, int64_t)));
         m_EnumerationControlWidget.AddElement(ptr);
     }
     else
@@ -1250,22 +1252,19 @@ void V4L2Viewer::OnPixelFormat()
 
 void V4L2Viewer::OnGain()
 {
-    int32_t gain = 0;
     int32_t nVal = int64_2_int32(ui.m_edGain->text().toLongLong());
 
-    m_Camera.SetGain(nVal);
-
-    if (m_Camera.ReadGain(gain) != -2)
+    if (m_Camera.SetGain(nVal) < 0)
     {
-        ui.m_sliderGain->setEnabled(true);
-        ui.m_edGain->setEnabled(true);
-        ui.m_edGain->setText(QString("%1").arg(gain));
-        UpdateSlidersPositions(ui.m_sliderGain, gain);
+        int32_t tmp = 0;
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Gain!") );
+        m_Camera.ReadGain(tmp);
+        ui.m_edGain->setText(QString("%1").arg(tmp));
+        UpdateSlidersPositions(ui.m_sliderGain, tmp);
     }
     else
     {
-        ui.m_edGain->setEnabled(false);
-        ui.m_sliderGain->setEnabled(false);
+        GetImageInformation();
     }
 }
 
@@ -1288,91 +1287,36 @@ void V4L2Viewer::OnAutoGain()
 
 void V4L2Viewer::OnExposure()
 {
-    int32_t exposure = 0;
-    int32_t exposureAbs = 0;
-    bool autoexposure = false;
-
     int32_t nVal = int64_2_int32(ui.m_edExposure->text().toLongLong());
 
-    m_Camera.SetExposure(nVal);
-
-    if (m_Camera.ReadExposure(exposure) != -2)
+    if (m_Camera.SetExposure(nVal) < 0)
     {
-        ui.m_sliderExposure->setEnabled(true);
-        ui.m_edExposure->setEnabled(true);
-        ui.m_edExposure->setText(QString("%1").arg(exposure));
-        int32_t result = GetSliderValueFromLog(exposure);
-        UpdateSlidersPositions(ui.m_sliderExposure, result);
+        int32_t tmp = 0;
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
+        m_Camera.ReadExposure(tmp);
+        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
+        UpdateSlidersPositions(ui.m_sliderExposure, tmp);
     }
     else
     {
-        ui.m_sliderExposure->setEnabled(false);
-        ui.m_edExposure->setEnabled(false);
-    }
-
-    if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
-    {
-        ui.m_edExposureAbs->setEnabled(true);
-        ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
-    }
-    else
-    {
-        ui.m_edExposureAbs->setEnabled(false);
-    }
-
-    if (m_Camera.ReadAutoExposure(autoexposure) != -2)
-    {
-        ui.m_chkAutoExposure->setEnabled(true);
-        ui.m_chkAutoExposure->setChecked(autoexposure);
-    }
-    else
-    {
-        ui.m_chkAutoExposure->setEnabled(false);
+        GetImageInformation();
     }
 }
 
 void V4L2Viewer::OnExposureAbs()
 {
-    int32_t exposure = 0;
-    int32_t exposureAbs = 0;
-    bool autoexposure = false;
-
     int32_t nVal = int64_2_int32(ui.m_edExposureAbs->text().toLongLong());
 
-    m_Camera.SetExposureAbs(nVal);
-
-    if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
+    if (m_Camera.SetExposureAbs(nVal) < 0)
     {
-        ui.m_edExposureAbs->setEnabled(true);
-        ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
+        int32_t tmp = 0;
+        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ExposureAbs!") );
+        m_Camera.ReadExposureAbs(tmp);
+        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
     }
     else
     {
-        ui.m_edExposureAbs->setEnabled(false);
-    }
-
-    if (m_Camera.ReadExposure(exposure) != -2)
-    {
-        ui.m_edExposure->setEnabled(true);
-        ui.m_sliderExposure->setEnabled(true);
-        ui.m_edExposure->setText(QString("%1").arg(exposure));
-        int32_t result = GetSliderValueFromLog(exposure);
-        UpdateSlidersPositions(ui.m_sliderExposure, result);
-    }
-    else
-    {
-        ui.m_edExposure->setEnabled(false);
-        ui.m_sliderExposure->setEnabled(false);
-    }
-
-    if (m_Camera.ReadAutoExposure(autoexposure) != -2)
-    {
-        ui.m_chkAutoExposure->setEnabled(true);
-        ui.m_chkAutoExposure->setChecked(autoexposure);
-    }
-    else
-    {
-        ui.m_chkAutoExposure->setEnabled(false);
+        GetImageInformation();
     }
 }
 
@@ -2011,7 +1955,6 @@ void V4L2Viewer::GetImageInformation()
 
 void V4L2Viewer::UpdateCameraFormat()
 {
-    int result = -1;
     uint32_t payloadSize = 0;
     uint32_t width = 0;
     uint32_t height = 0;
@@ -2023,14 +1966,14 @@ void V4L2Viewer::UpdateCameraFormat()
     ui.m_pixelFormats->clear();
     ui.m_pixelFormats->blockSignals(false);
 
-    result = m_Camera.ReadPayloadSize(payloadSize);
+    m_Camera.ReadPayloadSize(payloadSize);
 
-    result = m_Camera.ReadFrameSize(width, height);
+    m_Camera.ReadFrameSize(width, height);
     ui.m_edWidth->setText(QString("%1").arg(width));
     ui.m_edHeight->setText(QString("%1").arg(height));
 
-    result = m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
-    result = m_Camera.ReadFormats();
+    m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
+    m_Camera.ReadFormats();
     UpdateCurrentPixelFormatOnList(QString::fromStdString(m_Camera.ConvertPixelFormat2String(pixelFormat)));
 }
 
