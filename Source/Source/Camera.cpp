@@ -1879,22 +1879,22 @@ int Camera::GetCameraDriverVersion(std::string &strText)
 
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
-        Logger::LogEx("Camera::GetCameraDeviceName %s is no V4L2 device\n", m_DeviceName.c_str());
+        Logger::LogEx("Camera::GetCameraDriverVersion %s is no V4L2 device\n", m_DeviceName.c_str());
         return -1;
     }
     else
     {
-        Logger::LogEx("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
+        Logger::LogEx("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
     }
 
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
-        Logger::LogEx("Camera::GetCameraDeviceName %s is no video capture device\n", m_DeviceName.c_str());
+        Logger::LogEx("Camera::GetCameraDriverVersion %s is no video capture device\n", m_DeviceName.c_str());
         return -1;
     }
     else
     {
-        Logger::LogEx("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
+        Logger::LogEx("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
     }
 
     std::string cameraDriverInfo = (char*)cap.card;
@@ -1904,6 +1904,7 @@ int Camera::GetCameraDriverVersion(std::string &strText)
 
     if (list.isEmpty())
     {
+        Logger::LogEx("Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
         strText = "unknown";
         return -1;
     }
@@ -1935,15 +1936,19 @@ int Camera::GetCameraDriverVersion(std::string &strText)
         QFile file(QString("/sys/bus/i2c/drivers/avt_csi2/%1/driver_version").arg(part));
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         {
+            Logger::LogEx("Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
             strText = "unknown";
             return -1;
         }
 
         QByteArray line = file.readLine();
         strText = line.toStdString();
+
+        Logger::LogEx("Driver version for VIDIOC_QUERYCAP %s device name=%s was succesfully gathered = %s \n", m_DeviceName.c_str(), (char*)cap.card, strText.c_str());
     }
     else
     {
+        Logger::LogEx("Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
         strText = "unknown";
         return -1;
     }
