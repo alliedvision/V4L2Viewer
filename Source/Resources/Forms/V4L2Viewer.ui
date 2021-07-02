@@ -470,8 +470,8 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>894</width>
-              <height>305</height>
+              <width>893</width>
+              <height>282</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1398,7 +1398,7 @@ background-color:rgb(166, 166, 166);
              </property>
             </widget>
            </item>
-           <item row="6" column="2">
+           <item row="7" column="2">
             <widget class="QLineEdit" name="m_edGain">
              <property name="maxLength">
               <number>10</number>
@@ -1554,7 +1554,7 @@ QCheckBox::disabled{
              </property>
             </widget>
            </item>
-           <item row="8" column="0" colspan="3">
+           <item row="9" column="0" colspan="3">
             <widget class="QWidget" name="m_gainAutoOnceWidget" native="true">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1690,7 +1690,7 @@ QCheckBox::disabled{
              </layout>
             </widget>
            </item>
-           <item row="6" column="0" colspan="2">
+           <item row="7" column="0" colspan="2">
             <widget class="QLabel" name="m_labelGain">
              <property name="text">
               <string>Gain[1/100dB]:</string>
@@ -1707,7 +1707,7 @@ QCheckBox::disabled{
              </property>
             </widget>
            </item>
-           <item row="9" column="0" colspan="3">
+           <item row="10" column="0" colspan="3">
             <spacer name="verticalSpacer_5">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1733,10 +1733,43 @@ QCheckBox::disabled{
              </property>
             </widget>
            </item>
-           <item row="7" column="0" colspan="3">
+           <item row="8" column="0" colspan="3">
             <widget class="QSlider" name="m_sliderGain">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="3">
+            <widget class="QPushButton" name="m_ExposureActiveButton">
+             <property name="cursor">
+              <cursorShape>PointingHandCursor</cursorShape>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{
+color:rgb(21,21,21);
+border: 1px solid rgb(94, 94, 94);
+background-color:rgb(125,129,133);
+min-height:30px;
+border-radius:6px;
+}
+
+QPushButton::disabled{
+ background-color: rgba(102, 103, 105, 40%);
+ color: rgb(59, 59, 59);
+ border: 1px solid rgb(59, 59, 59);
+}
+
+QPushButton:hover{
+background-color:rgb(164, 168, 172);
+}
+
+QPushButton:pressed{
+background-color:rgb(166, 166, 166);
+}</string>
+             </property>
+             <property name="text">
+              <string>Exposure Active</string>
              </property>
             </widget>
            </item>

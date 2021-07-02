@@ -36,6 +36,7 @@
 #include "SettingsActionWidget.h"
 #include "ui_V4L2Viewer.h"
 #include "ControlsHolderWidget.h"
+#include "ActiveExposureWidget.h"
 
 #include <list>
 
@@ -113,6 +114,7 @@ private:
     int32_t m_sliderExposureValue;
 
     ControlsHolderWidget m_EnumerationControlWidget;
+    ActiveExposureWidget m_ActiveExposureWidget;
 
     // Queries and lists all known cameras
     void UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, const QString &deviceName, const QString &info);
@@ -242,6 +244,8 @@ private slots:
     void GetButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly);
     void GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly);
     void GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
+
+    void OnExposureActiveClicked();
 };
 
 #endif // V4L2VIEWER_H

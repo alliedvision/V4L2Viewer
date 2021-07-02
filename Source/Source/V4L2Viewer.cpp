@@ -133,6 +133,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
 
+    connect(ui.m_ExposureActiveButton,        SIGNAL(clicked()),         this, SLOT(OnExposureActiveClicked()));
+
     SetTitleText();
 
     // Start Camera
@@ -839,6 +841,14 @@ void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, int32_t value, QList
             dynamic_cast<ListIntEnumerationControl*>(obj)->UpdateValue(list, value);
         }
     }
+}
+
+void V4L2Viewer::OnExposureActiveClicked()
+{
+    QPoint point(this->width()/2 - m_ActiveExposureWidget.width()/2, this->height()/2 - m_ActiveExposureWidget.height()/2);
+    QPoint glob = mapToGlobal(point);
+    m_ActiveExposureWidget.setGeometry(glob.x(), glob.y(), m_ActiveExposureWidget.width(), m_ActiveExposureWidget.height());
+    m_ActiveExposureWidget.show();
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)

@@ -82,6 +82,9 @@ struct v4l2_stats_t
 
 #define VIDIOC_STREAMSTAT                   _IOR('V', BASE_VIDIOC_PRIVATE + 5, struct v4l2_stats_t)
 
+#define V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE      (V4L2_CID_CAMERA_CLASS_BASE+44)
+#define V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR  (V4L2_CID_CAMERA_CLASS_BASE+45)
+#define V4L2_CID_EXPOSURE_ACTIVE_INVERT         (V4L2_CID_CAMERA_CLASS_BASE+46)
 
 Camera::Camera()
     : m_nFileDescriptor(-1)
@@ -140,10 +143,50 @@ unsigned int Camera::GetDroppedFramesCount()
     return m_pFrameObserver->GetDroppedFramesCount();
 }
 
+int Camera::ReadExposureActiveLineMode(bool &value)
+{
+    int32_t val;
+    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Read Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_USER_CLASS);
+    if (result < 0)
+    {
+        // Log here
+    }
+    else
+    {
+        value = (val == 0) ? true : false;
+    }
+    return result;
+}
+
+int Camera::ReadExposureActiveLineSelector(int32_t &value, int32_t &range)
+{
+    int result = -1;
+    // Check first whether V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE is false
+    return result;
+}
+
+int Camera::ReadExposureActiveInvert(bool &value)
+{
+    int32_t val;
+    // Check first whether V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE is false
+    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Read Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_USER_CLASS);
+    if (result < 0)
+    {
+        // Log here
+    }
+    else
+    {
+        value = (val == 0) ? true : false;
+    }
+    return result;
+}
+
 int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,
                bool v4l2TryFmt)
 {
     int result = -1;
+
+
 
     m_BlockingMode = blockingMode;
     m_UseV4L2TryFmt = v4l2TryFmt;
@@ -801,6 +844,7 @@ int Camera::EnumAllControlNewStyle()
     int result = -1;
     v4l2_query_ext_ctrl qctrl;
     v4l2_querymenu queryMenu;
+
     int cidCount = 0;
 
     CLEAR(qctrl);

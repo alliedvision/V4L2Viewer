@@ -169,6 +169,11 @@ public:
     unsigned int GetRenderedFramesCount();
     unsigned int GetDroppedFramesCount();
 
+    // Exposure Active
+    int ReadExposureActiveLineMode(bool &value);
+    int ReadExposureActiveLineSelector(int32_t &value, int32_t &range);
+    int ReadExposureActiveInvert(bool &value);
+
     // Misc
     void SwitchFrameTransfer2GUI(bool showFrames);
 
