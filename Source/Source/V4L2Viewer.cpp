@@ -1990,11 +1990,10 @@ QString V4L2Viewer::GetDeviceInfo()
     m_Camera.GetCameraBusInfo(tmp);
     QString busInfo = QString(tr("Bus info = %1")).arg(tmp.c_str());
     m_Camera.GetCameraDriverVersion(tmp);
-    QString driverVer = QString(tr("Kernel version = %1")).arg(tmp.c_str());
+    QString driverVer = QString(tr("Driver version = %1")).arg(tmp.c_str());
     m_Camera.GetCameraCapabilities(tmp);
     QString capabilities = QString(tr("Capabilities = %1")).arg(tmp.c_str());
     return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities);
-
 }
 
 // Check if IO Read was checked and remove it when not capable
