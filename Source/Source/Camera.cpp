@@ -37,6 +37,7 @@
 #include <QStringList>
 #include <QSysInfo>
 #include <QMutexLocker>
+#include <QFile>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -1785,67 +1786,27 @@ int Camera::GetCameraDriverName(std::string &strText)
     v4l2_capability cap;
 
     // query device capabilities
-//    if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
-//    {
-//        Logger::LogEx("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s is no V4L2 device\n", m_DeviceName.c_str());
-//        return -1;
-//    }
-//    else
-//    {
-//        Logger::LogEx("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
-//    }
-
-//    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
-//    {
-//        Logger::LogEx("Camera::GetCameraDriverName %s is no video capture device\n", m_DeviceName.c_str());
-//        return -1;
-//    }
-//    else
-//    {
-//        Logger::LogEx("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s driver name=%s\n", m_DeviceName.c_str(), (char*)cap.driver);
-//    }
-
-//    strText = (char*)cap.driver;
-
-    std::string hardcodedName = "ALVIUM 1500 C-500c 9-3c";
-
-    QString name = QString::fromStdString(hardcodedName);
-    QStringList list = name.split(" ");
-
-    if (list.isEmpty())
+    if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
-        return -2;
-    }
-
-    if (list.back().contains('-'))
-    {
-        QString part = list.back();
-        QString rightPart = part.mid(part.indexOf('-')+1);
-        QString leftPart = part.mid(0, part.indexOf('-'));
-
-        QString numbers;
-        QString letters;
-        for (QString::iterator it = rightPart.begin(); it != rightPart.end(); ++it)
-        {
-            if(it->isLetter())
-            {
-                int index = it - rightPart.begin();
-                numbers = rightPart.mid(0, index);
-                letters = rightPart.mid(index);
-                break;
-            }
-        }
-
-        int num = numbers.toInt();
-        QString parsedNumbers = QString("%1").arg(num, 3, 10,  QLatin1Char('0'));
-        rightPart = parsedNumbers + letters;
-        part = leftPart + '-' + rightPart;
-
+        Logger::LogEx("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s is no V4L2 device\n", m_DeviceName.c_str());
+        return -1;
     }
     else
     {
-        return -2;
+        Logger::LogEx("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
     }
+
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
+    {
+        Logger::LogEx("Camera::GetCameraDriverName %s is no video capture device\n", m_DeviceName.c_str());
+        return -1;
+    }
+    else
+    {
+        Logger::LogEx("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s driver name=%s\n", m_DeviceName.c_str(), (char*)cap.driver);
+    }
+
+    strText = (char*)cap.driver;
 
     return result;
 }
@@ -1914,35 +1875,80 @@ int Camera::GetCameraBusInfo(std::string &strText)
 
 int Camera::GetCameraDriverVersion(std::string &strText)
 {
-    int result = 0;
-    std::stringstream tmp;
     v4l2_capability cap;
 
-    // query device capabilities
     if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
-        Logger::LogEx("Camera::GetCameraDriverVersion %s is no V4L2 device\n", m_DeviceName.c_str());
+        Logger::LogEx("Camera::GetCameraDeviceName %s is no V4L2 device\n", m_DeviceName.c_str());
         return -1;
     }
     else
     {
-        Logger::LogEx("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
+        Logger::LogEx("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
     }
 
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
-        Logger::LogEx("Camera::GetCameraDriverVersion %s is no video capture device\n", m_DeviceName.c_str());
+        Logger::LogEx("Camera::GetCameraDeviceName %s is no video capture device\n", m_DeviceName.c_str());
         return -1;
     }
     else
     {
-        tmp << ((cap.version/0x10000)&0xFF) << "." << ((cap.version/0x100)&0xFF) << "." << (cap.version&0xFF);
-        Logger::LogEx("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s driver version=%s\n", m_DeviceName.c_str(), tmp.str().c_str());
+        Logger::LogEx("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
     }
 
-    strText = tmp.str();
+    std::string cameraDriverInfo = (char*)cap.card;
 
-    return result;
+    QString name = QString::fromStdString(cameraDriverInfo);
+    QStringList list = name.split(" ");
+
+    if (list.isEmpty())
+    {
+        strText = "unknown";
+        return -1;
+    }
+
+    if (list.back().contains('-'))
+    {
+        QString part = list.back();
+        QString rightPart = part.mid(part.indexOf('-')+1);
+        QString leftPart = part.mid(0, part.indexOf('-'));
+
+        QString numbers;
+        QString letters;
+        for (QString::iterator it = rightPart.begin(); it != rightPart.end(); ++it)
+        {
+            if(it->isLetter())
+            {
+                int index = it - rightPart.begin();
+                numbers = rightPart.mid(0, index);
+                letters = rightPart.mid(index);
+                break;
+            }
+        }
+
+        int num = numbers.toInt();
+        QString parsedNumbers = QString("%1").arg(num, 3, 10,  QLatin1Char('0'));
+        rightPart = parsedNumbers + letters;
+        part = leftPart + '-' + rightPart;
+
+        QFile file(QString("/sys/bus/i2c/drivers/avt_csi2/%1/driver_version").arg(part));
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            strText = "unknown";
+            return -1;
+        }
+
+        QByteArray line = file.readLine();
+        strText = line.toStdString();
+    }
+    else
+    {
+        strText = "unknown";
+        return -1;
+    }
+
+    return 0;
 }
 
 int Camera::GetCameraReadCapability(bool &flag)
