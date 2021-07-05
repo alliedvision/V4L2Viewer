@@ -246,6 +246,10 @@ private slots:
     void GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
 
     void OnExposureActiveClicked();
+
+    void PassInvertState(bool state);
+    void PassActiveState(bool state);
+    void PassLineSelectorValue(int32_t value);
 };
 
 #endif // V4L2VIEWER_H

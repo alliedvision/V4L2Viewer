@@ -143,17 +143,19 @@ unsigned int Camera::GetDroppedFramesCount()
     return m_pFrameObserver->GetDroppedFramesCount();
 }
 
-int Camera::ReadExposureActiveLineMode(bool &value)
+int Camera::ReadExposureActiveLineMode(bool &state)
 {
     int32_t val;
     int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Read Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_USER_CLASS);
     if (result < 0)
     {
-        // Log here
+        qDebug() << "ReadExposureActiveLineMode failed";
     }
     else
     {
-        value = (val == 0) ? true : false;
+        state = (val == 0) ? true : false;
+        qDebug() << val;
+        qDebug() << state;
     }
     return result;
 }
@@ -161,24 +163,101 @@ int Camera::ReadExposureActiveLineMode(bool &value)
 int Camera::ReadExposureActiveLineSelector(int32_t &value, int32_t &range)
 {
     int result = -1;
-    // Check first whether V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE is false
-    return result;
-}
+    result = ReadExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR", V4L2_CID_USER_CLASS);
 
-int Camera::ReadExposureActiveInvert(bool &value)
-{
-    int32_t val;
-    // Check first whether V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE is false
-    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Read Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_USER_CLASS);
     if (result < 0)
     {
-        // Log here
+        qDebug() << "ReadExposureActiveLineSelector failed";
     }
     else
     {
-        value = (val == 0) ? true : false;
+        qDebug() << value;
+    }
+
+    return result;
+}
+
+int Camera::ReadExposureActiveInvert(bool &state)
+{
+    int32_t val;
+
+    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Read Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_USER_CLASS);
+    if (result < 0)
+    {
+        qDebug() << "ReadExposureActiveInver failed";
+    }
+    else
+    {
+        state = (val == 0) ? true : false;
+        qDebug() << val;
+        qDebug() << state;
     }
     return result;
+}
+
+int Camera::SetExposureActiveLineMode(bool state)
+{
+    return -1;
+}
+
+int Camera::SetExposureActiveLineSelector(int32_t value)
+{
+//    bool bIsOn = true;
+//    int result = ReadExposureActiveLineMode(bIsOn);
+
+//    if (result < 0)
+//    {
+//        qDebug() << "ReadExposureActiveLineMode failed";
+//    }
+//    qDebug() << bIsOnd;
+
+//    if (!bIsOn)
+//    {
+//        int32_t val = static_cast<int32_t>(value);
+//        result = SetExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Set Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_USER_CLASS);
+
+//        if (result < 0)
+//        {
+//            qDebug() << "SetExposureActiveLineMode failed";
+//        }
+//    }
+//    else
+//    {
+//        qDebug() << "ExposureActiveLineMode is on";
+//    }
+
+//    return result;
+    return -1;
+}
+
+int Camera::SetExposureActiveInvert(bool state)
+{
+//    bool bIsOn = true;
+//    int result = ReadExposureActiveLineMode(bIsOn);
+
+//    if (result < 0)
+//    {
+//        qDebug() << "ReadExposureActiveLineMode failed";
+//    }
+//    qDebug() << bIsOnd;
+
+//    if (!bIsOn)
+//    {
+//        int32_t val = static_cast<int32_t>(value);
+//        result = SetExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Set Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_USER_CLASS);
+
+//        if (result < 0)
+//        {
+//            qDebug() << "SetExposureActiveInvert failed";
+//        }
+//    }
+//    else
+//    {
+//        qDebug() << "ExposureActiveLineMode is on";
+//    }
+
+//    return result;
+    return -1;
 }
 
 int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,

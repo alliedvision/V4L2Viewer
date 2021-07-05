@@ -224,6 +224,11 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     connect(ui.m_fixedRateStartButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
 
+    // Connect Exposure Active widget with slots
+    connect(&m_ActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
+    connect(&m_ActiveExposureWidget, SIGNAL(SendActiveState(bool)), this, SLOT(PassActiveState(bool)));
+    connect(&m_ActiveExposureWidget, SIGNAL(SendLineSelectorValue(int32_t)), this, SLOT(PassLineSelectorValue(int32_t)));
+
     // Set the splitter stretch factors
     ui.m_Splitter1->setStretchFactor(0, 45);
     ui.m_Splitter1->setStretchFactor(1, 55);
@@ -850,6 +855,25 @@ void V4L2Viewer::OnExposureActiveClicked()
     m_ActiveExposureWidget.setGeometry(glob.x(), glob.y(), m_ActiveExposureWidget.width(), m_ActiveExposureWidget.height());
     m_ActiveExposureWidget.show();
 }
+
+void V4L2Viewer::PassInvertState(bool state)
+{
+    m_Camera.SetExposureActiveInvert(state);
+}
+
+void V4L2Viewer::PassActiveState(bool state)
+{
+    if (m_Camera.SetExposureActiveLineMode(state) >= 0)
+    {
+        m_ActiveExposureWidget.BlockInvertAndLineSelector(state);
+    }
+}
+
+void V4L2Viewer::PassLineSelectorValue(int32_t value)
+{
+    m_Camera.SetExposureActiveLineSelector(value);
+}
+
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
@@ -1958,6 +1982,38 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelCropYOffset->setEnabled(false);
         ui.m_labelCropWidth->setEnabled(false);
         ui.m_labelCropHeight->setEnabled(false);
+    }
+
+    bool bIsActive = false;
+
+    if (m_Camera.ReadExposureActiveLineMode(bIsActive) < 0)
+    {
+        qDebug() << "FAILED ReadExposureActiveLineMode";
+    }
+    else
+    {
+        m_ActiveExposureWidget.BlockInvertAndLineSelector(bIsActive);
+        qDebug() << "ReadExposureActiveLineMode: " << bIsActive;
+    }
+
+    int32_t value = 0;
+    int32_t range = 0;
+    if (m_Camera.ReadExposureActiveLineSelector(value, range) < 0)
+    {
+        qDebug() << "FAILED ReadExposureActiveLineSelector";
+    }
+    else
+    {
+        qDebug() << "ReadExposureActiveLineSelector: " << value;
+    }
+
+    if (m_Camera.ReadExposureActiveInvert(bIsActive) < 0)
+    {
+        qDebug() << "FAILED ReadExposureActiveInvert";
+    }
+    else
+    {
+        qDebug() << "ReadExposureActiveInvert: " << bIsActive;
     }
 
     m_Camera.EnumAllControlNewStyle();
