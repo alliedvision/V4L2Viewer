@@ -133,6 +133,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
 
+    connect(ui.m_ExposureActiveButton,        SIGNAL(clicked()),         this, SLOT(OnExposureActiveClicked()));
+
     SetTitleText();
 
     // Start Camera
@@ -221,6 +223,11 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
 
     connect(ui.m_fixedRateStartButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
+
+    // Connect Exposure Active widget with slots
+    connect(&m_ActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
+    connect(&m_ActiveExposureWidget, SIGNAL(SendActiveState(bool)), this, SLOT(PassActiveState(bool)));
+    connect(&m_ActiveExposureWidget, SIGNAL(SendLineSelectorValue(int32_t)), this, SLOT(PassLineSelectorValue(int32_t)));
 
     // Set the splitter stretch factors
     ui.m_Splitter1->setStretchFactor(0, 45);
@@ -840,6 +847,39 @@ void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, int32_t value, QList
         }
     }
 }
+
+void V4L2Viewer::OnExposureActiveClicked()
+{
+    QPoint point(this->width()/2 - m_ActiveExposureWidget.width()/2, this->height()/2 - m_ActiveExposureWidget.height()/2);
+    QPoint glob = mapToGlobal(point);
+    m_ActiveExposureWidget.setGeometry(glob.x(), glob.y(), m_ActiveExposureWidget.width(), m_ActiveExposureWidget.height());
+    m_ActiveExposureWidget.show();
+}
+
+void V4L2Viewer::PassInvertState(bool state)
+{
+    if (m_Camera.SetExposureActiveInvert(state) >= 0)
+    {
+        GetImageInformation();
+    }
+}
+
+void V4L2Viewer::PassActiveState(bool state)
+{
+    if (m_Camera.SetExposureActiveLineMode(state) >= 0)
+    {
+        GetImageInformation();
+    }
+}
+
+void V4L2Viewer::PassLineSelectorValue(int32_t value)
+{
+    if (m_Camera.SetExposureActiveLineSelector(value) >= 0)
+    {
+        GetImageInformation();
+    }
+}
+
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
@@ -1675,6 +1715,8 @@ void V4L2Viewer::GetImageInformation()
     int32_t gain = 0;
     int32_t min = 0;
     int32_t max = 0;
+    int32_t step = 0;
+    int32_t value = 0;
     bool autogain = false;
     int32_t exposure = 0;
     int32_t exposureAbs = 0;
@@ -1948,6 +1990,40 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelCropYOffset->setEnabled(false);
         ui.m_labelCropWidth->setEnabled(false);
         ui.m_labelCropHeight->setEnabled(false);
+    }
+
+    bool bIsActive = false;
+    bool bIsInverted = false;
+
+    if (m_Camera.ReadExposureActiveLineMode(bIsActive) < 0)
+    {
+        m_ActiveExposureWidget.setEnabled(false);
+        ui.m_ExposureActiveButton->setEnabled(false);
+    }
+    else
+    {
+        m_ActiveExposureWidget.BlockInvertAndLineSelector(bIsActive);
+        m_ActiveExposureWidget.SetActive(bIsActive);
+    }
+
+    if (m_Camera.ReadExposureActiveLineSelector(value, min, max, step) < 0)
+    {
+        m_ActiveExposureWidget.setEnabled(false);
+        ui.m_ExposureActiveButton->setEnabled(false);
+    }
+    else
+    {
+        m_ActiveExposureWidget.SetLineSelectorRange(value, min, max, step);
+    }
+
+    if (m_Camera.ReadExposureActiveInvert(bIsInverted) < 0)
+    {
+        m_ActiveExposureWidget.setEnabled(false);
+        ui.m_ExposureActiveButton->setEnabled(false);
+    }
+    else
+    {
+        m_ActiveExposureWidget.SetInvert(bIsInverted);
     }
 
     m_Camera.EnumAllControlNewStyle();

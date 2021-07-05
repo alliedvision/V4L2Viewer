@@ -82,6 +82,9 @@ struct v4l2_stats_t
 
 #define VIDIOC_STREAMSTAT                   _IOR('V', BASE_VIDIOC_PRIVATE + 5, struct v4l2_stats_t)
 
+#define V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE      (V4L2_CID_CAMERA_CLASS_BASE+44)
+#define V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR  (V4L2_CID_CAMERA_CLASS_BASE+45)
+#define V4L2_CID_EXPOSURE_ACTIVE_INVERT         (V4L2_CID_CAMERA_CLASS_BASE+46)
 
 Camera::Camera()
     : m_nFileDescriptor(-1)
@@ -140,10 +143,108 @@ unsigned int Camera::GetDroppedFramesCount()
     return m_pFrameObserver->GetDroppedFramesCount();
 }
 
+int Camera::ReadExposureActiveLineMode(bool &state)
+{
+    int32_t val;
+    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Read Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_CAMERA_CLASS);
+    if (result >= 0)
+    {
+        state = (val == 1) ? true : false;
+    }
+    return result;
+}
+
+int Camera::ReadExposureActiveLineSelector(int32_t &value, int32_t &min, int32_t &max, int32_t &step)
+{
+    int result = -1;
+    result = ReadExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR", V4L2_CID_CAMERA_CLASS);
+
+    if (result < 0)
+    {
+        return result;
+    }
+
+    result = ReadMinMax(min, max, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
+
+    if (result < 0)
+    {
+        return result;
+    }
+
+    result = ReadStep(step, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
+
+    return result;
+}
+
+int Camera::ReadExposureActiveInvert(bool &state)
+{
+    int32_t val;
+
+    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Read Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_CAMERA_CLASS);
+    if (result >= 0)
+    {
+        state = (val == 1) ? true : false;
+    }
+    return result;
+}
+
+int Camera::SetExposureActiveLineMode(bool state)
+{
+    int32_t value = static_cast<int32_t>(state);
+    return SetExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Set Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_CAMERA_CLASS);
+}
+
+int Camera::SetExposureActiveLineSelector(int32_t value)
+{
+    bool bIsOn = true;
+    int result = ReadExposureActiveLineMode(bIsOn);
+
+    if (result < 0)
+    {
+        return result;
+    }
+
+    if (!bIsOn)
+    {
+        result = SetExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Set Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR", V4L2_CID_CAMERA_CLASS);
+    }
+    else
+    {
+        Logger::LogEx("V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE is enabled, can't set V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
+    }
+
+    return result;
+}
+
+int Camera::SetExposureActiveInvert(bool state)
+{
+    bool bIsOn = true;
+    int result = ReadExposureActiveLineMode(bIsOn);
+
+    if (result < 0)
+    {
+        return result;
+    }
+
+    if (!bIsOn)
+    {
+        int32_t val = static_cast<int32_t>(state);
+        result = SetExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Set Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_CAMERA_CLASS);
+    }
+    else
+    {
+        Logger::LogEx("V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE is enabled, can't set V4L2_CID_EXPOSURE_ACTIVE_INVERT");
+    }
+
+    return result;
+}
+
 int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,
                bool v4l2TryFmt)
 {
     int result = -1;
+
+
 
     m_BlockingMode = blockingMode;
     m_UseV4L2TryFmt = v4l2TryFmt;
@@ -801,6 +902,7 @@ int Camera::EnumAllControlNewStyle()
     int result = -1;
     v4l2_query_ext_ctrl qctrl;
     v4l2_querymenu queryMenu;
+
     int cidCount = 0;
 
     CLEAR(qctrl);
@@ -1295,7 +1397,7 @@ int Camera::ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const c
 
 int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char *controlName)
 {
-    int result = -1;
+    int result = 0;
     v4l2_queryctrl ctrl;
 
     CLEAR(ctrl);
@@ -1306,6 +1408,27 @@ int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const cha
         Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
         min = ctrl.minimum;
         max = ctrl.maximum;
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+        result = -2;
+    }
+
+    return result;
+}
+
+int Camera::ReadStep(int32_t &step, uint32_t controlID, const char *functionName, const char *controlName)
+{
+    int result = 0;
+    v4l2_queryctrl ctrl;
+
+    CLEAR(ctrl);
+    ctrl.id = controlID;
+    if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, step=%d", functionName, controlName, ctrl.step);
+        step = ctrl.step;
     }
     else
     {

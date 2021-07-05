@@ -32,6 +32,7 @@ ${HEADERS_PATH}/CameraListCustomItem.h
 ${HEADERS_PATH}/CustomOptionWidget.h
 ${HEADERS_PATH}/AutoReader.h
 ${HEADERS_PATH}/AutoReaderWorker.h
+${HEADERS_PATH}/ActiveExposureWidget.h
 ${HEADERS_PATH}/EnumeratorInterface/IControlEnumerationHolder.h
 ${HEADERS_PATH}/EnumeratorInterface/IntegerEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/Integer64EnumerationControl.h
@@ -67,6 +68,7 @@ ${SOURCES_PATH}/CameraListCustomItem.cpp
 ${SOURCES_PATH}/CustomOptionWidget.cpp
 ${SOURCES_PATH}/AutoReader.cpp
 ${SOURCES_PATH}/AutoReaderWorker.cpp
+${SOURCES_PATH}/ActiveExposureWidget.cpp
 ${SOURCES_PATH}/EnumeratorInterface/IControlEnumerationHolder.cpp
 ${SOURCES_PATH}/EnumeratorInterface/IntegerEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/Integer64EnumerationControl.cpp
@@ -103,6 +105,7 @@ list(APPEND RESOURCES
 ${RESOURCES_PATH}/V4L2Viewer.rc
 ${RESOURCES_PATH}/Forms/ControlsHolderWidget.ui
 ${RESOURCES_PATH}/Forms/V4L2Viewer.ui
+${RESOURCES_PATH}/Forms/ActiveExposureWidget.ui
 )
 
 add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
