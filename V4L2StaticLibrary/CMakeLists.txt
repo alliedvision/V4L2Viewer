@@ -11,7 +11,6 @@ ${HEADERS_PATH}/CameraObserver.h
 ${HEADERS_PATH}/DeviationCalculator.h
 ${HEADERS_PATH}/FrameObserver.h
 ${HEADERS_PATH}/FrameObserverMMAP.h
-${HEADERS_PATH}/FrameObserverRead.h
 ${HEADERS_PATH}/FrameObserverUSER.h
 ${HEADERS_PATH}/ImageProcessingThread.h
 ${HEADERS_PATH}/ImageTransform.h
@@ -51,7 +50,6 @@ ${SOURCES_PATH}/CameraObserver.cpp
 ${SOURCES_PATH}/DeviationCalculator.cpp
 ${SOURCES_PATH}/FrameObserver.cpp
 ${SOURCES_PATH}/FrameObserverMMAP.cpp
-${SOURCES_PATH}/FrameObserverRead.cpp
 ${SOURCES_PATH}/FrameObserverUSER.cpp
 ${SOURCES_PATH}/ImageProcessingThread.cpp
 ${SOURCES_PATH}/ImageTransform.cpp

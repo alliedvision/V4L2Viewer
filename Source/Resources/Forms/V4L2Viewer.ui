@@ -2079,7 +2079,6 @@ background-color:rgb(166, 166, 166);
      </property>
      <addaction name="m_TitleUseMMAP"/>
      <addaction name="m_TitleUseUSERPTR"/>
-     <addaction name="m_TitleUseRead"/>
     </widget>
     <widget class="QMenu" name="menuSave_Format">
      <property name="cursor">
@@ -2261,18 +2260,6 @@ background-color:rgb(166, 166, 166);
    <property name="toolTip">
     <string>&lt;p&gt;&lt;b&gt;IO USERPTR&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Clicking this button will change buffer into IO USERPTR.&lt;/span&gt;</string>
-   </property>
-  </action>
-  <action name="m_TitleUseRead">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>IO Read Method</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;p&gt;&lt;b&gt;IO Read&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will change buffer into IO Read.&lt;/span&gt;</string>
    </property>
   </action>
   <action name="actionSave_Options">

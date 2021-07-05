@@ -150,8 +150,6 @@ private slots:
     void OnShowFrames();
     // The event handler to close the program
     void OnMenuCloseTriggered();
-    // The event handler to set IO Read
-    void OnUseRead();
     // The event handler to set IO MMAP
     void OnUseMMAP();
     // The event handler to set IO USERPTR

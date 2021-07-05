@@ -27,7 +27,6 @@
 
 #include "Camera.h"
 #include "FrameObserverMMAP.h"
-#include "FrameObserverRead.h"
 #include "FrameObserverUSER.h"
 #include "IOHelper.h"
 #include "Logger.h"
@@ -244,16 +243,11 @@ int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYP
 {
     int result = -1;
 
-
-
     m_BlockingMode = blockingMode;
     m_UseV4L2TryFmt = v4l2TryFmt;
 
     switch (ioMethodType)
     {
-    case IO_METHOD_READ:
-         m_pFrameObserver = QSharedPointer<FrameObserverRead>(new FrameObserverRead(m_ShowFrames));
-         break;
     case IO_METHOD_MMAP:
          m_pFrameObserver = QSharedPointer<FrameObserverMMAP>(new FrameObserverMMAP(m_ShowFrames));
          break;

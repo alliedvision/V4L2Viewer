@@ -171,7 +171,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_sliderBlackLevel,  SIGNAL(sliderReleased()), this, SLOT(OnSlidersReleased()));
     connect(ui.m_sliderGamma,       SIGNAL(sliderReleased()), this, SLOT(OnSlidersReleased()));
 
-    connect(ui.m_TitleUseRead, SIGNAL(triggered()), this, SLOT(OnUseRead()));
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseUSERPTR, SIGNAL(triggered()), this, SLOT(OnUseUSERPTR()));
     connect(ui.m_TitleEnable_VIDIOC_TRY_FMT, SIGNAL(triggered()), this, SLOT(OnUseVIDIOC_TRY_FMT()));
@@ -294,14 +293,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
 
     // set check boxes state for mmap according to variable m_MMAP_BUFFER
-    if (IO_METHOD_READ == m_MMAP_BUFFER)
-    {
-        ui.m_TitleUseRead->setChecked(true);
-    }
-    else
-    {
-        ui.m_TitleUseRead->setChecked(false);
-    }
 
     if (IO_METHOD_USERPTR == m_MMAP_BUFFER)
     {
@@ -347,22 +338,12 @@ void V4L2Viewer::OnMenuCloseTriggered()
     close();
 }
 
-void V4L2Viewer::OnUseRead()
-{
-    m_MMAP_BUFFER = IO_METHOD_READ;
-
-    ui.m_TitleUseMMAP->setChecked(false);
-    ui.m_TitleUseUSERPTR->setChecked(false);
-    ui.m_TitleUseRead->setChecked(true);
-}
-
 void V4L2Viewer::OnUseMMAP()
 {
     m_MMAP_BUFFER = IO_METHOD_MMAP;
 
     ui.m_TitleUseMMAP->setChecked(true);
     ui.m_TitleUseUSERPTR->setChecked(false);
-    ui.m_TitleUseRead->setChecked(false);
 }
 
 void V4L2Viewer::OnUseUSERPTR()
@@ -371,7 +352,6 @@ void V4L2Viewer::OnUseUSERPTR()
 
     ui.m_TitleUseMMAP->setChecked(false);
     ui.m_TitleUseUSERPTR->setChecked(true);
-    ui.m_TitleUseRead->setChecked(false);
 }
 
 void V4L2Viewer::OnUseVIDIOC_TRY_FMT()
@@ -560,7 +540,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
@@ -1085,7 +1064,6 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
     ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
@@ -1142,7 +1120,6 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
@@ -2089,24 +2066,6 @@ void V4L2Viewer::Check4IOReadAbility()
         m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
         m_Camera.GetCameraReadCapability(ioRead);
         m_Camera.CloseDevice();
-
-        if (!ioRead)
-        {
-            ui.m_TitleUseRead->setEnabled( false );
-        }
-        else
-        {
-            ui.m_TitleUseRead->setEnabled( true );
-        }
-        if (!ioRead && ui.m_TitleUseRead->isChecked())
-        {
-            QMessageBox::warning( this, tr("V4L2 Test"), tr("IO Read not available with this camera. V4L2_CAP_VIDEO_CAPTURE not set. Switched to IO MMAP."));
-
-            ui.m_TitleUseRead->setChecked( false );
-            ui.m_TitleUseMMAP->setEnabled( true );
-            ui.m_TitleUseMMAP->setChecked( true );
-            m_MMAP_BUFFER = IO_METHOD_MMAP;
-        }
     }
 }
 
