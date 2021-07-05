@@ -1080,7 +1080,7 @@ border:none;
                <item row="1" column="0" colspan="2">
                 <widget class="QLabel" name="m_labelExposureAbs">
                  <property name="text">
-                  <string>ExposureAbs[100μs]:</string>
+                  <string>Exposure Absolute[100μs]:</string>
                  </property>
                 </widget>
                </item>
@@ -1589,7 +1589,7 @@ color:white;
                   </sizepolicy>
                  </property>
                  <property name="text">
-                  <string>FrameInterval/FPS:</string>
+                  <string>Frame Interval/FPS:</string>
                  </property>
                 </widget>
                </item>
@@ -1629,7 +1629,7 @@ color:white;
                   </sizepolicy>
                  </property>
                  <property name="text">
-                  <string>PixelFormat:</string>
+                  <string>Pixel Format:</string>
                  </property>
                 </widget>
                </item>
@@ -1750,7 +1750,7 @@ color:white;
                <item row="5" column="0" colspan="2">
                 <widget class="QLabel" name="m_labelBlackLevel">
                  <property name="text">
-                  <string>BlackLevel:</string>
+                  <string>Black Level:</string>
                  </property>
                 </widget>
                </item>
@@ -1970,7 +1970,7 @@ background-color:rgb(166, 166, 166);
                   </sizepolicy>
                  </property>
                  <property name="text">
-                  <string>WhiteBalance</string>
+                  <string>White Balance</string>
                  </property>
                 </widget>
                </item>
