@@ -147,15 +147,9 @@ int Camera::ReadExposureActiveLineMode(bool &state)
 {
     int32_t val;
     int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Read Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_CAMERA_CLASS);
-    if (result < 0)
-    {
-        qDebug() << "ReadExposureActiveLineMode failed";
-    }
-    else
+    if (result >= 0)
     {
         state = (val == 1) ? true : false;
-        qDebug() << val;
-        qDebug() << state;
     }
     return result;
 }
@@ -167,37 +161,17 @@ int Camera::ReadExposureActiveLineSelector(int32_t &value, int32_t &min, int32_t
 
     if (result < 0)
     {
-        qDebug() << "ReadExposureActiveLineSelector failed";
         return result;
-    }
-    else
-    {
-        qDebug() << value;
     }
 
     result = ReadMinMax(min, max, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
 
     if (result < 0)
     {
-        qDebug() << "ReadExposureActiveLineSelector minmax failed";
         return result;
-    }
-    else
-    {
-        qDebug() << value;
     }
 
     result = ReadStep(step, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
-
-    if (result < 0)
-    {
-        qDebug() << "ReadExposureActiveLineSelector step failed";
-        return result;
-    }
-    else
-    {
-        qDebug() << value;
-    }
 
     return result;
 }
@@ -207,82 +181,62 @@ int Camera::ReadExposureActiveInvert(bool &state)
     int32_t val;
 
     int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Read Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_CAMERA_CLASS);
-    if (result < 0)
-    {
-        qDebug() << "ReadExposureActiveInver failed";
-    }
-    else
+    if (result >= 0)
     {
         state = (val == 1) ? true : false;
-        qDebug() << val;
-        qDebug() << state;
     }
     return result;
 }
 
 int Camera::SetExposureActiveLineMode(bool state)
 {
-    return -1;
+    int32_t value = static_cast<int32_t>(state);
+    return SetExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Set Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_CAMERA_CLASS);
 }
 
 int Camera::SetExposureActiveLineSelector(int32_t value)
 {
-//    bool bIsOn = true;
-//    int result = ReadExposureActiveLineMode(bIsOn);
+    bool bIsOn = true;
+    int result = ReadExposureActiveLineMode(bIsOn);
 
-//    if (result < 0)
-//    {
-//        qDebug() << "ReadExposureActiveLineMode failed";
-//    }
-//    qDebug() << bIsOnd;
+    if (result < 0)
+    {
+        return result;
+    }
 
-//    if (!bIsOn)
-//    {
-//        int32_t val = static_cast<int32_t>(value);
-//        result = SetExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Set Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_USER_CLASS);
+    if (!bIsOn)
+    {
+        result = SetExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Set Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR", V4L2_CID_CAMERA_CLASS);
+    }
+    else
+    {
+        Logger::LogEx("V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE is enabled, can't set V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
+    }
 
-//        if (result < 0)
-//        {
-//            qDebug() << "SetExposureActiveLineMode failed";
-//        }
-//    }
-//    else
-//    {
-//        qDebug() << "ExposureActiveLineMode is on";
-//    }
-
-//    return result;
-    return -1;
+    return result;
 }
 
 int Camera::SetExposureActiveInvert(bool state)
 {
-//    bool bIsOn = true;
-//    int result = ReadExposureActiveLineMode(bIsOn);
+    bool bIsOn = true;
+    int result = ReadExposureActiveLineMode(bIsOn);
 
-//    if (result < 0)
-//    {
-//        qDebug() << "ReadExposureActiveLineMode failed";
-//    }
-//    qDebug() << bIsOnd;
+    if (result < 0)
+    {
+        return result;
+    }
 
-//    if (!bIsOn)
-//    {
-//        int32_t val = static_cast<int32_t>(value);
-//        result = SetExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Set Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_USER_CLASS);
+    if (!bIsOn)
+    {
+        int32_t val = static_cast<int32_t>(state);
+        result = SetExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Set Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_CAMERA_CLASS);
+    }
+    else
+    {
+        Logger::LogEx("V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE is enabled, can't set V4L2_CID_EXPOSURE_ACTIVE_INVERT");
+    }
 
-//        if (result < 0)
-//        {
-//            qDebug() << "SetExposureActiveInvert failed";
-//        }
-//    }
-//    else
-//    {
-//        qDebug() << "ExposureActiveLineMode is on";
-//    }
-
-//    return result;
-    return -1;
+    return result;
 }
 
 int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,
@@ -1449,7 +1403,6 @@ int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const cha
     CLEAR(ctrl);
     ctrl.id = controlID;
 
-    qDebug() << "before reading minmax";
     if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
     {
         Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
@@ -1462,7 +1415,6 @@ int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const cha
         result = -2;
     }
 
-    qDebug() << "after reading step";
     return result;
 }
 
@@ -1473,7 +1425,6 @@ int Camera::ReadStep(int32_t &step, uint32_t controlID, const char *functionName
 
     CLEAR(ctrl);
     ctrl.id = controlID;
-    qDebug() << "before reading step";
     if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
     {
         Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, step=%d", functionName, controlName, ctrl.step);
@@ -1485,7 +1436,6 @@ int Camera::ReadStep(int32_t &step, uint32_t controlID, const char *functionName
         result = -2;
     }
 
-    qDebug() << "after reading step";
     return result;
 }
 

@@ -2013,9 +2013,7 @@ void V4L2Viewer::GetImageInformation()
     }
     else
     {
-        qDebug() << "Before setting widget";
         m_ActiveExposureWidget.SetLineSelectorRange(value, min, max, step);
-        qDebug() << "After setting widget";
     }
 
     if (m_Camera.ReadExposureActiveInvert(bIsInverted) < 0)
