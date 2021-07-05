@@ -11,7 +11,7 @@ public:
     explicit ActiveExposureWidget(QWidget *parent = nullptr);
     void SetInvert(bool state);
     void SetActive(bool state);
-    void SetLineSelectorRange(int32_t currentValue, int32_t range);
+    void SetLineSelectorRange(int32_t currentValue, int32_t min, int32_t max, int32_t step);
     void BlockInvertAndLineSelector(bool state);
     Ui::ActiveExposureWidget ui;
 

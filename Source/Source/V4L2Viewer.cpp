@@ -858,20 +858,26 @@ void V4L2Viewer::OnExposureActiveClicked()
 
 void V4L2Viewer::PassInvertState(bool state)
 {
-    m_Camera.SetExposureActiveInvert(state);
+    if (m_Camera.SetExposureActiveInvert(state) >= 0)
+    {
+        GetImageInformation();
+    }
 }
 
 void V4L2Viewer::PassActiveState(bool state)
 {
     if (m_Camera.SetExposureActiveLineMode(state) >= 0)
     {
-        m_ActiveExposureWidget.BlockInvertAndLineSelector(state);
+        GetImageInformation();
     }
 }
 
 void V4L2Viewer::PassLineSelectorValue(int32_t value)
 {
-    m_Camera.SetExposureActiveLineSelector(value);
+    if (m_Camera.SetExposureActiveLineSelector(value) >= 0)
+    {
+        GetImageInformation();
+    }
 }
 
 
@@ -1709,6 +1715,8 @@ void V4L2Viewer::GetImageInformation()
     int32_t gain = 0;
     int32_t min = 0;
     int32_t max = 0;
+    int32_t step = 0;
+    int32_t value = 0;
     bool autogain = false;
     int32_t exposure = 0;
     int32_t exposureAbs = 0;
@@ -1985,35 +1993,39 @@ void V4L2Viewer::GetImageInformation()
     }
 
     bool bIsActive = false;
+    bool bIsInverted = false;
 
     if (m_Camera.ReadExposureActiveLineMode(bIsActive) < 0)
     {
-        qDebug() << "FAILED ReadExposureActiveLineMode";
+        m_ActiveExposureWidget.setEnabled(false);
+        ui.m_ExposureActiveButton->setEnabled(false);
     }
     else
     {
         m_ActiveExposureWidget.BlockInvertAndLineSelector(bIsActive);
-        qDebug() << "ReadExposureActiveLineMode: " << bIsActive;
+        m_ActiveExposureWidget.SetActive(bIsActive);
     }
 
-    int32_t value = 0;
-    int32_t range = 0;
-    if (m_Camera.ReadExposureActiveLineSelector(value, range) < 0)
+    if (m_Camera.ReadExposureActiveLineSelector(value, min, max, step) < 0)
     {
-        qDebug() << "FAILED ReadExposureActiveLineSelector";
+        m_ActiveExposureWidget.setEnabled(false);
+        ui.m_ExposureActiveButton->setEnabled(false);
     }
     else
     {
-        qDebug() << "ReadExposureActiveLineSelector: " << value;
+        qDebug() << "Before setting widget";
+        m_ActiveExposureWidget.SetLineSelectorRange(value, min, max, step);
+        qDebug() << "After setting widget";
     }
 
-    if (m_Camera.ReadExposureActiveInvert(bIsActive) < 0)
+    if (m_Camera.ReadExposureActiveInvert(bIsInverted) < 0)
     {
-        qDebug() << "FAILED ReadExposureActiveInvert";
+        m_ActiveExposureWidget.setEnabled(false);
+        ui.m_ExposureActiveButton->setEnabled(false);
     }
     else
     {
-        qDebug() << "ReadExposureActiveInvert: " << bIsActive;
+        m_ActiveExposureWidget.SetInvert(bIsInverted);
     }
 
     m_Camera.EnumAllControlNewStyle();

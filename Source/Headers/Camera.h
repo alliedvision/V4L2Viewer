@@ -136,6 +136,8 @@ public:
     int ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
     int ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
 
+    int ReadStep(int32_t &step, uint32_t controlID, const char *functionName, const char* controlName);
+
     int ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
     int WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
 
@@ -171,7 +173,7 @@ public:
 
     // Exposure Active
     int ReadExposureActiveLineMode(bool &state);
-    int ReadExposureActiveLineSelector(int32_t &value, int32_t &range);
+    int ReadExposureActiveLineSelector(int32_t &value, int32_t &min, int32_t &max, int32_t &step);
     int ReadExposureActiveInvert(bool &state);
 
     int SetExposureActiveLineMode(bool state);

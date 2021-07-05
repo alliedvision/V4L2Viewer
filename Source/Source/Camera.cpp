@@ -146,28 +146,53 @@ unsigned int Camera::GetDroppedFramesCount()
 int Camera::ReadExposureActiveLineMode(bool &state)
 {
     int32_t val;
-    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Read Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_USER_CLASS);
+    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Read Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_CAMERA_CLASS);
     if (result < 0)
     {
         qDebug() << "ReadExposureActiveLineMode failed";
     }
     else
     {
-        state = (val == 0) ? true : false;
+        state = (val == 1) ? true : false;
         qDebug() << val;
         qDebug() << state;
     }
     return result;
 }
 
-int Camera::ReadExposureActiveLineSelector(int32_t &value, int32_t &range)
+int Camera::ReadExposureActiveLineSelector(int32_t &value, int32_t &min, int32_t &max, int32_t &step)
 {
     int result = -1;
-    result = ReadExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR", V4L2_CID_USER_CLASS);
+    result = ReadExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR", V4L2_CID_CAMERA_CLASS);
 
     if (result < 0)
     {
         qDebug() << "ReadExposureActiveLineSelector failed";
+        return result;
+    }
+    else
+    {
+        qDebug() << value;
+    }
+
+    result = ReadMinMax(min, max, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
+
+    if (result < 0)
+    {
+        qDebug() << "ReadExposureActiveLineSelector minmax failed";
+        return result;
+    }
+    else
+    {
+        qDebug() << value;
+    }
+
+    result = ReadStep(step, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
+
+    if (result < 0)
+    {
+        qDebug() << "ReadExposureActiveLineSelector step failed";
+        return result;
     }
     else
     {
@@ -181,14 +206,14 @@ int Camera::ReadExposureActiveInvert(bool &state)
 {
     int32_t val;
 
-    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Read Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_USER_CLASS);
+    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Read Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_CAMERA_CLASS);
     if (result < 0)
     {
         qDebug() << "ReadExposureActiveInver failed";
     }
     else
     {
-        state = (val == 0) ? true : false;
+        state = (val == 1) ? true : false;
         qDebug() << val;
         qDebug() << state;
     }
@@ -1418,12 +1443,13 @@ int Camera::ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const c
 
 int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char *controlName)
 {
-    int result = -1;
+    int result = 0;
     v4l2_queryctrl ctrl;
 
     CLEAR(ctrl);
     ctrl.id = controlID;
 
+    qDebug() << "before reading minmax";
     if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
     {
         Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
@@ -1436,6 +1462,30 @@ int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const cha
         result = -2;
     }
 
+    qDebug() << "after reading step";
+    return result;
+}
+
+int Camera::ReadStep(int32_t &step, uint32_t controlID, const char *functionName, const char *controlName)
+{
+    int result = 0;
+    v4l2_queryctrl ctrl;
+
+    CLEAR(ctrl);
+    ctrl.id = controlID;
+    qDebug() << "before reading step";
+    if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, step=%d", functionName, controlName, ctrl.step);
+        step = ctrl.step;
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+        result = -2;
+    }
+
+    qDebug() << "after reading step";
     return result;
 }
 

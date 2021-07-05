@@ -23,10 +23,11 @@ void ActiveExposureWidget::SetActive(bool state)
     ui.m_ActiveCheckBox->blockSignals(false);
 }
 
-void ActiveExposureWidget::SetLineSelectorRange(int32_t currentValue, int32_t range)
+void ActiveExposureWidget::SetLineSelectorRange(int32_t currentValue, int32_t min, int32_t max, int32_t step)
 {
     ui.m_ListWidget->blockSignals(true);
-    for (int i=0; i<range; ++i)
+    ui.m_ListWidget->clear();
+    for (int32_t i=min; i<=max; i+=step)
     {
         ui.m_ListWidget->addItem(QString::number(i));
     }
