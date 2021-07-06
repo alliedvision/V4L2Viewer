@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1291</width>
-    <height>788</height>
+    <width>1055</width>
+    <height>763</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -431,7 +431,7 @@ margin:0;
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <layout class="QGridLayout" name="gridLayout_7">
          <property name="spacing">
           <number>0</number>
@@ -451,8 +451,8 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>1007</width>
-              <height>270</height>
+              <width>822</width>
+              <height>254</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -472,7 +472,7 @@ border:none;
               <number>0</number>
              </property>
              <item>
-              <widget class="QGraphicsView" name="m_ImageView">
+              <widget class="CustomGraphicsView" name="m_ImageView">
                <property name="styleSheet">
                 <string notr="true">QGraphicsView{
 background-color: rgb(19,20,21);
@@ -1058,8 +1058,8 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>1009</width>
-              <height>402</height>
+              <width>913</width>
+              <height>380</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_8">
@@ -2018,7 +2018,7 @@ background-color:rgb(166, 166, 166);
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1291</width>
+     <width>1055</width>
      <height>22</height>
     </rect>
    </property>
@@ -2292,6 +2292,13 @@ background-color:rgb(166, 166, 166);
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>CustomGraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>CustomGraphicsView.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../V4L2Viewer.qrc"/>
  </resources>

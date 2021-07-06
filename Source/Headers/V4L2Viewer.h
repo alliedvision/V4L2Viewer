@@ -37,6 +37,7 @@
 #include "ui_V4L2Viewer.h"
 #include "ControlsHolderWidget.h"
 #include "ActiveExposureWidget.h"
+#include "CustomGraphicsView.h"
 
 #include <list>
 
@@ -86,8 +87,6 @@ private:
     bool m_bIsOpen;
     // The current streaming state
     bool m_bIsStreaming;
-    //// Our Qt image to display
-    double m_dScaleFactor;
     // Timer to show the frames received from the frame observer
     QTimer m_FramesReceivedTimer;
     // Graphics scene to show the image
@@ -130,8 +129,6 @@ private:
 
     // Official QT dialog close event callback
     virtual void closeEvent(QCloseEvent *event);
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void wheelEvent(QWheelEvent *event);
     virtual void changeEvent(QEvent *event);
 
     // called by master viewer window
@@ -166,11 +163,13 @@ private slots:
     void OnStartButtonClicked();
     // The event handler for stopping acquisition
     void OnStopButtonClicked();
+
     // The event handler to resize the image to fit to window
     void OnZoomFitButtonClicked();
     // The event handler for resize the image
     void OnZoomInButtonClicked();
     void OnZoomOutButtonClicked();
+
     void OnSaveImageClicked();
     // The event handler to show the frames received
     void OnUpdateFramesReceived();

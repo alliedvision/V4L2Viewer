@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ButtonEnumerationControl.h"
 #include "ListEnumerationControl.h"
 #include "ListIntEnumerationControl.h"
+#include "CustomGraphicsView.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -47,10 +48,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define NUM_COLORS 3
 #define BIT_DEPTH 8
-
-#define MAX_ZOOM_IN  (16.0)
-#define MAX_ZOOM_OUT (1/8.0)
-#define ZOOM_INCREMENT (2.0)
 
 #define MANUF_NAME_AV       "Allied Vision"
 #define APP_NAME            "Video4Linux2 Viewer"
@@ -89,7 +86,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_nStreamNumber(0)
     , m_bIsOpen(false)
     , m_bIsStreaming(false)
-    , m_dScaleFactor(1.0)
     , m_bIsFixedRate(false)
     , m_sliderGainValue(0)
     , m_sliderBlackLevelValue(0)
@@ -402,20 +398,6 @@ void V4L2Viewer::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void V4L2Viewer::wheelEvent(QWheelEvent *event)
-{
-    if (event->modifiers().testFlag(Qt::ControlModifier))
-    {
-        event->accept();
-        if (event->delta() > 0)
-            OnZoomOutButtonClicked();
-        else
-            OnZoomInButtonClicked();
-    }
-    else
-        event->ignore();
-}
-
 void V4L2Viewer::changeEvent(QEvent *event)
 {
     if (event->type() == QEvent::LanguageChange)
@@ -426,26 +408,6 @@ void V4L2Viewer::changeEvent(QEvent *event)
     else
     {
         QMainWindow::changeEvent(event);
-    }
-}
-
-void V4L2Viewer::mousePressEvent(QMouseEvent *event)
-{
-    QPoint imageViewPoint = ui.m_ImageView->mapFrom(this, event->pos());
-    QPointF imageScenePointF = ui.m_ImageView->mapToScene(imageViewPoint);
-
-    if (m_PixmapItem != nullptr && m_PixmapItem->pixmap().rect().contains(imageScenePointF.toPoint()))
-    {
-        if (m_dScaleFactor >= 1)
-        {
-            QImage image = m_PixmapItem->pixmap().toImage();
-            QColor myPixel = image.pixel(static_cast<int>(imageScenePointF.x()), static_cast<int>(imageScenePointF.y()));
-            QToolTip::showText(ui.m_ImageView->mapToGlobal(imageViewPoint), QString("x:%1, y:%2, r:%3/g:%4/b:%5")
-                               .arg(static_cast<int>(imageScenePointF.x())).arg(static_cast<int>(imageScenePointF.y()))
-                               .arg(myPixel.red())
-                               .arg(myPixel.green())
-                               .arg(myPixel.blue()), this);
-        }
     }
 }
 
@@ -506,7 +468,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 OnStopButtonClicked();
             }
 
-            m_dScaleFactor = 1.0;
+            // m_dScaleFactor = 1.0;
 
             err = CloseCamera(m_cameras[nRow]);
             if (0 == err)
@@ -920,47 +882,6 @@ void V4L2Viewer::OnStopButtonClicked()
     m_Camera.DeleteUserBuffer();
 }
 
-// The event handler to resize the image to fit to window
-void V4L2Viewer::OnZoomFitButtonClicked()
-{
-    if (ui.m_ZoomFitButton->isChecked())
-    {
-        ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
-    }
-    else
-    {
-        QTransform transformation;
-        transformation.scale(m_dScaleFactor, m_dScaleFactor);
-        ui.m_ImageView->setTransform(transformation);
-    }
-
-    UpdateZoomButtons();
-}
-
-// The event handler for resize the image
-void V4L2Viewer::OnZoomInButtonClicked()
-{
-    m_dScaleFactor *= ZOOM_INCREMENT;
-
-    QTransform transformation;
-    transformation.scale(m_dScaleFactor, m_dScaleFactor);
-    ui.m_ImageView->setTransform(transformation);
-
-    UpdateZoomButtons();
-}
-
-// The event handler for resize the image
-void V4L2Viewer::OnZoomOutButtonClicked()
-{
-    m_dScaleFactor *= (1 / ZOOM_INCREMENT);
-
-    QTransform transformation;
-    transformation.scale(m_dScaleFactor, m_dScaleFactor);
-    ui.m_ImageView->setTransform(transformation);
-
-    UpdateZoomButtons();
-}
-
 void V4L2Viewer::OnSaveImageClicked()
 {
     if (ui.m_TitleSavePNG->isChecked())
@@ -1166,12 +1087,41 @@ void V4L2Viewer::UpdateViewerLayout()
     UpdateZoomButtons();
 }
 
+// The event handler to resize the image to fit to window
+void V4L2Viewer::OnZoomFitButtonClicked()
+{
+    if (ui.m_ZoomFitButton->isChecked())
+    {
+        ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
+    }
+    else
+    {
+        ui.m_ImageView->TransformImageView();
+    }
+
+    UpdateZoomButtons();
+}
+
+// The event handler for resize the image
+void V4L2Viewer::OnZoomInButtonClicked()
+{
+    ui.m_ImageView->OnZoomIn();
+    UpdateZoomButtons();
+}
+
+// The event handler for resize the image
+void V4L2Viewer::OnZoomOutButtonClicked()
+{
+    ui.m_ImageView->OnZoomOut();
+    UpdateZoomButtons();
+}
+
 // Update the zoom buttons
 void V4L2Viewer::UpdateZoomButtons()
 {
     ui.m_ZoomFitButton->setEnabled(m_bIsOpen);
 
-    if (m_dScaleFactor >= MAX_ZOOM_IN)
+    if (ui.m_ImageView->GetScaleFactorValue() >= CustomGraphicsView::MAX_ZOOM_IN)
     {
         ui.m_ZoomInButton->setEnabled(false);
     }
@@ -1180,7 +1130,7 @@ void V4L2Viewer::UpdateZoomButtons()
         ui.m_ZoomInButton->setEnabled(true && m_bIsOpen && !ui.m_ZoomFitButton->isChecked());
     }
 
-    if (m_dScaleFactor <= MAX_ZOOM_OUT)
+    if (ui.m_ImageView->GetScaleFactorValue() <= CustomGraphicsView::MAX_ZOOM_OUT)
     {
         ui.m_ZoomOutButton->setEnabled(false);
     }
@@ -1189,7 +1139,7 @@ void V4L2Viewer::UpdateZoomButtons()
         ui.m_ZoomOutButton->setEnabled(true && m_bIsOpen && !ui.m_ZoomFitButton->isChecked());
     }
 
-    ui.m_ZoomLabel->setText(QString("%1%").arg(m_dScaleFactor * 100));
+    ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
     ui.m_ZoomLabel->setEnabled(m_bIsOpen && m_bIsStreaming && !ui.m_ZoomFitButton->isChecked());
 }
 
