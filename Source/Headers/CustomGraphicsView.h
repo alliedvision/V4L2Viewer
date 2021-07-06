@@ -18,8 +18,6 @@ public:
     static double MAX_ZOOM_OUT;
     static double ZOOM_INCREMENT;
 
-private slots:
-
 private:
     virtual void wheelEvent(QWheelEvent *event);
     virtual void mousePressEvent(QMouseEvent *event);

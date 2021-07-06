@@ -113,13 +113,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     else
         ui.m_MenuOpenNextViewer->setEnabled(false);
 
-    // Initialization of the Settings widget
-    QWidgetAction *widgetAction = new QWidgetAction(this);
-    m_pSettingsActionWidget = new SettingsActionWidget(this);
-    m_pSettingsMenu = new QMenu(this);
-    widgetAction->setDefaultWidget(m_pSettingsActionWidget);
-    m_pSettingsMenu->addAction(widgetAction);
-
     // Connect GUI events with event handlers
     connect(ui.m_OpenCloseButton,             SIGNAL(clicked()),         this, SLOT(OnOpenCloseButtonClicked()));
     connect(ui.m_StartButton,                 SIGNAL(clicked()),         this, SLOT(OnStartButtonClicked()));
@@ -128,29 +121,26 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_ZoomInButton,                SIGNAL(clicked()),         this, SLOT(OnZoomInButtonClicked()));
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
-
     connect(ui.m_ExposureActiveButton,        SIGNAL(clicked()),         this, SLOT(OnExposureActiveClicked()));
 
     SetTitleText();
 
     // Start Camera
     connect(&m_Camera, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
-    connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
-    connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)), this, SLOT(OnCameraPixelFormat(const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)), this, SLOT(OnCameraFrameSize(const QString &)));
+    connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)),                                       this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
+    connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)),                                                          this, SLOT(OnFrameID(const unsigned long long &)));
+    connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &)));
+    connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)),                                                                   this, SLOT(OnCameraFrameSize(const QString &)));
 
     connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
     connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)));
 
-    connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)), this, SLOT(GetIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)));
-    connect(&m_Camera, SIGNAL(SentInt64DataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)), this, SLOT(GetIntDataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)));
-
-    connect(&m_Camera, SIGNAL(SendBoolDataToEnumerationWidget(int32_t, bool, QString, QString, bool)), this, SLOT(GetBoolDataToEnumerationWidget(int32_t, bool, QString, QString, bool)));
-    connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(int32_t, QString, QString, bool)), this, SLOT(GetButtonDataToEnumerationWidget(int32_t, QString, QString, bool)));
-
-    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)), this, SLOT(GetListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)));
-    connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)), this, SLOT(GetListDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)),      this, SLOT(PassIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SentInt64DataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)),    this, SLOT(PassIntDataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendBoolDataToEnumerationWidget(int32_t, bool, QString, QString, bool)),                          this, SLOT(PassBoolDataToEnumerationWidget(int32_t, bool, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(int32_t, QString, QString, bool)),                              this, SLOT(PassButtonDataToEnumerationWidget(int32_t, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)),       this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)),    this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)));
 
     connect(&m_Camera, SIGNAL(SendSignalToUpdateWidgets()), this, SLOT(OnReadAllValues()));
 
@@ -158,14 +148,14 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
     m_BlockingModeRadioButtonGroup->setExclusive(true);
 
-    connect(ui.m_sliderExposure,    SIGNAL(valueChanged(int)), this, SLOT(OnSliderExposureValueChange(int)));
-    connect(ui.m_sliderGain,        SIGNAL(valueChanged(int)), this, SLOT(OnSliderGainValueChange(int)));
-    connect(ui.m_sliderBlackLevel,  SIGNAL(valueChanged(int)), this, SLOT(OnSliderBlackLevelValueChange(int)));
-    connect(ui.m_sliderGamma,       SIGNAL(valueChanged(int)), this, SLOT(OnSliderGammaValueChange(int)));
-    connect(ui.m_sliderExposure,    SIGNAL(sliderReleased()), this, SLOT(OnSlidersReleased()));
-    connect(ui.m_sliderGain,        SIGNAL(sliderReleased()), this, SLOT(OnSlidersReleased()));
-    connect(ui.m_sliderBlackLevel,  SIGNAL(sliderReleased()), this, SLOT(OnSlidersReleased()));
-    connect(ui.m_sliderGamma,       SIGNAL(sliderReleased()), this, SLOT(OnSlidersReleased()));
+    connect(ui.m_sliderExposure,    SIGNAL(valueChanged(int)),  this, SLOT(OnSliderExposureValueChange(int)));
+    connect(ui.m_sliderGain,        SIGNAL(valueChanged(int)),  this, SLOT(OnSliderGainValueChange(int)));
+    connect(ui.m_sliderBlackLevel,  SIGNAL(valueChanged(int)),  this, SLOT(OnSliderBlackLevelValueChange(int)));
+    connect(ui.m_sliderGamma,       SIGNAL(valueChanged(int)),  this, SLOT(OnSliderGammaValueChange(int)));
+    connect(ui.m_sliderExposure,    SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
+    connect(ui.m_sliderGain,        SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
+    connect(ui.m_sliderBlackLevel,  SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
+    connect(ui.m_sliderGamma,       SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
 
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseUSERPTR, SIGNAL(triggered()), this, SLOT(OnUseUSERPTR()));
@@ -204,12 +194,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
     connect(ui.m_edBlackLevel, SIGNAL(returnPressed()), this, SLOT(OnBrightness()));
 
-    connect(m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget(),    SIGNAL(returnPressed()), this, SLOT(OnRedBalance()));
-    connect(m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget(),   SIGNAL(returnPressed()), this, SLOT(OnBlueBalance()));
-    connect(m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget(),    SIGNAL(returnPressed()), this, SLOT(OnSaturation()));
-    connect(m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget(),           SIGNAL(returnPressed()), this, SLOT(OnHue()));
-    connect(m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget(),      SIGNAL(returnPressed()), this, SLOT(OnContrast()));
-
     connect(ui.m_chkContWhiteBalance, SIGNAL(clicked()), this, SLOT(OnContinousWhiteBalance()));
     connect(ui.m_edFrameRate, SIGNAL(returnPressed()), this, SLOT(OnFrameRate()));
     connect(ui.m_edCropXOffset, SIGNAL(returnPressed()), this, SLOT(OnCropXOffset()));
@@ -223,6 +207,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_ActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
     connect(&m_ActiveExposureWidget, SIGNAL(SendActiveState(bool)), this, SLOT(PassActiveState(bool)));
     connect(&m_ActiveExposureWidget, SIGNAL(SendLineSelectorValue(int32_t)), this, SLOT(PassLineSelectorValue(int32_t)));
+
+    connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
 
     // Set the splitter stretch factors
     ui.m_Splitter1->setStretchFactor(0, 45);
@@ -310,8 +296,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     }
 
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
-
-    connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
 
     ui.m_camerasListCheckBox->setChecked(true);
 
@@ -683,7 +667,7 @@ void V4L2Viewer::ShowHideEnumerationControlWidget()
     }
 }
 
-void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -703,7 +687,7 @@ void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t 
     }
 }
 
-void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -723,7 +707,7 @@ void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t 
     }
 }
 
-void V4L2Viewer::GetBoolDataToEnumerationWidget(int32_t id, bool value, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassBoolDataToEnumerationWidget(int32_t id, bool value, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -742,7 +726,7 @@ void V4L2Viewer::GetBoolDataToEnumerationWidget(int32_t id, bool value, QString 
     }
 }
 
-void V4L2Viewer::GetButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -752,7 +736,7 @@ void V4L2Viewer::GetButtonDataToEnumerationWidget(int32_t id, QString name, QStr
     }
 }
 
-void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -771,7 +755,7 @@ void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, int32_t value, QList
     }
 }
 
-void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -1384,94 +1368,9 @@ void V4L2Viewer::OnBrightness()
     }
 }
 
-void V4L2Viewer::OnContrast()
-{
-    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->text().toLongLong());
-
-    if (m_Camera.SetContrast(nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE contrast!") );
-        m_Camera.ReadContrast(tmp);
-        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::OnSaturation()
-{
-    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->text().toLongLong());
-
-    if (m_Camera.SetSaturation(nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE saturation!") );
-        m_Camera.ReadSaturation(tmp);
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::OnHue()
-{
-    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->text().toLongLong());
-
-    if (m_Camera.SetHue(nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE hue!") );
-        m_Camera.ReadHue(tmp);
-        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
-    }
-}
-
 void V4L2Viewer::OnContinousWhiteBalance()
 {
     m_Camera.SetContinousWhiteBalance(ui.m_chkContWhiteBalance->isChecked());
-}
-
-void V4L2Viewer::OnRedBalance()
-{
-    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->text().toLongLong());
-
-    if (m_Camera.SetRedBalance((uint32_t)nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE red balance!") );
-        m_Camera.ReadRedBalance(tmp);
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::OnBlueBalance()
-{
-    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->text().toLongLong());
-
-    if (m_Camera.SetBlueBalance((uint32_t)nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE blue balance!") );
-        m_Camera.ReadBlueBalance(tmp);
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
-    }
 }
 
 void V4L2Viewer::OnFrameRate()
@@ -1812,71 +1711,6 @@ void V4L2Viewer::GetImageInformation()
     else
     {
         ui.m_sliderBlackLevel->setEnabled(false);
-    }
-
-    nSVal = 0;
-    if (m_Camera.ReadContrast(nSVal) != -2)
-    {
-        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetContrastWidget()->GetLabelWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setEnabled(false);
-        m_pSettingsActionWidget->GetContrastWidget()->GetLabelWidget()->setEnabled(false);
-    }
-
-    nSVal = 0;
-    if (m_Camera.ReadSaturation(nSVal) != -2)
-    {
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLabelWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setEnabled(false);
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLabelWidget()->setEnabled(false);
-    }
-
-    nSVal = 0;
-    if (m_Camera.ReadHue(nSVal) != -2)
-    {
-        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetHueWidget()->GetLabelWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setEnabled(false);
-        m_pSettingsActionWidget->GetHueWidget()->GetLabelWidget()->setEnabled(false);
-    }
-
-    nSVal = 0;
-    if (m_Camera.ReadRedBalance(nSVal) != -2)
-    {
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLabelWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setEnabled(false);
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLabelWidget()->setEnabled(false);
-    }
-
-    nSVal = 0;
-    if (m_Camera.ReadBlueBalance(nSVal) != -2)
-    {
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLabelWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setEnabled(false);
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLabelWidget()->setEnabled(false);
     }
 
     m_Camera.ReadFrameSize(width, height);

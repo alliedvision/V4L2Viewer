@@ -15,7 +15,6 @@ signals:
     void ReadSignal();
 
 public slots:
-
     void Process();
     void StartProcess();
     void StopProcess();

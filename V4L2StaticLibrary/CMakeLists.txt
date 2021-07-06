@@ -26,7 +26,6 @@ ${HEADERS_PATH}/V4L2Helper.h
 ${HEADERS_PATH}/V4L2Viewer.h
 ${HEADERS_PATH}/videodev2_av.h
 ${HEADERS_PATH}/AboutWidget.h
-${HEADERS_PATH}/SettingsActionWidget.h
 ${HEADERS_PATH}/CameraListCustomItem.h
 ${HEADERS_PATH}/CustomOptionWidget.h
 ${HEADERS_PATH}/AutoReader.h
@@ -62,7 +61,6 @@ ${SOURCES_PATH}/Thread.cpp
 ${SOURCES_PATH}/V4L2Helper.cpp
 ${SOURCES_PATH}/V4L2Viewer.cpp
 ${SOURCES_PATH}/AboutWidget.cpp
-${SOURCES_PATH}/SettingsActionWidget.cpp
 ${SOURCES_PATH}/CameraListCustomItem.cpp
 ${SOURCES_PATH}/CustomOptionWidget.cpp
 ${SOURCES_PATH}/AutoReader.cpp
