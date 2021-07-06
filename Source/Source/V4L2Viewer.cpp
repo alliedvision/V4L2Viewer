@@ -236,6 +236,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_PixmapItem = new QGraphicsPixmapItem();
 
     ui.m_ImageView->setScene(m_pScene.data());
+    ui.m_ImageView->SetPixmapItem(m_PixmapItem);
 
     m_pScene->addItem(m_PixmapItem);
 
@@ -468,7 +469,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 OnStopButtonClicked();
             }
 
-            // m_dScaleFactor = 1.0;
+            ui.m_ImageView->SetScaleFactorToDefault();
 
             err = CloseCamera(m_cameras[nRow]);
             if (0 == err)
