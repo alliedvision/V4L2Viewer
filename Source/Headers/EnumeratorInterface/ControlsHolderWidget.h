@@ -16,6 +16,7 @@ public:
     void RemoveElements();
     bool IsControlAlreadySet(int32_t id);
     IControlEnumerationHolder* GetControlWidget(int32_t id, bool &bIsSuccess);
+    virtual void closeEvent(QCloseEvent *event) override;
 
     Ui::ControlsHolderWidget ui;
 
@@ -23,7 +24,7 @@ private slots:
     void OnListItemChanged(int row);
 
 private:
-    QVector<IControlEnumerationHolder*> itemVector;
+    QVector<IControlEnumerationHolder*> m_itemVector;
 };
 
 

@@ -18,6 +18,7 @@ public:
     virtual ~IControlEnumerationHolder() = 0;
     int32_t GetWidgetControlId();
     QString GetControlInfo();
+    void CloseControlEditWidget();
     virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 protected:

@@ -12,6 +12,11 @@ IControlEnumerationHolder::IControlEnumerationHolder(int32_t id, QString name, Q
     m_MainLayout.setMargin(0);
 }
 
+IControlEnumerationHolder::~IControlEnumerationHolder()
+{
+
+}
+
 int32_t IControlEnumerationHolder::GetWidgetControlId()
 {
     return m_id;
@@ -22,14 +27,18 @@ QString IControlEnumerationHolder::GetControlInfo()
     return m_ControlInfo;
 }
 
+void IControlEnumerationHolder::CloseControlEditWidget()
+{
+    if (!m_ControlEditWidget.isHidden())
+    {
+        m_ControlEditWidget.close();
+    }
+}
+
 void IControlEnumerationHolder::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QPoint posGlobal = mapToGlobal(event->pos());
     m_ControlEditWidget.setGeometry(posGlobal.x(), posGlobal.y(), this->width(), this->height());
+    m_ControlEditWidget.setWindowTitle(m_NameOfControl.text());
     m_ControlEditWidget.show();
-}
-
-IControlEnumerationHolder::~IControlEnumerationHolder()
-{
-
 }
