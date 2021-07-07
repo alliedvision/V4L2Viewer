@@ -11,18 +11,22 @@ double CustomGraphicsView::ZOOM_INCREMENT = 2.0;
 CustomGraphicsView::CustomGraphicsView(QWidget *parent): QGraphicsView(parent)
   , m_dScaleFactor(1.0)
   , m_pPixmapItem(nullptr)
+  , m_bIsZoomAllowed(false)
 {
 
 }
 
 void CustomGraphicsView::wheelEvent(QWheelEvent *event)
 {
-    QPointF point = mapToScene(event->pos());
-    centerOn(point);
-    if (event->delta() > 0)
-        OnZoomIn();
-    else
-        OnZoomOut();
+    if (m_bIsZoomAllowed)
+    {
+        QPointF point = mapToScene(event->pos());
+        centerOn(point);
+        if (event->delta() > 0)
+            OnZoomIn();
+        else
+            OnZoomOut();
+    }
 }
 
 void CustomGraphicsView::mousePressEvent(QMouseEvent *event)
@@ -100,6 +104,11 @@ void CustomGraphicsView::OnZoomOut()
 void CustomGraphicsView::SetPixmapItem(QGraphicsPixmapItem *pixmapItem)
 {
     m_pPixmapItem = pixmapItem;
+}
+
+void CustomGraphicsView::SetZoomAllowed(bool state)
+{
+    m_bIsZoomAllowed = state;
 }
 
 

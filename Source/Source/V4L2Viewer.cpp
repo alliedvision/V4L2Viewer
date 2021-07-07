@@ -297,12 +297,14 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     }
 
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
-
     ui.m_camerasListCheckBox->setChecked(true);
-
     m_EnumerationControlWidget.hide();
 
     ui.m_ImageControlFrame->setEnabled(false);
+    ui.m_FlipHorizontalCheckBox->setEnabled(false);
+    ui.m_FlipVerticalCheckBox->setEnabled(false);
+    ui.m_DisplayImagesCheckBox->setEnabled(false);
+    ui.m_SaveImageButton->setEnabled(false);
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -438,6 +440,10 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
                 ui.m_Splitter1->setSizes(QList<int>{0,1});
                 ui.m_camerasListCheckBox->setChecked(false);
+                ui.m_ImageView->SetZoomAllowed(true);
+                ui.m_FlipHorizontalCheckBox->setEnabled(true);
+                ui.m_FlipVerticalCheckBox->setEnabled(true);
+                ui.m_DisplayImagesCheckBox->setEnabled(true);
             }
             else
                 CloseCamera(m_cameras[nRow]);
@@ -455,6 +461,12 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             }
 
             ui.m_ImageView->SetScaleFactorToDefault();
+            ui.m_ImageView->SetZoomAllowed(false);
+
+            ui.m_FlipHorizontalCheckBox->setEnabled(false);
+            ui.m_FlipVerticalCheckBox->setEnabled(false);
+            ui.m_DisplayImagesCheckBox->setEnabled(false);
+            ui.m_SaveImageButton->setEnabled(false);
 
             err = CloseCamera(m_cameras[nRow]);
             if (0 == err)

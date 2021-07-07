@@ -1058,7 +1058,7 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>913</width>
+              <width>935</width>
               <height>380</height>
              </rect>
             </property>
@@ -1607,6 +1607,12 @@ background-color:rgb(166, 166, 166);
                </item>
                <item row="1" column="2">
                 <widget class="QLineEdit" name="m_edExposureAbs">
+                 <property name="minimumSize">
+                  <size>
+                   <width>80</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="maxLength">
                   <number>10</number>
                  </property>
@@ -1627,6 +1633,12 @@ background-color:rgb(166, 166, 166);
                </item>
                <item row="7" column="2">
                 <widget class="QLineEdit" name="m_edGain">
+                 <property name="minimumSize">
+                  <size>
+                   <width>80</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="maxLength">
                   <number>10</number>
                  </property>
@@ -1775,6 +1787,12 @@ QCheckBox::disabled{
                 <widget class="QLineEdit" name="m_edExposure">
                  <property name="enabled">
                   <bool>true</bool>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>80</width>
+                   <height>0</height>
+                  </size>
                  </property>
                  <property name="maxLength">
                   <number>10</number>

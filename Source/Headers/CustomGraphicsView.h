@@ -14,6 +14,7 @@ public:
     void OnZoomIn();
     void OnZoomOut();
     void SetPixmapItem(QGraphicsPixmapItem *pixmapItem);
+    void SetZoomAllowed(bool state);
 
     static double MAX_ZOOM_IN;
     static double MAX_ZOOM_OUT;
@@ -29,6 +30,7 @@ private:
     //// Our Qt image to display
     double m_dScaleFactor;
     QGraphicsPixmapItem *m_pPixmapItem;
+    bool m_bIsZoomAllowed;
 };
 
 #endif // CUSTOMGRAPHICSVIEW_H
