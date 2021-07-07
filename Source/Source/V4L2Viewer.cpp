@@ -392,6 +392,7 @@ void V4L2Viewer::changeEvent(QEvent *event)
     {
         ui.retranslateUi(this);
         m_pAboutWidget->UpdateStrings();
+        SetTitleText();
     }
     else
     {
@@ -444,6 +445,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 ui.m_FlipHorizontalCheckBox->setEnabled(true);
                 ui.m_FlipVerticalCheckBox->setEnabled(true);
                 ui.m_DisplayImagesCheckBox->setEnabled(true);
+                ui.m_SaveImageButton->setEnabled(true);
             }
             else
                 CloseCamera(m_cameras[nRow]);
@@ -831,7 +833,6 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
-    ui.m_SaveImageButton->setEnabled(false);
     ui.m_fixedRateStartButton->setEnabled(false);
     QApplication::processEvents();
 
@@ -868,7 +869,6 @@ void V4L2Viewer::OnStopButtonClicked()
 {
     // disable the stop button to show that the stop acquisition is in process
     ui.m_StopButton->setEnabled(false);
-    ui.m_SaveImageButton->setEnabled(true);
     ui.m_fixedRateStartButton->setEnabled(true);
 
     m_Camera.StopStreamChannel();
@@ -1875,8 +1875,8 @@ void V4L2Viewer::Check4IOReadAbility()
 void V4L2Viewer::SetTitleText()
 {
     if (VIEWER_MASTER == m_nViewerNumber)
-        setWindowTitle(QString("%1 V%2.%3.%4").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
+        setWindowTitle(QString(tr("%1 V%2.%3.%4")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
     else
-        setWindowTitle(QString("%1 V%2.%3.%4 - %5. viewer").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(m_nViewerNumber));
+        setWindowTitle(QString(tr("%1 V%2.%3.%4 - %5. viewer")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(m_nViewerNumber));
 }
 

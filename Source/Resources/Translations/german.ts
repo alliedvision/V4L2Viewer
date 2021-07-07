@@ -266,6 +266,14 @@ Some Text here &lt;br&gt;
         <source>Driver version = %1</source>
         <translation>Treiberversion = %1</translation>
     </message>
+    <message>
+        <source>%1 V%2.%3.%4</source>
+        <translation>%1 V%2.%3.%4</translation>
+    </message>
+    <message>
+        <source>%1 V%2.%3.%4 - %5. viewer</source>
+        <translation>%1 V%2.%3.%4 - %5. zuschauer</translation>
+    </message>
 </context>
 <context>
     <name>V4L2ViewerClass</name>
@@ -417,7 +425,7 @@ Some Text here &lt;br&gt;
     </message>
     <message>
         <source>WhiteBalance</source>
-        <translation>Weißabgleich</translation>
+        <translation type="vanished">Weißabgleich</translation>
     </message>
     <message>
         <source>BlueBalance:</source>
@@ -473,7 +481,7 @@ Some Text here &lt;br&gt;
     </message>
     <message>
         <source>PixelFormat:</source>
-        <translation>PixelFormat:</translation>
+        <translation type="vanished">PixelFormat:</translation>
     </message>
     <message>
         <source>top:</source>
@@ -627,12 +635,12 @@ Some Text here &lt;br&gt;
     </message>
     <message>
         <source>IO Read Method</source>
-        <translation>E / A-Lesemethode</translation>
+        <translation type="vanished">E / A-Lesemethode</translation>
     </message>
     <message>
         <source>&lt;p&gt;&lt;b&gt;IO Read&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Clicking this button will change buffer into IO Read.&lt;/span&gt;</source>
-        <translation>&lt;p&gt;&lt;b&gt;IO lesen&lt;/b&gt;&lt;/p&gt;
+        <translation type="vanished">&lt;p&gt;&lt;b&gt;IO lesen&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Durch Klicken auf diese Schaltfläche wird der Puffer in E / A-Lesen geändert.&lt;/span&gt;</translation>
     </message>
     <message>
@@ -665,7 +673,7 @@ Some Text here &lt;br&gt;
     </message>
     <message>
         <source>BlackLevel:</source>
-        <translation>Schwarzwert:</translation>
+        <translation type="vanished">Schwarzwert:</translation>
     </message>
     <message>
         <source>All Features</source>
@@ -681,7 +689,7 @@ Some Text here &lt;br&gt;
     </message>
     <message>
         <source>FrameInterval/FPS:</source>
-        <translation>FrameInterval/FPS:</translation>
+        <translation type="vanished">FrameInterval/FPS:</translation>
     </message>
     <message>
         <source>Save Format</source>
@@ -729,7 +737,7 @@ Some Text here &lt;br&gt;
     </message>
     <message>
         <source>ExposureAbs[100μs]:</source>
-        <translation>BelichtungAbs[100μs]:</translation>
+        <translation type="vanished">BelichtungAbs[100μs]:</translation>
     </message>
 </context>
 </TS>
