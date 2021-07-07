@@ -242,6 +242,8 @@ private slots:
     void PassInvertState(bool state);
     void PassActiveState(bool state);
     void PassLineSelectorValue(int32_t value);
+
+    void OnUpdateZoomLabel();
 };
 
 #endif // V4L2VIEWER_H

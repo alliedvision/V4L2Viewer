@@ -851,7 +851,7 @@ QCheckBox::disabled {
               </property>
               <property name="minimumSize">
                <size>
-                <width>40</width>
+                <width>60</width>
                 <height>0</height>
                </size>
               </property>
@@ -865,7 +865,7 @@ QCheckBox::disabled {
                <string>100%</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               <set>Qt::AlignCenter</set>
               </property>
              </widget>
             </item>

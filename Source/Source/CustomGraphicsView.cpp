@@ -75,23 +75,25 @@ void CustomGraphicsView::TransformImageView()
 
 void CustomGraphicsView::OnZoomIn()
 {
-    if (m_dScaleFactor < MAX_ZOOM_IN )
+    if (m_dScaleFactor < MAX_ZOOM_IN)
     {
         m_dScaleFactor *= ZOOM_INCREMENT;
         QTransform transformation;
         transformation.scale(m_dScaleFactor, m_dScaleFactor);
         setTransform(transformation);
+        emit UpdateZoomLabel();
     }
 }
 
 void CustomGraphicsView::OnZoomOut()
 {
-    if (m_dScaleFactor > MAX_ZOOM_OUT )
+    if (m_dScaleFactor > MAX_ZOOM_OUT)
     {
         m_dScaleFactor *= (1 / ZOOM_INCREMENT);
         QTransform transformation;
         transformation.scale(m_dScaleFactor, m_dScaleFactor);
         setTransform(transformation);
+        emit UpdateZoomLabel();
     }
 }
 

@@ -5,6 +5,7 @@
 
 class CustomGraphicsView : public QGraphicsView
 {
+    Q_OBJECT
 public:
     CustomGraphicsView(QWidget *parent);
     void SetScaleFactorToDefault();
@@ -17,6 +18,9 @@ public:
     static double MAX_ZOOM_IN;
     static double MAX_ZOOM_OUT;
     static double ZOOM_INCREMENT;
+
+signals:
+    void UpdateZoomLabel();
 
 private:
     virtual void wheelEvent(QWheelEvent *event);

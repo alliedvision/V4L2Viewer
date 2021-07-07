@@ -169,8 +169,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_TitleSaveRAW, SIGNAL(triggered()), this, SLOT(OnSaveRAW()));
 
     connect(ui.m_camerasListCheckBox, SIGNAL(clicked()), this, SLOT(OnCameraListButtonClicked()));
-
     connect(ui.m_Splitter1, SIGNAL(splitterMoved(int, int)), this, SLOT(OnMenuSplitterMoved(int, int)));
+
+    connect(ui.m_ImageView, SIGNAL(UpdateZoomLabel()), this, SLOT(OnUpdateZoomLabel()));
 
     m_Camera.DeviceDiscoveryStart();
     connect(ui.m_CamerasListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemDoubleClicked(QListWidgetItem *)));
@@ -804,6 +805,11 @@ void V4L2Viewer::PassLineSelectorValue(int32_t value)
     {
         GetImageInformation();
     }
+}
+
+void V4L2Viewer::OnUpdateZoomLabel()
+{
+    UpdateZoomButtons();
 }
 
 
