@@ -37,6 +37,7 @@
 #include "ui_V4L2Viewer.h"
 #include "ControlsHolderWidget.h"
 #include "ActiveExposureWidget.h"
+#include "CustomGraphicsView.h"
 
 #include <list>
 
@@ -86,8 +87,6 @@ private:
     bool m_bIsOpen;
     // The current streaming state
     bool m_bIsStreaming;
-    //// Our Qt image to display
-    double m_dScaleFactor;
     // Timer to show the frames received from the frame observer
     QTimer m_FramesReceivedTimer;
     // Graphics scene to show the image
@@ -130,8 +129,6 @@ private:
 
     // Official QT dialog close event callback
     virtual void closeEvent(QCloseEvent *event);
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void wheelEvent(QWheelEvent *event);
     virtual void changeEvent(QEvent *event);
 
     // called by master viewer window
@@ -150,8 +147,6 @@ private slots:
     void OnShowFrames();
     // The event handler to close the program
     void OnMenuCloseTriggered();
-    // The event handler to set IO Read
-    void OnUseRead();
     // The event handler to set IO MMAP
     void OnUseMMAP();
     // The event handler to set IO USERPTR
@@ -168,11 +163,13 @@ private slots:
     void OnStartButtonClicked();
     // The event handler for stopping acquisition
     void OnStopButtonClicked();
+
     // The event handler to resize the image to fit to window
     void OnZoomFitButtonClicked();
     // The event handler for resize the image
     void OnZoomInButtonClicked();
     void OnZoomOutButtonClicked();
+
     void OnSaveImageClicked();
     // The event handler to show the frames received
     void OnUpdateFramesReceived();
@@ -204,12 +201,7 @@ private slots:
     void OnFrameSizesDBLClick(QListWidgetItem *);
     void OnGamma();
     void OnBrightness();
-    void OnContrast();
-    void OnSaturation();
-    void OnHue();
     void OnContinousWhiteBalance();
-    void OnRedBalance();
-    void OnBlueBalance();
     void OnFrameRate();
     void OnReadAllValues();
 
@@ -238,18 +230,20 @@ private slots:
 
     void ShowHideEnumerationControlWidget();
 
-    void GetIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, QString unit, bool bIsReadOnly);
-    void GetIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly);
-    void GetBoolDataToEnumerationWidget(int32_t id, bool value, QString name, QString unit, bool bIsReadOnly);
-    void GetButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly);
-    void GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly);
-    void GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
+    void PassIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, QString unit, bool bIsReadOnly);
+    void PassIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly);
+    void PassBoolDataToEnumerationWidget(int32_t id, bool value, QString name, QString unit, bool bIsReadOnly);
+    void PassButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly);
+    void PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly);
+    void PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
 
     void OnExposureActiveClicked();
 
     void PassInvertState(bool state);
     void PassActiveState(bool state);
     void PassLineSelectorValue(int32_t value);
+
+    void OnUpdateZoomLabel();
 };
 
 #endif // V4L2VIEWER_H

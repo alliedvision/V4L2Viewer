@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ButtonEnumerationControl.h"
 #include "ListEnumerationControl.h"
 #include "ListIntEnumerationControl.h"
+#include "CustomGraphicsView.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -47,10 +48,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define NUM_COLORS 3
 #define BIT_DEPTH 8
-
-#define MAX_ZOOM_IN  (16.0)
-#define MAX_ZOOM_OUT (1/8.0)
-#define ZOOM_INCREMENT (2.0)
 
 #define MANUF_NAME_AV       "Allied Vision"
 #define APP_NAME            "Video4Linux2 Viewer"
@@ -89,7 +86,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_nStreamNumber(0)
     , m_bIsOpen(false)
     , m_bIsStreaming(false)
-    , m_dScaleFactor(1.0)
     , m_bIsFixedRate(false)
     , m_sliderGainValue(0)
     , m_sliderBlackLevelValue(0)
@@ -117,13 +113,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     else
         ui.m_MenuOpenNextViewer->setEnabled(false);
 
-    // Initialization of the Settings widget
-    QWidgetAction *widgetAction = new QWidgetAction(this);
-    m_pSettingsActionWidget = new SettingsActionWidget(this);
-    m_pSettingsMenu = new QMenu(this);
-    widgetAction->setDefaultWidget(m_pSettingsActionWidget);
-    m_pSettingsMenu->addAction(widgetAction);
-
     // Connect GUI events with event handlers
     connect(ui.m_OpenCloseButton,             SIGNAL(clicked()),         this, SLOT(OnOpenCloseButtonClicked()));
     connect(ui.m_StartButton,                 SIGNAL(clicked()),         this, SLOT(OnStartButtonClicked()));
@@ -132,29 +121,26 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_ZoomInButton,                SIGNAL(clicked()),         this, SLOT(OnZoomInButtonClicked()));
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
-
     connect(ui.m_ExposureActiveButton,        SIGNAL(clicked()),         this, SLOT(OnExposureActiveClicked()));
 
     SetTitleText();
 
     // Start Camera
     connect(&m_Camera, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
-    connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
-    connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)), this, SLOT(OnCameraPixelFormat(const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)), this, SLOT(OnCameraFrameSize(const QString &)));
+    connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)),                                       this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
+    connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)),                                                          this, SLOT(OnFrameID(const unsigned long long &)));
+    connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &)));
+    connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)),                                                                   this, SLOT(OnCameraFrameSize(const QString &)));
 
     connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
     connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)));
 
-    connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)), this, SLOT(GetIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)));
-    connect(&m_Camera, SIGNAL(SentInt64DataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)), this, SLOT(GetIntDataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)));
-
-    connect(&m_Camera, SIGNAL(SendBoolDataToEnumerationWidget(int32_t, bool, QString, QString, bool)), this, SLOT(GetBoolDataToEnumerationWidget(int32_t, bool, QString, QString, bool)));
-    connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(int32_t, QString, QString, bool)), this, SLOT(GetButtonDataToEnumerationWidget(int32_t, QString, QString, bool)));
-
-    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)), this, SLOT(GetListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)));
-    connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)), this, SLOT(GetListDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)),      this, SLOT(PassIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SentInt64DataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)),    this, SLOT(PassIntDataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendBoolDataToEnumerationWidget(int32_t, bool, QString, QString, bool)),                          this, SLOT(PassBoolDataToEnumerationWidget(int32_t, bool, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(int32_t, QString, QString, bool)),                              this, SLOT(PassButtonDataToEnumerationWidget(int32_t, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)),       this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)),    this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)));
 
     connect(&m_Camera, SIGNAL(SendSignalToUpdateWidgets()), this, SLOT(OnReadAllValues()));
 
@@ -162,16 +148,15 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_BlockingModeRadioButtonGroup = new QButtonGroup(this);
     m_BlockingModeRadioButtonGroup->setExclusive(true);
 
-    connect(ui.m_sliderExposure,    SIGNAL(valueChanged(int)), this, SLOT(OnSliderExposureValueChange(int)));
-    connect(ui.m_sliderGain,        SIGNAL(valueChanged(int)), this, SLOT(OnSliderGainValueChange(int)));
-    connect(ui.m_sliderBlackLevel,  SIGNAL(valueChanged(int)), this, SLOT(OnSliderBlackLevelValueChange(int)));
-    connect(ui.m_sliderGamma,       SIGNAL(valueChanged(int)), this, SLOT(OnSliderGammaValueChange(int)));
-    connect(ui.m_sliderExposure,    SIGNAL(sliderReleased()), this, SLOT(OnSlidersReleased()));
-    connect(ui.m_sliderGain,        SIGNAL(sliderReleased()), this, SLOT(OnSlidersReleased()));
-    connect(ui.m_sliderBlackLevel,  SIGNAL(sliderReleased()), this, SLOT(OnSlidersReleased()));
-    connect(ui.m_sliderGamma,       SIGNAL(sliderReleased()), this, SLOT(OnSlidersReleased()));
+    connect(ui.m_sliderExposure,    SIGNAL(valueChanged(int)),  this, SLOT(OnSliderExposureValueChange(int)));
+    connect(ui.m_sliderGain,        SIGNAL(valueChanged(int)),  this, SLOT(OnSliderGainValueChange(int)));
+    connect(ui.m_sliderBlackLevel,  SIGNAL(valueChanged(int)),  this, SLOT(OnSliderBlackLevelValueChange(int)));
+    connect(ui.m_sliderGamma,       SIGNAL(valueChanged(int)),  this, SLOT(OnSliderGammaValueChange(int)));
+    connect(ui.m_sliderExposure,    SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
+    connect(ui.m_sliderGain,        SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
+    connect(ui.m_sliderBlackLevel,  SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
+    connect(ui.m_sliderGamma,       SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
 
-    connect(ui.m_TitleUseRead, SIGNAL(triggered()), this, SLOT(OnUseRead()));
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseUSERPTR, SIGNAL(triggered()), this, SLOT(OnUseUSERPTR()));
     connect(ui.m_TitleEnable_VIDIOC_TRY_FMT, SIGNAL(triggered()), this, SLOT(OnUseVIDIOC_TRY_FMT()));
@@ -184,8 +169,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_TitleSaveRAW, SIGNAL(triggered()), this, SLOT(OnSaveRAW()));
 
     connect(ui.m_camerasListCheckBox, SIGNAL(clicked()), this, SLOT(OnCameraListButtonClicked()));
-
     connect(ui.m_Splitter1, SIGNAL(splitterMoved(int, int)), this, SLOT(OnMenuSplitterMoved(int, int)));
+
+    connect(ui.m_ImageView, SIGNAL(UpdateZoomLabel()), this, SLOT(OnUpdateZoomLabel()));
 
     m_Camera.DeviceDiscoveryStart();
     connect(ui.m_CamerasListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemDoubleClicked(QListWidgetItem *)));
@@ -209,12 +195,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
     connect(ui.m_edBlackLevel, SIGNAL(returnPressed()), this, SLOT(OnBrightness()));
 
-    connect(m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget(),    SIGNAL(returnPressed()), this, SLOT(OnRedBalance()));
-    connect(m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget(),   SIGNAL(returnPressed()), this, SLOT(OnBlueBalance()));
-    connect(m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget(),    SIGNAL(returnPressed()), this, SLOT(OnSaturation()));
-    connect(m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget(),           SIGNAL(returnPressed()), this, SLOT(OnHue()));
-    connect(m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget(),      SIGNAL(returnPressed()), this, SLOT(OnContrast()));
-
     connect(ui.m_chkContWhiteBalance, SIGNAL(clicked()), this, SLOT(OnContinousWhiteBalance()));
     connect(ui.m_edFrameRate, SIGNAL(returnPressed()), this, SLOT(OnFrameRate()));
     connect(ui.m_edCropXOffset, SIGNAL(returnPressed()), this, SLOT(OnCropXOffset()));
@@ -229,6 +209,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_ActiveExposureWidget, SIGNAL(SendActiveState(bool)), this, SLOT(PassActiveState(bool)));
     connect(&m_ActiveExposureWidget, SIGNAL(SendLineSelectorValue(int32_t)), this, SLOT(PassLineSelectorValue(int32_t)));
 
+    connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
+
     // Set the splitter stretch factors
     ui.m_Splitter1->setStretchFactor(0, 45);
     ui.m_Splitter1->setStretchFactor(1, 55);
@@ -241,6 +223,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     m_PixmapItem = new QGraphicsPixmapItem();
 
     ui.m_ImageView->setScene(m_pScene.data());
+    ui.m_ImageView->SetPixmapItem(m_PixmapItem);
 
     m_pScene->addItem(m_PixmapItem);
 
@@ -294,14 +277,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
 
     // set check boxes state for mmap according to variable m_MMAP_BUFFER
-    if (IO_METHOD_READ == m_MMAP_BUFFER)
-    {
-        ui.m_TitleUseRead->setChecked(true);
-    }
-    else
-    {
-        ui.m_TitleUseRead->setChecked(false);
-    }
 
     if (IO_METHOD_USERPTR == m_MMAP_BUFFER)
     {
@@ -322,14 +297,14 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     }
 
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
-
-    connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
-
     ui.m_camerasListCheckBox->setChecked(true);
-
     m_EnumerationControlWidget.hide();
 
     ui.m_ImageControlFrame->setEnabled(false);
+    ui.m_FlipHorizontalCheckBox->setEnabled(false);
+    ui.m_FlipVerticalCheckBox->setEnabled(false);
+    ui.m_DisplayImagesCheckBox->setEnabled(false);
+    ui.m_SaveImageButton->setEnabled(false);
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -347,22 +322,12 @@ void V4L2Viewer::OnMenuCloseTriggered()
     close();
 }
 
-void V4L2Viewer::OnUseRead()
-{
-    m_MMAP_BUFFER = IO_METHOD_READ;
-
-    ui.m_TitleUseMMAP->setChecked(false);
-    ui.m_TitleUseUSERPTR->setChecked(false);
-    ui.m_TitleUseRead->setChecked(true);
-}
-
 void V4L2Viewer::OnUseMMAP()
 {
     m_MMAP_BUFFER = IO_METHOD_MMAP;
 
     ui.m_TitleUseMMAP->setChecked(true);
     ui.m_TitleUseUSERPTR->setChecked(false);
-    ui.m_TitleUseRead->setChecked(false);
 }
 
 void V4L2Viewer::OnUseUSERPTR()
@@ -371,7 +336,6 @@ void V4L2Viewer::OnUseUSERPTR()
 
     ui.m_TitleUseMMAP->setChecked(false);
     ui.m_TitleUseUSERPTR->setChecked(true);
-    ui.m_TitleUseRead->setChecked(false);
 }
 
 void V4L2Viewer::OnUseVIDIOC_TRY_FMT()
@@ -422,50 +386,17 @@ void V4L2Viewer::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void V4L2Viewer::wheelEvent(QWheelEvent *event)
-{
-    if (event->modifiers().testFlag(Qt::ControlModifier))
-    {
-        event->accept();
-        if (event->delta() > 0)
-            OnZoomOutButtonClicked();
-        else
-            OnZoomInButtonClicked();
-    }
-    else
-        event->ignore();
-}
-
 void V4L2Viewer::changeEvent(QEvent *event)
 {
     if (event->type() == QEvent::LanguageChange)
     {
         ui.retranslateUi(this);
         m_pAboutWidget->UpdateStrings();
+        SetTitleText();
     }
     else
     {
         QMainWindow::changeEvent(event);
-    }
-}
-
-void V4L2Viewer::mousePressEvent(QMouseEvent *event)
-{
-    QPoint imageViewPoint = ui.m_ImageView->mapFrom(this, event->pos());
-    QPointF imageScenePointF = ui.m_ImageView->mapToScene(imageViewPoint);
-
-    if (m_PixmapItem != nullptr && m_PixmapItem->pixmap().rect().contains(imageScenePointF.toPoint()))
-    {
-        if (m_dScaleFactor >= 1)
-        {
-            QImage image = m_PixmapItem->pixmap().toImage();
-            QColor myPixel = image.pixel(static_cast<int>(imageScenePointF.x()), static_cast<int>(imageScenePointF.y()));
-            QToolTip::showText(ui.m_ImageView->mapToGlobal(imageViewPoint), QString("x:%1, y:%2, r:%3/g:%4/b:%5")
-                               .arg(static_cast<int>(imageScenePointF.x())).arg(static_cast<int>(imageScenePointF.y()))
-                               .arg(myPixel.red())
-                               .arg(myPixel.green())
-                               .arg(myPixel.blue()), this);
-        }
     }
 }
 
@@ -510,6 +441,11 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
                 ui.m_Splitter1->setSizes(QList<int>{0,1});
                 ui.m_camerasListCheckBox->setChecked(false);
+                ui.m_ImageView->SetZoomAllowed(true);
+                ui.m_FlipHorizontalCheckBox->setEnabled(true);
+                ui.m_FlipVerticalCheckBox->setEnabled(true);
+                ui.m_DisplayImagesCheckBox->setEnabled(true);
+                ui.m_SaveImageButton->setEnabled(true);
             }
             else
                 CloseCamera(m_cameras[nRow]);
@@ -526,7 +462,13 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 OnStopButtonClicked();
             }
 
-            m_dScaleFactor = 1.0;
+            ui.m_ImageView->SetScaleFactorToDefault();
+            ui.m_ImageView->SetZoomAllowed(false);
+
+            ui.m_FlipHorizontalCheckBox->setEnabled(false);
+            ui.m_FlipVerticalCheckBox->setEnabled(false);
+            ui.m_DisplayImagesCheckBox->setEnabled(false);
+            ui.m_SaveImageButton->setEnabled(false);
 
             err = CloseCamera(m_cameras[nRow]);
             if (0 == err)
@@ -560,7 +502,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
@@ -741,7 +682,7 @@ void V4L2Viewer::ShowHideEnumerationControlWidget()
     }
 }
 
-void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -761,7 +702,7 @@ void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t 
     }
 }
 
-void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -781,7 +722,7 @@ void V4L2Viewer::GetIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t 
     }
 }
 
-void V4L2Viewer::GetBoolDataToEnumerationWidget(int32_t id, bool value, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassBoolDataToEnumerationWidget(int32_t id, bool value, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -800,7 +741,7 @@ void V4L2Viewer::GetBoolDataToEnumerationWidget(int32_t id, bool value, QString 
     }
 }
 
-void V4L2Viewer::GetButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -810,7 +751,7 @@ void V4L2Viewer::GetButtonDataToEnumerationWidget(int32_t id, QString name, QStr
     }
 }
 
-void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -829,7 +770,7 @@ void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, int32_t value, QList
     }
 }
 
-void V4L2Viewer::GetListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
     {
@@ -880,6 +821,11 @@ void V4L2Viewer::PassLineSelectorValue(int32_t value)
     }
 }
 
+void V4L2Viewer::OnUpdateZoomLabel()
+{
+    UpdateZoomButtons();
+}
+
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
@@ -887,7 +833,6 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
-    ui.m_SaveImageButton->setEnabled(false);
     ui.m_fixedRateStartButton->setEnabled(false);
     QApplication::processEvents();
 
@@ -924,7 +869,6 @@ void V4L2Viewer::OnStopButtonClicked()
 {
     // disable the stop button to show that the stop acquisition is in process
     ui.m_StopButton->setEnabled(false);
-    ui.m_SaveImageButton->setEnabled(true);
     ui.m_fixedRateStartButton->setEnabled(true);
 
     m_Camera.StopStreamChannel();
@@ -939,47 +883,6 @@ void V4L2Viewer::OnStopButtonClicked()
     m_FramesReceivedTimer.stop();
 
     m_Camera.DeleteUserBuffer();
-}
-
-// The event handler to resize the image to fit to window
-void V4L2Viewer::OnZoomFitButtonClicked()
-{
-    if (ui.m_ZoomFitButton->isChecked())
-    {
-        ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
-    }
-    else
-    {
-        QTransform transformation;
-        transformation.scale(m_dScaleFactor, m_dScaleFactor);
-        ui.m_ImageView->setTransform(transformation);
-    }
-
-    UpdateZoomButtons();
-}
-
-// The event handler for resize the image
-void V4L2Viewer::OnZoomInButtonClicked()
-{
-    m_dScaleFactor *= ZOOM_INCREMENT;
-
-    QTransform transformation;
-    transformation.scale(m_dScaleFactor, m_dScaleFactor);
-    ui.m_ImageView->setTransform(transformation);
-
-    UpdateZoomButtons();
-}
-
-// The event handler for resize the image
-void V4L2Viewer::OnZoomOutButtonClicked()
-{
-    m_dScaleFactor *= (1 / ZOOM_INCREMENT);
-
-    QTransform transformation;
-    transformation.scale(m_dScaleFactor, m_dScaleFactor);
-    ui.m_ImageView->setTransform(transformation);
-
-    UpdateZoomButtons();
 }
 
 void V4L2Viewer::OnSaveImageClicked()
@@ -1085,7 +988,6 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
     ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
@@ -1142,7 +1044,6 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseRead->setEnabled( !m_bIsOpen );
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
@@ -1189,12 +1090,41 @@ void V4L2Viewer::UpdateViewerLayout()
     UpdateZoomButtons();
 }
 
+// The event handler to resize the image to fit to window
+void V4L2Viewer::OnZoomFitButtonClicked()
+{
+    if (ui.m_ZoomFitButton->isChecked())
+    {
+        ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
+    }
+    else
+    {
+        ui.m_ImageView->TransformImageView();
+    }
+
+    UpdateZoomButtons();
+}
+
+// The event handler for resize the image
+void V4L2Viewer::OnZoomInButtonClicked()
+{
+    ui.m_ImageView->OnZoomIn();
+    UpdateZoomButtons();
+}
+
+// The event handler for resize the image
+void V4L2Viewer::OnZoomOutButtonClicked()
+{
+    ui.m_ImageView->OnZoomOut();
+    UpdateZoomButtons();
+}
+
 // Update the zoom buttons
 void V4L2Viewer::UpdateZoomButtons()
 {
     ui.m_ZoomFitButton->setEnabled(m_bIsOpen);
 
-    if (m_dScaleFactor >= MAX_ZOOM_IN)
+    if (ui.m_ImageView->GetScaleFactorValue() >= CustomGraphicsView::MAX_ZOOM_IN)
     {
         ui.m_ZoomInButton->setEnabled(false);
     }
@@ -1203,7 +1133,7 @@ void V4L2Viewer::UpdateZoomButtons()
         ui.m_ZoomInButton->setEnabled(true && m_bIsOpen && !ui.m_ZoomFitButton->isChecked());
     }
 
-    if (m_dScaleFactor <= MAX_ZOOM_OUT)
+    if (ui.m_ImageView->GetScaleFactorValue() <= CustomGraphicsView::MAX_ZOOM_OUT)
     {
         ui.m_ZoomOutButton->setEnabled(false);
     }
@@ -1212,7 +1142,7 @@ void V4L2Viewer::UpdateZoomButtons()
         ui.m_ZoomOutButton->setEnabled(true && m_bIsOpen && !ui.m_ZoomFitButton->isChecked());
     }
 
-    ui.m_ZoomLabel->setText(QString("%1%").arg(m_dScaleFactor * 100));
+    ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
     ui.m_ZoomLabel->setEnabled(m_bIsOpen && m_bIsStreaming && !ui.m_ZoomFitButton->isChecked());
 }
 
@@ -1456,94 +1386,9 @@ void V4L2Viewer::OnBrightness()
     }
 }
 
-void V4L2Viewer::OnContrast()
-{
-    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->text().toLongLong());
-
-    if (m_Camera.SetContrast(nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE contrast!") );
-        m_Camera.ReadContrast(tmp);
-        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::OnSaturation()
-{
-    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->text().toLongLong());
-
-    if (m_Camera.SetSaturation(nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE saturation!") );
-        m_Camera.ReadSaturation(tmp);
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::OnHue()
-{
-    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->text().toLongLong());
-
-    if (m_Camera.SetHue(nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE hue!") );
-        m_Camera.ReadHue(tmp);
-        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
-    }
-}
-
 void V4L2Viewer::OnContinousWhiteBalance()
 {
     m_Camera.SetContinousWhiteBalance(ui.m_chkContWhiteBalance->isChecked());
-}
-
-void V4L2Viewer::OnRedBalance()
-{
-    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->text().toLongLong());
-
-    if (m_Camera.SetRedBalance((uint32_t)nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE red balance!") );
-        m_Camera.ReadRedBalance(tmp);
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::OnBlueBalance()
-{
-    int32_t nVal = int64_2_int32(m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->text().toLongLong());
-
-    if (m_Camera.SetBlueBalance((uint32_t)nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE blue balance!") );
-        m_Camera.ReadBlueBalance(tmp);
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
-    }
 }
 
 void V4L2Viewer::OnFrameRate()
@@ -1886,71 +1731,6 @@ void V4L2Viewer::GetImageInformation()
         ui.m_sliderBlackLevel->setEnabled(false);
     }
 
-    nSVal = 0;
-    if (m_Camera.ReadContrast(nSVal) != -2)
-    {
-        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetContrastWidget()->GetLabelWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        m_pSettingsActionWidget->GetContrastWidget()->GetLineEditWidget()->setEnabled(false);
-        m_pSettingsActionWidget->GetContrastWidget()->GetLabelWidget()->setEnabled(false);
-    }
-
-    nSVal = 0;
-    if (m_Camera.ReadSaturation(nSVal) != -2)
-    {
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLabelWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLineEditWidget()->setEnabled(false);
-        m_pSettingsActionWidget->GetSaturationWidget()->GetLabelWidget()->setEnabled(false);
-    }
-
-    nSVal = 0;
-    if (m_Camera.ReadHue(nSVal) != -2)
-    {
-        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetHueWidget()->GetLabelWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        m_pSettingsActionWidget->GetHueWidget()->GetLineEditWidget()->setEnabled(false);
-        m_pSettingsActionWidget->GetHueWidget()->GetLabelWidget()->setEnabled(false);
-    }
-
-    nSVal = 0;
-    if (m_Camera.ReadRedBalance(nSVal) != -2)
-    {
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLabelWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLineEditWidget()->setEnabled(false);
-        m_pSettingsActionWidget->GetRedBalanceWidget()->GetLabelWidget()->setEnabled(false);
-    }
-
-    nSVal = 0;
-    if (m_Camera.ReadBlueBalance(nSVal) != -2)
-    {
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLabelWidget()->setEnabled(true);
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLineEditWidget()->setEnabled(false);
-        m_pSettingsActionWidget->GetBlueBalanceWidget()->GetLabelWidget()->setEnabled(false);
-    }
-
     m_Camera.ReadFrameSize(width, height);
     m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
     if (m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat) != -2)
@@ -2089,32 +1869,14 @@ void V4L2Viewer::Check4IOReadAbility()
         m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
         m_Camera.GetCameraReadCapability(ioRead);
         m_Camera.CloseDevice();
-
-        if (!ioRead)
-        {
-            ui.m_TitleUseRead->setEnabled( false );
-        }
-        else
-        {
-            ui.m_TitleUseRead->setEnabled( true );
-        }
-        if (!ioRead && ui.m_TitleUseRead->isChecked())
-        {
-            QMessageBox::warning( this, tr("V4L2 Test"), tr("IO Read not available with this camera. V4L2_CAP_VIDEO_CAPTURE not set. Switched to IO MMAP."));
-
-            ui.m_TitleUseRead->setChecked( false );
-            ui.m_TitleUseMMAP->setEnabled( true );
-            ui.m_TitleUseMMAP->setChecked( true );
-            m_MMAP_BUFFER = IO_METHOD_MMAP;
-        }
     }
 }
 
 void V4L2Viewer::SetTitleText()
 {
     if (VIEWER_MASTER == m_nViewerNumber)
-        setWindowTitle(QString("%1 V%2.%3.%4").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
+        setWindowTitle(QString(tr("%1 V%2.%3.%4")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
     else
-        setWindowTitle(QString("%1 V%2.%3.%4 - %5. viewer").arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(m_nViewerNumber));
+        setWindowTitle(QString(tr("%1 V%2.%3.%4 - %5. viewer")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(m_nViewerNumber));
 }
 

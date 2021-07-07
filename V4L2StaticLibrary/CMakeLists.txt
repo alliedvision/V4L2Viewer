@@ -11,7 +11,6 @@ ${HEADERS_PATH}/CameraObserver.h
 ${HEADERS_PATH}/DeviationCalculator.h
 ${HEADERS_PATH}/FrameObserver.h
 ${HEADERS_PATH}/FrameObserverMMAP.h
-${HEADERS_PATH}/FrameObserverRead.h
 ${HEADERS_PATH}/FrameObserverUSER.h
 ${HEADERS_PATH}/ImageProcessingThread.h
 ${HEADERS_PATH}/ImageTransform.h
@@ -27,7 +26,6 @@ ${HEADERS_PATH}/V4L2Helper.h
 ${HEADERS_PATH}/V4L2Viewer.h
 ${HEADERS_PATH}/videodev2_av.h
 ${HEADERS_PATH}/AboutWidget.h
-${HEADERS_PATH}/SettingsActionWidget.h
 ${HEADERS_PATH}/CameraListCustomItem.h
 ${HEADERS_PATH}/CustomOptionWidget.h
 ${HEADERS_PATH}/AutoReader.h
@@ -42,6 +40,7 @@ ${HEADERS_PATH}/EnumeratorInterface/ButtonEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ListEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ListIntEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ControlEditWidget.h
+${HEADERS_PATH}/CustomGraphicsView.h
 )
 
 list(APPEND SOURCE_FILES
@@ -51,7 +50,6 @@ ${SOURCES_PATH}/CameraObserver.cpp
 ${SOURCES_PATH}/DeviationCalculator.cpp
 ${SOURCES_PATH}/FrameObserver.cpp
 ${SOURCES_PATH}/FrameObserverMMAP.cpp
-${SOURCES_PATH}/FrameObserverRead.cpp
 ${SOURCES_PATH}/FrameObserverUSER.cpp
 ${SOURCES_PATH}/ImageProcessingThread.cpp
 ${SOURCES_PATH}/ImageTransform.cpp
@@ -63,7 +61,6 @@ ${SOURCES_PATH}/Thread.cpp
 ${SOURCES_PATH}/V4L2Helper.cpp
 ${SOURCES_PATH}/V4L2Viewer.cpp
 ${SOURCES_PATH}/AboutWidget.cpp
-${SOURCES_PATH}/SettingsActionWidget.cpp
 ${SOURCES_PATH}/CameraListCustomItem.cpp
 ${SOURCES_PATH}/CustomOptionWidget.cpp
 ${SOURCES_PATH}/AutoReader.cpp
@@ -78,6 +75,7 @@ ${SOURCES_PATH}/EnumeratorInterface/ButtonEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ListEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ListIntEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ControlEditWidget.cpp
+${SOURCES_PATH}/CustomGraphicsView.cpp
 )
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${RESOURCES_PATH}/Forms)

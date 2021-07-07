@@ -9,6 +9,130 @@
     </message>
 </context>
 <context>
+    <name>ActiveExposureWidget</name>
+    <message>
+        <source>Exposure Active</source>
+        <translation>Belichtung aktiv</translation>
+    </message>
+    <message>
+        <source>Invert</source>
+        <translation>Umkehren</translation>
+    </message>
+    <message>
+        <source>Active</source>
+        <translation>Aktiv</translation>
+    </message>
+</context>
+<context>
+    <name>BooleanEnumerationControl</name>
+    <message>
+        <source>%1 control accepts boolean values. 
+ Unit: %2</source>
+        <translation>Das %1-Steuerelement akzeptiert boolesche Werte.
+ Einheit %2</translation>
+    </message>
+    <message>
+        <source>
+ Control is READONLY</source>
+        <translation>
+ Die Steuerung ist NUR LESEN</translation>
+    </message>
+</context>
+<context>
+    <name>ButtonEnumerationControl</name>
+    <message>
+        <source>%1 control performs action after clicking button below. 
+ Unit: %2</source>
+        <translation>Das %1-Steuerelement führt eine Aktion aus, nachdem es auf die Schaltfläche unten geklickt hat.
+ Einheit: %2</translation>
+    </message>
+</context>
+<context>
+    <name>ControlsHolderWidget</name>
+    <message>
+        <source>All Features Window</source>
+        <translation>Alle Funktionen Fenster</translation>
+    </message>
+    <message>
+        <source>Some Text here &lt;br&gt;
+Some Text here &lt;br&gt;
+Some Text here &lt;br&gt;
+Some Text here &lt;br&gt;
+Some Text here &lt;br&gt;
+Some Text here &lt;br&gt;
+</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>Integer64EnumerationControl</name>
+    <message>
+        <source>%1 control accepts 64-bit integers. 
+ Minimum: %2 
+ Maximum: %3 
+ Unit: %4</source>
+        <translation>Das %1-Steuerelement akzeptiert 64-Bit-Ganzzahlen.
+ Mindestens: %2
+ Maximum: %3
+ Einheit %4</translation>
+    </message>
+    <message>
+        <source>
+ Control is READONLY</source>
+        <translation>
+ Die Steuerung ist NUR LESEN</translation>
+    </message>
+</context>
+<context>
+    <name>IntegerEnumerationControl</name>
+    <message>
+        <source>%1 control accepts 32-bit integers. 
+ Minimum: %2 
+ Maximum: %3 
+ Unit: %4</source>
+        <translation>Das %1-Steuerelement akzeptiert 32-Bit-Ganzzahlen.
+ Mindestens: %2
+ Maximum: %3
+ Einheit %4</translation>
+    </message>
+    <message>
+        <source>
+ Control is READONLY</source>
+        <translation>
+ Die Steuerung ist NUR LESEN</translation>
+    </message>
+</context>
+<context>
+    <name>ListEnumerationControl</name>
+    <message>
+        <source>%1 control is represented as list of strings. 
+ Unit: %2</source>
+        <translation>%1-Steuerelement wird als Liste von Zeichenfolgen dargestellt.
+ Einheit %2</translation>
+    </message>
+    <message>
+        <source>
+ Control is READONLY</source>
+        <translation>
+ Die Steuerung ist NUR LESEN</translation>
+    </message>
+</context>
+<context>
+    <name>ListIntEnumerationControl</name>
+    <message>
+        <source>%1 control is represented as list of integers. 
+ Unit: %2</source>
+        <translation>Das %1-Steuerelement wird als Liste von Ganzzahlen dargestellt.
+ Einheit %2</translation>
+    </message>
+    <message>
+        <source>
+ Control is READONLY</source>
+        <translation>
+ Die Steuerung ist NUR LESEN</translation>
+    </message>
+</context>
+<context>
     <name>V4L2Viewer</name>
     <message>
         <source>Video4Linux</source>
@@ -32,23 +156,23 @@
     </message>
     <message>
         <source>FAILED TO SAVE contrast!</source>
-        <translation>Kontrast konnte nicht gespeichert werden!</translation>
+        <translation type="vanished">Kontrast konnte nicht gespeichert werden!</translation>
     </message>
     <message>
         <source>FAILED TO SAVE saturation!</source>
-        <translation>Die Sättigung konnte nicht gespeichert werden!</translation>
+        <translation type="vanished">Die Sättigung konnte nicht gespeichert werden!</translation>
     </message>
     <message>
         <source>FAILED TO SAVE hue!</source>
-        <translation>Farbton konnte nicht gespeichert werden!</translation>
+        <translation type="vanished">Farbton konnte nicht gespeichert werden!</translation>
     </message>
     <message>
         <source>FAILED TO SAVE red balance!</source>
-        <translation>Rotguthaben konnte nicht gespeichert werden!</translation>
+        <translation type="vanished">Rotguthaben konnte nicht gespeichert werden!</translation>
     </message>
     <message>
         <source>FAILED TO SAVE blue balance!</source>
-        <translation>Fehler beim Speichern des blauen Gleichgewichts!</translation>
+        <translation type="vanished">Fehler beim Speichern des blauen Gleichgewichts!</translation>
     </message>
     <message>
         <source>Missing parameter. Format: 1/100!</source>
@@ -60,11 +184,11 @@
     </message>
     <message>
         <source>V4L2 Test</source>
-        <translation>V4L2 Test</translation>
+        <translation type="vanished">V4L2 Test</translation>
     </message>
     <message>
         <source>IO Read not available with this camera. V4L2_CAP_VIDEO_CAPTURE not set. Switched to IO MMAP.</source>
-        <translation>O Read ist mit dieser Kamera nicht verfügbar. V4L2_CAP_VIDEO_CAPTURE nicht festgelegt. Auf IO MMAP umgestellt.</translation>
+        <translation type="vanished">O Read ist mit dieser Kamera nicht verfügbar. V4L2_CAP_VIDEO_CAPTURE nicht festgelegt. Auf IO MMAP umgestellt.</translation>
     </message>
     <message>
         <source>Language has been already set!</source>
@@ -120,11 +244,35 @@
     </message>
     <message>
         <source>Kernel version = %1</source>
-        <translation>Kernel-Version = %1</translation>
+        <translation type="vanished">Kernel-Version = %1</translation>
     </message>
     <message>
         <source>Capabilities = %1</source>
         <translation>Fähigkeiten = %1</translation>
+    </message>
+    <message>
+        <source>FAILED TO SAVE Gain!</source>
+        <translation>Gewinn konnte nicht gespeichert werden!</translation>
+    </message>
+    <message>
+        <source>FAILED TO SAVE Exposure!</source>
+        <translation>Die Belichtung konnte nicht gespeichert werden!</translation>
+    </message>
+    <message>
+        <source>FAILED TO SAVE ExposureAbs!</source>
+        <translation>Fehler beim Speichern von ExpositionAbs!</translation>
+    </message>
+    <message>
+        <source>Driver version = %1</source>
+        <translation>Treiberversion = %1</translation>
+    </message>
+    <message>
+        <source>%1 V%2.%3.%4</source>
+        <translation>%1 V%2.%3.%4</translation>
+    </message>
+    <message>
+        <source>%1 V%2.%3.%4 - %5. viewer</source>
+        <translation>%1 V%2.%3.%4 - %5. zuschauer</translation>
     </message>
 </context>
 <context>
@@ -261,7 +409,7 @@
     </message>
     <message>
         <source>Gain:</source>
-        <translation>Dazugewinnen:</translation>
+        <translation type="vanished">Dazugewinnen:</translation>
     </message>
     <message>
         <source>Exposure:</source>
@@ -277,7 +425,7 @@
     </message>
     <message>
         <source>WhiteBalance</source>
-        <translation>Weißabgleich</translation>
+        <translation type="vanished">Weißabgleich</translation>
     </message>
     <message>
         <source>BlueBalance:</source>
@@ -333,7 +481,7 @@
     </message>
     <message>
         <source>PixelFormat:</source>
-        <translation>PixelFormat:</translation>
+        <translation type="vanished">PixelFormat:</translation>
     </message>
     <message>
         <source>top:</source>
@@ -487,12 +635,12 @@
     </message>
     <message>
         <source>IO Read Method</source>
-        <translation>E / A-Lesemethode</translation>
+        <translation type="vanished">E / A-Lesemethode</translation>
     </message>
     <message>
         <source>&lt;p&gt;&lt;b&gt;IO Read&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Clicking this button will change buffer into IO Read.&lt;/span&gt;</source>
-        <translation>&lt;p&gt;&lt;b&gt;IO lesen&lt;/b&gt;&lt;/p&gt;
+        <translation type="vanished">&lt;p&gt;&lt;b&gt;IO lesen&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Durch Klicken auf diese Schaltfläche wird der Puffer in E / A-Lesen geändert.&lt;/span&gt;</translation>
     </message>
     <message>
@@ -525,7 +673,7 @@
     </message>
     <message>
         <source>BlackLevel:</source>
-        <translation>Schwarzwert:</translation>
+        <translation type="vanished">Schwarzwert:</translation>
     </message>
     <message>
         <source>All Features</source>
@@ -533,7 +681,7 @@
     </message>
     <message>
         <source>ExposureAbs[100*μs]:</source>
-        <translation>ExposureAbs[100*μs]:</translation>
+        <translation type="vanished">ExposureAbs[100*μs]:</translation>
     </message>
     <message>
         <source>Exposure[ns]:</source>
@@ -541,7 +689,7 @@
     </message>
     <message>
         <source>FrameInterval/FPS:</source>
-        <translation>FrameInterval/FPS:</translation>
+        <translation type="vanished">FrameInterval/FPS:</translation>
     </message>
     <message>
         <source>Save Format</source>
@@ -558,6 +706,38 @@
     <message>
         <source>Save in RAW</source>
         <translation>In RAW speichern</translation>
+    </message>
+    <message>
+        <source>Frame Interval/FPS:</source>
+        <translation>Bildintervall/FPS:</translation>
+    </message>
+    <message>
+        <source>Pixel Format:</source>
+        <translation>Pixelformat:</translation>
+    </message>
+    <message>
+        <source>Black Level:</source>
+        <translation>Schwarzwert:</translation>
+    </message>
+    <message>
+        <source>White Balance</source>
+        <translation>Weißabgleich</translation>
+    </message>
+    <message>
+        <source>Exposure Absolute[100μs]:</source>
+        <translation>Belichtung absolut[100μs]:</translation>
+    </message>
+    <message>
+        <source>Gain[1/100dB]:</source>
+        <translation>Verstärkung[1/100dB]:</translation>
+    </message>
+    <message>
+        <source>Exposure Active</source>
+        <translation>Belichtung aktiv</translation>
+    </message>
+    <message>
+        <source>ExposureAbs[100μs]:</source>
+        <translation type="vanished">BelichtungAbs[100μs]:</translation>
     </message>
 </context>
 </TS>

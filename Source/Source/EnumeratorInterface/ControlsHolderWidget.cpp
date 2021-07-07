@@ -13,26 +13,26 @@ void ControlsHolderWidget::AddElement(IControlEnumerationHolder *controlWidget)
     QListWidgetItem *item = new QListWidgetItem(ui.m_ControlsList);
     item->setSizeHint(controlWidget->sizeHint());
     ui.m_ControlsList->setItemWidget(item, controlWidget);
-    itemVector.append(controlWidget);
+    m_itemVector.append(controlWidget);
     ui.m_ControlsList->blockSignals(false);
 }
 
 void ControlsHolderWidget::RemoveElements()
 {
     ui.m_ControlsList->blockSignals(true);
-    for (QVector<IControlEnumerationHolder*>::iterator it = itemVector.begin(); it<itemVector.end(); ++it)
+    for (QVector<IControlEnumerationHolder*>::iterator it = m_itemVector.begin(); it<m_itemVector.end(); ++it)
     {
         delete *it;
         *it = nullptr;
     }
     ui.m_ControlsList->clear();
-    itemVector.clear();
+    m_itemVector.clear();
     ui.m_ControlsList->blockSignals(false);
 }
 
 bool ControlsHolderWidget::IsControlAlreadySet(int32_t id)
 {
-    for (QVector<IControlEnumerationHolder*>::iterator it = itemVector.begin(); it<itemVector.end(); ++it)
+    for (QVector<IControlEnumerationHolder*>::iterator it = m_itemVector.begin(); it<m_itemVector.end(); ++it)
     {
         if((*it)->GetWidgetControlId() == id)
         {
@@ -44,7 +44,7 @@ bool ControlsHolderWidget::IsControlAlreadySet(int32_t id)
 
 IControlEnumerationHolder* ControlsHolderWidget::GetControlWidget(int32_t id, bool &bIsSuccess)
 {
-    for (QVector<IControlEnumerationHolder*>::iterator it = itemVector.begin(); it<itemVector.end(); ++it)
+    for (QVector<IControlEnumerationHolder*>::iterator it = m_itemVector.begin(); it<m_itemVector.end(); ++it)
     {
         if((*it)->GetWidgetControlId() == id)
         {
@@ -56,8 +56,18 @@ IControlEnumerationHolder* ControlsHolderWidget::GetControlWidget(int32_t id, bo
     return nullptr;
 }
 
+void ControlsHolderWidget::closeEvent(QCloseEvent *event)
+{
+    for (QVector<IControlEnumerationHolder*>::iterator it = m_itemVector.begin(); it<m_itemVector.end(); ++it)
+    {
+        (*it)->CloseControlEditWidget();
+    }
+    ControlsHolderWidget::close();
+}
+
 void ControlsHolderWidget::OnListItemChanged(int row)
 {
     QString info = dynamic_cast<IControlEnumerationHolder *>(ui.m_ControlsList->itemWidget(ui.m_ControlsList->item(row)))->GetControlInfo();
     ui.m_DescriptionLabel->setText(info);
 }
+
