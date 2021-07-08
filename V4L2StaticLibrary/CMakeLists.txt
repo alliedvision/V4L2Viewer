@@ -27,7 +27,6 @@ ${HEADERS_PATH}/V4L2Viewer.h
 ${HEADERS_PATH}/videodev2_av.h
 ${HEADERS_PATH}/AboutWidget.h
 ${HEADERS_PATH}/CameraListCustomItem.h
-${HEADERS_PATH}/CustomOptionWidget.h
 ${HEADERS_PATH}/AutoReader.h
 ${HEADERS_PATH}/AutoReaderWorker.h
 ${HEADERS_PATH}/ActiveExposureWidget.h
@@ -62,7 +61,6 @@ ${SOURCES_PATH}/V4L2Helper.cpp
 ${SOURCES_PATH}/V4L2Viewer.cpp
 ${SOURCES_PATH}/AboutWidget.cpp
 ${SOURCES_PATH}/CameraListCustomItem.cpp
-${SOURCES_PATH}/CustomOptionWidget.cpp
 ${SOURCES_PATH}/AutoReader.cpp
 ${SOURCES_PATH}/AutoReaderWorker.cpp
 ${SOURCES_PATH}/ActiveExposureWidget.cpp

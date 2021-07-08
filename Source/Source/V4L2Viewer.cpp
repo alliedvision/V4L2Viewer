@@ -8,7 +8,9 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 File:        V4L2Viewer.cpp
 
-Description:
+Description: This class is a main class of the application. It describes how
+             the main window looks like and also performs all actions
+             which takes place in the GUI.
 
 -------------------------------------------------------------------------------
 
@@ -130,7 +132,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)),                                       this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
     connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)),                                                          this, SLOT(OnFrameID(const unsigned long long &)));
     connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraFrameSize_Signal(const QString &)),                                                                   this, SLOT(OnCameraFrameSize(const QString &)));
 
     connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
     connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)));
@@ -532,11 +533,6 @@ void V4L2Viewer::OnCameraPixelFormat(const QString& pixelFormat)
     ui.m_pixelFormats->blockSignals(false);
 }
 
-void V4L2Viewer::OnCameraFrameSize(const QString& frameSize)
-{
-    //ui.m_liFrameSizes->addItem(frameSize);
-}
-
 void V4L2Viewer::OnLanguageChange()
 {
     QAction *senderAction = qobject_cast<QAction*>(sender());
@@ -607,13 +603,6 @@ void V4L2Viewer::OnSlidersReleased()
     GetImageInformation();
 }
 
-void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
-{
-    slider->blockSignals(true);
-    slider->setValue(value);
-    slider->blockSignals(false);
-}
-
 void V4L2Viewer::OnCameraListButtonClicked()
 {
     if (!ui.m_camerasListCheckBox->isChecked())
@@ -642,31 +631,6 @@ void V4L2Viewer::OnFixedFrameRateButtonClicked()
 {
     OnStartButtonClicked();
     m_bIsFixedRate = true;
-}
-
-void V4L2Viewer::CheckAquiredFixedFrames(int framesCount)
-{
-    if (!m_bIsFixedRate)
-    {
-        return;
-    }
-
-    int framesMax = m_NumberOfFixedFrameRate->text().toInt();
-    if (framesCount >= framesMax)
-    {
-        OnStopButtonClicked();
-    }
-}
-
-int32_t V4L2Viewer::GetSliderValueFromLog(int32_t value)
-{
-    double logExpMin = log(m_MinimumExposure);
-    double logExpMax = log(m_MaximumExposure);
-    int32_t minimumSliderExposure = ui.m_sliderExposure->minimum();
-    int32_t maximumSliderExposure = ui.m_sliderExposure->maximum();
-    double scale = (logExpMax - logExpMin) / (maximumSliderExposure - minimumSliderExposure);
-    double result = minimumSliderExposure + ( log(value) - logExpMin ) / scale;
-    return static_cast<int32_t>(result);
 }
 
 void V4L2Viewer::ShowHideEnumerationControlWidget()
@@ -1215,11 +1179,6 @@ void V4L2Viewer::OnHeight()
     ui.m_edHeight->setText(QString("%1").arg(height));
 }
 
-void V4L2Viewer::OnPixelFormat()
-{
-
-}
-
 void V4L2Viewer::OnGain()
 {
     int32_t nVal = int64_2_int32(ui.m_edGain->text().toLongLong());
@@ -1325,29 +1284,6 @@ void V4L2Viewer::OnPixelFormatChanged(const QString &item)
     {
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SET pixelFormat!") );
     }
-}
-
-void V4L2Viewer::UpdateCurrentPixelFormatOnList(QString pixelFormat)
-{
-    ui.m_pixelFormats->blockSignals(true);
-    for (int i=0; i<ui.m_pixelFormats->count(); ++i)
-    {
-        if (ui.m_pixelFormats->itemText(i) == pixelFormat)
-        {
-            ui.m_pixelFormats->setCurrentIndex(i);
-        }
-    }
-    ui.m_pixelFormats->blockSignals(false);
-}
-
-void V4L2Viewer::OnFrameSizesDBLClick(QListWidgetItem *item)
-{
-    QString tmp = item->text();
-    QStringList list1 = tmp.split('x').first().split(':');
-    QStringList list2 = tmp.split('x');
-
-    ui.m_edWidth->setText(QString("%1").arg(list1.at(1)));
-    ui.m_edHeight->setText(QString("%1").arg(list2.at(1)));
 }
 
 void V4L2Viewer::OnGamma()
@@ -1833,6 +1769,19 @@ void V4L2Viewer::UpdateCameraFormat()
     UpdateCurrentPixelFormatOnList(QString::fromStdString(m_Camera.ConvertPixelFormat2String(pixelFormat)));
 }
 
+void V4L2Viewer::UpdateCurrentPixelFormatOnList(QString pixelFormat)
+{
+    ui.m_pixelFormats->blockSignals(true);
+    for (int i=0; i<ui.m_pixelFormats->count(); ++i)
+    {
+        if (ui.m_pixelFormats->itemText(i) == pixelFormat)
+        {
+            ui.m_pixelFormats->setCurrentIndex(i);
+        }
+    }
+    ui.m_pixelFormats->blockSignals(false);
+}
+
 QString V4L2Viewer::GetDeviceInfo()
 {
     std::string tmp;
@@ -1850,6 +1799,38 @@ QString V4L2Viewer::GetDeviceInfo()
     m_Camera.GetCameraCapabilities(tmp);
     QString capabilities = QString(tr("Capabilities = %1")).arg(tmp.c_str());
     return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities);
+}
+
+void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
+{
+    slider->blockSignals(true);
+    slider->setValue(value);
+    slider->blockSignals(false);
+}
+
+void V4L2Viewer::CheckAquiredFixedFrames(int framesCount)
+{
+    if (!m_bIsFixedRate)
+    {
+        return;
+    }
+
+    int framesMax = m_NumberOfFixedFrameRate->text().toInt();
+    if (framesCount >= framesMax)
+    {
+        OnStopButtonClicked();
+    }
+}
+
+int32_t V4L2Viewer::GetSliderValueFromLog(int32_t value)
+{
+    double logExpMin = log(m_MinimumExposure);
+    double logExpMax = log(m_MaximumExposure);
+    int32_t minimumSliderExposure = ui.m_sliderExposure->minimum();
+    int32_t maximumSliderExposure = ui.m_sliderExposure->maximum();
+    double scale = (logExpMax - logExpMin) / (maximumSliderExposure - minimumSliderExposure);
+    double result = minimumSliderExposure + ( log(value) - logExpMin ) / scale;
+    return static_cast<int32_t>(result);
 }
 
 // Check if IO Read was checked and remove it when not capable
