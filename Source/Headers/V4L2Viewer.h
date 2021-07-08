@@ -33,7 +33,6 @@
 #include "FrameObserver.h"
 #include "MyFrame.h"
 #include "AboutWidget.h"
-#include "SettingsActionWidget.h"
 #include "ui_V4L2Viewer.h"
 #include "ControlsHolderWidget.h"
 #include "ActiveExposureWidget.h"
@@ -99,7 +98,6 @@ private:
     QTranslator *m_pGermanTranslator;
     AboutWidget *m_pAboutWidget;
 
-    SettingsActionWidget *m_pSettingsActionWidget;
     QMenu *m_pSettingsMenu;
 
     bool m_bIsFixedRate;
