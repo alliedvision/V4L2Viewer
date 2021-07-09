@@ -32,6 +32,7 @@
 ControlsHolderWidget::ControlsHolderWidget(QWidget *parent) : QWidget(parent)
 {
     ui.setupUi(this);
+    setWindowFlags(Qt::FramelessWindowHint);
     connect(ui.m_ControlsList, SIGNAL(currentRowChanged(int)), this, SLOT(OnListItemChanged(int)));
 }
 

@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>449</width>
-    <height>478</height>
+    <width>500</width>
+    <height>501</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>All Features Window</string>
@@ -145,13 +151,7 @@ border-radius:4px;
 padding:5px;</string>
      </property>
      <property name="text">
-      <string>Some Text here &lt;br&gt;
-Some Text here &lt;br&gt;
-Some Text here &lt;br&gt;
-Some Text here &lt;br&gt;
-Some Text here &lt;br&gt;
-Some Text here &lt;br&gt;
-</string>
+      <string/>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

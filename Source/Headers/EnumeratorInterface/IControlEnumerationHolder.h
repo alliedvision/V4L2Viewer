@@ -60,6 +60,7 @@ public:
     //
     // Parameters:
     // [in] (QMouseEvent *) event - mouse event
+    virtual void mousePressEvent(QMouseEvent *event) override;
     virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 protected:

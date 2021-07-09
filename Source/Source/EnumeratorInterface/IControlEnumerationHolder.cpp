@@ -63,10 +63,19 @@ void IControlEnumerationHolder::CloseControlEditWidget()
     }
 }
 
-void IControlEnumerationHolder::mouseDoubleClickEvent(QMouseEvent *event)
+void IControlEnumerationHolder::mousePressEvent(QMouseEvent *event)
 {
     QPoint posGlobal = mapToGlobal(event->pos());
     m_ControlEditWidget.setGeometry(posGlobal.x(), posGlobal.y(), this->width(), this->height());
     m_ControlEditWidget.setWindowTitle(m_NameOfControl.text());
     m_ControlEditWidget.show();
+    return QWidget::mousePressEvent(event);
+}
+
+void IControlEnumerationHolder::mouseDoubleClickEvent(QMouseEvent *event)
+{
+//    QPoint posGlobal = mapToGlobal(event->pos());
+//    m_ControlEditWidget.setGeometry(posGlobal.x(), posGlobal.y(), this->width(), this->height());
+//    m_ControlEditWidget.setWindowTitle(m_NameOfControl.text());
+//    m_ControlEditWidget.show();
 }
