@@ -31,26 +31,29 @@
 ListEnumerationControl::ListEnumerationControl(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly, QWidget *parent):
     IControlEnumerationHolder(id, name, parent)
 {
-    m_ListWidget.setMinimumHeight(150);
     m_ControlInfo = QString(tr("%1 control is represented as list of strings. \n Unit: %2")
                           .arg(name)
                           .arg(unit));
 
-    m_ControlEditWidget.m_pLayout->addWidget(&m_ListWidget);
+    m_MainLayout.addWidget(&m_NameOfControl, 0, 0);
+    m_MainLayout.addWidget(&m_ComboBox, 0, 1);
+
+    m_MainLayout.setColumnStretch(0, 1);
+    m_MainLayout.setColumnStretch(1, 0);
 
     for (QList<QString>::iterator it = list.begin(); it<list.end(); ++it)
     {
-        m_ListWidget.addItem(*it);
+        m_ComboBox.addItem(*it);
     }
 
     if (value >= list.count())
     {
-        m_CurrentValue.setText("Unknown Current Value");
+        m_ComboBox.addItem("Unknown Value");
+        m_ComboBox.setCurrentText("Unknown Value");
     }
     else
     {
-        m_CurrentValue.setText(list.at(value));
-        m_ListWidget.setCurrentRow(value);
+        m_ComboBox.setCurrentText(list.at(value));
     }
 
     if (bIsReadOnly)
@@ -61,30 +64,30 @@ ListEnumerationControl::ListEnumerationControl(int32_t id, int32_t value, QList<
     else
     {
         setEnabled(true);
-        connect(&m_ListWidget, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnListItemChanged(const QString &)));
+        connect(&m_ComboBox, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnListItemChanged(const QString &)));
     }
 }
 
 void ListEnumerationControl::UpdateValue(QList<QString> list, int32_t value)
 {
-    m_ListWidget.blockSignals(true);
-    m_ListWidget.clear();
+    m_ComboBox.blockSignals(true);
+    m_ComboBox.clear();
     for (QList<QString>::iterator it = list.begin(); it<list.end(); ++it)
     {
-        m_ListWidget.addItem(*it);
+        m_ComboBox.addItem(*it);
     }
 
     if (value >= list.count())
     {
-        m_CurrentValue.setText("Unknown Current Value");
+        m_ComboBox.addItem("Unknown Value");
+        m_ComboBox.setCurrentText("Unknown Value");
     }
     else
     {
-        m_CurrentValue.setText(list.at(value));
-        m_ListWidget.setCurrentRow(value);
+        m_ComboBox.setCurrentText(list.at(value));
     }
 
-    m_ListWidget.blockSignals(false);
+    m_ComboBox.blockSignals(false);
 }
 
 void ListEnumerationControl::OnListItemChanged(const QString &currentText)

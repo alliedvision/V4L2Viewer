@@ -84,6 +84,9 @@ struct v4l2_stats_t
 #define V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE      (V4L2_CID_CAMERA_CLASS_BASE+44)
 #define V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR  (V4L2_CID_CAMERA_CLASS_BASE+45)
 #define V4L2_CID_EXPOSURE_ACTIVE_INVERT         (V4L2_CID_CAMERA_CLASS_BASE+46)
+#define V4L2_CID_PREFFERED_STRIDE               (V4L2_CID_CAMERA_CLASS_BASE+5998)
+
+
 
 Camera::Camera()
     : m_nFileDescriptor(-1)
@@ -909,9 +912,11 @@ int Camera::EnumAllControlNewStyle()
         if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
         {
             bool bIsReadOnly = false;
-            if(qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
+            if(qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.id == V4L2_CID_PREFFERED_STRIDE)
             {
                 bIsReadOnly = true;
+                qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+                continue;
             }
 
             Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);

@@ -51,16 +51,14 @@ signals:
     void PassNewValue(int32_t id, bool value);
 
 private slots:
-    // This slot function is called when the state of the checkbox is changed
+    // This slot function is called when the item in the comboBox is changed
     //
     // Parameters:
-    // [in] (int) state - state of the checkbox
-    void OnStateChanged(int state);
+    // [in] (const QString &) text - text from the comboBox
+    void OnTextChanged(const QString &text);
 
 private:
-
-    // Main element of the control which allows to set it to true/false
-    QCheckBox m_CheckBox;
+    QComboBox m_ComboBox;
 };
 
 #endif // BOOLEANENUMERATIONCONTROL_H

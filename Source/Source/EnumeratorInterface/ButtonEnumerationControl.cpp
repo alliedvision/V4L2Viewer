@@ -35,7 +35,13 @@ ButtonEnumerationControl::ButtonEnumerationControl(int32_t id, QString name, QSt
                           .arg(name)
                           .arg(unit));
     m_PushButton.setText("Perform");
-    m_ControlEditWidget.m_pLayout->addWidget(&m_PushButton);
+
+    m_MainLayout.addWidget(&m_NameOfControl, 0, 0);
+    m_MainLayout.addWidget(&m_PushButton, 0, 1);
+
+    m_MainLayout.setColumnStretch(0, 1);
+    m_MainLayout.setColumnStretch(1, 0);
+
     if (bIsReadOnly)
     {
         setEnabled(false);

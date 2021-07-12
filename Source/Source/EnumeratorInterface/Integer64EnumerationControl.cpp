@@ -45,8 +45,15 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
     m_LineEdit.setText(QString::number(m_Value));
     m_CurrentValue.setText(QString::number(m_Value));
     m_Slider.setOrientation(Qt::Horizontal);
-    m_ControlEditWidget.m_pLayout->addWidget(&m_Slider, 0, 0);
-    m_ControlEditWidget.m_pLayout->addWidget(&m_LineEdit, 0, 1);
+
+    m_MainLayout.addWidget(&m_NameOfControl, 0, 0);
+    m_MainLayout.addWidget(&m_Slider, 0, 1);
+    m_MainLayout.addWidget(&m_LineEdit, 0, 2);
+
+    m_MainLayout.setColumnStretch(0, 2);
+    m_MainLayout.setColumnStretch(1, 2);
+    m_MainLayout.setColumnStretch(2, 1);
+
     if (bIsReadOnly)
     {
         setEnabled(false);

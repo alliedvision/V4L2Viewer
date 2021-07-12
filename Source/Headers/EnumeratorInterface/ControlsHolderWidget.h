@@ -65,12 +65,6 @@ public:
     // Returns:
     // (IControlEnumerationHolder*) - found object
     IControlEnumerationHolder* GetControlWidget(int32_t id, bool &bIsSuccess);
-    // This function overrides closeEvent in order to close all of the opened edit widgets,
-    // when the current is closed.
-    //
-    // Parameters:
-    // [in] (QCloseEvent *) event - passed event pointer
-    virtual void closeEvent(QCloseEvent *event) override;
 
     Ui::ControlsHolderWidget ui;
 

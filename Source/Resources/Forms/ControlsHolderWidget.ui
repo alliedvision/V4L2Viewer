@@ -26,6 +26,20 @@
   color:white;
 }
 
+QListWidget{
+padding:15px;
+}
+
+QAbstractItemView {
+    show-decoration-selected: 0;
+}
+
+QListWidget::item:selected
+{
+background: transparent;
+border:none;
+}
+
 QScrollBar:vertical {
   background: transparent;
   width: 13px;
@@ -120,12 +134,14 @@ QPushButton:pressed{
   background-color:rgb(166, 166, 166);
 }
 
-QLineEdit{
-  border-radius:6px;
-  border:1px solid rgb(89,89,89);
-  background-color:rgb(37,38,39);
-  color:white;
-  padding: 1px 0px 1px 3px;
+QLineEdit {
+background:transparent;
+border: none;
+border-radius:0px;
+}
+
+QLineEdit::focus {
+border-bottom: 1px solid gray;
 }
 
 QLabel{
@@ -136,11 +152,70 @@ QListWidget{
   background-color:rgb(45,45,45);
   border:1px solid rgb(25,25,25);
   border-radius:4px;
-}</string>
+}
+
+QSlider{
+background:transparent;
+}
+
+QSlider::groove:horizontal{
+border: none;
+background: rgb(41,41,41);
+height:1px;
+border-bottom:1px solid rgb(51,51,51);
+}
+
+QSlider::handle:horizontal {
+background: rgb(114,114,114);
+width: 12px;
+height: 18px;
+border-radius: 2px;
+margin: -5px 0; 
+}
+
+QSlider::sub-page:horizontal {
+    background: rgb(0, 100, 207);
+}
+
+QSlider::sub-page:horizontal::disabled{
+    background: rgb(107, 155, 209);
+}
+
+QSlider::groove:horizontal::disabled{
+border: none;
+background: rgb(81,81,81);
+height:1px;
+border-bottom:1px solid rgb(71,71,71);
+}
+
+QComboBox {
+background:transparent;
+min-width:80px;
+}
+
+QComboBox::drop-down:button {
+background:transparent;
+width:15px;
+}
+
+QComboBox::down-arrow {
+image: url(:/V4L2Viewer/triangle-copy-3.png);
+}
+
+QComboBox:on { 
+    padding-top: 3px;
+    padding-left: 4px;
+}
+
+</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QListWidget" name="m_ControlsList"/>
+    <widget class="QListWidget" name="m_ControlsList">
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+    </widget>
    </item>
    <item row="1" column="0">
     <widget class="QLabel" name="m_DescriptionLabel">

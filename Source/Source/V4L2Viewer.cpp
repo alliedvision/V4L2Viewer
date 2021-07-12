@@ -492,7 +492,8 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             }
 
             m_pEnumerationControlWidget->RemoveElements();
-            m_pEnumerationControlWidget->close();
+            ui.m_allFeaturesDockWidget->hide();
+
             SetTitleText();
 
             ui.m_ImageControlFrame->setEnabled(false);
