@@ -1702,6 +1702,7 @@ void V4L2Viewer::GetImageInformation()
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
     {
+        ui.m_CropLabel->setEnabled(true);
         ui.m_edCropXOffset->setEnabled(true);
         ui.m_labelCropXOffset->setEnabled(true);
         ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
@@ -1717,6 +1718,7 @@ void V4L2Viewer::GetImageInformation()
     }
     else
     {
+        ui.m_CropLabel->setEnabled(false);
         ui.m_edCropXOffset->setEnabled(false);
         ui.m_edCropYOffset->setEnabled(false);
         ui.m_edCropWidth->setEnabled(false);
