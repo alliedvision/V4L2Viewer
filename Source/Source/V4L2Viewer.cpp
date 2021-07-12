@@ -1074,10 +1074,12 @@ void V4L2Viewer::OnZoomFitButtonClicked()
 {
     if (ui.m_ZoomFitButton->isChecked())
     {
+        ui.m_ImageView->SetZoomAllowed(false);
         ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
     }
     else
     {
+        ui.m_ImageView->SetZoomAllowed(true);
         ui.m_ImageView->TransformImageView();
     }
 
