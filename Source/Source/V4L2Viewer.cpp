@@ -312,11 +312,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     ui.m_allFeaturesDockWidget->hide();
     ui.m_allFeaturesDockWidget->setStyleSheet("QDockWidget {"
                                                 "titlebar-close-icon: url(:/V4L2Viewer/Cross128.png);"
-                                                "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}"
-                                              "QDockWidget::title {"
-                                                "text-align: left; "
-                                                "background: rgb(42,42,42);"
-                                                "padding-left: 5px;}");
+                                                "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}");
 }
 
 V4L2Viewer::~V4L2Viewer()
