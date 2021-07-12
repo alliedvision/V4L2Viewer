@@ -452,7 +452,7 @@ border:none;
               <x>0</x>
               <y>0</y>
               <width>775</width>
-              <height>244</height>
+              <height>263</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -966,22 +966,18 @@ background:none;
 }
 
 QLabel::disabled{
-color: rgb(45, 45, 45);
+color: rgb(77,78,79);
 }
 
-QLineEdit{
-border-radius:6px;
-border:1px solid rgb(89,89,89);
-background-color:rgb(37,38,39);
-color:white;
-padding: 1px 0px 1px 3px;
+QLineEdit {
+background:transparent;
+border: none;
+border-radius:0px;
 }
 
-QLineEdit::disabled{
-background-color:rgb(67,68,69);
-color:rgb(87,88,89);;
+QLineEdit::focus {
+border-bottom: 1px solid gray;
 }
-
 
 Line{
 border-top:1px solid rgb(66,67,68);
@@ -1058,8 +1054,8 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>1119</width>
-              <height>390</height>
+              <width>1219</width>
+              <height>371</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_8">
@@ -1149,7 +1145,7 @@ background-color:rgb(166, 166, 166);
                    <widget class="QSlider" name="m_sliderGamma">
                     <property name="minimumSize">
                      <size>
-                      <width>100</width>
+                      <width>150</width>
                       <height>0</height>
                      </size>
                     </property>
@@ -1169,12 +1165,24 @@ background-color:rgb(166, 166, 166);
                    <widget class="QLineEdit" name="m_edBlackLevel">
                     <property name="minimumSize">
                      <size>
-                      <width>70</width>
+                      <width>0</width>
                       <height>0</height>
                      </size>
                     </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>102</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
                     <property name="maxLength">
                      <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                     </property>
                    </widget>
                   </item>
@@ -1187,8 +1195,20 @@ background-color:rgb(166, 166, 166);
                   </item>
                   <item row="6" column="2">
                    <widget class="QLineEdit" name="m_edGamma">
+                    <property name="maximumSize">
+                     <size>
+                      <width>102</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
                     <property name="maxLength">
                      <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                     </property>
                    </widget>
                   </item>
@@ -1196,7 +1216,7 @@ background-color:rgb(166, 166, 166);
                    <widget class="QSlider" name="m_sliderBlackLevel">
                     <property name="minimumSize">
                      <size>
-                      <width>100</width>
+                      <width>150</width>
                       <height>0</height>
                      </size>
                     </property>
@@ -1336,7 +1356,7 @@ border: 1px solid gray;
                   <item row="1" column="0" colspan="2">
                    <widget class="QLabel" name="m_labelExposureAbs">
                     <property name="text">
-                     <string>Exposure Absolute[100μs]:</string>
+                     <string>Exposure Abs[100μs]:</string>
                     </property>
                    </widget>
                   </item>
@@ -1348,8 +1368,17 @@ border: 1px solid gray;
                       <height>0</height>
                      </size>
                     </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
                     <property name="maxLength">
                      <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                     </property>
                    </widget>
                   </item>
@@ -1374,8 +1403,17 @@ border: 1px solid gray;
                       <height>0</height>
                      </size>
                     </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
                     <property name="maxLength">
                      <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                     </property>
                    </widget>
                   </item>
@@ -1529,8 +1567,20 @@ QCheckBox::disabled{
                       <height>0</height>
                      </size>
                     </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
                     <property name="maxLength">
                      <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                     </property>
                    </widget>
                   </item>
@@ -1723,7 +1773,7 @@ background-color:rgb(166, 166, 166);
                     </property>
                     <property name="minimumSize">
                      <size>
-                      <width>100</width>
+                      <width>150</width>
                       <height>0</height>
                      </size>
                     </property>
@@ -1749,7 +1799,7 @@ background-color:rgb(166, 166, 166);
                    <widget class="QSlider" name="m_sliderGain">
                     <property name="minimumSize">
                      <size>
-                      <width>100</width>
+                      <width>150</width>
                       <height>0</height>
                      </size>
                     </property>
@@ -1787,7 +1837,17 @@ border: 1px solid gray;
                 <item row="0" column="0">
                  <layout class="QGridLayout" name="gridLayout_3">
                   <item row="0" column="3">
-                   <widget class="QLineEdit" name="m_edFrameRate"/>
+                   <widget class="QLineEdit" name="m_edFrameRate">
+                    <property name="maximumSize">
+                     <size>
+                      <width>70</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
                   </item>
                   <item row="1" column="0" colspan="4">
                    <widget class="Line" name="line_6">
@@ -1928,6 +1988,9 @@ color:white;
                     <property name="maxLength">
                      <number>10</number>
                     </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
                    </widget>
                   </item>
                   <item row="6" column="0" colspan="3">
@@ -1948,6 +2011,9 @@ color:white;
                     <property name="maxLength">
                      <number>10</number>
                     </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
                    </widget>
                   </item>
                   <item row="8" column="3">
@@ -1961,6 +2027,9 @@ color:white;
                     <property name="maxLength">
                      <number>10</number>
                     </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
                    </widget>
                   </item>
                   <item row="9" column="3">
@@ -1970,6 +2039,9 @@ color:white;
                       <width>70</width>
                       <height>16777215</height>
                      </size>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                     </property>
                    </widget>
                   </item>
@@ -2052,8 +2124,14 @@ border: 1px solid gray;
                 <enum>QFrame::Raised</enum>
                </property>
                <layout class="QGridLayout" name="gridLayout_18">
+                <property name="sizeConstraint">
+                 <enum>QLayout::SetDefaultConstraint</enum>
+                </property>
                 <item row="0" column="0">
                  <layout class="QGridLayout" name="gridLayout">
+                  <property name="sizeConstraint">
+                   <enum>QLayout::SetDefaultConstraint</enum>
+                  </property>
                   <property name="horizontalSpacing">
                    <number>2</number>
                   </property>
@@ -2084,6 +2162,9 @@ border: 1px solid gray;
                     <property name="maxLength">
                      <number>10</number>
                     </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
                    </widget>
                   </item>
                   <item row="1" column="0">
@@ -2101,8 +2182,17 @@ border: 1px solid gray;
                       <height>0</height>
                      </size>
                     </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>70</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
                     <property name="maxLength">
                      <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                     </property>
                    </widget>
                   </item>
@@ -2229,7 +2319,7 @@ border: 1px solid gray;
    <property name="minimumSize">
     <size>
      <width>64</width>
-     <height>38</height>
+     <height>58</height>
     </size>
    </property>
    <property name="styleSheet">
@@ -2237,6 +2327,9 @@ border: 1px solid gray;
    </property>
    <property name="floating">
     <bool>false</bool>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="allowedAreas">
     <set>Qt::RightDockWidgetArea</set>
