@@ -31,7 +31,6 @@
 #include <QWheelEvent>
 #include <QGraphicsPixmapItem>
 #include <QToolTip>
-#include <QDebug>
 
 double CustomGraphicsView::MAX_ZOOM_IN = 16.0;
 double CustomGraphicsView::MAX_ZOOM_OUT = 1/8.0;

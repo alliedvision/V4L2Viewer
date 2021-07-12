@@ -27,7 +27,6 @@
 =============================================================================*/
 
 #include "AutoReader.h"
-#include <QDebug>
 
 AutoReader::AutoReader(QObject *parent) : QObject(parent)
 {

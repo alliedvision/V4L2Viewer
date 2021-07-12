@@ -27,7 +27,6 @@
 =============================================================================*/
 
 #include "ControlsHolderWidget.h"
-#include <QDebug>
 
 ControlsHolderWidget::ControlsHolderWidget(QWidget *parent) : QWidget(parent)
 {

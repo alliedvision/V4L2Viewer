@@ -26,7 +26,6 @@
 =============================================================================*/
 
 #include "AutoReaderWorker.h"
-#include <QDebug>
 
 AutoReaderWorker::AutoReaderWorker(QObject *parent) : QObject(parent), m_pTimer(nullptr)
 {
@@ -65,6 +64,5 @@ void AutoReaderWorker::StopProcess()
 
 void AutoReaderWorker::ReadData()
 {
-    qDebug()<<"ReadData From thread";
     emit ReadSignal();
 }

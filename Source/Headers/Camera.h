@@ -34,7 +34,6 @@
 
 #include <QObject>
 #include <QMutex>
-#include <QDebug>
 #include <vector>
 
 

@@ -2500,7 +2500,6 @@ void Camera::SetEnumerationControlValueIntList(int32_t id, int64_t val)
                         Logger::LogEx("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class", (const char*)qctrl.name);
                     }
                     emit SendSignalToUpdateWidgets();
-                    qDebug() << "SETTING INT64 LIST ENUM CONTROL: " << result;
                     break;
                 }
             }
@@ -2538,7 +2537,6 @@ void Camera::SetEnumerationControlValueList(int32_t id, const char *str)
                         Logger::LogEx("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class", str);
                     }
                     emit SendSignalToUpdateWidgets();
-                    qDebug() << "SETTING STRING LIST ENUM CONTROL: " << result;
                     break;
                 }
             }
@@ -2554,7 +2552,6 @@ void Camera::SetEnumerationControlValue(int32_t id, int32_t val)
         Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_INTEGER32 cannot be set with V4L2_CTRL_CLASS_USER class");
     }
     emit SendSignalToUpdateWidgets();
-    qDebug() << "SETTING INTEGER32 ENUM CONTROL: "<< result;
 }
 
 void Camera::SetEnumerationControlValue(int32_t id, int64_t val)
@@ -2565,7 +2562,6 @@ void Camera::SetEnumerationControlValue(int32_t id, int64_t val)
         Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_INTEGER64 cannot be set with V4L2_CTRL_CLASS_USER class");
     }
     emit SendSignalToUpdateWidgets();
-    qDebug() << "SETTING INTEGER64 ENUM CONTROL: " << result;
 }
 
 void Camera::SetEnumerationControlValue(int32_t id, bool val)
@@ -2576,7 +2572,6 @@ void Camera::SetEnumerationControlValue(int32_t id, bool val)
         Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_BOOL cannot be set with V4L2_CTRL_CLASS_USER class");
     }
     emit SendSignalToUpdateWidgets();
-    qDebug() << "SETTING BOOL ENUM CONTROL: " << result;
 }
 
 void Camera::SetEnumerationControlValue(int32_t id)
@@ -2587,7 +2582,6 @@ void Camera::SetEnumerationControlValue(int32_t id)
         Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_BUTTON cannot be set with V4L2_CTRL_CLASS_USER class");
     }
     emit SendSignalToUpdateWidgets();
-    qDebug() << "SETTING BUTTON ENUM CONTROL: " << result;
 }
 
 void Camera::SetSliderEnumerationControlValue(int32_t id, int32_t val)

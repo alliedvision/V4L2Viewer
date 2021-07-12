@@ -29,7 +29,6 @@
 #ifndef ABOUTWIDGET_H
 #define ABOUTWIDGET_H
 
-#include <QDialog>
 #include <QLabel>
 
 class AboutWidget : public QWidget
