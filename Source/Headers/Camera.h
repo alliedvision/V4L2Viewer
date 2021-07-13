@@ -391,99 +391,519 @@ public:
     // (bool) - support state
     bool IsAutoWhiteBalanceSupported();
 
+    // This function reads auto white balance state
+    //
+    // Parameters:
+    // [in] (bool &) flag - state of the auto white balance
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadAutoWhiteBalance(bool &flag);
-    int ReadRedBalance(int32_t &value);
-    int SetRedBalance(int32_t value);
-    int ReadBlueBalance(int32_t &value);
-    int SetBlueBalance(int32_t value);
+
+    // This function reads two values, numerator and denominator
+    // for the frame rate
+    //
+    // Parameters:
+    // [in] (uint32_t &) numerator - numerator to be read
+    // [in] (uint32_t &) denominator - denominator to be read
+    // [in] (uint32_t) width - given width
+    // [in] (uint32_t) height - given height
+    // [in] (uint32_t) pixelFormat - given pixel format
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadFrameRate(uint32_t &numerator, uint32_t &denominator, uint32_t width, uint32_t height, uint32_t pixelFormat);
+    // This function sets numerator and denominator
+    // for the frame rate
+    //
+    // Parameters:
+    // [in] (uint32_t) numerator - numerator to be set
+    // [in] (uint32_t) denominator - denominator to be set
+    //
+    // Returns:
+    // (int) - result of setting
     int SetFrameRate(uint32_t numerator, uint32_t denominator);
 
+    // This function is used by all of the controls in the application,
+    // it sets control's value using ext approach
+    //
+    // Parameters:
+    // [in] (uint32_t) value - new value
+    // [in] (uint32_t) controlID - controlID
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (used in logger)
+    // [in] (uint32_t) controlClass - class of the control
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    // This function is used by all of the controls in the application,
+    // it reads control's value using ext approach
+    //
+    // Parameters:
+    // [in] (uint32_t &) value - new value
+    // [in] (uint32_t) controlID - controlID
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (used in logger)
+    // [in] (uint32_t) controlClass - class of the control
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadExtControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
+    // This function is used by all of the controls in the application,
+    // it sets control's value using ext approach
+    //
+    // Parameters:
+    // [in] (int32_t) value - new value
+    // [in] (int32_t) controlID - controlID
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (used in logger)
+    // [in] (uint32_t) controlClass - class of the control
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    // This function is used by all of the controls in the application,
+    // it reads control's value using ext approach
+    //
+    // Parameters:
+    // [in] (int32_t &) value - new value
+    // [in] (int32_t) controlID - controlID
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (used in logger)
+    // [in] (uint32_t) controlClass - class of the control
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
+    // This function is used by all of the controls in the application,
+    // it sets control's value using ext approach
+    //
+    // Parameters:
+    // [in] (uint64_t) value - new value
+    // [in] (uint32_t) controlID - controlID
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (used in logger)
+    // [in] (uint32_t) controlClass - class of the control
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetExtControl(uint64_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    // This function is used by all of the controls in the application,
+    // it reads control's value using ext approach
+    //
+    // Parameters:
+    // [in] (uint64_t &) value - new value
+    // [in] (uint32_t) controlID - controlID
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (used in logger)
+    // [in] (uint32_t) controlClass - class of the control
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadExtControl(uint64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
+    // This function is used by all of the controls in the application,
+    // it sets control's value using ext approach
+    //
+    // Parameters:
+    // [in] (int64_t) value - new value
+    // [in] (int32_t) controlID - controlID
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (used in logger)
+    // [in] (uint32_t) controlClass - class of the control
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetExtControl(int64_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    // This function is used by all of the controls in the application,
+    // it reads control's value using ext approach
+    //
+    // Parameters:
+    // [in] (int64_t &) value - new value
+    // [in] (int32_t) controlID - controlID
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (used in logger)
+    // [in] (uint32_t) controlClass - class of the control
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadExtControl(int64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
+    // This function reads min and max of the given control
+    //
+    // Parameters:
+    // [in] (uint32_t &) min - minimum value
+    // [in] (uint32_t &) max - maximum value
+    // [in] (uint32_t) controlID - id of the control
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (uised in logger)
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
+    // This function reads min and max of the given control
+    //
+    // Parameters:
+    // [in] (int32_t &) min - minimum value
+    // [in] (int32_t &) max - maximum value
+    // [in] (uint32_t) controlID - id of the control
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (uised in logger)
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
 
+    // This function reads step of the given control
+    //
+    // Parameters:
+    // [in] (int32_t &) step - step value
+    // [in] (uint32_t) controlID - id of the control
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (uised in logger)
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadStep(int32_t &step, uint32_t controlID, const char *functionName, const char* controlName);
 
+    // This function reads register
+    //
+    // Parameters:
+    // [in] (uint16_t) nRegAddr - register address
+    // [in] (void *) pBuffer - buffer
+    // [in] (uint32_t) nBufferSize - size of the buffer
+    // [in] (bool) bConvertEndianess - state of the endianess converting
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
+    // This function writes register
+    //
+    // Parameters:
+    // [in] (uint16_t) nRegAddr - register address
+    // [in] (void *) pBuffer - buffer
+    // [in] (uint32_t) nBufferSize - size of the buffer
+    // [in] (bool) bConvertEndianess - state of the endianess converting
+    //
+    // Returns:
+    // (int) - result of writing
     int WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess);
 
+    // This function enumerates all of the controls
+    // and emits found controls to the GUI class to create widgets.
+    //
+    // Returns:
+    // (int) - result of the enumeration
     int EnumAllControlNewStyle();
 
-    int ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
-                             uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
-                             uint32_t &aspectnum, uint32_t &aspectdenum);
+    // This function reads crop
+    //
+    // Parameters:
+    // [in] (uint32_t &) xOffset
+    // [in] (uint32_t &) yOffset
+    // [in] (uint32_t &) width
+    // [in] (uint32_t &) height
+    //
+    // Returns
+    // (int) - result of the reading
     int ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint32_t &height);
+    // This function sets crop
+    //
+    // Parameters:
+    // [in] (uint32_t) xOffset
+    // [in] (uint32_t) yOffset
+    // [in] (uint32_t) width
+    // [in] (uint32_t) height
+    //
+    // Returns
+    // (int) - result of the setting
     int SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t height);
 
+    // This function starts streaming from the camera
+    //
+    // Returns:
+    // (int) - result of stream starting
     int StartStreaming();
+    // This function stops streaming from the camera
+    //
+    // Returns:
+    // (int) - result of stream stopping
     int StopStreaming();
 
+    // This function creates user buffer
+    //
+    // Parameters:
+    // [in] (uint32_t) bufferCount
+    // [in] (uint32_t) bufferSize
+    //
+    // Returns:
+    // (int) - result of buffer creation
     int CreateUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
+    // This function queues all of the user's buffer
+    //
+    // Returns:
+    // (int) - result of queuing
     int QueueAllUserBuffer();
+    // This function queues single buffer by given index
+    //
+    // Parameters:
+    // [in] (const int) index - given index
+    //
+    // Returns:
+    // (int) - result of queuing single buffer
     int QueueSingleUserBuffer(const int index);
+    // This function deletes user buffer
+    //
+    // Returns:
+    // (int) - result of deleting
     int DeleteUserBuffer();
 
-    // Info
+    // This function returns camera driver name
+    //
+    // Parameters:
+    // [in] (std::string &) strText - camera driver name
+    //
+    // Returns:
+    // (int) - result of the operation
     int GetCameraDriverName(std::string &strText);
+    // This function returns camera device name
+    //
+    // Parameters:
+    // [in] (std::string &) strText - camera device name
+    //
+    // Returns:
+    // (int) - result of the operation
     int GetCameraDeviceName(std::string &strText);
+    // This function returns camera bus info
+    //
+    // Parameters:
+    // [in] (std::string &) strText - camera bus info
+    //
+    // Returns:
+    // (int) - result of the operation
     int GetCameraBusInfo(std::string &strText);
+    // This function returns camera driver version
+    //
+    // Parameters:
+    // [in] (std::string &) strText - camera driver version
+    //
+    // Returns:
+    // (int) - result of the operation
     int GetCameraDriverVersion(std::string &strText);
+    // This function returns camera capability state
+    //
+    // Parameters:
+    // [in] (bool &) flag - camera capability state
+    //
+    // Returns:
+    // (int) - result of the operation
     int GetCameraReadCapability(bool &flag);
+    // This function returns camera capabilities
+    //
+    // Parameters:
+    // [in] (std::string &) strText - camera capabilities
+    //
+    // Returns:
+    // (int) - result of the operation
     int GetCameraCapabilities(std::string &strText);
 
-    // Statistics
+    // This function returns driver stream statistics
+    //
+    // Parameters:
+    // [in] (uint64_t &) FramesCount
+    // [in] (uint64_t &) PacketCRCError
+    // [in] (uint64_t &) FramesUnderrun
+    // [in] (uint64_t &) FramesIncomplete - number of incomplete frames
+    // [in] (double &) CurrentFrameRate
+    //
+    // Returns:
+    // (bool) - result of the gathering statistics
     bool getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError, uint64_t &FramesUnderrun, uint64_t &FramesIncomplete, double &CurrentFrameRate);
+    // This function returns received frames count
+    //
+    // Returns:
+    // (unsigned int) - number of received frames
     unsigned int GetReceivedFramesCount();
+    // This function returns rendered frames count
+    //
+    // Returns:
+    // (unsigned int) - number of rendered frames
     unsigned int GetRenderedFramesCount();
+    // This function returns dropped frames count
+    //
+    // Returns:
+    // (unsigned int) - number of dropped frames
     unsigned int GetDroppedFramesCount();
 
-    // Exposure Active
+    // This function read exposure active line mode
+    //
+    // Parameters:
+    // [in] (bool &) state - state of the active line mode
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadExposureActiveLineMode(bool &state);
+    // This function read exposure active line selector
+    //
+    // Parameters:
+    // [in] (int32_t &) value - current value of the line selector
+    // [in] (int32_t &) min - minimum value of the line selector
+    // [in] (int32_t &) max - maximum value of the line selector
+    // [in] (int32_t &) step - step of the line selector
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadExposureActiveLineSelector(int32_t &value, int32_t &min, int32_t &max, int32_t &step);
+    // This function read exposure active invert
+    //
+    // Parameters:
+    // [in] (bool &) state - state of the active invert
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadExposureActiveInvert(bool &state);
-
+    // This function sets exposure active line mode
+    //
+    // Parameters:
+    // [in] (bool) state - state of the active line mode
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetExposureActiveLineMode(bool state);
+    // This function sets exposure active line selector
+    //
+    // Parameters:
+    // [in] (int32_t) value - value of the active line selector
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetExposureActiveLineSelector(int32_t value);
+    // This function sets exposure active invert
+    //
+    // Parameters:
+    // [in] (bool) state - state of the active invert
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetExposureActiveInvert(bool state);
 
-    // Misc
+    // This function switches frame transfer to gui
+    //
+    // Parameters:
+    // [in] (bool) showFrames - state of frames visibility
     void SwitchFrameTransfer2GUI(bool showFrames);
 
+    // This function returns AVT Device firmware version
+    //
+    // Returns:
+    // (std::string) - firmware version
     std::string getAvtDeviceFirmwareVersion();
+    // This function returns AVT Device Temperature
+    //
+    // Returns:
+    // (std::string) - device temperature
     std::string getAvtDeviceTemperature();
+    // This function returns AVT Device Serial Number
+    //
+    // Returns:
+    // (std::string) - device serial number
     std::string getAvtDeviceSerialNumber();
 
+    // This function converts errors to string and returns it
+    //
+    // Parameters:
+    // [in] (int) errnumber - error number
+    //
+    // Returns:
+    // std::string - error
     static std::string ConvertErrno2String(int errnumber);
+    // This function converts pixel format to string and returns it
+    //
+    // Parameters:
+    // [in] (int) pixelFormat - pixel format
+    //
+    // Returns:
+    // std::string - pixelFormat
     static std::string ConvertPixelFormat2String(int pixelFormat);
+    // This function converts pixel format to enum string and returns it
+    //
+    // Parameters:
+    // [in] (int) pixelFormat - pixel format
+    //
+    // Returns:
+    // std::string - enum pixelFormat
     static std::string ConvertPixelFormat2EnumString(int pixelFormat);
+    // This function converts control id to string and returns it
+    //
+    // Parameters:
+    // [in] (int) controlID - control id
+    //
+    // Returns:
+    // std::string - control id
     static std::string ConvertControlID2String(uint32_t controlID);
 
 
 public slots:
+    // This slot function passes gain value from a thread
+    // to a gui when auto is turned on
     void PassGainValue();
+    // This slot function passes exposure value from a thread
+    // to a gui when auto is turned on
     void PassExposureValue();
+    // This slot function passes white balance value from a thread
+    // to a gui when auto is turned on
     void PassWhiteBalanceValue();
 
+    // This slot function sets enumeration integer list control value
+    //
+    // Parameters:
+    // [in] (int32_t) id - id of the control
+    // [in] (int64_t) val - new value of the control
     void SetEnumerationControlValueIntList(int32_t id, int64_t val);
-    void SetEnumerationControlValueList(int32_t id, const char* str); //Values passed to controls which accept strings
-    void SetEnumerationControlValue(int32_t id, int32_t val); //Values passed to controls which accept 32 bit ingegers
-    void SetEnumerationControlValue(int32_t id, int64_t val); //Values passed to controls which accept 64 bit integers
-    void SetEnumerationControlValue(int32_t id, bool val); //Values passed to controls which accept booleans
-    void SetEnumerationControlValue(int32_t id); //Values passed to controls which performs some actions on button click
-    void SetSliderEnumerationControlValue(int32_t id, int32_t val); //Value passed to controls from the slider
-    void SetSliderEnumerationControlValue(int32_t id, int64_t val); //Value passed to controls from the slider 64 bit
+    // This slot function sets enumeration list control value
+    //
+    // Parameters:
+    // [in] (int32_t) id - id of the control
+    // [in] (const char*) str - new string value of the control
+    void SetEnumerationControlValueList(int32_t id, const char* str);
+    // This slot function sets enumeration integer control value
+    //
+    // Parameters:
+    // [in] (int32_t) id - id of the control
+    // [in] (int32_t) val - new control value
+    void SetEnumerationControlValue(int32_t id, int32_t val);
+    // This slot function sets enumeration 64-bit integer control value
+    //
+    // Parameters:
+    // [in] (int32_t) id - id of the control
+    // [in] (int64_t) val - new control value
+    void SetEnumerationControlValue(int32_t id, int64_t val);
+    // This slot function sets enumeration boolean control value
+    //
+    // Parameters:
+    // [in] (int32_t) id - id of the control
+    // [in] (bool) val - new control value
+    void SetEnumerationControlValue(int32_t id, bool val);
+    // This slot function performs action on enuemration button control click
+    //
+    // Parameters:
+    // [in] (int32_t) id - control id
+    void SetEnumerationControlValue(int32_t id);
+    // This slot function sets enumeration integer control value from the slider
+    //
+    // Parameters:
+    // [in] (int32_t) id - id of the control
+    // [in] (int32_t) val - new control value
+    void SetSliderEnumerationControlValue(int32_t id, int32_t val);
+    // This slot function sets enumeration 64-bit integer control value from the slider
+    //
+    // Parameters:
+    // [in] (int32_t) id - id of the control
+    // [in] (int64_t) val - new control value
+    void SetSliderEnumerationControlValue(int32_t id, int64_t val);
 
 private:
     std::string         m_DeviceName;

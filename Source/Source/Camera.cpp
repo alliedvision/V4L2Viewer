@@ -1469,14 +1469,14 @@ int Camera::ReadAutoExposure(bool &flag)
 
 int Camera::SetAutoExposure(bool value)
 {
-    if (value)
-    {
-        m_pAutoExposureReader->StartThread();
-    }
-    else
-    {
-        m_pAutoExposureReader->StopThread();
-    }
+//    if (value)
+//    {
+//        m_pAutoExposureReader->StartThread();
+//    }
+//    else
+//    {
+//        m_pAutoExposureReader->StopThread();
+//    }
     return SetExtControl(value ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
 }
 
@@ -1510,14 +1510,14 @@ int Camera::ReadAutoGain(bool &flag)
 
 int Camera::SetAutoGain(bool value)
 {
-    if (value)
-    {
-        m_pAutoGainReader->StartThread();
-    }
-    else
-    {
-        m_pAutoGainReader->StopThread();
-    }
+//    if (value)
+//    {
+//        m_pAutoGainReader->StartThread();
+//    }
+//    else
+//    {
+//        m_pAutoGainReader->StopThread();
+//    }
     return SetExtControl(value, V4L2_CID_AUTOGAIN, "SetAutoGain", "V4L2_CID_AUTOGAIN", V4L2_CTRL_CLASS_USER);
 }
 
@@ -1602,12 +1602,12 @@ int Camera::SetContinousWhiteBalance(bool flag)
 {
     if (flag)
     {
-        m_pAutoWhiteBalanceReader->StartThread();
+        //m_pAutoWhiteBalanceReader->StartThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance on", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
     else
     {
-        m_pAutoWhiteBalanceReader->StopThread();
+        //m_pAutoWhiteBalanceReader->StopThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
 }
@@ -1619,26 +1619,6 @@ int Camera::ReadAutoWhiteBalance(bool &flag)
     result = ReadExtControl(value, V4L2_CID_AUTO_WHITE_BALANCE, "ReadAutoWhiteBalance", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     flag = (value == V4L2_WHITE_BALANCE_AUTO) ? true : false;
     return result;
-}
-
-int Camera::ReadRedBalance(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_RED_BALANCE, "ReadRedBalance", "V4L2_CID_RED_BALANCE", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetRedBalance(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_RED_BALANCE, "SetRedBalance", "V4L2_CID_RED_BALANCE", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::ReadBlueBalance(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_BLUE_BALANCE, "ReadBlueBalance", "V4L2_CID_BLUE_BALANCE", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetBlueBalance(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_BLUE_BALANCE, "SetBlueBalance", "V4L2_CID_BLUE_BALANCE", V4L2_CTRL_CLASS_USER);
 }
 
 ////////////////// Parameter ///////////////////
@@ -1714,41 +1694,6 @@ int Camera::SetFrameRate(uint32_t numerator, uint32_t denominator)
                 Logger::LogEx("Camera::SetFrameRate VIDIOC_S_PARM failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
             }
         }
-    }
-
-    return result;
-}
-
-int Camera::ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
-                                 uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
-                                 uint32_t &aspectnum, uint32_t &aspectdenum)
-{
-    int result = -1;
-    v4l2_cropcap cropcap;
-
-    CLEAR(cropcap);
-    cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-    if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_CROPCAP, &cropcap) >= 0)
-    {
-        boundsx = cropcap.bounds.left;
-        boundsy = cropcap.bounds.top;
-        boundsw = cropcap.bounds.width;
-        boundsh = cropcap.bounds.height;
-        defrectx = cropcap.defrect.left;
-        defrecty = cropcap.defrect.top;
-        defrectw = cropcap.defrect.width;
-        defrecth = cropcap.defrect.height;
-        aspectnum = cropcap.pixelaspect.numerator;
-        aspectdenum = cropcap.pixelaspect.denominator;
-        Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP bx=%d, by=%d, bw=%d, bh=%d, dx=%d, dy=%d, dw=%d, dh=%d, num=%d, denum=%d OK",
-                boundsx, boundsy, boundsw, boundsh, defrectx, defrecty, defrectw, defrecth, aspectnum, aspectdenum);
-        result = 0;
-    }
-    else
-    {
-        Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        result = -2;
     }
 
     return result;
