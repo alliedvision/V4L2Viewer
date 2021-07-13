@@ -1581,59 +1581,12 @@ int Camera::ReadMinMaxBrightness(int32_t &min, int32_t &max)
     return ReadMinMax(min, max, V4L2_CID_BRIGHTNESS, "ReadMinMaxBrightness", "V4L2_CID_BRIGHTNESS");
 }
 
-int Camera::ReadContrast(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_CONTRAST, "ReadContrast", "V4L2_CID_CONTRAST", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetContrast(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_CONTRAST, "SetContrast", "V4L2_CID_CONTRAST", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::ReadSaturation(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_SATURATION, "ReadSaturation", "V4L2_CID_SATURATION", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetSaturation(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_SATURATION, "SetSaturation", "V4L2_CID_SATURATION", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::ReadHue(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_HUE, "ReadHue", "V4L2_CID_HUE", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetHue(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_HUE, "SetHue", "V4L2_CID_HUE", V4L2_CTRL_CLASS_USER);
-}
-
 bool Camera::IsAutoWhiteBalanceSupported()
 {
     v4l2_queryctrl qctrl;
 
     CLEAR(qctrl);
     qctrl.id = V4L2_CID_AUTO_WHITE_BALANCE;
-
-    if( iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl) == 0)
-    {
-        return !(qctrl.flags & V4L2_CTRL_FLAG_DISABLED);
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool Camera::IsWhiteBalanceOnceSupported()
-{
-    v4l2_queryctrl qctrl;
-
-    CLEAR(qctrl);
-    qctrl.id = V4L2_CID_DO_WHITE_BALANCE;
 
     if( iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl) == 0)
     {
@@ -1657,11 +1610,6 @@ int Camera::SetContinousWhiteBalance(bool flag)
         m_pAutoWhiteBalanceReader->StopThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
-}
-
-int Camera::DoWhiteBalanceOnce()
-{
-    return SetExtControl(0, V4L2_CID_DO_WHITE_BALANCE, "DoWhiteBalanceOnce", "V4L2_CID_DO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
 }
 
 int Camera::ReadAutoWhiteBalance(bool &flag)

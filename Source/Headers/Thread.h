@@ -8,7 +8,8 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 File:        Thread.h
 
-Description:
+Description: This class is responsible for application threading, it contains
+             description of how the thread object looks like.
 
 -------------------------------------------------------------------------------
 
@@ -44,9 +45,13 @@ public:
     Thread();
     ~Thread(void);
 
+    // This function starts thread
     void *StartThread(THREAD_START_ROUTINE threadStartRoutine, void* params);
+    // This function returns thread id
     void *GetThreadID();
+    // This function joins thread
     uint32_t Join();
+    // This function joins thread with a delay
     uint32_t JoinTimed(int msec);
 
 private:

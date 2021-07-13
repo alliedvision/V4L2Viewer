@@ -51,66 +51,346 @@ public:
     Camera();
     virtual ~Camera();
 
+    // This function performs opening of the device by the given name
+    //
+    // Parameters:
+    // [in] (std::string &) deviceName - name of the device to open
+    // [in] (bool) blockingMode - state of the blocking mode
+    // [in] (IO_METHOD_TYPE) ioMethodType - type of the input output method
+    // [in] (bool) v4l2TryFmt - state of the Try Fmt
+    //
+    // Returns:
+    // (int) - result of the opening
     int OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,
                    bool v4l2TryFmt);
+    // This function simply closes the opened device
+    //
+    // Returns:
+    // (int) - result of the closing
     int CloseDevice();
-
+    // This function starts discover of the cameras
+    //
+    // Returns:
+    // (int) - result of the discovery start
     int DeviceDiscoveryStart();
+    // This function stops discover of the cameras
+    //
+    // Returns:
+    // (int) - result of the discovery stop
     int DeviceDiscoveryStop();
+
+    // This function starts streaming from the camera
+    //
+    // Parameters:
+    // [in] (uint32_t) pixelFormat - pixel format id
+    // [in] (uint32_t) payloadSize - payload size
+    // [in] (uint32_t) width - width of the image
+    // [in] (uint32_t) height - height of the image
+    // [in] (uint32_t) bytesPerLine - number of bytes per line
+    // [in] (void *) pPrivateData
+    // [in] (uint32_t) enableLogging - state of the logging in frame observer
+    //
+    // Returns:
+    // (int) - result of starting streaming
     int StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height,
                            uint32_t bytesPerLine, void *pPrivateData,
                            uint32_t enableLogging);
+    // This function stops streaming from the camera
+    //
+    // Returns:
+    // (int) - result of the stopping streaming
     int StopStreamChannel();
 
+    // This function reads payload size
+    //
+    // Parameters:
+    // [in] (uint32_t &) payloadSize - payload size
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadPayloadSize(uint32_t &payloadSize);
+    // This function reads frame size
+    //
+    // Parameters:
+    // [in] (uint32_t &) width - image width
+    // [in] (uint32_t &) height - image height
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadFrameSize(uint32_t &width, uint32_t &height);
+    // This function sets frame size
+    //
+    // Parameters:
+    // [in] (uint32_t) width - image width
+    // [in] (uint32_t) height - image height
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetFrameSize(uint32_t width, uint32_t height);
+    // This function read camera image width
+    //
+    // Parameters:
+    // [in] (uint32_t &) width - image width
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadWidth(uint32_t &width);
+    // This function sets camera image width
+    //
+    // Parameters:
+    // [in] (uint32_t) width - image width
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetWidth(uint32_t width);
+    // This function read camera image height
+    //
+    // Parameters:
+    // [in] (uint32_t &) height - image height
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadHeight(uint32_t &height);
+    // This function set camera image height
+    //
+    // Parameters:
+    // [in] (uint32_t) height - image height
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetHeight(uint32_t height);
+    // This function read camera pixel format
+    //
+    // Parameters:
+    // [in] (uint32_t &) pixelFormat - image pixelFormat
+    // [in] (uint32_t &) bytesPerLine - bytesPerLine
+    // [in] (QString &) pfText - pixel format text
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadPixelFormat(uint32_t &pixelFormat, uint32_t &bytesPerLine, QString &pfText);
+    // This function set camera pixel format
+    //
+    // Parameters:
+    // [in] (uint32_t) pixelFormat - image pixelFormat
+    // [in] (QString) pfText - pixel format text
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetPixelFormat(uint32_t pixelFormat, QString pfText);
+    // This function reads all pixel formats and emits signal with pixel format list
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadFormats();
-
+    // This function read camera gain
+    //
+    // Parameters:
+    // [in] (uint32_t &) gain
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadGain(int32_t &gain);
+    // This function set camera gain
+    //
+    // Parameters:
+    // [in] (uint32_t) gain
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetGain(int32_t gain);
+    // This function read camera min max gain
+    //
+    // Parameters:
+    // [in] (uint32_t &) min
+    // [in] (uint32_t &) max
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadMinMaxGain(int32_t &min, int32_t &max);
+    // This function reads auto gain state
+    //
+    // Parameters:
+    // [in] (bool &) autogain - state of the auto gain
+    //
+    // Returns:
+    // (int) - result of the reading
     int ReadAutoGain(bool &autogain);
+    // This function sets auto gain state
+    //
+    // Parameters:
+    // [in] (bool &) autogain - state of the auto gain
+    //
+    // Returns:
+    // (int) - result of the setting
     int SetAutoGain(bool autogain);
 
+    // This function reads exposure
+    //
+    // Parameters:
+    // [in] (int32_t &) exposure
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadExposure(int32_t &exposure);
+    // This function reads exposure absolute
+    //
+    // Parameters:
+    // [in] (int32_t &) exposure
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadExposureAbs(int32_t &exposure);
+    // This function sets exposure
+    //
+    // Parameters:
+    // [in] (int32_t) exposure
+    //
+    // Returns:
+    // (int) - result of setting
     int SetExposure(int32_t exposure);
+    // This function sets exposure absolute
+    //
+    // Parameters:
+    // [in] (int32_t) exposure
+    //
+    // Returns:
+    // (int) - result of setting
     int SetExposureAbs(int32_t exposure);
+    // This function reads min and max of the exposure
+    //
+    // Parameters:
+    // [in] (int32_t &) min - minimum exposure
+    // [in] (int32_t &) max - maximum exposure
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadMinMaxExposure(int32_t &min, int32_t &max);
+    // This function reads min and max of the exposure absolute
+    //
+    // Parameters:
+    // [in] (int32_t &) min - minimum exposure
+    // [in] (int32_t &) max - maximum exposure
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadMinMaxExposureAbs(int32_t &min, int32_t &max);
+    // This function reads state of the auto exposure
+    //
+    // Parameters:
+    // [in] (bool &) autoexposure
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadAutoExposure(bool &autoexposure);
+    // This function turns on auto exposure
+    //
+    // Parameters:
+    // [in] (bool) autoexposure
+    //
+    // Returns:
+    // (int) - result of setting
     int SetAutoExposure(bool autoexposure);
 
+    // This function reads gamma
+    //
+    // Parameters:
+    // [in] (int32_t &) value - read value
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadGamma(int32_t &value);
+    // This function sets gamma
+    //
+    // Parameters:
+    // [in] (int32_t) value - new value to be set
+    //
+    // Returns:
+    // (int) - result of setting
     int SetGamma(int32_t value);
+    // This function reads min/max gamma
+    //
+    // Parameters:
+    // [in] (int32_t &) min - minimum gamma
+    // [in] (int32_t &) max - maximum gamma
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadMinMaxGamma(int32_t &min, int32_t &max);
 
+    // This function reads reverseX value
+    //
+    // Parameters:
+    // [in] (int32_t &) value - reverseX value
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadReverseX(int32_t &value);
+    // This function sets reverseX value
+    //
+    // Parameters:
+    // [in] (int32_t) value - new reverseX value
+    //
+    // Returns:
+    // (int) - result of setting
     int SetReverseX(int32_t value);
+    // This function reads reverseY value
+    //
+    // Parameters:
+    // [in] (int32_t &) value - reverseY value
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadReverseY(int32_t &value);
+    // This function sets reverseY value
+    //
+    // Parameters:
+    // [in] (int32_t) value - new reverseY value
+    //
+    // Returns:
+    // (int) - result of setting
     int SetReverseY(int32_t value);
 
+    // This function reads brightness/blacklevel
+    //
+    // Parameters:
+    // [in] (int32_t &) value - blacklevel value
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadBrightness(int32_t &value);
+    // This function sets brightness/blacklevel
+    //
+    // Parameters:
+    // [in] (int32_t &) value - new blacklevel value
+    //
+    // Returns:
+    // (int) - result of setting
     int SetBrightness(int32_t value);
+    // This function reads minimum and maximum brightness/blacklevel
+    //
+    // Parameters:
+    // [in] (int32_t &) min - minimum value
+    // [in] (int32_t &) max - maximum value
+    //
+    // Returns:
+    // (int) - result of reading
     int ReadMinMaxBrightness(int32_t &min, int32_t &max);
 
-    int ReadContrast(int32_t &value);
-    int SetContrast(int32_t value);
-    int ReadSaturation(int32_t &value);
-    int SetSaturation(int32_t value);
-    int ReadHue(int32_t &value);
-    int SetHue(int32_t value);
+    // This function sets state of the continuous white balance
+    //
+    // Parameters:
+    // [in] (bool) flag - new state of the continuous white balance
+    //
+    // Returns:
+    // (int) - result of setting
     int SetContinousWhiteBalance(bool flag);
+    // This function reads auto white balance support by camera
+    //
+    // Returns:
+    // (bool) - support state
     bool IsAutoWhiteBalanceSupported();
-    bool IsWhiteBalanceOnceSupported();
-    int DoWhiteBalanceOnce();
+
     int ReadAutoWhiteBalance(bool &flag);
     int ReadRedBalance(int32_t &value);
     int SetRedBalance(int32_t value);

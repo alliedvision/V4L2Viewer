@@ -446,7 +446,11 @@ private slots:
     // This slot function updates zoom label on zoom event from the CustomGraphicsView
     // object
     void OnUpdateZoomLabel();
-
+    // This slot function is called when the dock widget is docked or undocked
+    //
+    //
+    // Parameters:
+    // [in] (bool) topLevel - state of the docker widget (docked/undocked)
     void OnDockWidgetPositionChanged(bool topLevel);
 };
 
