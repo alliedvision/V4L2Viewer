@@ -8,7 +8,8 @@
 
   File:        Camera.cpp
 
-  Description:
+  Description: This class is responsible for controlling camera settings,
+               streaming and everything which is related to the device
 
 -------------------------------------------------------------------------------
 

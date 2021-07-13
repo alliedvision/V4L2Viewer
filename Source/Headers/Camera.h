@@ -8,7 +8,8 @@
 
   File:        Camera.h
 
-  Description:
+  Description: This class is responsible for controlling camera settings,
+               streaming and everything which is related to the device
 
 -------------------------------------------------------------------------------
 
@@ -939,21 +940,33 @@ signals:
     void OnCameraRecordFrame_Signal(const QSharedPointer<MyFrame>&);
     // Event will be called when the a frame is displayed
     void OnCameraDisplayFrame_Signal(const unsigned long long &);
+    // Event will be called when found new pixel format
     void OnCameraPixelFormat_Signal(const QString &);
+    // Event will be called on new frame size
     void OnCameraFrameSize_Signal(const QString &);
 
+    // Event will be called on signal from thread when auto exposure is turend on
     void PassAutoExposureValue(int32_t value);
+    // Event will be called on signal from thread when auto gain is turend on
     void PassAutoGainValue(int32_t value);
+    // Event will be called on signal from thread when auto white balance is turend on
     void PassAutoWhiteBalanceValue(int32_t value);
 
+    // Event will be called on enumeration control is found
     void SendIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, QString unit, bool bIsReadOnly);
+    // Event will be called on enumeration control is found
     void SentInt64DataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly);
+    // Event will be called on enumeration control is found
     void SendBoolDataToEnumerationWidget(int32_t id, bool value, QString name, QString unit, bool bIsReadOnly);
+    // Event will be called on enumeration control is found
     void SendButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly);
 
+    // Event will be called on enumeration control is found
     void SendListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly);
+    // Event will be called on enumeration control is found
     void SendListIntDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
 
+    // Event will be called on enumeration control change value
     void SendSignalToUpdateWidgets();
 
 private slots:
