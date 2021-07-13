@@ -8,7 +8,8 @@
 
   File:        MyFrameQueue.h
 
-  Description:
+  Description: This class is responsible for queuing and dequeuing arrived
+               frames.
 
 -------------------------------------------------------------------------------
 
@@ -41,30 +42,57 @@ public:
     MyFrameQueue(void);
     ~MyFrameQueue(void);
 
-    // Get the size of the queue
+    // This function returns the size of the queue
     unsigned int GetSize();
 
-    // Clear queue
+    // This function clears queue
     void Clear();
 
-    // Add a new frame
+    // This function adds a new frame
+    //
+    // Parameters:
+    // [in] (uint32_t &) bufferIndex
+    // [in] (uint8_t *&) buffer
+    // [in] (uint32_t &) length
+    // [in] (uint32_t &) width
+    // [in] (uin32_t &) height
+    // [in] (uint32_t &) pixelFormat
+    // [in] (uint32_t &) payloadSize
+    // [in] (uint32_t &) bytesPerLine
+    // [in] (uint64_t &) frameID
     void Enqueue(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
          uint32_t &width, uint32_t &height, uint32_t &pixelFormat,
          uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
 
-    // Add a new frame
+    // This function adds a new frame to the queue
+    //
+    // Parameters:
+    // [in] (QImage &) image
+    // [in] (uint64_t) frameID
     void Enqueue(QImage &image, uint64_t frameID);
 
-    // Add a new frame
+    // This function adds a new frame to the queue
+    //
+    // Parameters:
+    // [in] (QSharedPointer<MyFrame>) pFrame
     void Enqueue(QSharedPointer<MyFrame> pFrame);
 
-    // Get the frame out of the queue
+    // This function return and remove frame out of the queue
+    //
+    // Returns:
+    // QSharedPointer<MyFrame>
     QSharedPointer<MyFrame> Dequeue();
 
-    // Get the frame at the previous index
+    // This function returns the frame at the previous index
+    //
+    // Returns:
+    // QSharedPointer<MyFrame>
     QSharedPointer<MyFrame> GetPrevious();
 
-    // Get the frame at the next index
+    // This function returns the frame at the next index
+    //
+    // Returns:
+    // QSharedPointer<MyFrame>
     QSharedPointer<MyFrame> GetNext();
 
 private:

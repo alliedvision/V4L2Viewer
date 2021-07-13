@@ -8,7 +8,8 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 File:        Logger.h
 
-Description:
+Description: This class provides operations for the logger, and calls
+             BaseLogger functions.
 
 -------------------------------------------------------------------------------
 
@@ -40,11 +41,39 @@ public:
     Logger(void);
     ~Logger(void);
 
+    // This function initializes logger
+    //
+    // Parameters:
+    // [in] (const std::string &) logFilename
     static void InitializeLogger(const std::string &logFilename);
+    // This function logs passed message
+    //
+    // Parameters:
+    // [in] (const std::string &) message
     static void Log(const std::string &message);
+    // This function logs passed message with additional arguments
+    //
+    // Parameters:
+    // [in] (const char *text) text
     static void LogEx(const char *text, ...);
+    // This function dumps passed message
+    //
+    // Parameters:
+    // [in] (const std::string &) message
+    // [in] (uint8_t *) buffer
+    // [in] (uint32_t) length
     static void LogDump(const std::string &message, uint8_t *buffer, uint32_t length);
+    // This function logs buffer
+    //
+    // Parameters:
+    // [in] (const std::string &) filename
+    // [in] (uint8_t *) buffer
+    // [in] (uint32_t) length
     static void LogBuffer(const std::string &filename, uint8_t *buffer, uint32_t length);
+    // This function swtich logger's turn state
+    //
+    // Parameters:
+    // [in] (bool) flag
     static void LogSwitch(bool flag);
 
 private:

@@ -8,7 +8,8 @@
 
   File:        BaseLogger.h
 
-  Description:
+  Description: This class represents base logger which shows application
+               communicates.
 
 -------------------------------------------------------------------------------
 
@@ -53,24 +54,58 @@ public:
     BaseLogger(const std::string &fileName, bool bAppend = false);
     virtual ~BaseLogger();
 
+    // This function starts processing in the thread
     void ThreadProc();
+    // This function dumps processing in the thread
     void DmpThreadProc();
+    // This function saves log buffer to the file
     void BufThreadProc();
 
+    // This function adds new packets to the output queue
+    //
+    // Parameters:
+    // [in] (const std::string &) message - new message to log
     void Log(const std::string &message);
+    // Ths function add new packet to the dump queue
+    //
+    // Parameters:
+    // [in] (const std::string &) message
+    // [in] (uint8_t *) buffer
+    // [in] (uint32_t) length
     void LogDump(const std::string &message, uint8_t *buffer, uint32_t length);
+    // This function adds new packet to the queue buffer
+    //
+    // Parameters:
+    // [in] (const std::string &) fileName - name of the output file
+    // [in] (uint8_t *) buffer
+    // [in] (uint32_t) length
     void LogBuffer(const std::string &fileName, uint8_t *buffer, uint32_t length);
 
 private:
+    // This function prints start message
     void PrintStartMessage();
+    // This function prints exit message
     void PrintExitMessage();
+    // This function prints dump exit message
     void PrintDumpExitMessage();
+    // This function prints buffer exit message
     void PrintBufferExitMessage();
 
 private:
+    // This function converts timestamp to string
+    //
+    // Returns:
+    // (std::string) - timestamp
     static
     std::string ConvertTimeStampToString();
-
+    // This function converts packet to string
+    //
+    // Parameters:
+    // [in] (uint8_t *) buffer
+    // [in] (uint32_t) length
+    //
+    // Returns:
+    // (std::string) - packet
     static
     std::string ConvertPacketToString (uint8_t *buffer, uint32_t length);
 

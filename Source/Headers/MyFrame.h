@@ -8,7 +8,8 @@
 
   File:        MyFrame.h
 
-  Description:
+  Description: This class contains information and all functions about
+               camera's frame.
 
 -------------------------------------------------------------------------------
 
@@ -58,18 +59,56 @@ public:
 
     ~MyFrame(void);
 
-    // Get the frame buffer
+    // This function returns the frame buffer
+    //
+    // Returns:
+    // (QImage &) - reference to the frame
     QImage &GetImage();
 
-    // get the id of the frame
+    // This function returns the id of the frame
+    //
+    // Returns:
+    // (unsigned long long) - frame id
     unsigned long long   GetFrameId();
+    // This function returns buffer
+    //
+    // Returns:
+    // (uint8_t *) - buffer
     uint8_t *            GetBuffer();
+    // This function returns buffer length
+    //
+    // Returns:
+    // (uint32_t) - length
     uint32_t             GetBufferlength();
+    // This function returns frame width
+    //
+    // Returns:
+    // (uint32_t) - width
     uint32_t             GetWidth();
+    // This function returns frame height
+    //
+    // Returns:
+    // (uint32_t) - height
     uint32_t             GetHeight();
+    // This function returns pixel format
+    //
+    // Returns:
+    // (uint32_t) - pixel format
     uint32_t             GetPixelFormat();
+    // This function returns payload size
+    //
+    // Returns:
+    // (uint32_t) - payload size
     uint32_t             GetPayloadSize();
+    // This function returns bytes per line
+    //
+    // Returns:
+    // (uint32_t) - bytes per line
     uint32_t             GetBytesPerLine();
+    // This function returns buffer index
+    //
+    // Returns:
+    // (uint32_t) - buffer index
     uint32_t             GetBufferIndex();
 
 private:

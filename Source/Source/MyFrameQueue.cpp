@@ -8,7 +8,8 @@
 
   File:        MyFrameQueue.cpp
 
-  Description:
+  Description: This class is responsible for queuing and dequeuing arrived
+               frames.
 
 -------------------------------------------------------------------------------
 
