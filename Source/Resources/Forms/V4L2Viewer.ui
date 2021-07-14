@@ -452,7 +452,7 @@ border:none;
               <x>0</x>
               <y>0</y>
               <width>772</width>
-              <height>272</height>
+              <height>257</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -979,6 +979,10 @@ QLineEdit::focus {
 border-bottom: 1px solid gray;
 }
 
+QLineEdit::disabled{
+color: rgb(77,78,79);
+}
+
 Line{
 border-top:1px solid rgb(66,67,68);
 }
@@ -1052,13 +1056,45 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>-428</x>
+              <x>-170</x>
               <y>0</y>
-              <width>1219</width>
-              <height>362</height>
+              <width>1241</width>
+              <height>377</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_8">
+             <item row="0" column="6">
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::MinimumExpanding</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="0" column="0">
+              <spacer name="horizontalSpacer_11">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::MinimumExpanding</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
              <item row="0" column="2">
               <widget class="QFrame" name="frameSecond">
                <property name="minimumSize">
@@ -1192,7 +1228,7 @@ border: 1px solid gray;
                     </property>
                    </widget>
                   </item>
-                  <item row="12" column="0" colspan="3">
+                  <item row="8" column="0" colspan="3">
                    <spacer name="verticalSpacer_6">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
@@ -1219,7 +1255,7 @@ border: 1px solid gray;
                     <property name="maximumSize">
                      <size>
                       <width>102</width>
-                      <height>25</height>
+                      <height>27</height>
                      </size>
                     </property>
                     <property name="cursor">
@@ -1279,22 +1315,42 @@ QCheckBox::disabled{
                     </property>
                    </widget>
                   </item>
-                  <item row="8" column="0" colspan="3">
-                   <widget class="Line" name="line_2">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="9" column="0" rowspan="3" colspan="2">
-                   <widget class="QLabel" name="label">
-                    <property name="text">
-                     <string>All Features</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="9" column="2" rowspan="3">
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QFrame" name="frameFifth">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QFrame#frameFifth{
+border-radius:6px;
+border: 1px solid gray;
+}</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QGridLayout" name="gridLayout_9">
+                <item row="0" column="0">
+                 <layout class="QGridLayout" name="gridLayout_2">
+                  <item row="0" column="1">
                    <widget class="QPushButton" name="m_AllControlsButton">
+                    <property name="maximumSize">
+                     <size>
+                      <width>102</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
                     <property name="cursor">
                      <cursorShape>PointingHandCursor</cursorShape>
                     </property>
@@ -1326,12 +1382,32 @@ background-color:rgb(166, 166, 166);
                     </property>
                    </widget>
                   </item>
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>All Features</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0" colspan="2">
+                   <spacer name="verticalSpacer_7">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </item>
                </layout>
               </widget>
              </item>
-             <item row="0" column="1">
+             <item row="0" column="1" rowspan="2">
               <widget class="QFrame" name="frameFirst">
                <property name="minimumSize">
                 <size>
@@ -1360,90 +1436,35 @@ border: 1px solid gray;
                   <property name="verticalSpacing">
                    <number>4</number>
                   </property>
-                  <item row="0" column="1">
-                   <widget class="QSlider" name="m_sliderExposure">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
+                  <item row="13" column="2">
+                   <widget class="QCheckBox" name="m_chkAutoGain">
                     <property name="minimumSize">
                      <size>
-                      <width>150</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="maximum">
-                     <number>10000</number>
-                    </property>
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="10" column="0" colspan="3">
-                   <widget class="QWidget" name="m_gainAutoOnceWidget" native="true">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="minimumSize">
-                     <size>
-                      <width>200</width>
-                      <height>40</height>
+                      <width>102</width>
+                      <height>27</height>
                      </size>
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>16777215</width>
-                      <height>40</height>
+                      <width>102</width>
+                      <height>27</height>
                      </size>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">QWidget{
-border-radius:0px;
-background:none;
-}</string>
+                    <property name="cursor">
+                     <cursorShape>PointingHandCursor</cursorShape>
                     </property>
-                    <layout class="QGridLayout" name="gridLayout_2">
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="horizontalSpacing">
-                      <number>0</number>
-                     </property>
-                     <item row="0" column="1">
-                      <widget class="QCheckBox" name="m_chkAutoGain">
-                       <property name="minimumSize">
-                        <size>
-                         <width>102</width>
-                         <height>27</height>
-                        </size>
-                       </property>
-                       <property name="maximumSize">
-                        <size>
-                         <width>102</width>
-                         <height>25</height>
-                        </size>
-                       </property>
-                       <property name="cursor">
-                        <cursorShape>PointingHandCursor</cursorShape>
-                       </property>
-                       <property name="toolTip">
-                        <string>&lt;p&gt;&lt;b&gt;Auto Gain&lt;/b&gt;&lt;/p&gt;
+                    <property name="toolTip">
+                     <string>&lt;p&gt;&lt;b&gt;Auto Gain&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Clicking this button will turn on/off the continuous gain feature.&lt;/span&gt;</string>
-                       </property>
-                       <property name="layoutDirection">
-                        <enum>Qt::LeftToRight</enum>
-                       </property>
-                       <property name="autoFillBackground">
-                        <bool>false</bool>
-                       </property>
-                       <property name="styleSheet">
-                        <string notr="true">QCheckBox{
+                    </property>
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
+                    <property name="autoFillBackground">
+                     <bool>false</bool>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">QCheckBox{
 max-width:100px;
 border-radius:12px;
 spacing:-65;
@@ -1474,48 +1495,38 @@ QCheckBox::disabled{
  color: rgb(59, 59, 59);
  border: 1px solid rgb(59, 59, 59);
 }</string>
-                       </property>
-                       <property name="text">
-                        <string>Auto</string>
-                       </property>
-                       <property name="checked">
-                        <bool>false</bool>
-                       </property>
-                       <property name="tristate">
-                        <bool>false</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="2">
-                      <spacer name="horizontalSpacer_7">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item row="0" column="0">
-                      <spacer name="horizontalSpacer_8">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                    </layout>
+                    </property>
+                    <property name="text">
+                     <string>Auto</string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
+                    </property>
+                    <property name="tristate">
+                     <bool>false</bool>
+                    </property>
                    </widget>
                   </item>
-                  <item row="11" column="0" colspan="3">
+                  <item row="0" column="1">
+                   <widget class="QSlider" name="m_sliderExposure">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>150</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximum">
+                     <number>10000</number>
+                    </property>
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="14" column="0" colspan="3">
                    <spacer name="verticalSpacer_5">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
@@ -1563,7 +1574,7 @@ QCheckBox::disabled{
                     </property>
                    </widget>
                   </item>
-                  <item row="8" column="2" rowspan="2">
+                  <item row="11" column="2" rowspan="2">
                    <widget class="QLineEdit" name="m_edGain">
                     <property name="minimumSize">
                      <size>
@@ -1607,14 +1618,14 @@ QCheckBox::disabled{
                     </property>
                    </widget>
                   </item>
-                  <item row="8" column="0" rowspan="2">
+                  <item row="11" column="0" rowspan="2">
                    <widget class="QLabel" name="m_labelGain">
                     <property name="text">
                      <string>Gain[1/100dB]:</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="8" column="1" rowspan="2">
+                  <item row="11" column="1" rowspan="2">
                    <widget class="QSlider" name="m_sliderGain">
                     <property name="minimumSize">
                      <size>
@@ -1637,7 +1648,7 @@ QCheckBox::disabled{
                     </property>
                    </widget>
                   </item>
-                  <item row="7" column="0" colspan="3">
+                  <item row="9" column="0" colspan="3">
                    <widget class="Line" name="line_4">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -1650,14 +1661,14 @@ QCheckBox::disabled{
                     </property>
                    </widget>
                   </item>
-                  <item row="4" column="0" rowspan="3" colspan="2">
+                  <item row="5" column="0" rowspan="3" colspan="2">
                    <widget class="QLabel" name="label_3">
                     <property name="text">
                      <string>Exposure Active</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="4" column="2" rowspan="3">
+                  <item row="5" column="2" rowspan="3">
                    <widget class="QPushButton" name="m_ExposureActiveButton">
                     <property name="cursor">
                      <cursorShape>PointingHandCursor</cursorShape>
@@ -1690,74 +1701,52 @@ background-color:rgb(166, 166, 166);
                     </property>
                    </widget>
                   </item>
-                  <item row="3" column="0" colspan="3">
-                   <widget class="QWidget" name="m_expAutoOnceWidget" native="true">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
+                  <item row="13" column="0" colspan="2">
+                   <widget class="QLabel" name="label_5">
+                    <property name="text">
+                     <string>Gain Auto</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="0" colspan="2">
+                   <widget class="QLabel" name="label_4">
+                    <property name="text">
+                     <string>Exposure Auto</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="2">
+                   <widget class="QCheckBox" name="m_chkAutoExposure">
+                    <property name="enabled">
+                     <bool>true</bool>
                     </property>
                     <property name="minimumSize">
                      <size>
-                      <width>200</width>
-                      <height>40</height>
+                      <width>102</width>
+                      <height>27</height>
                      </size>
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>16777215</width>
-                      <height>40</height>
+                      <width>102</width>
+                      <height>27</height>
                      </size>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">QWidget{
-border-radius:0px;
-background:none;
-}</string>
+                    <property name="cursor">
+                     <cursorShape>PointingHandCursor</cursorShape>
                     </property>
-                    <layout class="QGridLayout" name="gridLayout_9">
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="horizontalSpacing">
-                      <number>0</number>
-                     </property>
-                     <item row="0" column="1">
-                      <widget class="QCheckBox" name="m_chkAutoExposure">
-                       <property name="enabled">
-                        <bool>true</bool>
-                       </property>
-                       <property name="minimumSize">
-                        <size>
-                         <width>102</width>
-                         <height>27</height>
-                        </size>
-                       </property>
-                       <property name="maximumSize">
-                        <size>
-                         <width>102</width>
-                         <height>25</height>
-                        </size>
-                       </property>
-                       <property name="cursor">
-                        <cursorShape>PointingHandCursor</cursorShape>
-                       </property>
-                       <property name="toolTip">
-                        <string>&lt;p&gt;&lt;b&gt;Auto Exposure&lt;/b&gt;&lt;/p&gt;
+                    <property name="toolTip">
+                     <string>&lt;p&gt;&lt;b&gt;Auto Exposure&lt;/b&gt;&lt;/p&gt;
 &lt;span&gt;Clicking this button will turn on/off the continuous exposure feature.&lt;/span&gt;</string>
-                       </property>
-                       <property name="layoutDirection">
-                        <enum>Qt::LeftToRight</enum>
-                       </property>
-                       <property name="autoFillBackground">
-                        <bool>false</bool>
-                       </property>
-                       <property name="styleSheet">
-                        <string notr="true">QCheckBox{
+                    </property>
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
+                    <property name="autoFillBackground">
+                     <bool>false</bool>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">QCheckBox{
 max-width:100px;
 border-radius:12px;
 spacing:-65;
@@ -1788,53 +1777,72 @@ QCheckBox::disabled{
  color: rgb(59, 59, 59);
  border: 1px solid rgb(59, 59, 59);
 }</string>
-                       </property>
-                       <property name="text">
-                        <string>Auto</string>
-                       </property>
-                       <property name="checked">
-                        <bool>false</bool>
-                       </property>
-                       <property name="tristate">
-                        <bool>false</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="0">
-                      <spacer name="horizontalSpacer_6">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item row="0" column="2">
-                      <spacer name="horizontalSpacer_5">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                    </layout>
+                    </property>
+                    <property name="text">
+                     <string>Auto</string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
+                    </property>
+                    <property name="tristate">
+                     <bool>false</bool>
+                    </property>
                    </widget>
+                  </item>
+                  <item row="4" column="0" colspan="3">
+                   <spacer name="verticalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="8" column="0" colspan="3">
+                   <spacer name="verticalSpacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>10</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="10" column="0" colspan="3">
+                   <spacer name="verticalSpacer_4">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>10</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                  </layout>
                 </item>
                </layout>
               </widget>
              </item>
-             <item row="0" column="3">
+             <item row="0" column="4" rowspan="2">
               <widget class="QFrame" name="frameThird">
                <property name="minimumSize">
                 <size>
@@ -1857,7 +1865,7 @@ border: 1px solid gray;
                <layout class="QGridLayout" name="gridLayout_17">
                 <item row="0" column="0">
                  <layout class="QGridLayout" name="gridLayout_3">
-                  <item row="0" column="3">
+                  <item row="0" column="2">
                    <widget class="QLineEdit" name="m_edFrameRate">
                     <property name="maximumSize">
                      <size>
@@ -1870,7 +1878,7 @@ border: 1px solid gray;
                     </property>
                    </widget>
                   </item>
-                  <item row="1" column="0" colspan="4">
+                  <item row="1" column="0" colspan="3">
                    <widget class="Line" name="line_6">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -1883,7 +1891,7 @@ border: 1px solid gray;
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="0" colspan="3">
+                  <item row="0" column="0" colspan="2">
                    <widget class="QLabel" name="m_labelFrameRate">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -1896,20 +1904,7 @@ border: 1px solid gray;
                     </property>
                    </widget>
                   </item>
-                  <item row="3" column="0" colspan="4">
-                   <widget class="Line" name="line_7">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="0" colspan="3">
+                  <item row="2" column="0" colspan="2">
                    <widget class="QLabel" name="m_labelPixelFormats">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -1922,7 +1917,7 @@ border: 1px solid gray;
                     </property>
                    </widget>
                   </item>
-                  <item row="10" column="0" colspan="4">
+                  <item row="3" column="0" colspan="3">
                    <spacer name="verticalSpacer_8">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
@@ -1935,7 +1930,7 @@ border: 1px solid gray;
                     </property>
                    </spacer>
                   </item>
-                  <item row="2" column="3">
+                  <item row="2" column="2">
                    <widget class="QComboBox" name="m_pixelFormats">
                     <property name="enabled">
                      <bool>true</bool>
@@ -1963,6 +1958,10 @@ border:none;
 padding: 1px 0px 1px 3px;
 }
 
+QComboBox::disabled{
+color: rgb(77,78,79);
+}
+
 QComboBox::drop-down{
 background-image: url(:/V4L2Viewer/triangle-copy-3.png);
 background-repeat:no-repeat;
@@ -1980,146 +1979,12 @@ color:white;
                     </property>
                    </widget>
                   </item>
-                  <item row="6" column="3">
-                   <widget class="QLineEdit" name="m_edCropXOffset">
-                    <property name="maximumSize">
-                     <size>
-                      <width>70</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="maxLength">
-                     <number>10</number>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="6" column="0" colspan="3">
-                   <widget class="QLabel" name="m_labelCropXOffset">
-                    <property name="text">
-                     <string>left:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="7" column="3">
-                   <widget class="QLineEdit" name="m_edCropYOffset">
-                    <property name="maximumSize">
-                     <size>
-                      <width>70</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="maxLength">
-                     <number>10</number>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="8" column="3">
-                   <widget class="QLineEdit" name="m_edCropWidth">
-                    <property name="maximumSize">
-                     <size>
-                      <width>70</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="maxLength">
-                     <number>10</number>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="9" column="3">
-                   <widget class="QLineEdit" name="m_edCropHeight">
-                    <property name="maximumSize">
-                     <size>
-                      <width>70</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="9" column="0" colspan="3">
-                   <widget class="QLabel" name="m_labelCropHeight">
-                    <property name="text">
-                     <string>height:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="8" column="0" colspan="3">
-                   <widget class="QLabel" name="m_labelCropWidth">
-                    <property name="text">
-                     <string>width:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="7" column="0" colspan="3">
-                   <widget class="QLabel" name="m_labelCropYOffset">
-                    <property name="text">
-                     <string>top:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="0" rowspan="2" colspan="4">
-                   <widget class="QLabel" name="m_CropLabel">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Crop</string>
-                    </property>
-                   </widget>
-                  </item>
                  </layout>
                 </item>
                </layout>
               </widget>
              </item>
-             <item row="0" column="5">
-              <spacer name="horizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::MinimumExpanding</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="0" column="0">
-              <spacer name="horizontalSpacer_11">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::MinimumExpanding</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="0" column="4">
+             <item row="0" column="5" rowspan="2">
               <widget class="QFrame" name="frameFourth">
                <property name="minimumSize">
                 <size>
@@ -2212,7 +2077,7 @@ border: 1px solid gray;
                     </property>
                    </widget>
                   </item>
-                  <item row="2" column="0" colspan="2">
+                  <item row="9" column="0" colspan="2">
                    <spacer name="verticalSpacer_3">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
@@ -2224,6 +2089,115 @@ border: 1px solid gray;
                      </size>
                     </property>
                    </spacer>
+                  </item>
+                  <item row="5" column="1">
+                   <widget class="QLineEdit" name="m_edCropXOffset">
+                    <property name="maximumSize">
+                     <size>
+                      <width>70</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="maxLength">
+                     <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="7" column="1">
+                   <widget class="QLineEdit" name="m_edCropWidth">
+                    <property name="maximumSize">
+                     <size>
+                      <width>70</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="maxLength">
+                     <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="0">
+                   <widget class="QLabel" name="m_labelCropXOffset">
+                    <property name="text">
+                     <string>left:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="7" column="0">
+                   <widget class="QLabel" name="m_labelCropWidth">
+                    <property name="text">
+                     <string>width:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="0">
+                   <widget class="QLabel" name="m_labelCropYOffset">
+                    <property name="text">
+                     <string>top:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0" colspan="2">
+                   <widget class="QLabel" name="m_CropLabel">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Crop</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0" rowspan="2" colspan="2">
+                   <widget class="Line" name="line">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="1">
+                   <widget class="QLineEdit" name="m_edCropYOffset">
+                    <property name="maximumSize">
+                     <size>
+                      <width>70</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="maxLength">
+                     <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="8" column="0">
+                   <widget class="QLabel" name="m_labelCropHeight">
+                    <property name="text">
+                     <string>height:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="8" column="1">
+                   <widget class="QLineEdit" name="m_edCropHeight">
+                    <property name="maximumSize">
+                     <size>
+                      <width>70</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
