@@ -8,7 +8,6 @@ list(APPEND HEADER_FILES
 ${HEADERS_PATH}/BaseLogger.h
 ${HEADERS_PATH}/Camera.h
 ${HEADERS_PATH}/CameraObserver.h
-${HEADERS_PATH}/DeviationCalculator.h
 ${HEADERS_PATH}/FrameObserver.h
 ${HEADERS_PATH}/FrameObserverMMAP.h
 ${HEADERS_PATH}/FrameObserverUSER.h
@@ -46,7 +45,6 @@ list(APPEND SOURCE_FILES
 ${SOURCES_PATH}/BaseLogger.cpp
 ${SOURCES_PATH}/Camera.cpp
 ${SOURCES_PATH}/CameraObserver.cpp
-${SOURCES_PATH}/DeviationCalculator.cpp
 ${SOURCES_PATH}/FrameObserver.cpp
 ${SOURCES_PATH}/FrameObserverMMAP.cpp
 ${SOURCES_PATH}/FrameObserverUSER.cpp

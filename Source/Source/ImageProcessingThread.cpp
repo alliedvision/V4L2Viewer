@@ -8,7 +8,7 @@
 
   File:        ImageProcessingThread.cpp
 
-  Description:
+  Description: This class is responsible for processing images.
 
 -------------------------------------------------------------------------------
 

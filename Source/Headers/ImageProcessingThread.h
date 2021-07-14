@@ -8,7 +8,7 @@
 
   File:        ImageProcessingThread.h
 
-  Description:
+  Description: This class is responsible for processing images.
 
 -------------------------------------------------------------------------------
 
@@ -44,25 +44,52 @@ public:
     ImageProcessingThread();
     ~ImageProcessingThread(void);
 
-    // Queue the frame for the thread to work with
+    // This function queues the frame for the thread to work with
+    //
+    // Parameters:
+    // [in] (uint32_t &) bufferIndex - index of the buffer
+    // [in] (uint8_t *&) buffer - given buffer
+    // [in] (uint32_t &) length - length of the buffer
+    // [in] (uint32_t &) width - width of the frame
+    // [in] (uint32_t &) height - height of the frame
+    // [in] (uint32_t &) pixelFormat
+    // [in] (uint32_t &) payloadSize
+    // [in] (uint32_t &) bytesPerLine
+    // [in] (uint64_t &) frameID
+    //
+    // Returns:
+    // (int) - result of queuing
     int QueueFrame(uint32_t &bufferIndex, uint8_t *&buffer, uint32_t &length,
                    uint32_t &width, uint32_t &height, uint32_t &pixelFormat,
                    uint32_t &payloadSize, uint32_t &bytesPerLine, uint64_t &frameID);
 
-    // Queue the frame for the thread to work with
+    // This function queues the frame for the thread to work with
+    //
+    // Parameters:
+    // [in] (QImage &) image
+    // [in] (uint64_t &) frameID
+    //
+    // Returns:
+    // (int) - result of queuing
     int QueueFrame(QImage &image, uint64_t &frameID);
 
-    // Queue the frame for the thread to work with
+    // This function queues the frame for the thread to work with
+    //
+    // Parameters:
+    // [in] (QSharedPointer<MyFrame>) pFrame
+    //
+    // Returns:
+    // (int) - result of queuing
     int QueueFrame(QSharedPointer<MyFrame> pFrame);
 
-    // start thread
+    // This function starts thread
     void StartThread();
 
-    // stop the internal processing thread and wait until the thread is really stopped
+    // This function stops the internal processing thread and wait until the thread is really stopped
     void StopThread();
 
 protected:
-    // Do the work within this thread
+    // This function does the work within this thread
     virtual void run();
 
 private:

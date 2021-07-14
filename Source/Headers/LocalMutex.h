@@ -8,7 +8,8 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 File:        LocalMutex.h
 
-Description:
+Description: This class describes mutex and provides functions for lock and
+             unlock.
 
 -------------------------------------------------------------------------------
 
@@ -44,10 +45,12 @@ public:
         pthread_mutex_destroy(&m_Mutex);
     }
 
+    // This function locks mutex
     void Lock()
     {
         pthread_mutex_lock(&m_Mutex);
     }
+    // This function unlocks mutex
     void Unlock()
     {
         pthread_mutex_unlock(&m_Mutex);
