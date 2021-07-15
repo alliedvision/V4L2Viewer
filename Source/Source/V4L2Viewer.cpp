@@ -205,10 +205,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     connect(ui.m_fixedRateStartButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
 
-    // Connect Exposure Active widget with slots
-    connect(&m_ActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
-    connect(&m_ActiveExposureWidget, SIGNAL(SendActiveState(bool)), this, SLOT(PassActiveState(bool)));
-    connect(&m_ActiveExposureWidget, SIGNAL(SendLineSelectorValue(int32_t)), this, SLOT(PassLineSelectorValue(int32_t)));
+    m_pActiveExposureWidget = new ActiveExposureWidget();
+    connect(m_pActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
+    connect(m_pActiveExposureWidget, SIGNAL(SendActiveState(bool)), this, SLOT(PassActiveState(bool)));
+    connect(m_pActiveExposureWidget, SIGNAL(SendLineSelectorValue(int32_t)), this, SLOT(PassLineSelectorValue(int32_t)));
 
     connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
 
@@ -322,6 +322,8 @@ V4L2Viewer::~V4L2Viewer()
     // if we are streaming stop streaming
     if ( true == m_bIsOpen )
         OnOpenCloseButtonClicked();
+
+    delete m_pActiveExposureWidget;
 }
 
 // The event handler to close the program
@@ -763,10 +765,10 @@ void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QLis
 
 void V4L2Viewer::OnExposureActiveClicked()
 {
-    QPoint point(this->width()/2 - m_ActiveExposureWidget.width()/2, this->height()/2 - m_ActiveExposureWidget.height()/2);
+    QPoint point(this->width()/2 - m_pActiveExposureWidget->width()/2, this->height()/2 - m_pActiveExposureWidget->height()/2);
     QPoint glob = mapToGlobal(point);
-    m_ActiveExposureWidget.setGeometry(glob.x(), glob.y(), m_ActiveExposureWidget.width(), m_ActiveExposureWidget.height());
-    m_ActiveExposureWidget.show();
+    m_pActiveExposureWidget->setGeometry(glob.x(), glob.y(), m_pActiveExposureWidget->width(), m_pActiveExposureWidget->height());
+    m_pActiveExposureWidget->show();
 }
 
 void V4L2Viewer::PassInvertState(bool state)
@@ -1732,33 +1734,33 @@ void V4L2Viewer::GetImageInformation()
 
     if (m_Camera.ReadExposureActiveLineMode(bIsActive) < 0)
     {
-        m_ActiveExposureWidget.setEnabled(false);
+        m_pActiveExposureWidget->setEnabled(false);
         ui.m_ExposureActiveButton->setEnabled(false);
     }
     else
     {
-        m_ActiveExposureWidget.BlockInvertAndLineSelector(bIsActive);
-        m_ActiveExposureWidget.SetActive(bIsActive);
+        m_pActiveExposureWidget->BlockInvertAndLineSelector(bIsActive);
+        m_pActiveExposureWidget->SetActive(bIsActive);
     }
 
     if (m_Camera.ReadExposureActiveLineSelector(value, min, max, step) < 0)
     {
-        m_ActiveExposureWidget.setEnabled(false);
+        m_pActiveExposureWidget->setEnabled(false);
         ui.m_ExposureActiveButton->setEnabled(false);
     }
     else
     {
-        m_ActiveExposureWidget.SetLineSelectorRange(value, min, max, step);
+        m_pActiveExposureWidget->SetLineSelectorRange(value, min, max, step);
     }
 
     if (m_Camera.ReadExposureActiveInvert(bIsInverted) < 0)
     {
-        m_ActiveExposureWidget.setEnabled(false);
+        m_pActiveExposureWidget->setEnabled(false);
         ui.m_ExposureActiveButton->setEnabled(false);
     }
     else
     {
-        m_ActiveExposureWidget.SetInvert(bIsInverted);
+        m_pActiveExposureWidget->SetInvert(bIsInverted);
     }
 
     m_Camera.EnumAllControlNewStyle();

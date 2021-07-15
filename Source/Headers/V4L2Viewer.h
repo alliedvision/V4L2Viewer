@@ -120,7 +120,7 @@ private:
     // from the Camera class object
     ControlsHolderWidget *m_pEnumerationControlWidget;
     // The active exposure widget
-    ActiveExposureWidget m_ActiveExposureWidget;
+    QPointer<ActiveExposureWidget> m_pActiveExposureWidget;
 
     // Queries and lists all known cameras
     //
