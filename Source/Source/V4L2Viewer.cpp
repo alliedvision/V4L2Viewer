@@ -866,7 +866,7 @@ void V4L2Viewer::OnSaveImageClicked()
         format = "raw";
         QPixmap pixmap = m_PixmapItem->pixmap();
         QImage image = pixmap.toImage();
-        int size = image.sizeInBytes();
+        int size = image.byteCount();
         QByteArray data(reinterpret_cast<const char*>(image.bits()), size);
         QString filename = QFileDialog::getSaveFileName(this, tr("Save file"), QDir::homePath(), ".raw");
         QFile file(filename);
