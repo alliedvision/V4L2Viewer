@@ -34,8 +34,6 @@ IControlEnumerationHolder::IControlEnumerationHolder(int32_t id, QString name, Q
     m_id(id)
 {
     m_NameOfControl.setText(name);
-    m_MainLayout.addWidget(&m_NameOfControl, 0, 0);
-    m_MainLayout.addWidget(&m_CurrentValue, 0, 1);
     setLayout(&m_MainLayout);
     m_MainLayout.setMargin(0);
 }
@@ -53,20 +51,4 @@ int32_t IControlEnumerationHolder::GetWidgetControlId()
 QString IControlEnumerationHolder::GetControlInfo()
 {
     return m_ControlInfo;
-}
-
-void IControlEnumerationHolder::CloseControlEditWidget()
-{
-    if (!m_ControlEditWidget.isHidden())
-    {
-        m_ControlEditWidget.close();
-    }
-}
-
-void IControlEnumerationHolder::mouseDoubleClickEvent(QMouseEvent *event)
-{
-    QPoint posGlobal = mapToGlobal(event->pos());
-    m_ControlEditWidget.setGeometry(posGlobal.x(), posGlobal.y(), this->width(), this->height());
-    m_ControlEditWidget.setWindowTitle(m_NameOfControl.text());
-    m_ControlEditWidget.show();
 }

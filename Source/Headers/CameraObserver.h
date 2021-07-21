@@ -8,7 +8,8 @@
 
   File:        CameraObserver.h
 
-  Description:
+  Description: The camera observer that is used for notifications
+               regarding a change in the camera list.
 
 -------------------------------------------------------------------------------
 
@@ -52,28 +53,51 @@ public:
     CameraObserver(void);
     virtual ~CameraObserver(void);
 
+    // This function starts current thread
     void Start();
+    // This function stops current thread
     void Stop();
 
+    // This function sets terminate flag
     void SetTerminateFlag();
 
     // Implementation
     // Do the work within this thread
     virtual void run();
 
+    // This function check for the devices, after finding
+    // any, emits signal with the device information
+    //
+    // Returns:
+    // (int) - result of operation
     int CheckDevices();
 
     // Callbacks
 
-    // Device
+    // This function emits signal plugged in
+    //
+    // Parameters:
+    // [in] (uint32_t) cardNumber
+    // [in] (uint64_t) deviceID
+    // [in] (const void *) pPrivateData
     virtual void OnDeviceReady(uint32_t cardNumber, uint64_t deviceID, const void *pPrivateData);
+    // This function emits signal plugged out
+    //
+    // Parameters:
+    // [in] (uint32_t) cardNumber
+    // [in] (uint64_t) deviceID
+    // [in] (const void *) pPrivateData
     virtual void OnDeviceRemoved(uint32_t cardNumber, uint64_t deviceID, const void *pPrivateData);
 
 
 private:
     // Callbacks
 
-    // Messages
+    // This function logs message
+    //
+    // Parameters:
+    // [in] (const char*) text
+    // [in] (void *) pPrivateData
     virtual void OnMessage(const char *text, void *pPrivateData);
 
 signals:
@@ -86,12 +110,9 @@ signals:
 
 private:
     bool                                        m_bTerminate;
-
     // Variable to abort the running thread
     bool                                        m_bAbort;
-
     std::map<int, std::string>                  m_DeviceList;
-
 };
 
 #endif // CAMERAOBSERVER_H

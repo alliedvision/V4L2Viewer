@@ -36,7 +36,7 @@
 #include <QListWidget>
 #include <QCheckBox>
 #include <QPushButton>
-#include "ControlEditWidget.h"
+#include <QComboBox>
 
 class IControlEnumerationHolder : public QWidget
 {
@@ -54,20 +54,12 @@ public:
     // Returns:
     // (QString) - control info string
     QString GetControlInfo();
-    // This function closes ControlEditWidget objects when is shown
-    void CloseControlEditWidget();
-    // This override function is called when user double clicks on the element
-    //
-    // Parameters:
-    // [in] (QMouseEvent *) event - mouse event
-    virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 protected:
     QLabel              m_NameOfControl;
     QString             m_ControlInfo;
     QLabel              m_CurrentValue;
     QGridLayout         m_MainLayout;
-    ControlEditWidget   m_ControlEditWidget;
     int32_t             m_id;
 };
 

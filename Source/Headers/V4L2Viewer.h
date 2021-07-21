@@ -46,6 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QtWidgets>
 #include <QTimer>
 #include <QTranslator>
+#include <QDockWidget>
 
 // This defines index of the master viewer, it is used
 // when opening more than one viewer's windows
@@ -117,9 +118,9 @@ private:
 
     // The enumeration control widget which holds all of the enum controls gathered
     // from the Camera class object
-    ControlsHolderWidget m_EnumerationControlWidget;
+    ControlsHolderWidget *m_pEnumerationControlWidget;
     // The active exposure widget
-    ActiveExposureWidget m_ActiveExposureWidget;
+    QPointer<ActiveExposureWidget> m_pActiveExposureWidget;
 
     // Queries and lists all known cameras
     //
@@ -442,10 +443,15 @@ private slots:
     // Parameters:
     // [in] (int32_t) state - new value
     void PassLineSelectorValue(int32_t value);
-
     // This slot function updates zoom label on zoom event from the CustomGraphicsView
     // object
     void OnUpdateZoomLabel();
+    // This slot function is called when the dock widget is docked or undocked
+    //
+    //
+    // Parameters:
+    // [in] (bool) topLevel - state of the docker widget (docked/undocked)
+    void OnDockWidgetPositionChanged(bool topLevel);
 };
 
 #endif // V4L2VIEWER_H

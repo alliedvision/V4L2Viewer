@@ -8,7 +8,8 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 File:        V4L2Helper.h
 
-Description:
+Description: This namespace is used as helper. Functions are mostly used
+             in the Camera class.
 
 -------------------------------------------------------------------------------
 
@@ -35,8 +36,30 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace v4l2helper
 {
 
+// Function converts pixel format from integer to string
+//
+// Parameters:
+// [in] (int) pixelFormat - given pixel format
+//
+// Returns:
+// (std::string) - string variable representing pixel format
 std::string ConvertPixelFormat2EnumString(int pixelFormat);
+// This function converts available controls' id to string
+//
+// Parameters:
+// [in] (uint32_t) controlID - given control id
+//
+// Returns:
+// (std::string) - string variable representing control's id
 std::string ConvertControlID2String(uint32_t controlID);
+// This function returns control unit, it is used in the
+// function which enumerates all control
+//
+// Parameters:
+// [in] (int32_t) id - given id
+//
+// Returns:
+// (std::string) - unit of the control
 std::string GetControlUnit(int32_t id);
 
 } // namepsace v4l2helper

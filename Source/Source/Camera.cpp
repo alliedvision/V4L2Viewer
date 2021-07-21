@@ -8,7 +8,8 @@
 
   File:        Camera.cpp
 
-  Description:
+  Description: This class is responsible for controlling camera settings,
+               streaming and everything which is related to the device
 
 -------------------------------------------------------------------------------
 
@@ -84,6 +85,9 @@ struct v4l2_stats_t
 #define V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE      (V4L2_CID_CAMERA_CLASS_BASE+44)
 #define V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR  (V4L2_CID_CAMERA_CLASS_BASE+45)
 #define V4L2_CID_EXPOSURE_ACTIVE_INVERT         (V4L2_CID_CAMERA_CLASS_BASE+46)
+#define V4L2_CID_PREFFERED_STRIDE               (V4L2_CID_CAMERA_CLASS_BASE+5998)
+
+
 
 Camera::Camera()
     : m_nFileDescriptor(-1)
@@ -909,9 +913,11 @@ int Camera::EnumAllControlNewStyle()
         if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
         {
             bool bIsReadOnly = false;
-            if(qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
+            if(qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.id == V4L2_CID_PREFFERED_STRIDE)
             {
                 bIsReadOnly = true;
+                qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+                continue;
             }
 
             Logger::LogEx("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
@@ -1464,14 +1470,14 @@ int Camera::ReadAutoExposure(bool &flag)
 
 int Camera::SetAutoExposure(bool value)
 {
-    if (value)
-    {
-        m_pAutoExposureReader->StartThread();
-    }
-    else
-    {
-        m_pAutoExposureReader->StopThread();
-    }
+//    if (value)
+//    {
+//        m_pAutoExposureReader->StartThread();
+//    }
+//    else
+//    {
+//        m_pAutoExposureReader->StopThread();
+//    }
     return SetExtControl(value ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
 }
 
@@ -1505,14 +1511,14 @@ int Camera::ReadAutoGain(bool &flag)
 
 int Camera::SetAutoGain(bool value)
 {
-    if (value)
-    {
-        m_pAutoGainReader->StartThread();
-    }
-    else
-    {
-        m_pAutoGainReader->StopThread();
-    }
+//    if (value)
+//    {
+//        m_pAutoGainReader->StartThread();
+//    }
+//    else
+//    {
+//        m_pAutoGainReader->StopThread();
+//    }
     return SetExtControl(value, V4L2_CID_AUTOGAIN, "SetAutoGain", "V4L2_CID_AUTOGAIN", V4L2_CTRL_CLASS_USER);
 }
 
@@ -1576,36 +1582,6 @@ int Camera::ReadMinMaxBrightness(int32_t &min, int32_t &max)
     return ReadMinMax(min, max, V4L2_CID_BRIGHTNESS, "ReadMinMaxBrightness", "V4L2_CID_BRIGHTNESS");
 }
 
-int Camera::ReadContrast(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_CONTRAST, "ReadContrast", "V4L2_CID_CONTRAST", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetContrast(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_CONTRAST, "SetContrast", "V4L2_CID_CONTRAST", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::ReadSaturation(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_SATURATION, "ReadSaturation", "V4L2_CID_SATURATION", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetSaturation(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_SATURATION, "SetSaturation", "V4L2_CID_SATURATION", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::ReadHue(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_HUE, "ReadHue", "V4L2_CID_HUE", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetHue(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_HUE, "SetHue", "V4L2_CID_HUE", V4L2_CTRL_CLASS_USER);
-}
-
 bool Camera::IsAutoWhiteBalanceSupported()
 {
     v4l2_queryctrl qctrl;
@@ -1623,40 +1599,18 @@ bool Camera::IsAutoWhiteBalanceSupported()
     }
 }
 
-bool Camera::IsWhiteBalanceOnceSupported()
-{
-    v4l2_queryctrl qctrl;
-
-    CLEAR(qctrl);
-    qctrl.id = V4L2_CID_DO_WHITE_BALANCE;
-
-    if( iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYCTRL, &qctrl) == 0)
-    {
-        return !(qctrl.flags & V4L2_CTRL_FLAG_DISABLED);
-    }
-    else
-    {
-        return false;
-    }
-}
-
 int Camera::SetContinousWhiteBalance(bool flag)
 {
     if (flag)
     {
-        m_pAutoWhiteBalanceReader->StartThread();
+        //m_pAutoWhiteBalanceReader->StartThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance on", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
     else
     {
-        m_pAutoWhiteBalanceReader->StopThread();
+        //m_pAutoWhiteBalanceReader->StopThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
-}
-
-int Camera::DoWhiteBalanceOnce()
-{
-    return SetExtControl(0, V4L2_CID_DO_WHITE_BALANCE, "DoWhiteBalanceOnce", "V4L2_CID_DO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
 }
 
 int Camera::ReadAutoWhiteBalance(bool &flag)
@@ -1666,26 +1620,6 @@ int Camera::ReadAutoWhiteBalance(bool &flag)
     result = ReadExtControl(value, V4L2_CID_AUTO_WHITE_BALANCE, "ReadAutoWhiteBalance", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     flag = (value == V4L2_WHITE_BALANCE_AUTO) ? true : false;
     return result;
-}
-
-int Camera::ReadRedBalance(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_RED_BALANCE, "ReadRedBalance", "V4L2_CID_RED_BALANCE", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetRedBalance(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_RED_BALANCE, "SetRedBalance", "V4L2_CID_RED_BALANCE", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::ReadBlueBalance(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_BLUE_BALANCE, "ReadBlueBalance", "V4L2_CID_BLUE_BALANCE", V4L2_CTRL_CLASS_USER);
-}
-
-int Camera::SetBlueBalance(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_BLUE_BALANCE, "SetBlueBalance", "V4L2_CID_BLUE_BALANCE", V4L2_CTRL_CLASS_USER);
 }
 
 ////////////////// Parameter ///////////////////
@@ -1761,41 +1695,6 @@ int Camera::SetFrameRate(uint32_t numerator, uint32_t denominator)
                 Logger::LogEx("Camera::SetFrameRate VIDIOC_S_PARM failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
             }
         }
-    }
-
-    return result;
-}
-
-int Camera::ReadCropCapabilities(uint32_t &boundsx, uint32_t &boundsy, uint32_t &boundsw, uint32_t &boundsh,
-                                 uint32_t &defrectx, uint32_t &defrecty, uint32_t &defrectw, uint32_t &defrecth,
-                                 uint32_t &aspectnum, uint32_t &aspectdenum)
-{
-    int result = -1;
-    v4l2_cropcap cropcap;
-
-    CLEAR(cropcap);
-    cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-    if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_CROPCAP, &cropcap) >= 0)
-    {
-        boundsx = cropcap.bounds.left;
-        boundsy = cropcap.bounds.top;
-        boundsw = cropcap.bounds.width;
-        boundsh = cropcap.bounds.height;
-        defrectx = cropcap.defrect.left;
-        defrecty = cropcap.defrect.top;
-        defrectw = cropcap.defrect.width;
-        defrecth = cropcap.defrect.height;
-        aspectnum = cropcap.pixelaspect.numerator;
-        aspectdenum = cropcap.pixelaspect.denominator;
-        Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP bx=%d, by=%d, bw=%d, bh=%d, dx=%d, dy=%d, dw=%d, dh=%d, num=%d, denum=%d OK",
-                boundsx, boundsy, boundsw, boundsh, defrectx, defrecty, defrectw, defrecth, aspectnum, aspectdenum);
-        result = 0;
-    }
-    else
-    {
-        Logger::LogEx("Camera::ReadCrop VIDIOC_CROPCAP failed errno=%d=%s", errno, ConvertErrno2String(errno).c_str());
-        result = -2;
     }
 
     return result;
@@ -2495,7 +2394,6 @@ void Camera::SetEnumerationControlValueIntList(int32_t id, int64_t val)
                         Logger::LogEx("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class", (const char*)qctrl.name);
                     }
                     emit SendSignalToUpdateWidgets();
-                    qDebug() << "SETTING INT64 LIST ENUM CONTROL: " << result;
                     break;
                 }
             }
@@ -2533,7 +2431,6 @@ void Camera::SetEnumerationControlValueList(int32_t id, const char *str)
                         Logger::LogEx("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class", str);
                     }
                     emit SendSignalToUpdateWidgets();
-                    qDebug() << "SETTING STRING LIST ENUM CONTROL: " << result;
                     break;
                 }
             }
@@ -2549,7 +2446,6 @@ void Camera::SetEnumerationControlValue(int32_t id, int32_t val)
         Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_INTEGER32 cannot be set with V4L2_CTRL_CLASS_USER class");
     }
     emit SendSignalToUpdateWidgets();
-    qDebug() << "SETTING INTEGER32 ENUM CONTROL: "<< result;
 }
 
 void Camera::SetEnumerationControlValue(int32_t id, int64_t val)
@@ -2560,7 +2456,6 @@ void Camera::SetEnumerationControlValue(int32_t id, int64_t val)
         Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_INTEGER64 cannot be set with V4L2_CTRL_CLASS_USER class");
     }
     emit SendSignalToUpdateWidgets();
-    qDebug() << "SETTING INTEGER64 ENUM CONTROL: " << result;
 }
 
 void Camera::SetEnumerationControlValue(int32_t id, bool val)
@@ -2571,7 +2466,6 @@ void Camera::SetEnumerationControlValue(int32_t id, bool val)
         Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_BOOL cannot be set with V4L2_CTRL_CLASS_USER class");
     }
     emit SendSignalToUpdateWidgets();
-    qDebug() << "SETTING BOOL ENUM CONTROL: " << result;
 }
 
 void Camera::SetEnumerationControlValue(int32_t id)
@@ -2582,7 +2476,6 @@ void Camera::SetEnumerationControlValue(int32_t id)
         Logger::LogEx("Enumeration control of type V4L2_CTRL_TYPE_BUTTON cannot be set with V4L2_CTRL_CLASS_USER class");
     }
     emit SendSignalToUpdateWidgets();
-    qDebug() << "SETTING BUTTON ENUM CONTROL: " << result;
 }
 
 void Camera::SetSliderEnumerationControlValue(int32_t id, int32_t val)

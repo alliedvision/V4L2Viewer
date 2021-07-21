@@ -8,7 +8,7 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 File:        LocalMutexLockGuard.h
 
-Description:
+Description: This class is responsible for locking and unlocking LocalMutex.
 
 -------------------------------------------------------------------------------
 

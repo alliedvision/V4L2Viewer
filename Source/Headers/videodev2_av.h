@@ -8,7 +8,8 @@
 
   File:        videodev2_av.h
 
-  Description:
+  Description: Header file which contains defines of the pixel formats
+               which are available in the cameras
 
 -------------------------------------------------------------------------------
 

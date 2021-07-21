@@ -8,7 +8,8 @@
 
   File:        MyFrame.cpp
 
-  Description:
+  Description: This class contains information and all functions about
+               camera's frame.
 
 -------------------------------------------------------------------------------
 

@@ -60,8 +60,7 @@ signals:
 
 private:
     // Main element of the class
-    QListWidget m_ListWidget;
-
+    QComboBox m_ComboBox;
 };
 
 #endif // LISTINTENUMERATIONCONTROL_H

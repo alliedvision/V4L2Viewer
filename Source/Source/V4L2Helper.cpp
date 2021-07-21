@@ -8,7 +8,8 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 File:        V4L2Helper.cpp
 
-Description:
+Description: This namespace is used as helper. Functions are mostly used
+             in the Camera class.
 
 -------------------------------------------------------------------------------
 

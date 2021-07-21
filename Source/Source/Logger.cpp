@@ -8,7 +8,8 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 File:        Logger.cpp
 
-Description:
+Description: This class provides operations for the logger, and calls
+             BaseLogger functions.
 
 -------------------------------------------------------------------------------
 

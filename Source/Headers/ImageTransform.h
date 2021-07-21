@@ -41,6 +41,20 @@ public:
 
     virtual ~ImageTransform();
 
+    // This function convert frame and return results of conversion
+    //
+    // Parameters:
+    // [in] (const uint8_t *) pBuffer
+    // [in] (uint32_t) length - length of the buffer
+    // [in] (uint32_t) width - width of the frame
+    // [in] (uint32_t) height - height of the frame
+    // [in] (uint32_t) pixelFormat
+    // [in] (uint32_t &) payloadSize
+    // [in] (uint32_t &) bytesPerLine
+    // [in] (QImage &) convertedImage
+    //
+    // Returns:
+    // (int) - result of converting
     static int ConvertFrame(const uint8_t* pBuffer, uint32_t length,
                             uint32_t width, uint32_t height, uint32_t pixelFormat,
                             uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage);

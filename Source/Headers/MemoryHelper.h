@@ -8,7 +8,7 @@
 
   File:        MemoryHelper.h
 
-  Description:
+  Description: This header file is a memory helper used in the Camera class
 
 -------------------------------------------------------------------------------
 

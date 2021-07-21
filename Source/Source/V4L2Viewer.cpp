@@ -203,12 +203,12 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
     connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
 
-    connect(ui.m_fixedRateStartButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
+    connect(ui.m_nFramesAcquisitionButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
 
-    // Connect Exposure Active widget with slots
-    connect(&m_ActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
-    connect(&m_ActiveExposureWidget, SIGNAL(SendActiveState(bool)), this, SLOT(PassActiveState(bool)));
-    connect(&m_ActiveExposureWidget, SIGNAL(SendLineSelectorValue(int32_t)), this, SLOT(PassLineSelectorValue(int32_t)));
+    m_pActiveExposureWidget = new ActiveExposureWidget();
+    connect(m_pActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
+    connect(m_pActiveExposureWidget, SIGNAL(SendActiveState(bool)), this, SLOT(PassActiveState(bool)));
+    connect(m_pActiveExposureWidget, SIGNAL(SendLineSelectorValue(int32_t)), this, SLOT(PassLineSelectorValue(int32_t)));
 
     connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
 
@@ -261,7 +261,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     widgetFixedFrameRate->setLayout(layoutFixedFrameRate);
     widgetFixedFrameRate->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(79,79,79);}");
     m_NumberOfFixedFrameRateWidgetAction->setDefaultWidget(widgetFixedFrameRate);
-    ui.m_MenuFixedFrameRate->addAction(m_NumberOfFixedFrameRateWidgetAction);
+    ui.m_MenuNFramesAcquisition->addAction(m_NumberOfFixedFrameRateWidgetAction);
 
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
@@ -299,13 +299,20 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
     ui.m_camerasListCheckBox->setChecked(true);
-    m_EnumerationControlWidget.hide();
+    m_pEnumerationControlWidget = new ControlsHolderWidget();
 
     ui.m_ImageControlFrame->setEnabled(false);
     ui.m_FlipHorizontalCheckBox->setEnabled(false);
     ui.m_FlipVerticalCheckBox->setEnabled(false);
     ui.m_DisplayImagesCheckBox->setEnabled(false);
     ui.m_SaveImageButton->setEnabled(false);
+
+    connect(ui.m_allFeaturesDockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(OnDockWidgetPositionChanged(bool)));
+    ui.m_allFeaturesDockWidget->setWidget(m_pEnumerationControlWidget);
+    ui.m_allFeaturesDockWidget->hide();
+    ui.m_allFeaturesDockWidget->setStyleSheet("QDockWidget {"
+                                                "titlebar-close-icon: url(:/V4L2Viewer/Cross128.png);"
+                                                "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}");
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -315,6 +322,8 @@ V4L2Viewer::~V4L2Viewer()
     // if we are streaming stop streaming
     if ( true == m_bIsOpen )
         OnOpenCloseButtonClicked();
+
+    delete m_pActiveExposureWidget;
 }
 
 // The event handler to close the program
@@ -394,6 +403,15 @@ void V4L2Viewer::changeEvent(QEvent *event)
         ui.retranslateUi(this);
         m_pAboutWidget->UpdateStrings();
         SetTitleText();
+
+        if (false == m_bIsOpen)
+        {
+            ui.m_OpenCloseButton->setText(QString(tr("Open Camera")));
+        }
+        else
+        {
+            ui.m_OpenCloseButton->setText(QString(tr("Close Camera")));
+        }
     }
     else
     {
@@ -480,8 +498,9 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
             }
 
-            m_EnumerationControlWidget.RemoveElements();
-            m_EnumerationControlWidget.close();
+            m_pEnumerationControlWidget->RemoveElements();
+            ui.m_allFeaturesDockWidget->hide();
+
             SetTitleText();
 
             ui.m_ImageControlFrame->setEnabled(false);
@@ -635,30 +654,30 @@ void V4L2Viewer::OnFixedFrameRateButtonClicked()
 
 void V4L2Viewer::ShowHideEnumerationControlWidget()
 {
-    if (m_EnumerationControlWidget.isHidden())
+    if (ui.m_allFeaturesDockWidget->isHidden())
     {
-        m_EnumerationControlWidget.setGeometry(this->pos().x(), this->pos().y(), 600, 800);
-        m_EnumerationControlWidget.show();
+        ui.m_allFeaturesDockWidget->setGeometry(this->pos().x()+this->width()/2 - 300, this->pos().y()+this->height()/2 - 250, 600, 500);
+        ui.m_allFeaturesDockWidget->show();
     }
     else
     {
-        m_EnumerationControlWidget.hide();
+        ui.m_allFeaturesDockWidget->hide();
     }
 }
 
 void V4L2Viewer::PassIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, QString unit, bool bIsReadOnly)
 {
-    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    if (!m_pEnumerationControlWidget->IsControlAlreadySet(id))
     {
         IControlEnumerationHolder *ptr = new IntegerEnumerationControl(id, min, max, value, name, unit, bIsReadOnly, this);
         connect(dynamic_cast<IntegerEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int32_t)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, int32_t)));
         connect(dynamic_cast<IntegerEnumerationControl*>(ptr), SIGNAL(PassSliderValue(int32_t, int32_t)), &m_Camera, SLOT(SetSliderEnumerationControlValue(int32_t, int32_t)));
-        m_EnumerationControlWidget.AddElement(ptr);
+        m_pEnumerationControlWidget->AddElement(ptr);
     }
     else
     {
         bool bIsSucced;
-        IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
+        IControlEnumerationHolder *obj = m_pEnumerationControlWidget->GetControlWidget(id, bIsSucced);
         if (bIsSucced)
         {
             dynamic_cast<IntegerEnumerationControl*>(obj)->UpdateValue(value);
@@ -668,17 +687,17 @@ void V4L2Viewer::PassIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t
 
 void V4L2Viewer::PassIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly)
 {
-    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    if (!m_pEnumerationControlWidget->IsControlAlreadySet(id))
     {
         IControlEnumerationHolder *ptr = new Integer64EnumerationControl(id, min, max, value, name, unit, bIsReadOnly, this);
         connect(dynamic_cast<Integer64EnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int64_t)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, int64_t)));
         connect(dynamic_cast<Integer64EnumerationControl*>(ptr), SIGNAL(PassSliderValue(int32_t, int64_t)), &m_Camera, SLOT(SetSliderEnumerationControlValue(int32_t, int64_t)));
-        m_EnumerationControlWidget.AddElement(ptr);
+        m_pEnumerationControlWidget->AddElement(ptr);
     }
     else
     {
         bool bIsSucced;
-        IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
+        IControlEnumerationHolder *obj = m_pEnumerationControlWidget->GetControlWidget(id, bIsSucced);
         if (bIsSucced)
         {
             dynamic_cast<Integer64EnumerationControl*>(obj)->UpdateValue(value);
@@ -688,16 +707,16 @@ void V4L2Viewer::PassIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t
 
 void V4L2Viewer::PassBoolDataToEnumerationWidget(int32_t id, bool value, QString name, QString unit, bool bIsReadOnly)
 {
-    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    if (!m_pEnumerationControlWidget->IsControlAlreadySet(id))
     {
         IControlEnumerationHolder *ptr = new BooleanEnumerationControl(id, value, name, unit, bIsReadOnly, this);
         connect(dynamic_cast<BooleanEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, bool)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t, bool)));
-        m_EnumerationControlWidget.AddElement(ptr);
+        m_pEnumerationControlWidget->AddElement(ptr);
     }
     else
     {
         bool bIsSucced;
-        IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
+        IControlEnumerationHolder *obj = m_pEnumerationControlWidget->GetControlWidget(id, bIsSucced);
         if (bIsSucced)
         {
             dynamic_cast<BooleanEnumerationControl*>(obj)->UpdateValue(value);
@@ -707,26 +726,26 @@ void V4L2Viewer::PassBoolDataToEnumerationWidget(int32_t id, bool value, QString
 
 void V4L2Viewer::PassButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly)
 {
-    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    if (!m_pEnumerationControlWidget->IsControlAlreadySet(id))
     {
         IControlEnumerationHolder *ptr = new ButtonEnumerationControl(id, name, unit, bIsReadOnly, this);
         connect(dynamic_cast<ButtonEnumerationControl*>(ptr), SIGNAL(PassActionPerform(int32_t)), &m_Camera, SLOT(SetEnumerationControlValue(int32_t)));
-        m_EnumerationControlWidget.AddElement(ptr);
+        m_pEnumerationControlWidget->AddElement(ptr);
     }
 }
 
 void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly)
 {
-    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    if (!m_pEnumerationControlWidget->IsControlAlreadySet(id))
     {
         IControlEnumerationHolder *ptr = new ListEnumerationControl(id, value, list, name, unit, bIsReadOnly, this);
         connect(dynamic_cast<ListEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, const char *)), &m_Camera, SLOT(SetEnumerationControlValueList(int32_t, const char*)));
-        m_EnumerationControlWidget.AddElement(ptr);
+        m_pEnumerationControlWidget->AddElement(ptr);
     }
     else
     {
         bool bIsSucced;
-        IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
+        IControlEnumerationHolder *obj = m_pEnumerationControlWidget->GetControlWidget(id, bIsSucced);
         if (bIsSucced)
         {
             dynamic_cast<ListEnumerationControl*>(obj)->UpdateValue(list, value);
@@ -736,16 +755,16 @@ void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QLis
 
 void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly)
 {
-    if (!m_EnumerationControlWidget.IsControlAlreadySet(id))
+    if (!m_pEnumerationControlWidget->IsControlAlreadySet(id))
     {
         IControlEnumerationHolder *ptr = new ListIntEnumerationControl(id, value, list, name, unit, bIsReadOnly, this);
         connect(dynamic_cast<ListIntEnumerationControl*>(ptr), SIGNAL(PassNewValue(int32_t, int64_t)), &m_Camera, SLOT(SetEnumerationControlValueIntList(int32_t, int64_t)));
-        m_EnumerationControlWidget.AddElement(ptr);
+        m_pEnumerationControlWidget->AddElement(ptr);
     }
     else
     {
         bool bIsSucced;
-        IControlEnumerationHolder *obj = m_EnumerationControlWidget.GetControlWidget(id, bIsSucced);
+        IControlEnumerationHolder *obj = m_pEnumerationControlWidget->GetControlWidget(id, bIsSucced);
         if (bIsSucced)
         {
             dynamic_cast<ListIntEnumerationControl*>(obj)->UpdateValue(list, value);
@@ -755,10 +774,10 @@ void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QLis
 
 void V4L2Viewer::OnExposureActiveClicked()
 {
-    QPoint point(this->width()/2 - m_ActiveExposureWidget.width()/2, this->height()/2 - m_ActiveExposureWidget.height()/2);
+    QPoint point(this->width()/2 - m_pActiveExposureWidget->width()/2, this->height()/2 - m_pActiveExposureWidget->height()/2);
     QPoint glob = mapToGlobal(point);
-    m_ActiveExposureWidget.setGeometry(glob.x(), glob.y(), m_ActiveExposureWidget.width(), m_ActiveExposureWidget.height());
-    m_ActiveExposureWidget.show();
+    m_pActiveExposureWidget->setGeometry(glob.x(), glob.y(), m_pActiveExposureWidget->width(), m_pActiveExposureWidget->height());
+    m_pActiveExposureWidget->show();
 }
 
 void V4L2Viewer::PassInvertState(bool state)
@@ -790,6 +809,13 @@ void V4L2Viewer::OnUpdateZoomLabel()
     UpdateZoomButtons();
 }
 
+void V4L2Viewer::OnDockWidgetPositionChanged(bool topLevel)
+{
+    if (topLevel)
+    {
+        ui.m_allFeaturesDockWidget->setGeometry(this->pos().x()+this->width()/2 - 300, this->pos().y()+this->height()/2 - 250, 600, 500);
+    }
+}
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
@@ -797,7 +823,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
-    ui.m_fixedRateStartButton->setEnabled(false);
+    ui.m_nFramesAcquisitionButton->setEnabled(false);
     QApplication::processEvents();
 
     m_nDroppedFrames = 0;
@@ -833,7 +859,7 @@ void V4L2Viewer::OnStopButtonClicked()
 {
     // disable the stop button to show that the stop acquisition is in process
     ui.m_StopButton->setEnabled(false);
-    ui.m_fixedRateStartButton->setEnabled(true);
+    ui.m_nFramesAcquisitionButton->setEnabled(true);
 
     m_Camera.StopStreamChannel();
     m_Camera.StopStreaming();
@@ -1045,7 +1071,7 @@ void V4L2Viewer::UpdateViewerLayout()
         }
     }
 
-    ui.m_fixedRateStartButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
+    ui.m_nFramesAcquisitionButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StartButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FramesPerSecondLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
@@ -1059,10 +1085,12 @@ void V4L2Viewer::OnZoomFitButtonClicked()
 {
     if (ui.m_ZoomFitButton->isChecked())
     {
+        ui.m_ImageView->SetZoomAllowed(false);
         ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
     }
     else
     {
+        ui.m_ImageView->SetZoomAllowed(true);
         ui.m_ImageView->TransformImageView();
     }
 
@@ -1683,6 +1711,7 @@ void V4L2Viewer::GetImageInformation()
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
     {
+        ui.m_CropLabel->setEnabled(true);
         ui.m_edCropXOffset->setEnabled(true);
         ui.m_labelCropXOffset->setEnabled(true);
         ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
@@ -1698,6 +1727,7 @@ void V4L2Viewer::GetImageInformation()
     }
     else
     {
+        ui.m_CropLabel->setEnabled(false);
         ui.m_edCropXOffset->setEnabled(false);
         ui.m_edCropYOffset->setEnabled(false);
         ui.m_edCropWidth->setEnabled(false);
@@ -1713,33 +1743,33 @@ void V4L2Viewer::GetImageInformation()
 
     if (m_Camera.ReadExposureActiveLineMode(bIsActive) < 0)
     {
-        m_ActiveExposureWidget.setEnabled(false);
+        m_pActiveExposureWidget->setEnabled(false);
         ui.m_ExposureActiveButton->setEnabled(false);
     }
     else
     {
-        m_ActiveExposureWidget.BlockInvertAndLineSelector(bIsActive);
-        m_ActiveExposureWidget.SetActive(bIsActive);
+        m_pActiveExposureWidget->BlockInvertAndLineSelector(bIsActive);
+        m_pActiveExposureWidget->SetActive(bIsActive);
     }
 
     if (m_Camera.ReadExposureActiveLineSelector(value, min, max, step) < 0)
     {
-        m_ActiveExposureWidget.setEnabled(false);
+        m_pActiveExposureWidget->setEnabled(false);
         ui.m_ExposureActiveButton->setEnabled(false);
     }
     else
     {
-        m_ActiveExposureWidget.SetLineSelectorRange(value, min, max, step);
+        m_pActiveExposureWidget->SetLineSelectorRange(value, min, max, step);
     }
 
     if (m_Camera.ReadExposureActiveInvert(bIsInverted) < 0)
     {
-        m_ActiveExposureWidget.setEnabled(false);
+        m_pActiveExposureWidget->setEnabled(false);
         ui.m_ExposureActiveButton->setEnabled(false);
     }
     else
     {
-        m_ActiveExposureWidget.SetInvert(bIsInverted);
+        m_pActiveExposureWidget->SetInvert(bIsInverted);
     }
 
     m_Camera.EnumAllControlNewStyle();

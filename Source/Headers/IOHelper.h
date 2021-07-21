@@ -8,7 +8,8 @@
 
   File:        IOHelper.h
 
-  Description:
+  Description: This namespace provides xioctl function which is used in Camera
+               class to control all available camera's controls.
 
 -------------------------------------------------------------------------------
 

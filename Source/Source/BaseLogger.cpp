@@ -8,7 +8,8 @@
 
   File:        BaseLogger.cpp
 
-  Description:
+  Description: This class represents base logger which shows application
+               communicates.
 
 -------------------------------------------------------------------------------
 

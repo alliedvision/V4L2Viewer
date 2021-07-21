@@ -65,40 +65,122 @@ public:
 
     virtual ~FrameObserver();
 
+    // This function starts streaming
+    //
+    // Parameters:
+    // [in] (bool) blockingMode
+    // [in] (int) fileDescriptor
+    // [in] (uint32_t) pixelFormat
+    // [in] (uint32_t) payloadSize
+    // [in] (uint32_t) width - width of the frame
+    // [in] (uint32_t) height - height of the frame
+    // [in] (uint32_t) bytesPerLine
+    // [in] (uint32_t) enableLogging
+    //
+    // Returns:
+    // (int) - result of stream starting
     int StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelFormat,
                     uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine,
                     uint32_t enableLogging);
+    // This function stops streaming
+    //
+    // Returns:
+    // (int) - result of stream stopping
     int StopStream();
 
     // Get the number of frames
-    // This function will clear the counter of received frames
+    // This function will return counter of the received frames
+    //
+    // Returns:
+    // (unsigned int) - received frames count
     unsigned int GetReceivedFramesCount();
-
+    // This function will return counter of the rendered frames
+    //
+    // Returns:
+    // (unsigned int) - rendered frames count
     unsigned int GetRenderedFramesCount();
 
-    // Get the number of uncompleted frames
+    // This function will return counter of the dropped frames
+    //
+    // Returns:
+    // (unsigned int) - dropped frames count
     unsigned int GetDroppedFramesCount();
 
-    // Set the number of uncompleted frames
+    // This function sets the number of uncompleted frames
     void ResetDroppedFramesCount();
 
+    // This function sets file descriptor
+    //
+    // Parameters:
+    // [in] (int) fd - file descriptor
     void setFileDescriptor(int fd);
 
+    // This function creates all user buffer
+    //
+    // Parameters:
+    // [in] (uint32_t) bufferCount
+    // [in] (uint32_t) bufferSize
+    //
+    // Returns:
+    // (int) - result of the buffer creation
     virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
+    // This function queues all user buffer
+    //
+    // Returns:
+    // (int) - result of the buffer queuing
     virtual int QueueAllUserBuffer();
+    // This function queues single user buffer
+    //
+    // Parameters:
+    // [in] (const int) index - index of the buffer
+    //
+    // Returns:
+    // (int) - result of the buffer queuing
     virtual int QueueSingleUserBuffer(const int index);
+    // This function removes all user buffer
+    //
+    // Returns:
+    // (int) - result of the buffer removal
     virtual int DeleteAllUserBuffer();
 
+    // This function switches on/off frame transfer to gui
+    //
+    // Parameters:
+    // [in] (bool) showFrames
     void SwitchFrameTransfer2GUI(bool showFrames);
 
 protected:
     // v4l2
+    // This function reads frame
+    //
+    // Parameters:
+    // [in] (v4l2_buffer &) buf - buffer of the frame
+    //
+    // Returns:
+    // (int) - result of frame reading
     virtual int ReadFrame(v4l2_buffer &buf);
+    // This function returns frame data
+    //
+    // Parameters:
+    // [in] (v4l2_buffer &) buf
+    // [in] (uint8_t *&) buffer
+    // [in] (uint32_t &) length - length of the buffer
+    //
+    // Returns:
+    // (int) - result of getting data
     virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
+    // This function process frame from the buffer given in parameter
+    //
+    // Parameters:
+    // [in] (v4l2_buffer &) buf - given buffer
+    //
+    // Returns:
+    // (int) - result of frame processing
     int ProcessFrame(v4l2_buffer &buf);
+    // This function dequeues and process current frame
     void DequeueAndProcessFrame();
 
-    // Do the work within this thread
+    // This function does the work within this thread
     virtual void run();
 
 protected:

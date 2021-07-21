@@ -27,11 +27,11 @@
 =============================================================================*/
 
 #include "ControlsHolderWidget.h"
-#include <QDebug>
 
 ControlsHolderWidget::ControlsHolderWidget(QWidget *parent) : QWidget(parent)
 {
     ui.setupUi(this);
+    setWindowFlags(Qt::FramelessWindowHint);
     connect(ui.m_ControlsList, SIGNAL(currentRowChanged(int)), this, SLOT(OnListItemChanged(int)));
 }
 
@@ -84,18 +84,8 @@ IControlEnumerationHolder* ControlsHolderWidget::GetControlWidget(int32_t id, bo
     return nullptr;
 }
 
-void ControlsHolderWidget::closeEvent(QCloseEvent *event)
-{
-    for (QVector<IControlEnumerationHolder*>::iterator it = m_itemVector.begin(); it<m_itemVector.end(); ++it)
-    {
-        (*it)->CloseControlEditWidget();
-    }
-    ControlsHolderWidget::close();
-}
-
 void ControlsHolderWidget::OnListItemChanged(int row)
 {
     QString info = dynamic_cast<IControlEnumerationHolder *>(ui.m_ControlsList->itemWidget(ui.m_ControlsList->item(row)))->GetControlInfo();
     ui.m_DescriptionLabel->setText(info);
 }
-

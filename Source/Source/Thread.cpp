@@ -8,7 +8,8 @@ prior written consent of Allied Vision Technologies is prohibited.
 
 File:        Thread.cpp
 
-Description:
+Description: This class is responsible for application threading, it contains
+             description of how the thread object looks like.
 
 -------------------------------------------------------------------------------
 
