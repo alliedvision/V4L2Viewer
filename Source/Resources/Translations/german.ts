@@ -53,16 +53,6 @@
         <source>All Features Window</source>
         <translation>Alle Funktionen Fenster</translation>
     </message>
-    <message>
-        <source>Some Text here &lt;br&gt;
-Some Text here &lt;br&gt;
-Some Text here &lt;br&gt;
-Some Text here &lt;br&gt;
-Some Text here &lt;br&gt;
-Some Text here &lt;br&gt;
-</source>
-        <translation></translation>
-    </message>
 </context>
 <context>
     <name>Integer64EnumerationControl</name>
@@ -721,11 +711,11 @@ Some Text here &lt;br&gt;
     </message>
     <message>
         <source>White Balance</source>
-        <translation>Weißabgleich</translation>
+        <translation type="vanished">Weißabgleich</translation>
     </message>
     <message>
         <source>Exposure Absolute[100μs]:</source>
-        <translation>Belichtung absolut[100μs]:</translation>
+        <translation type="vanished">Belichtung absolut[100μs]:</translation>
     </message>
     <message>
         <source>Gain[1/100dB]:</source>
@@ -738,6 +728,130 @@ Some Text here &lt;br&gt;
     <message>
         <source>ExposureAbs[100μs]:</source>
         <translation type="vanished">BelichtungAbs[100μs]:</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Open/Close Camera&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Open/close selected camera.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Kamera öffnen/schließen&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Ausgewählte Kamera öffnen/schließen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Fit to window&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Fit image area to window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;An das Fenster anpassen&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Bildbereich an das Fenster anpassen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;&lt;b&gt;Zoom in&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Zoom in &lt;/span&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;Vergrößern&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Vergrößern&lt;/span&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Stop acquisition&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Stop image acquisition.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Erfassung stoppen&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Stoppen Sie die Bildaufnahme.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;&lt;b&gt;Zoom out&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Zoom out&lt;/span&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;Auszoomen&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Auszoomen&lt;/span&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Start acquisition&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Start image acquisition.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Bildaufnahme starten&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Bildaufnahme starten.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Display on/off&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Switch displaying images on or off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Anzeige ein/aus&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Schalten Sie die Anzeige von Bildern ein oder aus.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Flip Horizontal&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Flip image area horizontally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Horizontal spiegeln&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Bildbereich horizontal spiegeln.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Flip Vertical&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Flip image area vertically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Vertikal spiegeln&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Bildbereich vertikal spiegeln.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Save one frame&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Save one frame as image with format set in Settings under given path.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Speichern Sie ein Bild&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Speichern Sie ein Bild als Bild mit dem in den Einstellungen eingestellten Format unter dem angegebenen Pfad.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Acquire n images&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Acquire a defined number of images. To edit the number, go to top menu - Settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;N Bilder aufnehmen&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Eine definierte Anzahl von Bildern aufnehmen. Um die Anzahl zu ändern, gehen Sie ins obere Menü - Einstellungen. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>White Balance Auto</source>
+        <translation>Weißabgleich Auto</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Auto White Balance&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Switch auto white balance on/off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Automatischer Weißabgleich&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Schalten Sie den automatischen Weißabgleich ein/aus.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;All features&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Open to access all features.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Alle Funktionen&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Zugriff auf alle Funktionen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation>Öffnen Sie</translation>
+    </message>
+    <message>
+        <source>Gain Auto</source>
+        <translation>Verstärkung Auto</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Auto Gain&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Switch auto gain on/off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Auto Gain&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Schalten Sie die automatische Verstärkung ein/aus.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Exposure Auto</source>
+        <translation>Belichtung Auto</translation>
+    </message>
+    <message>
+        <source>Gain [1/100dB]:</source>
+        <translation>Verstärkung [1/100dB]:</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Exposure Active features&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Open to access Exposure Active features.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Funktionen von Exposure Active&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Öffnen, um auf die Funktionen von Exposure Active zuzugreifen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Exposure Abs [100μs]:</source>
+        <translation>Belichtung Abs [100μs]:</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Auto Exposure&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Switch auto exposure on/off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Auto-Belichtung&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Schalten Sie die automatische Belichtung ein/aus.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Exposure [ns]:</source>
+        <translation>Exposition [ns]:</translation>
+    </message>
+    <message>
+        <source>Frame Interval/fps:</source>
+        <translation>Bildintervall/fps:</translation>
+    </message>
+    <message>
+        <source>Acquire n images</source>
+        <translation>Erfassen Sie n Bilder</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Close Viewer&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Close the current Viewer window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Viewer schließen&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Das aktuelle Viewer-Fenster schließen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Open Next Viewer&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Open a new Viewer window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Nächsten Viewer öffnen&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Ein neues Viewer-Fenster öffnen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Save as PNG</source>
+        <translation>Als PNG speichern</translation>
+    </message>
+    <message>
+        <source>Save as RAW</source>
+        <translation>Als RAW speichern</translation>
+    </message>
+    <message>
+        <source>Exposure Abs[100μs]:</source>
+        <translation>Belichtung Abs[100μs]:</translation>
     </message>
 </context>
 </TS>

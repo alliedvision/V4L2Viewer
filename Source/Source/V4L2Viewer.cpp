@@ -203,7 +203,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
     connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
 
-    connect(ui.m_fixedRateStartButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
+    connect(ui.m_nFramesAcquisitionButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
 
     m_pActiveExposureWidget = new ActiveExposureWidget();
     connect(m_pActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
@@ -261,7 +261,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     widgetFixedFrameRate->setLayout(layoutFixedFrameRate);
     widgetFixedFrameRate->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(79,79,79);}");
     m_NumberOfFixedFrameRateWidgetAction->setDefaultWidget(widgetFixedFrameRate);
-    ui.m_MenuFixedFrameRate->addAction(m_NumberOfFixedFrameRateWidgetAction);
+    ui.m_MenuNFramesAcquisition->addAction(m_NumberOfFixedFrameRateWidgetAction);
 
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
@@ -403,6 +403,15 @@ void V4L2Viewer::changeEvent(QEvent *event)
         ui.retranslateUi(this);
         m_pAboutWidget->UpdateStrings();
         SetTitleText();
+
+        if (false == m_bIsOpen)
+        {
+            ui.m_OpenCloseButton->setText(QString(tr("Open Camera")));
+        }
+        else
+        {
+            ui.m_OpenCloseButton->setText(QString(tr("Close Camera")));
+        }
     }
     else
     {
@@ -814,7 +823,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
-    ui.m_fixedRateStartButton->setEnabled(false);
+    ui.m_nFramesAcquisitionButton->setEnabled(false);
     QApplication::processEvents();
 
     m_nDroppedFrames = 0;
@@ -850,7 +859,7 @@ void V4L2Viewer::OnStopButtonClicked()
 {
     // disable the stop button to show that the stop acquisition is in process
     ui.m_StopButton->setEnabled(false);
-    ui.m_fixedRateStartButton->setEnabled(true);
+    ui.m_nFramesAcquisitionButton->setEnabled(true);
 
     m_Camera.StopStreamChannel();
     m_Camera.StopStreaming();
@@ -1062,7 +1071,7 @@ void V4L2Viewer::UpdateViewerLayout()
         }
     }
 
-    ui.m_fixedRateStartButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
+    ui.m_nFramesAcquisitionButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StartButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FramesPerSecondLabel->setEnabled(m_bIsOpen && m_bIsStreaming);

@@ -373,8 +373,7 @@ border-top:1px solid rgb(45,45,45);
            <cursorShape>PointingHandCursor</cursorShape>
           </property>
           <property name="toolTip">
-           <string>&lt;p&gt;&lt;b&gt;Open/Close Camera&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will open/close selected camera.&lt;/span&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Open/Close Camera&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Open/close selected camera.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>Open Camera</string>
@@ -576,8 +575,7 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Fit to Window&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will fit image area to window.&lt;/span&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Fit to window&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Fit image area to window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -615,8 +613,8 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Switch the resize&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will zoom in image area.&lt;/span&gt;</string>
+               <string>&lt;p&gt;&lt;b&gt;Zoom in&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Zoom in &lt;/span&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -654,8 +652,7 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Stop acquisition&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will stop image acquisition.&lt;/span&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Stop acquisition&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Stop image acquisition.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -690,8 +687,8 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Switch the resize&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will zoom out image area.&lt;/span&gt;</string>
+               <string>&lt;p&gt;&lt;b&gt;Zoom out&lt;/b&gt;&lt;/p&gt;
+&lt;span&gt;Zoom out&lt;/span&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -745,8 +742,7 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Start acquisition&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will start image acquisition.&lt;/span&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Start acquisition&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Start image acquisition.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -778,8 +774,7 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Display on/off&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will switch displaying image area.&lt;/span&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Display on/off&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Switch displaying images on or off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="styleSheet">
                <string notr="true"/>
@@ -810,8 +805,7 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Flip Horizontal&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will flip image area horizontally.&lt;/span&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Flip Horizontal&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Flip image area horizontally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="styleSheet">
                <string notr="true"/>
@@ -830,8 +824,7 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Flip Vertical&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will flip image area vertically.&lt;/span&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Flip Vertical&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Flip image area vertically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="styleSheet">
                <string notr="true"/>
@@ -890,8 +883,7 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Save one frame&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will save one frame as image with format set in settings top-menu under given path.&lt;/span&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Save one frame&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Save one frame as image with format set in Settings under given path.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -903,7 +895,7 @@ QCheckBox::disabled {
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QPushButton" name="m_fixedRateStartButton">
+             <widget class="QPushButton" name="m_nFramesAcquisitionButton">
               <property name="minimumSize">
                <size>
                 <width>32</width>
@@ -914,8 +906,7 @@ QCheckBox::disabled {
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>&lt;p&gt;&lt;b&gt;Start fixed acquisition&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will start fixed image acquisition. Defined number of frames will be acquired. To edit the number, please head to top menu - Settings &lt;/span&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Acquire n images&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Acquire a defined number of images. To edit the number, go to top menu - Settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string/>
@@ -1056,7 +1047,7 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>-170</x>
+              <x>0</x>
               <y>0</y>
               <width>1241</width>
               <height>377</height>
@@ -1262,8 +1253,7 @@ border: 1px solid gray;
                      <cursorShape>PointingHandCursor</cursorShape>
                     </property>
                     <property name="toolTip">
-                     <string>&lt;p&gt;&lt;b&gt;Auto WhiteBalance&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will turn on/off the continuous white balance feature.&lt;/span&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Auto White Balance&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Switch auto white balance on/off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="layoutDirection">
                      <enum>Qt::LeftToRight</enum>
@@ -1354,6 +1344,9 @@ border: 1px solid gray;
                     <property name="cursor">
                      <cursorShape>PointingHandCursor</cursorShape>
                     </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;All features&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Open to access all features.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="styleSheet">
                      <string notr="true">QPushButton{
 color:rgb(21,21,21);
@@ -1436,6 +1429,26 @@ border: 1px solid gray;
                   <property name="verticalSpacing">
                    <number>4</number>
                   </property>
+                  <item row="13" column="0" colspan="2">
+                   <widget class="QLabel" name="label_5">
+                    <property name="text">
+                     <string>Gain Auto</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="11" column="1" rowspan="2">
+                   <widget class="QSlider" name="m_sliderGain">
+                    <property name="minimumSize">
+                     <size>
+                      <width>150</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="13" column="2">
                    <widget class="QCheckBox" name="m_chkAutoGain">
                     <property name="minimumSize">
@@ -1454,8 +1467,7 @@ border: 1px solid gray;
                      <cursorShape>PointingHandCursor</cursorShape>
                     </property>
                     <property name="toolTip">
-                     <string>&lt;p&gt;&lt;b&gt;Auto Gain&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will turn on/off the continuous gain feature.&lt;/span&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Auto Gain&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Switch auto gain on/off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="layoutDirection">
                      <enum>Qt::LeftToRight</enum>
@@ -1507,94 +1519,21 @@ QCheckBox::disabled{
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="1">
-                   <widget class="QSlider" name="m_sliderExposure">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="minimumSize">
-                     <size>
-                      <width>150</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="maximum">
-                     <number>10000</number>
-                    </property>
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="14" column="0" colspan="3">
-                   <spacer name="verticalSpacer_5">
+                  <item row="8" column="0" colspan="3">
+                   <spacer name="verticalSpacer_2">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
                       <width>20</width>
-                      <height>40</height>
+                      <height>10</height>
                      </size>
                     </property>
                    </spacer>
-                  </item>
-                  <item row="1" column="0" rowspan="2" colspan="2">
-                   <widget class="QLabel" name="m_labelExposureAbs">
-                    <property name="text">
-                     <string>Exposure Abs[100μs]:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="2">
-                   <widget class="QLineEdit" name="m_edExposure">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="minimumSize">
-                     <size>
-                      <width>80</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>100</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true"/>
-                    </property>
-                    <property name="maxLength">
-                     <number>10</number>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="11" column="2" rowspan="2">
-                   <widget class="QLineEdit" name="m_edGain">
-                    <property name="minimumSize">
-                     <size>
-                      <width>80</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>100</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="maxLength">
-                     <number>10</number>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                    </property>
-                   </widget>
                   </item>
                   <item row="1" column="2" rowspan="2">
                    <widget class="QLineEdit" name="m_edExposureAbs">
@@ -1618,53 +1557,46 @@ QCheckBox::disabled{
                     </property>
                    </widget>
                   </item>
+                  <item row="3" column="0" colspan="2">
+                   <widget class="QLabel" name="label_4">
+                    <property name="text">
+                     <string>Exposure Auto</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0" colspan="3">
+                   <spacer name="verticalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="14" column="0" colspan="3">
+                   <spacer name="verticalSpacer_5">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                   <item row="11" column="0" rowspan="2">
                    <widget class="QLabel" name="m_labelGain">
                     <property name="text">
-                     <string>Gain[1/100dB]:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="11" column="1" rowspan="2">
-                   <widget class="QSlider" name="m_sliderGain">
-                    <property name="minimumSize">
-                     <size>
-                      <width>150</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="0">
-                   <widget class="QLabel" name="m_labelExposure">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="text">
-                     <string>Exposure[ns]:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="9" column="0" colspan="3">
-                   <widget class="Line" name="line_4">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="0" rowspan="3" colspan="2">
-                   <widget class="QLabel" name="label_3">
-                    <property name="text">
-                     <string>Exposure Active</string>
+                     <string>Gain [1/100dB]:</string>
                     </property>
                    </widget>
                   </item>
@@ -1672,6 +1604,9 @@ QCheckBox::disabled{
                    <widget class="QPushButton" name="m_ExposureActiveButton">
                     <property name="cursor">
                      <cursorShape>PointingHandCursor</cursorShape>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Exposure Active features&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Open to access Exposure Active features.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="styleSheet">
                      <string notr="true">QPushButton{
@@ -1701,17 +1636,115 @@ background-color:rgb(166, 166, 166);
                     </property>
                    </widget>
                   </item>
-                  <item row="13" column="0" colspan="2">
-                   <widget class="QLabel" name="label_5">
+                  <item row="5" column="0" rowspan="3" colspan="2">
+                   <widget class="QLabel" name="label_3">
                     <property name="text">
-                     <string>Gain Auto</string>
+                     <string>Exposure Active</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="3" column="0" colspan="2">
-                   <widget class="QLabel" name="label_4">
+                  <item row="1" column="0" rowspan="2" colspan="2">
+                   <widget class="QLabel" name="m_labelExposureAbs">
                     <property name="text">
-                     <string>Exposure Auto</string>
+                     <string>Exposure Abs [100μs]:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QSlider" name="m_sliderExposure">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>150</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximum">
+                     <number>10000</number>
+                    </property>
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="11" column="2" rowspan="2">
+                   <widget class="QLineEdit" name="m_edGain">
+                    <property name="minimumSize">
+                     <size>
+                      <width>80</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="maxLength">
+                     <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="10" column="0" colspan="3">
+                   <spacer name="verticalSpacer_4">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>10</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="0" column="2">
+                   <widget class="QLineEdit" name="m_edExposure">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>80</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
+                    <property name="maxLength">
+                     <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="9" column="0" colspan="3">
+                   <widget class="Line" name="line_4">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
                     </property>
                    </widget>
                   </item>
@@ -1736,8 +1769,7 @@ background-color:rgb(166, 166, 166);
                      <cursorShape>PointingHandCursor</cursorShape>
                     </property>
                     <property name="toolTip">
-                     <string>&lt;p&gt;&lt;b&gt;Auto Exposure&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will turn on/off the continuous exposure feature.&lt;/span&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Auto Exposure&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Switch auto exposure on/off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="layoutDirection">
                      <enum>Qt::LeftToRight</enum>
@@ -1789,53 +1821,15 @@ QCheckBox::disabled{
                     </property>
                    </widget>
                   </item>
-                  <item row="4" column="0" colspan="3">
-                   <spacer name="verticalSpacer">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="m_labelExposure">
+                    <property name="enabled">
+                     <bool>true</bool>
                     </property>
-                    <property name="sizeType">
-                     <enum>QSizePolicy::Fixed</enum>
+                    <property name="text">
+                     <string>Exposure [ns]:</string>
                     </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item row="8" column="0" colspan="3">
-                   <spacer name="verticalSpacer_2">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                     <enum>QSizePolicy::Fixed</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>10</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item row="10" column="0" colspan="3">
-                   <spacer name="verticalSpacer_4">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                     <enum>QSizePolicy::Fixed</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>10</height>
-                     </size>
-                    </property>
-                   </spacer>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -1900,7 +1894,7 @@ border: 1px solid gray;
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>Frame Interval/FPS:</string>
+                     <string>Frame Interval/fps:</string>
                     </property>
                    </widget>
                   </item>
@@ -2287,9 +2281,9 @@ border: 1px solid gray;
      <addaction name="m_TitleSavePNG"/>
      <addaction name="m_TitleSaveRAW"/>
     </widget>
-    <widget class="QMenu" name="m_MenuFixedFrameRate">
+    <widget class="QMenu" name="m_MenuNFramesAcquisition">
      <property name="title">
-      <string>Fixed Frame Rate</string>
+      <string>Acquire n images</string>
      </property>
      <addaction name="separator"/>
     </widget>
@@ -2300,7 +2294,7 @@ border: 1px solid gray;
     <addaction name="separator"/>
     <addaction name="m_TitleLogtofile"/>
     <addaction name="separator"/>
-    <addaction name="m_MenuFixedFrameRate"/>
+    <addaction name="m_MenuNFramesAcquisition"/>
    </widget>
    <addaction name="m_MenuFile"/>
    <addaction name="m_MenuOptions"/>
@@ -2337,8 +2331,7 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
     <string>Close</string>
    </property>
    <property name="toolTip">
-    <string>&lt;p&gt;&lt;b&gt;Close Viewer&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will close current viewer window.&lt;/span&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Close Viewer&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Close the current Viewer window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="m_MenuOpenNextViewer">
@@ -2346,8 +2339,7 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
     <string>Open Next Viewer ...</string>
    </property>
    <property name="toolTip">
-    <string>&lt;p&gt;&lt;b&gt;Open Next Viewer&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will open new viewer window.&lt;/span&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Open Next Viewer&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Open a new Viewer window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="m_UseMMAP">
@@ -2508,7 +2500,7 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Save in PNG</string>
+    <string>Save as PNG</string>
    </property>
   </action>
   <action name="m_TitleSaveRAW">
@@ -2516,7 +2508,7 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Save in RAW</string>
+    <string>Save as RAW</string>
    </property>
   </action>
  </widget>
