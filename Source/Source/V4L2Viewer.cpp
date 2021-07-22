@@ -54,7 +54,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MANUF_NAME_AV       "Allied Vision"
 #define APP_NAME            "Video4Linux2 Viewer"
 #define APP_VERSION_MAJOR   1
-#define APP_VERSION_MINOR   41
+#define APP_VERSION_MINOR   0
 #define APP_VERSION_PATCH   0
 #ifndef SCM_REVISION
 #define SCM_REVISION        0
