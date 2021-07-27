@@ -1372,6 +1372,7 @@ void V4L2Viewer::OnFrameRate()
     {
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame rate!") );
         m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
+        denominator /= 1000;
         ui.m_edFrameRate->setText(QString("%1").arg(denominator));
     }
     else
@@ -1681,6 +1682,7 @@ void V4L2Viewer::GetImageInformation()
             m_bIsFrameIntervalAvailable = true;
             ui.m_edFrameRate->setEnabled(true);
             ui.m_labelFrameRate->setEnabled(true);
+            denominator /= 1000;
             ui.m_edFrameRate->setText(QString("%1").arg(denominator));
         }
         else
