@@ -48,22 +48,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QTranslator>
 #include <QDockWidget>
 
-// This defines index of the master viewer, it is used
-// when opening more than one viewer's windows
-#define VIEWER_MASTER       0
 
 class V4L2Viewer : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    V4L2Viewer( QWidget *parent = 0, Qt::WindowFlags flags = 0, int viewerNumber = VIEWER_MASTER );
+    V4L2Viewer( QWidget *parent = 0, Qt::WindowFlags flags = 0 );
     ~V4L2Viewer();
 
 private:
 
     std::list<QSharedPointer<V4L2Viewer> > m_pViewer;
-    int m_nViewerNumber;
 
     bool m_BLOCKING_MODE;
     IO_METHOD_TYPE m_MMAP_BUFFER;
@@ -104,8 +100,6 @@ private:
     AboutWidget *m_pAboutWidget;
     // The settings menu on the top bar
     QMenu *m_pSettingsMenu;
-    // This variable contains state of the strict frame aquisition
-    bool m_bIsFixedRate;
     // This variable stores minimum exposure for the logarithmic slider calculations
     int32_t m_MinimumExposure;
     // This variable stores maximum exposure for the logarithmic slider calculations
@@ -121,6 +115,9 @@ private:
     ControlsHolderWidget *m_pEnumerationControlWidget;
     // The active exposure widget
     QPointer<ActiveExposureWidget> m_pActiveExposureWidget;
+
+    bool m_bIsCropAvailable;
+    bool m_bIsFrameIntervalAvailable;
 
     // Queries and lists all known cameras
     //
@@ -161,12 +158,6 @@ private:
     // [in] (uint32_t) bytesPerLine
     void StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
 
-    // This function overrides close event, in order to
-    // close more than one viewers if opened
-    //
-    // Parameters:
-    // [in] (QCloseEvent *) event - close event
-    virtual void closeEvent(QCloseEvent *event) override;
     // This function overrides change event, in order to
     // update language when changed
     //
@@ -195,12 +186,6 @@ private:
     // [in] (QSlider *) slider - slider object
     // [in] (int32_t) value - new value to update slider
     void UpdateSlidersPositions(QSlider *slider, int32_t value);
-    // This function is called during each arrived frame to check whether strict
-    // acquisition has achieved desirable number of frames
-    //
-    // Parameters:
-    // [in] (int) framesCount - frames count
-    void CheckAquiredFixedFrames(int framesCount);
     // This function returns slider value based on the logarithmic value
     //
     // Parameters:
@@ -219,10 +204,6 @@ private slots:
     void OnUseMMAP();
     // The event handler to set IO USERPTR
     void OnUseUSERPTR();
-    // The event handler to set VIDIOC_TRY_FMT
-    void OnUseVIDIOC_TRY_FMT();
-    // The event handler to open a next viewer
-    void OnMenuOpenNextViewer();
     // The event handler for open / close camera
     void OnOpenCloseButtonClicked();
     // The event handler for the camera list changed event
@@ -358,9 +339,6 @@ private slots:
     // [in] (int) pos - position to which the splitter was moved
     // [in] (int) index - index of the splitter's element which was moved
     void OnMenuSplitterMoved(int pos, int index);
-    // This slot function is called when the strict frames acquisition button
-    // was clicked
-    void OnFixedFrameRateButtonClicked();
 
     // This slot function shows/hides enumeration control on button click
     void ShowHideEnumerationControlWidget();

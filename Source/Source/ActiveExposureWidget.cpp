@@ -57,7 +57,7 @@ void ActiveExposureWidget::SetLineSelectorRange(int32_t currentValue, int32_t mi
     ui.m_ListWidget->clear();
     for (int32_t i=min; i<=max; i+=step)
     {
-        ui.m_ListWidget->addItem(QString::number(i));
+        ui.m_ListWidget->addItem(QString("GPIO ")+QString::number(i));
     }
     ui.m_ListWidget->setCurrentRow(currentValue);
     ui.m_ListWidget->blockSignals(false);
@@ -85,6 +85,14 @@ void ActiveExposureWidget::OnActiveClicked()
 
 void ActiveExposureWidget::OnLineSelectorListItemChanged(const QString &currentText)
 {
-    int32_t value = static_cast<int32_t>(currentText.toInt());
-    emit SendLineSelectorValue(value);
+    QStringList list = currentText.split(QLatin1Char(' '));
+    if (list.size() > 1)
+    {
+        bool bIsConversionSuccessful = false;
+        int32_t value = static_cast<int32_t>(list.at(1).toInt(&bIsConversionSuccessful));
+        if (bIsConversionSuccessful)
+        {
+            emit SendLineSelectorValue(value);
+        }
+    }
 }

@@ -77,9 +77,8 @@ static int32_t int64_2_int32(const int64_t value)
     }
 }
 
-V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
+V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     : QMainWindow(parent, flags)
-    , m_nViewerNumber(viewerNumber)
     , m_BLOCKING_MODE(true)
     , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
@@ -88,11 +87,11 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     , m_nStreamNumber(0)
     , m_bIsOpen(false)
     , m_bIsStreaming(false)
-    , m_bIsFixedRate(false)
     , m_sliderGainValue(0)
     , m_sliderBlackLevelValue(0)
     , m_sliderGammaValue(0)
     , m_sliderExposureValue(0)
+    , m_bIsCropAvailable(false)
 {
     QFontDatabase::addApplicationFont(":/Fonts/Open_Sans/OpenSans-Regular.ttf");
     QFont font;
@@ -110,10 +109,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     // connect the menu actions
     connect(ui.m_MenuClose, SIGNAL(triggered()), this, SLOT(OnMenuCloseTriggered()));
-    if (VIEWER_MASTER == m_nViewerNumber)
-        connect(ui.m_MenuOpenNextViewer, SIGNAL(triggered()), this, SLOT(OnMenuOpenNextViewer()));
-    else
-        ui.m_MenuOpenNextViewer->setEnabled(false);
 
     // Connect GUI events with event handlers
     connect(ui.m_OpenCloseButton,             SIGNAL(clicked()),         this, SLOT(OnOpenCloseButtonClicked()));
@@ -160,7 +155,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
     connect(ui.m_TitleUseUSERPTR, SIGNAL(triggered()), this, SLOT(OnUseUSERPTR()));
-    connect(ui.m_TitleEnable_VIDIOC_TRY_FMT, SIGNAL(triggered()), this, SLOT(OnUseVIDIOC_TRY_FMT()));
+
     connect(ui.m_DisplayImagesCheckBox, SIGNAL(clicked()), this, SLOT(OnShowFrames()));
 
     connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
@@ -202,8 +197,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_edCropYOffset, SIGNAL(returnPressed()), this, SLOT(OnCropYOffset()));
     connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
     connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
-
-    connect(ui.m_nFramesAcquisitionButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
 
     m_pActiveExposureWidget = new ActiveExposureWidget();
     connect(m_pActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
@@ -261,7 +254,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     widgetFixedFrameRate->setLayout(layoutFixedFrameRate);
     widgetFixedFrameRate->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(79,79,79);}");
     m_NumberOfFixedFrameRateWidgetAction->setDefaultWidget(widgetFixedFrameRate);
-    ui.m_MenuNFramesAcquisition->addAction(m_NumberOfFixedFrameRateWidgetAction);
 
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
@@ -297,7 +289,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
         ui.m_TitleUseMMAP->setChecked(false);
     }
 
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
     ui.m_camerasListCheckBox->setChecked(true);
     m_pEnumerationControlWidget = new ControlsHolderWidget();
 
@@ -348,12 +339,6 @@ void V4L2Viewer::OnUseUSERPTR()
     ui.m_TitleUseUSERPTR->setChecked(true);
 }
 
-void V4L2Viewer::OnUseVIDIOC_TRY_FMT()
-{
-    m_VIDIOC_TRY_FMT = !m_VIDIOC_TRY_FMT;
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked(m_VIDIOC_TRY_FMT);
-}
-
 void V4L2Viewer::OnShowFrames()
 {
     m_ShowFrames = !m_ShowFrames;
@@ -369,31 +354,6 @@ void V4L2Viewer::RemoteClose()
 {
     if ( true == m_bIsOpen )
         OnOpenCloseButtonClicked();
-}
-
-// The event handler to open a next viewer
-void V4L2Viewer::OnMenuOpenNextViewer()
-{
-    QSharedPointer<V4L2Viewer> viewer(new V4L2Viewer(0, 0, (int)(m_pViewer.size() + 2)));
-    m_pViewer.push_back(viewer);
-    viewer->show();
-}
-
-void V4L2Viewer::closeEvent(QCloseEvent *event)
-{
-    if (VIEWER_MASTER == m_nViewerNumber)
-    {
-        std::list<QSharedPointer<V4L2Viewer> >::iterator xIter;
-        for (xIter = m_pViewer.begin(); xIter != m_pViewer.end(); xIter++)
-        {
-            QSharedPointer<V4L2Viewer> viewer = *xIter;
-            viewer->RemoteClose();
-            viewer->close();
-        }
-        QApplication::quit();
-    }
-
-    event->accept();
 }
 
 void V4L2Viewer::changeEvent(QEvent *event)
@@ -522,7 +482,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
 // The event handler for starting
@@ -644,12 +603,6 @@ void V4L2Viewer::OnMenuSplitterMoved(int pos, int index)
     {
         ui.m_camerasListCheckBox->setChecked(true);
     }
-}
-
-void V4L2Viewer::OnFixedFrameRateButtonClicked()
-{
-    OnStartButtonClicked();
-    m_bIsFixedRate = true;
 }
 
 void V4L2Viewer::ShowHideEnumerationControlWidget()
@@ -823,7 +776,24 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
-    ui.m_nFramesAcquisitionButton->setEnabled(false);
+
+    ui.m_labelPixelFormats->setEnabled(false);
+    ui.m_pixelFormats->setEnabled(false);
+
+    ui.m_labelFrameRate->setEnabled(false);
+    ui.m_edFrameRate->setEnabled(false);
+
+    if (m_bIsCropAvailable)
+    {
+        ui.m_cropWidget->setEnabled(false);
+    }
+
+    if (m_bIsFrameIntervalAvailable)
+    {
+        ui.m_labelFrameRate->setEnabled(false);
+        ui.m_edFrameRate->setEnabled(false);
+    }
+
     QApplication::processEvents();
 
     m_nDroppedFrames = 0;
@@ -859,14 +829,29 @@ void V4L2Viewer::OnStopButtonClicked()
 {
     // disable the stop button to show that the stop acquisition is in process
     ui.m_StopButton->setEnabled(false);
-    ui.m_nFramesAcquisitionButton->setEnabled(true);
+
+    ui.m_pixelFormats->setEnabled(true);
+    ui.m_labelPixelFormats->setEnabled(true);
+
+    ui.m_labelFrameRate->setEnabled(true);
+    ui.m_edFrameRate->setEnabled(true);
+
+    if(m_bIsCropAvailable)
+    {
+        ui.m_cropWidget->setEnabled(true);
+    }
+
+    if (m_bIsFrameIntervalAvailable)
+    {
+        ui.m_labelFrameRate->setEnabled(true);
+        ui.m_edFrameRate->setEnabled(true);
+    }
 
     m_Camera.StopStreamChannel();
     m_Camera.StopStreaming();
 
     QApplication::processEvents();
 
-    m_bIsFixedRate = false;
     m_bIsStreaming = false;
     UpdateViewerLayout();
 
@@ -939,7 +924,6 @@ void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &fra
     else
         ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
 
-    CheckAquiredFixedFrames(frameId);
 }
 
 // The event handler to show the processed frame
@@ -952,10 +936,12 @@ void V4L2Viewer::OnFrameID(const unsigned long long &frameId)
 void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info)
 {
     bool bUpdateList = false;
+    qDebug() << "Plugged Action: " << reason;
 
     // We only react on new cameras being found and known cameras being unplugged
     if (UpdateTriggerPluggedIn == reason)
     {
+        qDebug() << "Plugged In Trigger";
         bUpdateList = true;
 
         std::string manuName;
@@ -963,6 +949,7 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
     }
     else if (UpdateTriggerPluggedOut == reason)
     {
+        qDebug() << "Plugged Out Trigger";
         if ( true == m_bIsOpen )
         {
             OnOpenCloseButtonClicked();
@@ -978,7 +965,6 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
     ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
 // The event handler to open a camera on double click event
@@ -1034,7 +1020,6 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
     ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
     ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
 // Update the viewer range
@@ -1071,7 +1056,6 @@ void V4L2Viewer::UpdateViewerLayout()
         }
     }
 
-    ui.m_nFramesAcquisitionButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StartButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FramesPerSecondLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
@@ -1145,6 +1129,11 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
 
     std::string devName = deviceName.toStdString();
     err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
+
+    if (err != 0)
+    {
+        QMessageBox::warning( this, tr("Video4Linux"), tr("Camera can't be opened, because is in use by another application \n or was disconnected!") );
+    }
 
     return err;
 }
@@ -1363,35 +1352,18 @@ void V4L2Viewer::OnFrameRate()
     uint32_t bytesPerLine = 0;
     QString pixelFormatText;
     QString frameRate = ui.m_edFrameRate->text();
-    QStringList frameRateList = frameRate.split('/');
     uint32_t numerator = 0;
     uint32_t denominator = 0;
 
-    if (frameRateList.size() < 2)
+    bool bIsConverted = false;
+    uint32_t value = frameRate.toInt(&bIsConverted);
+    if (!bIsConverted)
     {
-        bool bIsConverted = false;
-        uint32_t value = frameRate.toInt(&bIsConverted);
-        if (!bIsConverted)
-        {
-            QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1/100 or normal value!") );
-            return;
-        }
-        numerator = 1;
-        denominator = value;
+        QMessageBox::warning( this, tr("Video4Linux"), tr("Only Framerate [Hz] value is acepted!") );
+        return;
     }
-    else
-    {
-        bool bIsNumeratorConverted = false;
-        bool bIsDenominatorConverted = true;
-        numerator = frameRateList.at(0).toInt(&bIsNumeratorConverted);
-        denominator = frameRateList.at(1).toInt(&bIsDenominatorConverted);
-
-        if (!bIsNumeratorConverted || !bIsDenominatorConverted)
-        {
-            QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1/100 or normal value!") );
-            return;
-        }
-    }
+    numerator = 1;
+    denominator = value;
 
     m_Camera.ReadFrameSize(width, height);
     m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
@@ -1400,7 +1372,7 @@ void V4L2Viewer::OnFrameRate()
     {
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame rate!") );
         m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
-        ui.m_edFrameRate->setText(QString("%1/%2").arg(numerator).arg(denominator));
+        ui.m_edFrameRate->setText(QString("%1").arg(denominator));
     }
     else
     {
@@ -1580,11 +1552,13 @@ void V4L2Viewer::GetImageInformation()
 
     if (m_Camera.ReadAutoGain(autogain) != -2)
     {
+        ui.m_labelGainAuto->setEnabled(true);
         ui.m_chkAutoGain->setEnabled(true);
         ui.m_chkAutoGain->setChecked(autogain);
     }
     else
     {
+        ui.m_labelGainAuto->setEnabled(false);
         ui.m_chkAutoGain->setEnabled(false);
     }
 
@@ -1633,11 +1607,13 @@ void V4L2Viewer::GetImageInformation()
 
     if (m_Camera.ReadAutoExposure(autoexposure) != -2)
     {
+        ui.m_labelExposureAuto->setEnabled(true);
         ui.m_chkAutoExposure->setEnabled(true);
         ui.m_chkAutoExposure->setChecked(autoexposure);
     }
     else
     {
+        ui.m_labelExposureAuto->setEnabled(false);
         ui.m_chkAutoExposure->setEnabled(false);
     }
 
@@ -1697,45 +1673,37 @@ void V4L2Viewer::GetImageInformation()
 
     m_Camera.ReadFrameSize(width, height);
     m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
-    if (m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat) != -2)
-    {
-        ui.m_edFrameRate->setEnabled(true);
-        ui.m_labelFrameRate->setEnabled(true);
-        ui.m_edFrameRate->setText(QString("%1/%2").arg(numerator).arg(denominator));
-    }
-    else
-    {
-        ui.m_edFrameRate->setEnabled(false);
-        ui.m_labelFrameRate->setEnabled(false);
-    }
 
-    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
+    if (!m_bIsStreaming)
     {
-        ui.m_CropLabel->setEnabled(true);
-        ui.m_edCropXOffset->setEnabled(true);
-        ui.m_labelCropXOffset->setEnabled(true);
-        ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
-        ui.m_edCropYOffset->setEnabled(true);
-        ui.m_labelCropYOffset->setEnabled(true);
-        ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
-        ui.m_edCropWidth->setEnabled(true);
-        ui.m_labelCropWidth->setEnabled(true);
-        ui.m_edCropWidth->setText(QString("%1").arg(width));
-        ui.m_edCropHeight->setEnabled(true);
-        ui.m_labelCropHeight->setEnabled(true);
-        ui.m_edCropHeight->setText(QString("%1").arg(height));
-    }
-    else
-    {
-        ui.m_CropLabel->setEnabled(false);
-        ui.m_edCropXOffset->setEnabled(false);
-        ui.m_edCropYOffset->setEnabled(false);
-        ui.m_edCropWidth->setEnabled(false);
-        ui.m_edCropHeight->setEnabled(false);
-        ui.m_labelCropXOffset->setEnabled(false);
-        ui.m_labelCropYOffset->setEnabled(false);
-        ui.m_labelCropWidth->setEnabled(false);
-        ui.m_labelCropHeight->setEnabled(false);
+        if (m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat) != -2)
+        {
+            m_bIsFrameIntervalAvailable = true;
+            ui.m_edFrameRate->setEnabled(true);
+            ui.m_labelFrameRate->setEnabled(true);
+            ui.m_edFrameRate->setText(QString("%1").arg(denominator));
+        }
+        else
+        {
+            m_bIsFrameIntervalAvailable = false;
+            ui.m_edFrameRate->setEnabled(false);
+            ui.m_labelFrameRate->setEnabled(false);
+        }
+
+
+        if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
+        {
+            ui.m_cropWidget->setEnabled(true);
+            ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
+            ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
+            ui.m_edCropWidth->setText(QString("%1").arg(width));
+            ui.m_edCropHeight->setText(QString("%1").arg(height));
+            m_bIsCropAvailable = true;
+        }
+        else
+        {
+            ui.m_cropWidget->setEnabled(false);
+        }
     }
 
     bool bIsActive = false;
@@ -1743,6 +1711,7 @@ void V4L2Viewer::GetImageInformation()
 
     if (m_Camera.ReadExposureActiveLineMode(bIsActive) < 0)
     {
+        ui.m_labelExposureActive->setEnabled(false);
         m_pActiveExposureWidget->setEnabled(false);
         ui.m_ExposureActiveButton->setEnabled(false);
     }
@@ -1756,6 +1725,7 @@ void V4L2Viewer::GetImageInformation()
     {
         m_pActiveExposureWidget->setEnabled(false);
         ui.m_ExposureActiveButton->setEnabled(false);
+        ui.m_labelExposureActive->setEnabled(false);
     }
     else
     {
@@ -1766,6 +1736,7 @@ void V4L2Viewer::GetImageInformation()
     {
         m_pActiveExposureWidget->setEnabled(false);
         ui.m_ExposureActiveButton->setEnabled(false);
+        ui.m_labelExposureActive->setEnabled(false);
     }
     else
     {
@@ -1838,20 +1809,6 @@ void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
     slider->blockSignals(false);
 }
 
-void V4L2Viewer::CheckAquiredFixedFrames(int framesCount)
-{
-    if (!m_bIsFixedRate)
-    {
-        return;
-    }
-
-    int framesMax = m_NumberOfFixedFrameRate->text().toInt();
-    if (framesCount >= framesMax)
-    {
-        OnStopButtonClicked();
-    }
-}
-
 int32_t V4L2Viewer::GetSliderValueFromLog(int32_t value)
 {
     double logExpMin = log(m_MinimumExposure);
@@ -1885,9 +1842,6 @@ void V4L2Viewer::Check4IOReadAbility()
 
 void V4L2Viewer::SetTitleText()
 {
-    if (VIEWER_MASTER == m_nViewerNumber)
-        setWindowTitle(QString(tr("%1 V%2.%3.%4")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
-    else
-        setWindowTitle(QString(tr("%1 V%2.%3.%4 - %5. viewer")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(m_nViewerNumber));
+    setWindowTitle(QString(tr("%1 V%2.%3.%4")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
 }
 
