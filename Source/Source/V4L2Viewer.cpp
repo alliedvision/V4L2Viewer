@@ -257,6 +257,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
+    m_pAboutWidget->SetVersion(QString("%1.%2.%3").arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
     QWidgetAction *aboutWidgetAction = new QWidgetAction(this);
     aboutWidgetAction->setDefaultWidget(m_pAboutWidget);
     ui.m_MenuAbout->addAction(aboutWidgetAction);
@@ -304,6 +305,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.m_allFeaturesDockWidget->setStyleSheet("QDockWidget {"
                                                 "titlebar-close-icon: url(:/V4L2Viewer/Cross128.png);"
                                                 "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}");
+
+    Logger::LogEx(QString("V4L2Viewer git commit = %1").arg(GIT_VERSION).toStdString().c_str());
 }
 
 V4L2Viewer::~V4L2Viewer()

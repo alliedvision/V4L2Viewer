@@ -100,9 +100,19 @@ ${RESOURCES_PATH}/V4L2Viewer.rc
 ${RESOURCES_PATH}/Forms/ControlsHolderWidget.ui
 ${RESOURCES_PATH}/Forms/V4L2Viewer.ui
 ${RESOURCES_PATH}/Forms/ActiveExposureWidget.ui
+${RESOURCES_PATH}/Forms/AboutWidget.ui
 )
 
 add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
+
+execute_process(COMMAND
+        git rev-parse HEAD
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        OUTPUT_VARIABLE GIT_SHA1
+)
+string(REGEX REPLACE "\n$" " " GIT_SHA1 "${GIT_SHA1}")
+target_compile_definitions(V4L2StaticLib PUBLIC -DGIT_VERSION="${GIT_SHA1}")
+
 target_link_libraries(V4L2StaticLib ${QT_LIBRARIES})
 target_include_directories(V4L2StaticLib PUBLIC ${HEADERS_PATH} ${ENUM_INT_PATH})
 

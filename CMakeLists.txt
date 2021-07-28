@@ -30,5 +30,3 @@ target_include_directories(${TARGET_NAME} PUBLIC Main/include ${CMAKE_CURRENT_BI
 target_link_libraries(${TARGET_NAME} ${LIBRARIES} ${QT_LIBRARIES})
 
 target_include_directories(${TARGET_NAME} PUBLIC V4L2StaticLibrary)
-
-

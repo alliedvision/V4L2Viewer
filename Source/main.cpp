@@ -26,6 +26,7 @@
 =============================================================================*/
 
 #include "V4L2Viewer.h"
+#include <QDebug>
 
 int main( int argc, char *argv[] )
 {
