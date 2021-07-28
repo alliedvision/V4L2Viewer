@@ -1033,7 +1033,7 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>-433</x>
+              <x>-448</x>
               <y>0</y>
               <width>1216</width>
               <height>377</height>
@@ -2250,7 +2250,7 @@ border: 1px solid gray;
       <cursorShape>PointingHandCursor</cursorShape>
      </property>
      <property name="title">
-      <string>About Qt</string>
+      <string>About</string>
      </property>
      <addaction name="separator"/>
     </widget>
@@ -2512,6 +2512,45 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
    <header>CustomGraphicsView.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>m_camerasListCheckBox</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>m_ImageView</tabstop>
+  <tabstop>m_CamerasListBox</tabstop>
+  <tabstop>scrollArea_2</tabstop>
+  <tabstop>m_OpenCloseButton</tabstop>
+  <tabstop>m_StartButton</tabstop>
+  <tabstop>m_StopButton</tabstop>
+  <tabstop>m_ZoomInButton</tabstop>
+  <tabstop>m_ZoomOutButton</tabstop>
+  <tabstop>m_ZoomFitButton</tabstop>
+  <tabstop>m_SaveImageButton</tabstop>
+  <tabstop>m_FlipHorizontalCheckBox</tabstop>
+  <tabstop>m_FlipVerticalCheckBox</tabstop>
+  <tabstop>m_DisplayImagesCheckBox</tabstop>
+  <tabstop>m_sliderExposure</tabstop>
+  <tabstop>m_edExposure</tabstop>
+  <tabstop>m_edExposureAbs</tabstop>
+  <tabstop>m_chkAutoExposure</tabstop>
+  <tabstop>m_ExposureActiveButton</tabstop>
+  <tabstop>m_sliderGain</tabstop>
+  <tabstop>m_edGain</tabstop>
+  <tabstop>m_chkAutoGain</tabstop>
+  <tabstop>m_chkContWhiteBalance</tabstop>
+  <tabstop>m_edBlackLevel</tabstop>
+  <tabstop>m_edGamma</tabstop>
+  <tabstop>m_sliderBlackLevel</tabstop>
+  <tabstop>m_sliderGamma</tabstop>
+  <tabstop>m_AllControlsButton</tabstop>
+  <tabstop>m_edFrameRate</tabstop>
+  <tabstop>m_pixelFormats</tabstop>
+  <tabstop>m_edWidth</tabstop>
+  <tabstop>m_edHeight</tabstop>
+  <tabstop>m_edCropXOffset</tabstop>
+  <tabstop>m_edCropYOffset</tabstop>
+  <tabstop>m_edCropWidth</tabstop>
+  <tabstop>m_edCropHeight</tabstop>
+ </tabstops>
  <resources>
   <include location="../V4L2Viewer.qrc"/>
  </resources>

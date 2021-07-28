@@ -257,6 +257,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
+    m_pAboutWidget->SetVersion(QString("%1.%2.%3").arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
     QWidgetAction *aboutWidgetAction = new QWidgetAction(this);
     aboutWidgetAction->setDefaultWidget(m_pAboutWidget);
     ui.m_MenuAbout->addAction(aboutWidgetAction);
@@ -1803,9 +1804,7 @@ QString V4L2Viewer::GetDeviceInfo()
     QString driverVer = QString(tr("Driver version = %1")).arg(tmp.c_str());
     m_Camera.GetCameraCapabilities(tmp);
     QString capabilities = QString(tr("Capabilities = %1")).arg(tmp.c_str());
-    QString version = QString(tr("Git commit = %1")).arg(GIT_VERSION);
-    return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities +
-                   "<br>" + version);
+    return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities);
 }
 
 void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)

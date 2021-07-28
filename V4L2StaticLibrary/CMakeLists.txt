@@ -100,6 +100,7 @@ ${RESOURCES_PATH}/V4L2Viewer.rc
 ${RESOURCES_PATH}/Forms/ControlsHolderWidget.ui
 ${RESOURCES_PATH}/Forms/V4L2Viewer.ui
 ${RESOURCES_PATH}/Forms/ActiveExposureWidget.ui
+${RESOURCES_PATH}/Forms/AboutWidget.ui
 )
 
 add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
