@@ -47,6 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ctime>
 #include <limits>
 #include <sstream>
+#include "Version.h"
 
 #define NUM_COLORS 3
 #define BIT_DEPTH 8
@@ -304,6 +305,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.m_allFeaturesDockWidget->setStyleSheet("QDockWidget {"
                                                 "titlebar-close-icon: url(:/V4L2Viewer/Cross128.png);"
                                                 "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}");
+
+    qDebug() << QString::fromStdString(V4L2ViewerVersion::GIT_SHA1);
 }
 
 V4L2Viewer::~V4L2Viewer()

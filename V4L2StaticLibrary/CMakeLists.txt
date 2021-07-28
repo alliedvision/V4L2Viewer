@@ -39,6 +39,7 @@ ${HEADERS_PATH}/EnumeratorInterface/ListEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ListIntEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ControlEditWidget.h
 ${HEADERS_PATH}/CustomGraphicsView.h
+${HEADERS_PATH}/Version.h
 )
 
 list(APPEND SOURCE_FILES
