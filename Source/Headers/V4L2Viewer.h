@@ -65,6 +65,7 @@ private:
     IO_METHOD_TYPE m_MMAP_BUFFER;
     bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
+    bool m_bIsExposureAbsUsed;
 
     // The currently streaming camera
     Camera m_Camera;
@@ -104,6 +105,9 @@ private:
     int32_t m_MinimumExposure;
     // This variable stores maximum exposure for the logarithmic slider calculations
     int32_t m_MaximumExposure;
+
+    int32_t m_MinimumExposureAbs;
+    int32_t m_MaximumExposureAbs;
 
     int32_t m_sliderGainValue;
     int32_t m_sliderBlackLevelValue;

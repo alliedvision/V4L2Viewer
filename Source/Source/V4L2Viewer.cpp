@@ -64,6 +64,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CCI_GCPRM_16R                               0x0010
 #define CCI_BCRM_16R                                0x0014
 
+#define EXPOSURE_MAX_CHANGE 1800000000
+
 
 static int32_t int64_2_int32(const int64_t value)
 {
@@ -83,6 +85,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
     , m_ShowFrames(true)
+    , m_bIsExposureAbsUsed(false)
     , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
     , m_bIsOpen(false)
@@ -550,12 +553,21 @@ void V4L2Viewer::OnSliderExposureValueChange(int value)
     double maxExp = log(m_MaximumExposure);
 
     double scale = (maxExp - minExp) / (maxSliderVal-minSliderVal);
-
     double outValue = exp(minExp + scale*(value-minSliderVal));
-    m_sliderExposureValue = static_cast<int32_t>(outValue);
-    ui.m_edExposure->setText(QString("%1").arg(m_sliderExposureValue));
 
-    m_Camera.SetExposure(m_sliderExposureValue);
+    if (!m_bIsExposureAbsUsed)
+    {
+        int32_t sliderExposureValue = static_cast<int32_t>(outValue*100000);
+        ui.m_edExposure->setText(QString("%1").arg(sliderExposureValue));
+        m_Camera.SetExposure(sliderExposureValue);
+    }
+    else
+    {
+        int32_t sliderExposureValue = static_cast<int32_t>(outValue);
+        int64_t sliderExposureValue64 = static_cast<int64_t>(outValue*100000);
+        ui.m_edExposure->setText(QString("%1").arg(sliderExposureValue64));
+        m_Camera.SetExposureAbs(sliderExposureValue);
+    }
 }
 
 void V4L2Viewer::OnSliderGainValueChange(int value)
@@ -1236,19 +1248,33 @@ void V4L2Viewer::OnAutoGain()
 
 void V4L2Viewer::OnExposure()
 {
-    int32_t nVal = int64_2_int32(ui.m_edExposure->text().toLongLong());
+    int64_t nVal = static_cast<int64_t>(ui.m_edExposure->text().toLongLong());
 
-    if (m_Camera.SetExposure(nVal) < 0)
+    if (nVal >= EXPOSURE_MAX_CHANGE)
     {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
-        m_Camera.ReadExposure(tmp);
-        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
-        UpdateSlidersPositions(ui.m_sliderExposure, tmp);
+        int32_t nValAbs = static_cast<int32_t>(nVal/100000);
+        if (m_Camera.SetExposureAbs(nValAbs) < 0)
+        {
+            QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ExposureAbs!") );
+            GetImageInformation();
+        }
+        else
+        {
+            GetImageInformation();
+        }
     }
     else
     {
-        GetImageInformation();
+        int32_t nVal32 = int64_2_int32(nVal);
+        if (m_Camera.SetExposure(nVal32) < 0)
+        {
+            QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
+            GetImageInformation();
+        }
+        else
+        {
+            GetImageInformation();
+        }
     }
 }
 
@@ -1258,14 +1284,12 @@ void V4L2Viewer::OnExposureAbs()
 
     if (m_Camera.SetExposureAbs(nVal) < 0)
     {
-        int32_t tmp = 0;
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ExposureAbs!") );
-        m_Camera.ReadExposureAbs(tmp);
-        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
+        //GetImageInformation();
     }
     else
     {
-        GetImageInformation();
+        //GetImageInformation();
     }
 }
 
@@ -1500,6 +1524,10 @@ void V4L2Viewer::GetImageInformation()
     int32_t gain = 0;
     int32_t min = 0;
     int32_t max = 0;
+    int32_t minExp = 0;
+    int32_t maxExp = 0;
+    int64_t minExpAbs = 0;
+    int64_t maxExpAbs = 0;
     int32_t step = 0;
     int32_t value = 0;
     bool autogain = false;
@@ -1570,7 +1598,8 @@ void V4L2Viewer::GetImageInformation()
     {
         ui.m_edExposure->setEnabled(true);
         ui.m_labelExposure->setEnabled(true);
-        ui.m_edExposure->setText(QString("%1").arg(exposure));
+
+        qDebug() << "Exposure read: " << exposure;
     }
     else
     {
@@ -1578,35 +1607,54 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelExposure->setEnabled(false);
     }
 
-    min = 0;
-    max = 0;
-    if (m_Camera.ReadMinMaxExposure(min, max) != -2)
-    {
-        ui.m_sliderExposure->blockSignals(true);
-        ui.m_sliderExposure->setEnabled(true);
-        ui.m_sliderExposure->setMinimum(min);
-        ui.m_sliderExposure->setMaximum(max);
-        ui.m_sliderExposure->blockSignals(false);
-        m_MinimumExposure = min;
-        m_MaximumExposure = max;
-        int32_t result = GetSliderValueFromLog(exposure);
-        UpdateSlidersPositions(ui.m_sliderExposure, result);
-    }
-    else
-    {
-        ui.m_sliderExposure->setEnabled(false);
-    }
-
     if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
     {
         ui.m_edExposureAbs->setEnabled(true);
         ui.m_labelExposureAbs->setEnabled(true);
         ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
+
+        qDebug() << "Exposure abs read: " << exposureAbs;
     }
     else
     {
         ui.m_edExposureAbs->setEnabled(false);
         ui.m_labelExposureAbs->setEnabled(false);
+    }
+
+    int64_t exp64 = static_cast<int64_t>(exposureAbs)*100000;
+    qDebug() << "Exposure abs multiplicated read: " << exp64;
+    if (exp64 >= EXPOSURE_MAX_CHANGE)
+    {
+        ui.m_edExposure->setText(QString("%1").arg(exp64));
+        //m_bIsExposureAbsUsed = true;
+    }
+    else
+    {
+        ui.m_edExposure->setText(QString("%1").arg(exposure));
+        //m_bIsExposureAbsUsed = false;
+    }
+
+    if (m_Camera.ReadMinMaxExposure(minExp, maxExp) != -2 &&
+        m_Camera.ReadMinMaxExposureAbs(minExpAbs, maxExpAbs) != -2)
+    {
+            ui.m_sliderExposure->blockSignals(true);
+            ui.m_sliderExposure->setEnabled(true);
+            ui.m_sliderExposure->setMinimum(minExpAbs);
+            ui.m_sliderExposure->setMaximum(maxExpAbs);
+            ui.m_sliderExposure->blockSignals(false);
+
+            m_MinimumExposureAbs = minExpAbs;
+            m_MaximumExposureAbs = maxExpAbs;
+
+            m_MinimumExposure = minExp;
+            m_MaximumExposure = maxExp;
+
+//            int32_t result = GetSliderValueFromLog(exposure);
+//            UpdateSlidersPositions(ui.m_sliderExposure, result);
+    }
+    else
+    {
+        ui.m_sliderExposure->setEnabled(false);
     }
 
     if (m_Camera.ReadAutoExposure(autoexposure) != -2)
@@ -1816,8 +1864,8 @@ void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
 
 int32_t V4L2Viewer::GetSliderValueFromLog(int32_t value)
 {
-    double logExpMin = log(m_MinimumExposure);
-    double logExpMax = log(m_MaximumExposure);
+    double logExpMin = log(m_MinimumExposureAbs);
+    double logExpMax = log(m_MaximumExposureAbs);
     int32_t minimumSliderExposure = ui.m_sliderExposure->minimum();
     int32_t maximumSliderExposure = ui.m_sliderExposure->maximum();
     double scale = (logExpMax - logExpMin) / (maximumSliderExposure - minimumSliderExposure);

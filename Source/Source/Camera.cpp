@@ -48,7 +48,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
+#include <QDebug>
 #include <algorithm>
 #include <sstream>
 
@@ -1418,6 +1418,30 @@ int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const cha
     return result;
 }
 
+int Camera::ReadMinMax(int64_t &min, int64_t &max, uint32_t controlID, const char *functionName, const char *controlName)
+{
+    int result = 0;
+    v4l2_query_ext_ctrl extCtrl;
+
+    CLEAR(extCtrl);
+    extCtrl.id = controlID;
+
+    if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERY_EXT_CTRL, &extCtrl) >= 0)
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, extCtrl.minimum, extCtrl.maximum, extCtrl.default_value);
+
+        min = extCtrl.minimum;
+        max = extCtrl.maximum;
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+        result = -2;
+    }
+
+    return result;
+}
+
 int Camera::ReadStep(int32_t &step, uint32_t controlID, const char *functionName, const char *controlName)
 {
     int result = 0;
@@ -1454,7 +1478,7 @@ int Camera::ReadMinMaxExposure(int32_t &min, int32_t &max)
     return ReadMinMax(min, max, V4L2_CID_EXPOSURE, "ReadExposureMinMax", "V4L2_CID_EXPOSURE");
 }
 
-int Camera::ReadMinMaxExposureAbs(int32_t &min, int32_t &max)
+int Camera::ReadMinMaxExposureAbs(int64_t &min, int64_t &max)
 {
     return ReadMinMax(min, max, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureMinMaxAbs", "V4L2_CID_EXPOSURE_ABSOLUTE");
 }
