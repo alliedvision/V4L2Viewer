@@ -47,7 +47,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ctime>
 #include <limits>
 #include <sstream>
-#include "Version.h"
 
 #define NUM_COLORS 3
 #define BIT_DEPTH 8
@@ -306,7 +305,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
                                                 "titlebar-close-icon: url(:/V4L2Viewer/Cross128.png);"
                                                 "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}");
 
-    qDebug() << QString::fromStdString(V4L2ViewerVersion::GIT_SHA1);
+    Logger::LogEx(QString("V4L2Viewer git commit = %1").arg(GIT_VERSION).toStdString().c_str());
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -1804,7 +1803,9 @@ QString V4L2Viewer::GetDeviceInfo()
     QString driverVer = QString(tr("Driver version = %1")).arg(tmp.c_str());
     m_Camera.GetCameraCapabilities(tmp);
     QString capabilities = QString(tr("Capabilities = %1")).arg(tmp.c_str());
-    return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities);
+    QString version = QString(tr("Git commit = %1")).arg(GIT_VERSION);
+    return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities +
+                   "<br>" + version);
 }
 
 void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
