@@ -1033,9 +1033,9 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>0</x>
+              <x>-282</x>
               <y>0</y>
-              <width>1216</width>
+              <width>1213</width>
               <height>387</height>
              </rect>
             </property>
@@ -1128,7 +1128,7 @@ border: 1px solid gray;
                    </widget>
                   </item>
                   <item row="2" column="2" rowspan="4">
-                   <widget class="QLineEdit" name="m_edBlackLevel">
+                   <widget class="QLineEdit" name="m_edBrightness">
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
@@ -1179,7 +1179,7 @@ border: 1px solid gray;
                    </widget>
                   </item>
                   <item row="2" column="1" rowspan="4">
-                   <widget class="QSlider" name="m_sliderBlackLevel">
+                   <widget class="QSlider" name="m_sliderBrightness">
                     <property name="minimumSize">
                      <size>
                       <width>150</width>
@@ -1199,9 +1199,9 @@ border: 1px solid gray;
                    </widget>
                   </item>
                   <item row="2" column="0" rowspan="4">
-                   <widget class="QLabel" name="m_labelBlackLevel">
+                   <widget class="QLabel" name="m_labelBrightness">
                     <property name="text">
-                     <string>Black Level:</string>
+                     <string>Brightness:</string>
                     </property>
                    </widget>
                   </item>
@@ -2507,9 +2507,9 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
   <tabstop>m_edGain</tabstop>
   <tabstop>m_chkAutoGain</tabstop>
   <tabstop>m_chkContWhiteBalance</tabstop>
-  <tabstop>m_edBlackLevel</tabstop>
+  <tabstop>m_edBrightness</tabstop>
   <tabstop>m_edGamma</tabstop>
-  <tabstop>m_sliderBlackLevel</tabstop>
+  <tabstop>m_sliderBrightness</tabstop>
   <tabstop>m_sliderGamma</tabstop>
   <tabstop>m_AllControlsButton</tabstop>
   <tabstop>m_edFrameRate</tabstop>

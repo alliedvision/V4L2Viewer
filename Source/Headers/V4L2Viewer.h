@@ -108,7 +108,7 @@ private:
     int32_t m_MaximumExposureAbs;
 
     int32_t m_sliderGainValue;
-    int32_t m_sliderBlackLevelValue;
+    int32_t m_sliderBrightnessValue;
     int32_t m_sliderGammaValue;
     int32_t m_sliderExposureValue;
 
@@ -324,7 +324,7 @@ private slots:
     //
     // Parameters:
     // [in] (int) value - value to be passed
-    void OnSliderBlackLevelValueChange(int value);
+    void OnSliderBrightnessValueChange(int value);
     // This slot function is called when the sliders are being released,
     // then it updates all of the controls
     void OnSlidersReleased();
@@ -431,6 +431,8 @@ private slots:
     void OnDockWidgetPositionChanged(bool topLevel);
 
     void OnDockWidgetVisibilityChanged(bool visible);
+
+    void OnActiveExposureWidgetClosed();
 };
 
 #endif // V4L2VIEWER_H

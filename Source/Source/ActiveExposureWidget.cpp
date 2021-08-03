@@ -96,3 +96,9 @@ void ActiveExposureWidget::OnLineSelectorListItemChanged(const QString &currentT
         }
     }
 }
+
+void ActiveExposureWidget::closeEvent(QCloseEvent *event)
+{
+    emit CloseSignal();
+    QWidget::closeEvent(event);
+}

@@ -79,6 +79,8 @@ signals:
     // [in] (int32_t) value - new value to be set
     void SendLineSelectorValue(int32_t value);
 
+    void CloseSignal();
+
 private slots:
     // This slot function is called when invert checkBox is clicked
     void OnInvertClicked();
@@ -86,6 +88,9 @@ private slots:
     void OnActiveClicked();
     // This slot function is called when index on the line selector list widget is changed
     void OnLineSelectorListItemChanged(const QString &currentText);
+
+private:
+    virtual void closeEvent(QCloseEvent *event) override;
 
 };
 

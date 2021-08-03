@@ -89,7 +89,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     , m_bIsOpen(false)
     , m_bIsStreaming(false)
     , m_sliderGainValue(0)
-    , m_sliderBlackLevelValue(0)
+    , m_sliderBrightnessValue(0)
     , m_sliderGammaValue(0)
     , m_sliderExposureValue(0)
     , m_bIsCropAvailable(false)
@@ -147,11 +147,11 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     connect(ui.m_sliderExposure,    SIGNAL(valueChanged(int)),  this, SLOT(OnSliderExposureValueChange(int)));
     connect(ui.m_sliderGain,        SIGNAL(valueChanged(int)),  this, SLOT(OnSliderGainValueChange(int)));
-    connect(ui.m_sliderBlackLevel,  SIGNAL(valueChanged(int)),  this, SLOT(OnSliderBlackLevelValueChange(int)));
+    connect(ui.m_sliderBrightness,  SIGNAL(valueChanged(int)),  this, SLOT(OnSliderBrightnessValueChange(int)));
     connect(ui.m_sliderGamma,       SIGNAL(valueChanged(int)),  this, SLOT(OnSliderGammaValueChange(int)));
     connect(ui.m_sliderExposure,    SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
     connect(ui.m_sliderGain,        SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
-    connect(ui.m_sliderBlackLevel,  SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
+    connect(ui.m_sliderBrightness,  SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
     connect(ui.m_sliderGamma,       SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
 
     connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
@@ -186,7 +186,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
     connect(ui.m_pixelFormats, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnPixelFormatChanged(const QString &)));
     connect(ui.m_edGamma, SIGNAL(editingFinished()), this, SLOT(OnGamma()));
-    connect(ui.m_edBlackLevel, SIGNAL(editingFinished()), this, SLOT(OnBrightness()));
+    connect(ui.m_edBrightness, SIGNAL(editingFinished()), this, SLOT(OnBrightness()));
 
     connect(ui.m_chkContWhiteBalance, SIGNAL(clicked()), this, SLOT(OnContinousWhiteBalance()));
     connect(ui.m_edFrameRate, SIGNAL(editingFinished()), this, SLOT(OnFrameRate()));
@@ -290,6 +290,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.m_camerasListCheckBox->setChecked(true);
     m_pEnumerationControlWidget = new ControlsHolderWidget();
 
+
     ui.m_ImageControlFrame->setEnabled(false);
     ui.m_FlipHorizontalCheckBox->setEnabled(false);
     ui.m_FlipVerticalCheckBox->setEnabled(false);
@@ -298,6 +299,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     connect(ui.m_allFeaturesDockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(OnDockWidgetPositionChanged(bool)));
     connect(ui.m_allFeaturesDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(OnDockWidgetVisibilityChanged(bool)));
+
+    connect(m_pActiveExposureWidget, SIGNAL(CloseSignal()), this, SLOT(OnActiveExposureWidgetClosed()));
+
     ui.m_allFeaturesDockWidget->setWidget(m_pEnumerationControlWidget);
     ui.m_allFeaturesDockWidget->hide();
     ui.m_allFeaturesDockWidget->setStyleSheet("QDockWidget {"
@@ -580,11 +584,11 @@ void V4L2Viewer::OnSliderGammaValueChange(int value)
     m_Camera.SetGamma(m_sliderGammaValue);
 }
 
-void V4L2Viewer::OnSliderBlackLevelValueChange(int value)
+void V4L2Viewer::OnSliderBrightnessValueChange(int value)
 {
-    ui.m_edBlackLevel->setText(QString::number(value));
-    m_sliderBlackLevelValue = static_cast<int32_t>(value);
-    m_Camera.SetBrightness(m_sliderBlackLevelValue);
+    ui.m_edBrightness->setText(QString::number(value));
+    m_sliderBrightnessValue = static_cast<int32_t>(value);
+    m_Camera.SetBrightness(m_sliderBrightnessValue);
 }
 
 void V4L2Viewer::OnSlidersReleased()
@@ -738,10 +742,19 @@ void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QLis
 
 void V4L2Viewer::OnExposureActiveClicked()
 {
-    QPoint point(this->width()/2 - m_pActiveExposureWidget->width()/2, this->height()/2 - m_pActiveExposureWidget->height()/2);
-    QPoint glob = mapToGlobal(point);
-    m_pActiveExposureWidget->setGeometry(glob.x(), glob.y(), m_pActiveExposureWidget->width(), m_pActiveExposureWidget->height());
-    m_pActiveExposureWidget->show();
+    if (!m_pActiveExposureWidget->isVisible())
+    {
+        QPoint point(this->width()/2 - m_pActiveExposureWidget->width()/2, this->height()/2 - m_pActiveExposureWidget->height()/2);
+        QPoint glob = mapToGlobal(point);
+        m_pActiveExposureWidget->setGeometry(glob.x(), glob.y(), m_pActiveExposureWidget->width(), m_pActiveExposureWidget->height());
+        m_pActiveExposureWidget->show();
+        ui.m_ExposureActiveButton->setText(tr("Close"));
+    }
+    else
+    {
+        m_pActiveExposureWidget->hide();
+        ui.m_ExposureActiveButton->setText(tr("Open"));
+    }
 }
 
 void V4L2Viewer::PassInvertState(bool state)
@@ -791,6 +804,11 @@ void V4L2Viewer::OnDockWidgetVisibilityChanged(bool visible)
     {
         ui.m_AllControlsButton->setText(tr("Open"));
     }
+}
+
+void V4L2Viewer::OnActiveExposureWidgetClosed()
+{
+    ui.m_ExposureActiveButton->setText(tr("Open"));
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
@@ -1335,15 +1353,15 @@ void V4L2Viewer::OnGamma()
 
 void V4L2Viewer::OnBrightness()
 {
-    int32_t nVal = int64_2_int32(ui.m_edBlackLevel->text().toLongLong());
+    int32_t nVal = int64_2_int32(ui.m_edBrightness->text().toLongLong());
 
     if (m_Camera.SetBrightness(nVal) < 0)
     {
         int32_t tmp = 0;
         QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE brightness!") );
         m_Camera.ReadBrightness(tmp);
-        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
-        UpdateSlidersPositions(ui.m_sliderBlackLevel, tmp);
+        ui.m_edBrightness->setText(QString("%1").arg(tmp));
+        UpdateSlidersPositions(ui.m_sliderBrightness, tmp);
     }
     else
     {
@@ -1636,19 +1654,6 @@ void V4L2Viewer::GetImageInformation()
         ui.m_chkAutoExposure->setEnabled(false);
     }
 
-    nSVal = 0;
-    if (m_Camera.ReadGamma(nSVal) != -2)
-    {
-        ui.m_edGamma->setEnabled(true);
-        ui.m_labelGamma->setEnabled(true);
-        ui.m_edGamma->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        ui.m_edGamma->setEnabled(false);
-        ui.m_labelGamma->setEnabled(false);
-    }
-
     min = 0;
     max = 0;
     if (m_Camera.ReadMinMaxGamma(min, max) != -2)
@@ -1664,30 +1669,43 @@ void V4L2Viewer::GetImageInformation()
     }
 
     nSVal = 0;
-    if (m_Camera.ReadBrightness(nSVal) != -2)
+    if (m_Camera.ReadGamma(nSVal) != -2)
     {
-        ui.m_edBlackLevel->setEnabled(true);
-        ui.m_labelBlackLevel->setEnabled(true);
-        ui.m_edBlackLevel->setText(QString("%1").arg(nSVal));
+        ui.m_edGamma->setEnabled(true);
+        ui.m_labelGamma->setEnabled(true);
+        ui.m_edGamma->setText(QString("%1").arg(nSVal));
     }
     else
     {
-        ui.m_edBlackLevel->setEnabled(false);
-        ui.m_labelBlackLevel->setEnabled(false);
+        ui.m_edGamma->setEnabled(false);
+        ui.m_labelGamma->setEnabled(false);
+    }
+
+    nSVal = 0;
+    if (m_Camera.ReadBrightness(nSVal) != -2)
+    {
+        ui.m_edBrightness->setEnabled(true);
+        ui.m_labelBrightness->setEnabled(true);
+        ui.m_edBrightness->setText(QString("%1").arg(nSVal));
+    }
+    else
+    {
+        ui.m_edBrightness->setEnabled(false);
+        ui.m_labelBrightness->setEnabled(false);
     }
 
     min = 0;
     max = 0;
     if (m_Camera.ReadMinMaxBrightness(min, max) != -2)
     {
-        ui.m_sliderBlackLevel->setEnabled(true);
-        ui.m_sliderBlackLevel->setMinimum(min);
-        ui.m_sliderBlackLevel->setMaximum(max);
-        UpdateSlidersPositions(ui.m_sliderBlackLevel, nSVal);
+        ui.m_sliderBrightness->setEnabled(true);
+        ui.m_sliderBrightness->setMinimum(min);
+        ui.m_sliderBrightness->setMaximum(max);
+        UpdateSlidersPositions(ui.m_sliderBrightness, nSVal);
     }
     else
     {
-        ui.m_sliderBlackLevel->setEnabled(false);
+        ui.m_sliderBrightness->setEnabled(false);
     }
 
     m_Camera.ReadFrameSize(width, height);
