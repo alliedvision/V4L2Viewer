@@ -1669,7 +1669,6 @@ void V4L2Viewer::GetImageInformation()
         ui.m_sliderGamma->setEnabled(true);
         ui.m_sliderGamma->setMinimum(min);
         ui.m_sliderGamma->setMaximum(max);
-        UpdateSlidersPositions(ui.m_sliderGamma, nSVal);
     }
     else
     {
@@ -1682,6 +1681,7 @@ void V4L2Viewer::GetImageInformation()
         ui.m_edGamma->setEnabled(true);
         ui.m_labelGamma->setEnabled(true);
         ui.m_edGamma->setText(QString("%1").arg(nSVal));
+        UpdateSlidersPositions(ui.m_sliderGamma, nSVal);
     }
     else
     {
