@@ -105,6 +105,9 @@ private:
     // This variable stores maximum exposure for the logarithmic slider calculations
     int32_t m_MaximumExposure;
 
+    int32_t m_MinimumExposureAbs;
+    int32_t m_MaximumExposureAbs;
+
     int32_t m_sliderGainValue;
     int32_t m_sliderBlackLevelValue;
     int32_t m_sliderGammaValue;
@@ -266,9 +269,6 @@ private slots:
     // This slot function is called when the exposure auto checkbox is clicked.
     // It changes state of the auto exposure
     void OnAutoExposure();
-    // This slot function is called when the exposure abs line edit value
-    // is changed. It tries to pass new value to the camera
-    void OnExposureAbs();
     // This slot function is called when the pixel format on the comboBox widget
     // has changed, then the chosen format is set to the camera
     void OnPixelFormatChanged(const QString &item);

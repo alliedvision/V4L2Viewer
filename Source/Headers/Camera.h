@@ -275,7 +275,7 @@ public:
     //
     // Returns:
     // (int) - result of reading
-    int ReadMinMaxExposureAbs(int32_t &min, int32_t &max);
+    int ReadMinMaxExposureAbs(int64_t &min, int64_t &max);
     // This function reads state of the auto exposure
     //
     // Parameters:
@@ -557,6 +557,18 @@ public:
     // Returns:
     // (int) - result of reading
     int ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
+    // This function reads min and max of the given control
+    //
+    // Parameters:
+    // [in] (int64_t &) min - minimum value
+    // [in] (int64_t &) max - maximum value
+    // [in] (uint32_t) controlID - id of the control
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (uised in logger)
+    //
+    // Returns:
+    // (int) - result of reading
+    int ReadMinMax(int64_t &min, int64_t &max, uint32_t controlID, const char *functionName, const char* controlName);
 
     // This function reads step of the given control
     //
