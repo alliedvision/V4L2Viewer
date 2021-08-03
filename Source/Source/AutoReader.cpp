@@ -37,6 +37,18 @@ AutoReader::AutoReader(QObject *parent) : QObject(parent)
     connect(m_pThread, SIGNAL(started()), m_pAutoReaderWorker, SLOT(Process()));
 }
 
+AutoReader::~AutoReader()
+{
+    emit StopTimer();
+    m_pThread->quit();
+    m_pThread->wait();
+    delete m_pThread;
+    m_pThread = nullptr;
+    delete m_pAutoReaderWorker;
+    m_pAutoReaderWorker = nullptr;
+    qDebug() << "AutoReader Deleted";
+}
+
 void AutoReader::StartThread()
 {
     emit StartTimer();
@@ -51,13 +63,6 @@ void AutoReader::MoveToThreadAndStart()
 {
     m_pAutoReaderWorker->moveToThread(m_pThread);
     m_pThread->start();
-}
-
-void AutoReader::DeleteThread()
-{
-    emit StopTimer();
-    m_pThread->quit();
-    m_pThread->deleteLater();
 }
 
 AutoReaderWorker *AutoReader::GetAutoReaderWorker()

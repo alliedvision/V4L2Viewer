@@ -100,23 +100,20 @@ Camera::Camera()
     connect(&m_CameraObserver, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
 
     m_pAutoExposureReader = new AutoReader();
-    connect(m_pAutoExposureReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassExposureValue()));
+    connect(m_pAutoExposureReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassExposureValue()), Qt::DirectConnection);
     m_pAutoExposureReader->MoveToThreadAndStart();
 
     m_pAutoGainReader = new AutoReader();
-    connect(m_pAutoGainReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassGainValue()));
+    connect(m_pAutoGainReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassGainValue()), Qt::DirectConnection);
     m_pAutoGainReader->MoveToThreadAndStart();
 
     m_pAutoWhiteBalanceReader = new AutoReader();
-    connect(m_pAutoWhiteBalanceReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassWhiteBalanceValue()));
+    connect(m_pAutoWhiteBalanceReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassWhiteBalanceValue()), Qt::DirectConnection);
     m_pAutoWhiteBalanceReader->MoveToThreadAndStart();
 }
 
 Camera::~Camera()
 {
-    m_pAutoExposureReader->DeleteThread();
-    m_pAutoGainReader->DeleteThread();
-    m_pAutoWhiteBalanceReader->DeleteThread();
     delete m_pAutoExposureReader;
     m_pAutoExposureReader = nullptr;
     delete m_pAutoGainReader;
@@ -1485,17 +1482,17 @@ int Camera::ReadAutoExposure(bool &flag)
     return result;
 }
 
-int Camera::SetAutoExposure(bool value)
+int Camera::SetAutoExposure(bool autoexposure)
 {
-//    if (value)
-//    {
-//        m_pAutoExposureReader->StartThread();
-//    }
-//    else
-//    {
-//        m_pAutoExposureReader->StopThread();
-//    }
-    return SetExtControl(value ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
+    if (autoexposure)
+    {
+        m_pAutoExposureReader->StartThread();
+    }
+    else
+    {
+        m_pAutoExposureReader->StopThread();
+    }
+    return SetExtControl(autoexposure ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
 }
 
 //////////////////// Controls ////////////////////////
@@ -1528,14 +1525,14 @@ int Camera::ReadAutoGain(bool &flag)
 
 int Camera::SetAutoGain(bool value)
 {
-//    if (value)
-//    {
-//        m_pAutoGainReader->StartThread();
-//    }
-//    else
-//    {
-//        m_pAutoGainReader->StopThread();
-//    }
+    if (value)
+    {
+        m_pAutoGainReader->StartThread();
+    }
+    else
+    {
+        m_pAutoGainReader->StopThread();
+    }
     return SetExtControl(value, V4L2_CID_AUTOGAIN, "SetAutoGain", "V4L2_CID_AUTOGAIN", V4L2_CTRL_CLASS_USER);
 }
 
@@ -1616,16 +1613,16 @@ bool Camera::IsAutoWhiteBalanceSupported()
     }
 }
 
-int Camera::SetContinousWhiteBalance(bool flag)
+int Camera::SetAutoWhiteBalance(bool flag)
 {
     if (flag)
     {
-        //m_pAutoWhiteBalanceReader->StartThread();
+        m_pAutoWhiteBalanceReader->StartThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance on", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
     else
     {
-        //m_pAutoWhiteBalanceReader->StopThread();
+        m_pAutoWhiteBalanceReader->StopThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
 }

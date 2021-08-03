@@ -385,7 +385,7 @@ public:
     //
     // Returns:
     // (int) - result of setting
-    int SetContinousWhiteBalance(bool flag);
+    int SetAutoWhiteBalance(bool flag);
     // This function reads auto white balance support by camera
     //
     // Returns:

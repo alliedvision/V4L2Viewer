@@ -40,6 +40,7 @@ class AutoReader : public QObject {
 
 public:
     AutoReader(QObject *parent=nullptr);
+    ~AutoReader();
     // This function emits starting thread signal
     void StartThread();
     // This function emits stopping thread signal

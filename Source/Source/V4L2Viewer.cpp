@@ -129,8 +129,11 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)),                                                          this, SLOT(OnFrameID(const unsigned long long &)));
     connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &)));
 
-    connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
-    connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)));
+    qRegisterMetaType<int32_t>("int32_t");
+
+    connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)), Qt::QueuedConnection);
+    connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)), Qt::QueuedConnection);
+    connect(&m_Camera, SIGNAL(PassAutoWhiteBalanceValue(int32_t)), this, SLOT(OnUpdateAutoWhiteBalance(int32_t)), Qt::QueuedConnection);
 
     connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)),      this, SLOT(PassIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SentInt64DataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)),    this, SLOT(PassIntDataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)));
@@ -541,6 +544,11 @@ void V4L2Viewer::OnUpdateAutoExposure(int32_t value)
 void V4L2Viewer::OnUpdateAutoGain(int32_t value)
 {
     ui.m_edGain->setText(QString::number(value));
+}
+
+void V4L2Viewer::OnUpdateAutoWhiteBalance(int32_t value)
+{
+    //ui.m_labelWhiteBalanceAuto->setText(QString::number(value));
 }
 
 void V4L2Viewer::OnSliderExposureValueChange(int value)
@@ -1371,7 +1379,7 @@ void V4L2Viewer::OnBrightness()
 
 void V4L2Viewer::OnContinousWhiteBalance()
 {
-    m_Camera.SetContinousWhiteBalance(ui.m_chkContWhiteBalance->isChecked());
+    m_Camera.SetAutoWhiteBalance(ui.m_chkContWhiteBalance->isChecked());
 }
 
 void V4L2Viewer::OnFrameRate()
