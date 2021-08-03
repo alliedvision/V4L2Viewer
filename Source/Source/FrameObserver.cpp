@@ -81,7 +81,6 @@ uint32_t InternalConvertRAW10inRAW16ToRAW10g(const void *sourceBuffer, uint32_t 
 FrameObserver::FrameObserver(bool showFrames)
     : m_nReceivedFramesCounter(0)
     , m_nRenderedFramesCounter(0)
-    , m_nDroppedFramesCounter(0)
     , m_nFileDescriptor(0)
     , m_PixelFormat(0)
     , m_nWidth(0)
@@ -232,16 +231,12 @@ void FrameObserver::DequeueAndProcessFrame()
                 }
                 else
                 {
-                    m_nDroppedFramesCounter++;
-
                     emit OnFrameID_Signal(m_FrameId);
                     QueueSingleUserBuffer(buf.index);
                 }
             }
             else
             {
-                m_nDroppedFramesCounter++;
-
                 emit OnFrameID_Signal(m_FrameId);
                 QueueSingleUserBuffer(buf.index);
             }
@@ -330,18 +325,6 @@ unsigned int FrameObserver::GetRenderedFramesCount()
     unsigned int res = m_nRenderedFramesCounter;
     m_nRenderedFramesCounter = 0;
     return res;
-}
-
-// Get the number of uncompleted frames
-unsigned int FrameObserver::GetDroppedFramesCount()
-{
-    return m_nDroppedFramesCounter;
-}
-
-// Set the number of uncompleted frames
-void FrameObserver::ResetDroppedFramesCount()
-{
-    m_nDroppedFramesCounter = 0;
 }
 
 void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex)

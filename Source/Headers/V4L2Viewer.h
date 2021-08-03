@@ -69,7 +69,6 @@ private:
     // The currently streaming camera
     Camera m_Camera;
 
-    uint32_t m_nDroppedFrames;
     uint32_t m_nStreamNumber;
 
     // The Qt GUI
@@ -430,6 +429,8 @@ private slots:
     // Parameters:
     // [in] (bool) topLevel - state of the docker widget (docked/undocked)
     void OnDockWidgetPositionChanged(bool topLevel);
+
+    void OnDockWidgetVisibilityChanged(bool visible);
 };
 
 #endif // V4L2VIEWER_H

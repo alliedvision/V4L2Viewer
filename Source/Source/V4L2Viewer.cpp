@@ -85,7 +85,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
     , m_ShowFrames(true)
-    , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
     , m_bIsOpen(false)
     , m_bIsStreaming(false)
@@ -181,23 +180,20 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     qRegisterMetaType<QSharedPointer<MyFrame> >("QSharedPointer<MyFrame>");
 
     // connect the buttons for Image m_ControlRequestTimer
-    connect(ui.m_edWidth, SIGNAL(returnPressed()), this, SLOT(OnWidth()));
-    connect(ui.m_edHeight, SIGNAL(returnPressed()), this, SLOT(OnHeight()));
-
-    connect(ui.m_edGain, SIGNAL(returnPressed()), this, SLOT(OnGain()));
+    connect(ui.m_edGain, SIGNAL(editingFinished()), this, SLOT(OnGain()));
     connect(ui.m_chkAutoGain, SIGNAL(clicked()), this, SLOT(OnAutoGain()));
-    connect(ui.m_edExposure, SIGNAL(returnPressed()), this, SLOT(OnExposure()));
+    connect(ui.m_edExposure, SIGNAL(editingFinished()), this, SLOT(OnExposure()));
     connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
     connect(ui.m_pixelFormats, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnPixelFormatChanged(const QString &)));
-    connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
-    connect(ui.m_edBlackLevel, SIGNAL(returnPressed()), this, SLOT(OnBrightness()));
+    connect(ui.m_edGamma, SIGNAL(editingFinished()), this, SLOT(OnGamma()));
+    connect(ui.m_edBlackLevel, SIGNAL(editingFinished()), this, SLOT(OnBrightness()));
 
     connect(ui.m_chkContWhiteBalance, SIGNAL(clicked()), this, SLOT(OnContinousWhiteBalance()));
-    connect(ui.m_edFrameRate, SIGNAL(returnPressed()), this, SLOT(OnFrameRate()));
-    connect(ui.m_edCropXOffset, SIGNAL(returnPressed()), this, SLOT(OnCropXOffset()));
-    connect(ui.m_edCropYOffset, SIGNAL(returnPressed()), this, SLOT(OnCropYOffset()));
-    connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
-    connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
+    connect(ui.m_edFrameRate, SIGNAL(editingFinished()), this, SLOT(OnFrameRate()));
+    connect(ui.m_edCropXOffset, SIGNAL(editingFinished()), this, SLOT(OnCropXOffset()));
+    connect(ui.m_edCropYOffset, SIGNAL(editingFinished()), this, SLOT(OnCropYOffset()));
+    connect(ui.m_edCropWidth, SIGNAL(editingFinished()), this, SLOT(OnCropWidth()));
+    connect(ui.m_edCropHeight, SIGNAL(editingFinished()), this, SLOT(OnCropHeight()));
 
     m_pActiveExposureWidget = new ActiveExposureWidget();
     connect(m_pActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
@@ -301,6 +297,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.m_SaveImageButton->setEnabled(false);
 
     connect(ui.m_allFeaturesDockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(OnDockWidgetPositionChanged(bool)));
+    connect(ui.m_allFeaturesDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(OnDockWidgetVisibilityChanged(bool)));
     ui.m_allFeaturesDockWidget->setWidget(m_pEnumerationControlWidget);
     ui.m_allFeaturesDockWidget->hide();
     ui.m_allFeaturesDockWidget->setStyleSheet("QDockWidget {"
@@ -784,6 +781,18 @@ void V4L2Viewer::OnDockWidgetPositionChanged(bool topLevel)
     }
 }
 
+void V4L2Viewer::OnDockWidgetVisibilityChanged(bool visible)
+{
+    if (visible)
+    {
+        ui.m_AllControlsButton->setText(tr("Close"));
+    }
+    else
+    {
+        ui.m_AllControlsButton->setText(tr("Open"));
+    }
+}
+
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
     int err = 0;
@@ -809,8 +818,6 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
     }
 
     QApplication::processEvents();
-
-    m_nDroppedFrames = 0;
 
     // start streaming
 
@@ -932,8 +939,6 @@ void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &fra
                 ui.m_FrameIdLabel->setText(QString("Frame ID: %1, W: %2, H: %3").arg(frameId).arg(image.width()).arg(image.height()));
             }
         }
-        else
-            m_nDroppedFrames++;
     }
     else
         ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
@@ -1163,9 +1168,8 @@ void V4L2Viewer::OnUpdateFramesReceived()
 {
     unsigned int fpsReceived = m_Camera.GetReceivedFramesCount();
     unsigned int fpsRendered = m_Camera.GetRenderedFramesCount();
-    unsigned int uncompletedFrames = m_Camera.GetDroppedFramesCount() + m_nDroppedFrames;
 
-    ui.m_FramesPerSecondLabel->setText(QString("fps: %1 received/%2 rendered [drops %3]").arg(fpsReceived).arg(fpsRendered).arg(uncompletedFrames));
+    ui.m_FramesPerSecondLabel->setText(QString("fps: %1 received/%2 rendered").arg(fpsReceived).arg(fpsRendered));
 }
 
 void V4L2Viewer::OnWidth()

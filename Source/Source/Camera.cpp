@@ -141,11 +141,6 @@ unsigned int Camera::GetRenderedFramesCount()
     return m_pFrameObserver->GetRenderedFramesCount();
 }
 
-unsigned int Camera::GetDroppedFramesCount()
-{
-    return m_pFrameObserver->GetDroppedFramesCount();
-}
-
 int Camera::ReadExposureActiveLineMode(bool &state)
 {
     int32_t val;
@@ -424,8 +419,6 @@ int Camera::StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint3
     m_pFrameObserver->StartStream(m_BlockingMode, m_nFileDescriptor, pixelFormat,
                                   payloadSize, width, height, bytesPerLine,
                                   enableLogging);
-
-    m_pFrameObserver->ResetDroppedFramesCount();
 
     // start stream returns always success
     Logger::LogEx("Camera::StartStreamChannel OK.");

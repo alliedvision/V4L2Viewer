@@ -66,6 +66,8 @@ public:
     // (IControlEnumerationHolder*) - found object
     IControlEnumerationHolder* GetControlWidget(int32_t id, bool &bIsSuccess);
 
+    virtual QSize sizeHint() const override;
+
     Ui::ControlsHolderWidget ui;
 
 private slots:

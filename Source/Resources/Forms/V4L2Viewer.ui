@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1055</width>
-    <height>763</height>
+    <width>1227</width>
+    <height>804</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -459,8 +459,8 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>766</width>
-              <height>257</height>
+              <width>860</width>
+              <height>288</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1036,7 +1036,7 @@ border:none;
               <x>0</x>
               <y>0</y>
               <width>1216</width>
-              <height>377</height>
+              <height>387</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_8">
@@ -1415,6 +1415,13 @@ border: 1px solid gray;
                   <property name="verticalSpacing">
                    <number>4</number>
                   </property>
+                  <item row="9" column="0" rowspan="2">
+                   <widget class="QLabel" name="m_labelGain">
+                    <property name="text">
+                     <string>Gain [1/100dB]:</string>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="0" column="1">
                    <widget class="QSlider" name="m_sliderExposure">
                     <property name="enabled">
@@ -1514,6 +1521,132 @@ QCheckBox::disabled{
                     </property>
                     <property name="tristate">
                      <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="m_labelExposure">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="text">
+                     <string>Exposure [ns]:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="0" rowspan="3" colspan="2">
+                   <widget class="QLabel" name="m_labelExposureActive">
+                    <property name="text">
+                     <string>Exposure Active</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0" colspan="2">
+                   <widget class="QLabel" name="m_labelExposureAuto">
+                    <property name="text">
+                     <string>Exposure Auto</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0" colspan="3">
+                   <spacer name="verticalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="12" column="0" colspan="3">
+                   <spacer name="verticalSpacer_5">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="9" column="2" rowspan="2">
+                   <widget class="QLineEdit" name="m_edGain">
+                    <property name="minimumSize">
+                     <size>
+                      <width>80</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="maxLength">
+                     <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="8" column="0" colspan="3">
+                   <spacer name="verticalSpacer_4">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Fixed</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>10</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="0" column="2">
+                   <widget class="QLineEdit" name="m_edExposure">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>80</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
+                    <property name="maxLength">
+                     <number>10</number>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="11" column="0" colspan="2">
+                   <widget class="QLabel" name="m_labelGainAuto">
+                    <property name="text">
+                     <string>Gain Auto</string>
                     </property>
                    </widget>
                   </item>
@@ -1619,89 +1752,6 @@ QCheckBox::disabled{
                     </property>
                    </widget>
                   </item>
-                  <item row="9" column="2" rowspan="2">
-                   <widget class="QLineEdit" name="m_edGain">
-                    <property name="minimumSize">
-                     <size>
-                      <width>80</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>100</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="maxLength">
-                     <number>10</number>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="8" column="0" colspan="3">
-                   <spacer name="verticalSpacer_4">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                     <enum>QSizePolicy::Fixed</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>10</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item row="0" column="2">
-                   <widget class="QLineEdit" name="m_edExposure">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="minimumSize">
-                     <size>
-                      <width>80</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>100</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true"/>
-                    </property>
-                    <property name="maxLength">
-                     <number>10</number>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="11" column="0" colspan="2">
-                   <widget class="QLabel" name="m_labelGainAuto">
-                    <property name="text">
-                     <string>Gain Auto</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="0">
-                   <widget class="QLabel" name="m_labelExposure">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="text">
-                     <string>Exposure [ns]:</string>
-                    </property>
-                   </widget>
-                  </item>
                   <item row="3" column="2" rowspan="3">
                    <widget class="QPushButton" name="m_ExposureActiveButton">
                     <property name="cursor">
@@ -1735,56 +1785,6 @@ background-color:rgb(166, 166, 166);
                     </property>
                     <property name="text">
                      <string>Open</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="3" column="0" rowspan="3" colspan="2">
-                   <widget class="QLabel" name="m_labelExposureActive">
-                    <property name="text">
-                     <string>Exposure Active</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="0" colspan="2">
-                   <widget class="QLabel" name="m_labelExposureAuto">
-                    <property name="text">
-                     <string>Exposure Auto</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="0" colspan="3">
-                   <spacer name="verticalSpacer">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                     <enum>QSizePolicy::Fixed</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item row="12" column="0" colspan="3">
-                   <spacer name="verticalSpacer_5">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>40</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item row="9" column="0" rowspan="2">
-                   <widget class="QLabel" name="m_labelGain">
-                    <property name="text">
-                     <string>Gain [1/100dB]:</string>
                     </property>
                    </widget>
                   </item>
@@ -2202,7 +2202,7 @@ border: 1px solid gray;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1055</width>
+     <width>1227</width>
      <height>22</height>
     </rect>
    </property>

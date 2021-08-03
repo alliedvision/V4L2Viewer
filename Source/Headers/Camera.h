@@ -745,11 +745,6 @@ public:
     // Returns:
     // (unsigned int) - number of rendered frames
     unsigned int GetRenderedFramesCount();
-    // This function returns dropped frames count
-    //
-    // Returns:
-    // (unsigned int) - number of dropped frames
-    unsigned int GetDroppedFramesCount();
 
     // This function read exposure active line mode
     //
