@@ -172,7 +172,7 @@ background-color:rgb(49, 49, 49);
 
 QMenu::disabled{
 background-color: rgb(59,59,59);
-color:rgb(79,79,79);
+color:rgb(99,99,99);
 }
 
 QToolTip {
@@ -459,7 +459,7 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>860</width>
+              <width>900</width>
               <height>288</height>
              </rect>
             </property>
@@ -541,11 +541,15 @@ height:0;
 }
 
 QCheckBox::disabled {
- background-color: rgba(102, 103, 105, 40%);
- color: rgb(59, 59, 59);
- border: 1px solid rgb(59, 59, 59);
+ background-color: rgba(82, 83, 85, 10%);
+ color: rgb(99, 99, 99);
+ border: 1px solid rgb(55, 55, 55);
 }
-</string>
+
+QPushButton::disabled{
+ background-color: rgba(82, 83, 85, 10%);
+ border: 1px solid rgb(57, 57, 57);
+}</string>
            </property>
            <layout class="QGridLayout" name="gridLayout_11">
             <property name="leftMargin">
@@ -838,7 +842,7 @@ QCheckBox::disabled {
             <item row="0" column="10">
              <widget class="QCheckBox" name="m_DisplayImagesCheckBox">
               <property name="enabled">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
               <property name="minimumSize">
                <size>
@@ -1033,7 +1037,7 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>-282</x>
+              <x>0</x>
               <y>0</y>
               <width>1213</width>
               <height>387</height>

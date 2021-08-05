@@ -236,7 +236,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     // put the layout into a widget
     QWidget *widgetNum = new QWidget(this);
     widgetNum->setLayout(layoutNum);
-    widgetNum->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(79,79,79);}");
+    widgetNum->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(99,99,99);}");
 
     // add the widget into the menu bar
     m_NumberOfUsedFramesWidgetAction = new QWidgetAction(this);
