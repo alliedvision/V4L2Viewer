@@ -460,7 +460,7 @@ border:none;
               <x>0</x>
               <y>0</y>
               <width>900</width>
-              <height>288</height>
+              <height>297</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1037,10 +1037,10 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>-14</x>
+              <x>-345</x>
               <y>0</y>
               <width>1247</width>
-              <height>387</height>
+              <height>378</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_8">
@@ -1854,7 +1854,7 @@ color:white;
                    </widget>
                   </item>
                   <item row="1" column="2">
-                   <widget class="QCheckBox" name="checkBox">
+                   <widget class="QCheckBox" name="m_chkFrameRateAuto">
                     <property name="styleSheet">
                      <string notr="true">QCheckBox{
 max-width:100px;
@@ -1894,7 +1894,7 @@ QCheckBox::disabled{
                    </widget>
                   </item>
                   <item row="1" column="0" colspan="2">
-                   <widget class="QLabel" name="label">
+                   <widget class="QLabel" name="m_labelFrameRateAuto">
                     <property name="text">
                      <string>Framerate Auto</string>
                     </property>
@@ -2233,19 +2233,7 @@ border: 1px solid gray;
      <addaction name="m_TitleUseMMAP"/>
      <addaction name="m_TitleUseUSERPTR"/>
     </widget>
-    <widget class="QMenu" name="menuSave_Format">
-     <property name="cursor">
-      <cursorShape>PointingHandCursor</cursorShape>
-     </property>
-     <property name="title">
-      <string>Save Format</string>
-     </property>
-     <addaction name="separator"/>
-     <addaction name="m_TitleSavePNG"/>
-     <addaction name="m_TitleSaveRAW"/>
-    </widget>
     <addaction name="m_MenuBuffer"/>
-    <addaction name="menuSave_Format"/>
     <addaction name="separator"/>
     <addaction name="m_TitleLogtofile"/>
     <addaction name="separator"/>
@@ -2429,25 +2417,6 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
   <action name="m_TitleLangEnglish">
    <property name="text">
     <string>English</string>
-   </property>
-  </action>
-  <action name="m_TitleSavePNG">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Save as PNG</string>
-   </property>
-  </action>
-  <action name="m_TitleSaveRAW">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Save as RAW</string>
    </property>
   </action>
  </widget>

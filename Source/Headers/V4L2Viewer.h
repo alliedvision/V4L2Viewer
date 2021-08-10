@@ -67,8 +67,10 @@ private:
 
     // The currently streaming camera
     Camera m_Camera;
-
     uint32_t m_nStreamNumber;
+
+    uint64_t m_SavedFramesCounter;
+    QString m_LastImageSaveFormat;
 
     // The Qt GUI
     Ui::V4L2ViewerClass ui;
@@ -229,12 +231,6 @@ private slots:
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
 
-    // This slot function is called when user change the save format in the
-    // settings in top menu bar. It changes format to be .png
-    void OnSavePNG();
-    // This slot function is called when user change the save format in the
-    // settings in top menu bar. It changes format to be raw
-    void OnSaveRAW();
     // This slot function is called when the xOffset line edit is edited,
     // then crops the image in the X axis
     void OnCropXOffset();

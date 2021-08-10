@@ -94,6 +94,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     , m_sliderGammaValue(0)
     , m_sliderExposureValue(0)
     , m_bIsCropAvailable(false)
+    , m_SavedFramesCounter(0)
+    , m_LastImageSaveFormat(".png")
 {
     QFontDatabase::addApplicationFont(":/Fonts/Open_Sans/OpenSans-Regular.ttf");
     QFont font;
@@ -165,8 +167,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
     connect(ui.m_TitleLangEnglish, SIGNAL(triggered()), this, SLOT(OnLanguageChange()));
     connect(ui.m_TitleLangGerman, SIGNAL(triggered()), this, SLOT(OnLanguageChange()));
-    connect(ui.m_TitleSavePNG, SIGNAL(triggered()), this, SLOT(OnSavePNG()));
-    connect(ui.m_TitleSaveRAW, SIGNAL(triggered()), this, SLOT(OnSaveRAW()));
 
     connect(ui.m_camerasListCheckBox, SIGNAL(clicked()), this, SLOT(OnCameraListButtonClicked()));
     connect(ui.m_Splitter1, SIGNAL(splitterMoved(int, int)), this, SLOT(OnMenuSplitterMoved(int, int)));
@@ -857,28 +857,29 @@ void V4L2Viewer::OnStopButtonClicked()
 
 void V4L2Viewer::OnSaveImageClicked()
 {
-    if (ui.m_TitleSavePNG->isChecked())
+    QString filename = "/Frame_"+QString::number(m_SavedFramesCounter)+m_LastImageSaveFormat;
+    QString fullPath = QFileDialog::getSaveFileName(this, tr("Save file"), QDir::homePath()+filename, "*.png *.raw");
+
+    if (fullPath.contains(".png"))
     {
-        QString format;
-        format = "png";
+        m_LastImageSaveFormat = ".png";
         QPixmap pixmap = m_PixmapItem->pixmap();
         QImage image = pixmap.toImage();
-        QString filename = QFileDialog::getSaveFileName(this, tr("Save file"), QDir::homePath(), ".png");
-        image.save(filename,"png");
+        image.save(fullPath,"png");
+        m_SavedFramesCounter++;
     }
-    else
+    else if(fullPath.contains(".raw"))
     {
-        QString format;
-        format = "raw";
+        m_LastImageSaveFormat = ".raw";
         QPixmap pixmap = m_PixmapItem->pixmap();
         QImage image = pixmap.toImage();
         int size = image.byteCount();
         QByteArray data(reinterpret_cast<const char*>(image.bits()), size);
-        QString filename = QFileDialog::getSaveFileName(this, tr("Save file"), QDir::homePath(), ".raw");
-        QFile file(filename);
+        QFile file(fullPath);
         file.open(QIODevice::WriteOnly);
         file.write(data);
         file.close();
+        m_SavedFramesCounter++;
     }
 }
 
@@ -916,7 +917,6 @@ void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &fra
     }
     else
         ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
-
 }
 
 // The event handler to show the processed frame
@@ -961,30 +961,6 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
 void V4L2Viewer::OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item)
 {
     OnOpenCloseButtonClicked();
-}
-
-void V4L2Viewer::OnSavePNG()
-{
-    if (ui.m_TitleSavePNG->isChecked())
-    {
-        ui.m_TitleSaveRAW->setChecked(false);
-    }
-    else
-    {
-        ui.m_TitleSavePNG->setChecked(true);
-    }
-}
-
-void V4L2Viewer::OnSaveRAW()
-{
-    if (ui.m_TitleSaveRAW->isChecked())
-    {
-        ui.m_TitleSavePNG->setChecked(false);
-    }
-    else
-    {
-        ui.m_TitleSaveRAW->setChecked(true);
-    }
 }
 
 // Queries and lists all known camera
