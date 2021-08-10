@@ -96,6 +96,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     , m_bIsCropAvailable(false)
     , m_SavedFramesCounter(0)
     , m_LastImageSaveFormat(".png")
+    , m_DefaultDenominator(24)
 {
     QFontDatabase::addApplicationFont(":/Fonts/Open_Sans/OpenSans-Regular.ttf");
     QFont font;
@@ -199,6 +200,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_edCropHeight, SIGNAL(editingFinished()), this, SLOT(OnCropHeight()));
 
     connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
+
+    connect(ui.m_chkFrameRateAuto, SIGNAL(clicked()), this, SLOT(OnCheckFrameRateAutoClicked()));
 
     // Set the splitter stretch factors
     ui.m_Splitter1->setStretchFactor(0, 45);
@@ -767,6 +770,37 @@ void V4L2Viewer::OnDockWidgetVisibilityChanged(bool visible)
     }
 }
 
+void V4L2Viewer::OnCheckFrameRateAutoClicked()
+{
+    if (m_bIsStreaming)
+    {
+        return;
+    }
+    uint32_t numerator = 0;
+    uint32_t denominator = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t pixelFormat = 0;
+
+    m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
+
+    if (ui.m_chkFrameRateAuto->isChecked())
+    {
+        numerator = 0;
+        ui.m_labelFrameRate->setEnabled(false);
+        ui.m_edFrameRate->setEnabled(false);
+        m_Camera.SetFrameRate(numerator, denominator);
+        m_DefaultDenominator = denominator;
+    }
+    else
+    {
+        numerator = 1;
+        ui.m_labelFrameRate->setEnabled(true);
+        ui.m_edFrameRate->setEnabled(true);
+        m_Camera.SetFrameRate(numerator, m_DefaultDenominator);
+    }
+}
+
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
     int err = 0;
@@ -780,15 +814,12 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
     ui.m_labelFrameRate->setEnabled(false);
     ui.m_edFrameRate->setEnabled(false);
 
+    ui.m_labelFrameRateAuto->setEnabled(false);
+    ui.m_chkFrameRateAuto->setEnabled(false);
+
     if (m_bIsCropAvailable)
     {
         ui.m_cropWidget->setEnabled(false);
-    }
-
-    if (m_bIsFrameIntervalAvailable)
-    {
-        ui.m_labelFrameRate->setEnabled(false);
-        ui.m_edFrameRate->setEnabled(false);
     }
 
     QApplication::processEvents();
@@ -828,18 +859,18 @@ void V4L2Viewer::OnStopButtonClicked()
     ui.m_pixelFormats->setEnabled(true);
     ui.m_labelPixelFormats->setEnabled(true);
 
-    ui.m_labelFrameRate->setEnabled(true);
-    ui.m_edFrameRate->setEnabled(true);
+    ui.m_labelFrameRateAuto->setEnabled(true);
+    ui.m_chkFrameRateAuto->setEnabled(true);
+
+    if (!ui.m_chkFrameRateAuto->isChecked())
+    {
+        ui.m_labelFrameRate->setEnabled(true);
+        ui.m_edFrameRate->setEnabled(true);
+    }
 
     if(m_bIsCropAvailable)
     {
         ui.m_cropWidget->setEnabled(true);
-    }
-
-    if (m_bIsFrameIntervalAvailable)
-    {
-        ui.m_labelFrameRate->setEnabled(true);
-        ui.m_edFrameRate->setEnabled(true);
     }
 
     m_Camera.StopStreamChannel();
@@ -1647,19 +1678,33 @@ void V4L2Viewer::GetImageInformation()
     {
         if (m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat) != -2)
         {
-            m_bIsFrameIntervalAvailable = true;
-            ui.m_edFrameRate->setEnabled(true);
-            ui.m_labelFrameRate->setEnabled(true);
+            ui.m_labelFrameRateAuto->setEnabled(true);
+            ui.m_chkFrameRateAuto->setEnabled(true);
+
             denominator /= 1000;
             ui.m_edFrameRate->setText(QString("%1").arg(denominator));
+            m_DefaultDenominator = denominator;
+
+            if (numerator == 0)
+            {
+                ui.m_chkFrameRateAuto->setChecked(true);
+                ui.m_edFrameRate->setEnabled(false);
+                ui.m_labelFrameRate->setEnabled(false);
+            }
+            else
+            {
+                ui.m_chkFrameRateAuto->setChecked(false);
+                ui.m_edFrameRate->setEnabled(true);
+                ui.m_labelFrameRate->setEnabled(true);
+            }
         }
         else
         {
-            m_bIsFrameIntervalAvailable = false;
             ui.m_edFrameRate->setEnabled(false);
             ui.m_labelFrameRate->setEnabled(false);
+            ui.m_labelFrameRateAuto->setEnabled(false);
+            ui.m_chkFrameRateAuto->setEnabled(false);
         }
-
 
         if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
         {

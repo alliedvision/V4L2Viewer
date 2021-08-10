@@ -1855,6 +1855,9 @@ color:white;
                   </item>
                   <item row="1" column="2">
                    <widget class="QCheckBox" name="m_chkFrameRateAuto">
+                    <property name="cursor">
+                     <cursorShape>PointingHandCursor</cursorShape>
+                    </property>
                     <property name="styleSheet">
                      <string notr="true">QCheckBox{
 max-width:100px;

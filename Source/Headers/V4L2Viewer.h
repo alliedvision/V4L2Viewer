@@ -69,7 +69,9 @@ private:
     Camera m_Camera;
     uint32_t m_nStreamNumber;
 
+    // Value stores counter for saved frames
     uint64_t m_SavedFramesCounter;
+    // Value stores last used image format to save
     QString m_LastImageSaveFormat;
 
     // The Qt GUI
@@ -116,9 +118,9 @@ private:
     // The enumeration control widget which holds all of the enum controls gathered
     // from the Camera class object
     ControlsHolderWidget *m_pEnumerationControlWidget;
-
     bool m_bIsCropAvailable;
-    bool m_bIsFrameIntervalAvailable;
+
+    uint32_t m_DefaultDenominator;
 
     // Queries and lists all known cameras
     //
@@ -410,6 +412,8 @@ private slots:
     void OnDockWidgetPositionChanged(bool topLevel);
 
     void OnDockWidgetVisibilityChanged(bool visible);
+
+    void OnCheckFrameRateAutoClicked();
 };
 
 #endif // V4L2VIEWER_H
