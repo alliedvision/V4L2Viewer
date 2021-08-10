@@ -119,7 +119,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_ZoomInButton,                SIGNAL(clicked()),         this, SLOT(OnZoomInButtonClicked()));
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
-    connect(ui.m_ExposureActiveButton,        SIGNAL(clicked()),         this, SLOT(OnExposureActiveClicked()));
 
     SetTitleText();
 
@@ -197,11 +196,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_edCropYOffset, SIGNAL(editingFinished()), this, SLOT(OnCropYOffset()));
     connect(ui.m_edCropWidth, SIGNAL(editingFinished()), this, SLOT(OnCropWidth()));
     connect(ui.m_edCropHeight, SIGNAL(editingFinished()), this, SLOT(OnCropHeight()));
-
-    m_pActiveExposureWidget = new ActiveExposureWidget();
-    connect(m_pActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
-    connect(m_pActiveExposureWidget, SIGNAL(SendActiveState(bool)), this, SLOT(PassActiveState(bool)));
-    connect(m_pActiveExposureWidget, SIGNAL(SendLineSelectorValue(int32_t)), this, SLOT(PassLineSelectorValue(int32_t)));
 
     connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
 
@@ -303,8 +297,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_allFeaturesDockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(OnDockWidgetPositionChanged(bool)));
     connect(ui.m_allFeaturesDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(OnDockWidgetVisibilityChanged(bool)));
 
-    connect(m_pActiveExposureWidget, SIGNAL(CloseSignal()), this, SLOT(OnActiveExposureWidgetClosed()));
-
     ui.m_allFeaturesDockWidget->setWidget(m_pEnumerationControlWidget);
     ui.m_allFeaturesDockWidget->hide();
     ui.m_allFeaturesDockWidget->setStyleSheet("QDockWidget {"
@@ -312,6 +304,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
                                                 "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}");
 
     Logger::LogEx(QString("V4L2Viewer git commit = %1").arg(GIT_VERSION).toStdString().c_str());
+
+    ui.m_MenuLang->menuAction()->setEnabled(false);
+    ui.m_MenuLang->menuAction()->setVisible(false);
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -321,8 +316,6 @@ V4L2Viewer::~V4L2Viewer()
     // if we are streaming stop streaming
     if ( true == m_bIsOpen )
         OnOpenCloseButtonClicked();
-
-    delete m_pActiveExposureWidget;
 }
 
 // The event handler to close the program
@@ -748,47 +741,6 @@ void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QLis
     }
 }
 
-void V4L2Viewer::OnExposureActiveClicked()
-{
-    if (!m_pActiveExposureWidget->isVisible())
-    {
-        QPoint point(this->width()/2 - m_pActiveExposureWidget->width()/2, this->height()/2 - m_pActiveExposureWidget->height()/2);
-        QPoint glob = mapToGlobal(point);
-        m_pActiveExposureWidget->setGeometry(glob.x(), glob.y(), m_pActiveExposureWidget->width(), m_pActiveExposureWidget->height());
-        m_pActiveExposureWidget->show();
-        ui.m_ExposureActiveButton->setText(tr("Close"));
-    }
-    else
-    {
-        m_pActiveExposureWidget->hide();
-        ui.m_ExposureActiveButton->setText(tr("Open"));
-    }
-}
-
-void V4L2Viewer::PassInvertState(bool state)
-{
-    if (m_Camera.SetExposureActiveInvert(state) >= 0)
-    {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::PassActiveState(bool state)
-{
-    if (m_Camera.SetExposureActiveLineMode(state) >= 0)
-    {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::PassLineSelectorValue(int32_t value)
-{
-    if (m_Camera.SetExposureActiveLineSelector(value) >= 0)
-    {
-        GetImageInformation();
-    }
-}
-
 void V4L2Viewer::OnUpdateZoomLabel()
 {
     UpdateZoomButtons();
@@ -812,11 +764,6 @@ void V4L2Viewer::OnDockWidgetVisibilityChanged(bool visible)
     {
         ui.m_AllControlsButton->setText(tr("Open"));
     }
-}
-
-void V4L2Viewer::OnActiveExposureWidgetClosed()
-{
-    ui.m_ExposureActiveButton->setText(tr("Open"));
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
@@ -1751,44 +1698,6 @@ void V4L2Viewer::GetImageInformation()
             ui.m_cropWidget->setEnabled(false);
         }
     }
-
-    bool bIsActive = false;
-    bool bIsInverted = false;
-
-    if (m_Camera.ReadExposureActiveLineMode(bIsActive) < 0)
-    {
-        ui.m_labelExposureActive->setEnabled(false);
-        m_pActiveExposureWidget->setEnabled(false);
-        ui.m_ExposureActiveButton->setEnabled(false);
-    }
-    else
-    {
-        m_pActiveExposureWidget->BlockInvertAndLineSelector(bIsActive);
-        m_pActiveExposureWidget->SetActive(bIsActive);
-    }
-
-    if (m_Camera.ReadExposureActiveLineSelector(value, min, max, step) < 0)
-    {
-        m_pActiveExposureWidget->setEnabled(false);
-        ui.m_ExposureActiveButton->setEnabled(false);
-        ui.m_labelExposureActive->setEnabled(false);
-    }
-    else
-    {
-        m_pActiveExposureWidget->SetLineSelectorRange(value, min, max, step);
-    }
-
-    if (m_Camera.ReadExposureActiveInvert(bIsInverted) < 0)
-    {
-        m_pActiveExposureWidget->setEnabled(false);
-        ui.m_ExposureActiveButton->setEnabled(false);
-        ui.m_labelExposureActive->setEnabled(false);
-    }
-    else
-    {
-        m_pActiveExposureWidget->SetInvert(bIsInverted);
-    }
-
     m_Camera.EnumAllControlNewStyle();
 }
 

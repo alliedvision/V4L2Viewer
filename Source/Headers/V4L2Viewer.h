@@ -37,7 +37,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "AboutWidget.h"
 #include "ui_V4L2Viewer.h"
 #include "ControlsHolderWidget.h"
-#include "ActiveExposureWidget.h"
 #include "CustomGraphicsView.h"
 
 #include <list>
@@ -115,8 +114,6 @@ private:
     // The enumeration control widget which holds all of the enum controls gathered
     // from the Camera class object
     ControlsHolderWidget *m_pEnumerationControlWidget;
-    // The active exposure widget
-    QPointer<ActiveExposureWidget> m_pActiveExposureWidget;
 
     bool m_bIsCropAvailable;
     bool m_bIsFrameIntervalAvailable;
@@ -408,26 +405,6 @@ private slots:
     // [in] (bool) bIsReadOnly - state which indicates whether control is readonly
     void PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
 
-    // This slot function is called when the exposure active button was clicked
-    void OnExposureActiveClicked();
-
-    // This slot function passes invert state to the camera
-    //
-    // Parameters:
-    // [in] (bool) state - new state
-    void PassInvertState(bool state);
-    // This slot function passes active line mode state to the camera
-    //
-    // Parameters:
-    // [in] (bool) state - new state
-    void PassActiveState(bool state);
-    // This slot function passes active line selector value to the camera
-    //
-    // Parameters:
-    // [in] (int32_t) state - new value
-    void PassLineSelectorValue(int32_t value);
-    // This slot function updates zoom label on zoom event from the CustomGraphicsView
-    // object
     void OnUpdateZoomLabel();
     // This slot function is called when the dock widget is docked or undocked
     //
@@ -437,8 +414,6 @@ private slots:
     void OnDockWidgetPositionChanged(bool topLevel);
 
     void OnDockWidgetVisibilityChanged(bool visible);
-
-    void OnActiveExposureWidgetClosed();
 };
 
 #endif // V4L2VIEWER_H

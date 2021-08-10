@@ -746,58 +746,6 @@ public:
     // (unsigned int) - number of rendered frames
     unsigned int GetRenderedFramesCount();
 
-    // This function read exposure active line mode
-    //
-    // Parameters:
-    // [in] (bool &) state - state of the active line mode
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExposureActiveLineMode(bool &state);
-    // This function read exposure active line selector
-    //
-    // Parameters:
-    // [in] (int32_t &) value - current value of the line selector
-    // [in] (int32_t &) min - minimum value of the line selector
-    // [in] (int32_t &) max - maximum value of the line selector
-    // [in] (int32_t &) step - step of the line selector
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExposureActiveLineSelector(int32_t &value, int32_t &min, int32_t &max, int32_t &step);
-    // This function read exposure active invert
-    //
-    // Parameters:
-    // [in] (bool &) state - state of the active invert
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExposureActiveInvert(bool &state);
-    // This function sets exposure active line mode
-    //
-    // Parameters:
-    // [in] (bool) state - state of the active line mode
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExposureActiveLineMode(bool state);
-    // This function sets exposure active line selector
-    //
-    // Parameters:
-    // [in] (int32_t) value - value of the active line selector
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExposureActiveLineSelector(int32_t value);
-    // This function sets exposure active invert
-    //
-    // Parameters:
-    // [in] (bool) state - state of the active invert
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExposureActiveInvert(bool state);
-
     // This function switches frame transfer to gui
     //
     // Parameters:
