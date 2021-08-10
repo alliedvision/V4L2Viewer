@@ -27,6 +27,7 @@
 =============================================================================*/
 
 #include "AboutWidget.h"
+#include "GitRevision.h"
 #include <QGridLayout>
 #include <QPixmap>
 #include <QScrollArea>

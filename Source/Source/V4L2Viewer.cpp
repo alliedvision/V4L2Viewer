@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ListEnumerationControl.h"
 #include "ListIntEnumerationControl.h"
 #include "CustomGraphicsView.h"
+#include "GitRevision.h"
 
 #include <QtCore>
 #include <QtGlobal>

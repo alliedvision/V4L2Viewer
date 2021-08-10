@@ -72,6 +72,19 @@ ${SOURCES_PATH}/EnumeratorInterface/ControlEditWidget.cpp
 ${SOURCES_PATH}/CustomGraphicsView.cpp
 )
 
+
+set(GIT_REVISION_FILE ${CMAKE_SOURCE_DIR}/Source/Headers/GitRevision.h)
+set_property(SOURCE ${GIT_REVISION_FILE} PROPERTY SKIP_AUTOGEN ON)
+add_custom_command(
+  OUTPUT ${GIT_REVISION_FILE}
+  COMMAND ${CMAKE_COMMAND} -E echo_append "#define GIT_VERSION " >> ${GIT_REVISION_FILE}
+  COMMAND git log -1 "--pretty=format:\"%H\"" >> ${GIT_REVISION_FILE}
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  VERBATIM
+)
+list(APPEND HEADER_FILES ${GIT_REVISION_FILE})
+
+
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${RESOURCES_PATH}/Forms)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -102,14 +115,6 @@ ${RESOURCES_PATH}/Forms/AboutWidget.ui
 )
 
 add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
-
-execute_process(COMMAND
-        git rev-parse HEAD
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        OUTPUT_VARIABLE GIT_SHA1
-)
-string(REGEX REPLACE "\n$" " " GIT_SHA1 "${GIT_SHA1}")
-target_compile_definitions(V4L2StaticLib PUBLIC -DGIT_VERSION="${GIT_SHA1}")
 
 target_link_libraries(V4L2StaticLib ${QT_LIBRARIES})
 target_include_directories(V4L2StaticLib PUBLIC ${HEADERS_PATH} ${ENUM_INT_PATH})
