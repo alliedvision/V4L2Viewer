@@ -292,12 +292,6 @@ private slots:
     // Parameters:
     // [in] (int32_t) value - value to be passed
     void OnUpdateAutoGain(int32_t value);
-    // This slot function is called in one second interval, by the worker thread
-    // which reads value when the white balance auto is turned on
-    //
-    // Parameters:
-    // [in] (int32_t) value - value to be passed
-    void OnUpdateAutoWhiteBalance(int32_t value);
     // This slot function is called when the exposure slider was moved
     //
     // Parameters:

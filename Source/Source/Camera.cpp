@@ -103,10 +103,6 @@ Camera::Camera()
     m_pAutoGainReader = new AutoReader();
     connect(m_pAutoGainReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassGainValue()), Qt::DirectConnection);
     m_pAutoGainReader->MoveToThreadAndStart();
-
-    m_pAutoWhiteBalanceReader = new AutoReader();
-    connect(m_pAutoWhiteBalanceReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassWhiteBalanceValue()), Qt::DirectConnection);
-    m_pAutoWhiteBalanceReader->MoveToThreadAndStart();
 }
 
 Camera::~Camera()
@@ -115,8 +111,6 @@ Camera::~Camera()
     m_pAutoExposureReader = nullptr;
     delete m_pAutoGainReader;
     m_pAutoGainReader = nullptr;
-    delete m_pAutoWhiteBalanceReader;
-    m_pAutoWhiteBalanceReader = nullptr;
 
     m_CameraObserver.SetTerminateFlag();
     if (NULL != m_pFrameObserver.data())
@@ -1518,12 +1512,10 @@ int Camera::SetAutoWhiteBalance(bool flag)
 {
     if (flag)
     {
-        m_pAutoWhiteBalanceReader->StartThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance on", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
     else
     {
-        m_pAutoWhiteBalanceReader->StopThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
 }
@@ -2261,22 +2253,15 @@ std::string Camera::ConvertPixelFormat2String(int pixelFormat)
 void Camera::PassGainValue()
 {
     int32_t value = 0;
-    ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_CAMERA);
+    ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
     emit PassAutoGainValue(value);
 }
 
 void Camera::PassExposureValue()
 {
     int32_t value = 0;
-    ReadExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
+    ReadExtControl(value, V4L2_CID_EXPOSURE, "ReadExposure", "V4L2_CID_EXPOSURE", V4L2_CTRL_CLASS_USER);
     emit PassAutoExposureValue(value);
-}
-
-void Camera::PassWhiteBalanceValue()
-{
-    int32_t value = 0;
-    ReadExtControl(value, V4L2_CID_WHITE_BALANCE_TEMPERATURE, "ReadWhiteBalance", "V4L2_CID_WHITE_BALANCE_TEMPERATURE", V4L2_CTRL_CLASS_CAMERA);
-    emit PassAutoWhiteBalanceValue(value);
 }
 
 void Camera::SetEnumerationControlValueIntList(int32_t id, int64_t val)

@@ -809,9 +809,6 @@ public slots:
     // This slot function passes exposure value from a thread
     // to a gui when auto is turned on
     void PassExposureValue();
-    // This slot function passes white balance value from a thread
-    // to a gui when auto is turned on
-    void PassWhiteBalanceValue();
 
     // This slot function sets enumeration integer list control value
     //
@@ -873,7 +870,6 @@ private:
 
     AutoReader          *m_pAutoExposureReader;
     AutoReader          *m_pAutoGainReader;
-    AutoReader          *m_pAutoWhiteBalanceReader;
 
     CameraObserver                  m_CameraObserver;
     QSharedPointer<FrameObserver>   m_pFrameObserver;
