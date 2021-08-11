@@ -2230,13 +2230,7 @@ border: 1px solid gray;
      <property name="cursor">
       <cursorShape>PointingHandCursor</cursorShape>
      </property>
-     <property name="title">
-      <string>Buffer</string>
-     </property>
-     <addaction name="m_TitleUseMMAP"/>
-     <addaction name="m_TitleUseUSERPTR"/>
     </widget>
-    <addaction name="m_MenuBuffer"/>
     <addaction name="separator"/>
     <addaction name="m_TitleLogtofile"/>
     <addaction name="separator"/>
@@ -2287,35 +2281,9 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Open Next Viewer&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Open a new Viewer window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
-  <action name="m_UseMMAP">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>use mmap</string>
-   </property>
-  </action>
   <action name="actionBuffer_count">
    <property name="text">
     <string>Buffer count</string>
-   </property>
-  </action>
-  <action name="m_TitleUseMMAP">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>IO MMAP Method</string>
-   </property>
-   <property name="iconText">
-    <string>MMAP/USERPTR</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;p&gt;&lt;b&gt;MMAP/USERPTR&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will change buffer into MMAP/USERPTR.&lt;/span&gt;</string>
    </property>
   </action>
   <action name="m_TitleNonBlockingMode">
@@ -2393,18 +2361,6 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
    </property>
    <property name="text">
     <string>Correct incoming RAW10 image</string>
-   </property>
-  </action>
-  <action name="m_TitleUseUSERPTR">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>IO USERPTR Method</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;p&gt;&lt;b&gt;IO USERPTR&lt;/b&gt;&lt;/p&gt;
-&lt;span&gt;Clicking this button will change buffer into IO USERPTR.&lt;/span&gt;</string>
    </property>
   </action>
   <action name="actionSave_Options">

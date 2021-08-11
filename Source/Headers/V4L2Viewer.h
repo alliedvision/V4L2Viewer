@@ -62,6 +62,7 @@ private:
 
     bool m_BLOCKING_MODE;
     IO_METHOD_TYPE m_MMAP_BUFFER;
+    int32_t m_NUMBER_OF_USED_FRAMES;
     bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
 
@@ -76,12 +77,6 @@ private:
 
     // The Qt GUI
     Ui::V4L2ViewerClass ui;
-    // The menu widget to setup the number of used frames
-    QWidgetAction *m_NumberOfUsedFramesWidgetAction;
-    // The line which holds the number of used frames
-    QLineEdit *m_NumberOfUsedFramesLineEdit;
-    QWidgetAction *m_NumberOfFixedFrameRateWidgetAction;
-    QLineEdit *m_NumberOfFixedFrameRate;
     // A list of known camera IDs
     std::vector<uint32_t> m_cameras;
     // The state of the camera (opened/closed)
@@ -203,10 +198,6 @@ private slots:
     void OnShowFrames();
     // The event handler to close the program
     void OnMenuCloseTriggered();
-    // The event handler to set IO MMAP
-    void OnUseMMAP();
-    // The event handler to set IO USERPTR
-    void OnUseUSERPTR();
     // The event handler for open / close camera
     void OnOpenCloseButtonClicked();
     // The event handler for the camera list changed event

@@ -85,6 +85,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     : QMainWindow(parent, flags)
     , m_BLOCKING_MODE(true)
     , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
+    , m_NUMBER_OF_USED_FRAMES(5)
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
     , m_ShowFrames(true)
     , m_nStreamNumber(0)
@@ -161,9 +162,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_sliderBrightness,  SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
     connect(ui.m_sliderGamma,       SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
 
-    connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
-    connect(ui.m_TitleUseUSERPTR, SIGNAL(triggered()), this, SLOT(OnUseUSERPTR()));
-
     connect(ui.m_DisplayImagesCheckBox, SIGNAL(clicked()), this, SLOT(OnShowFrames()));
 
     connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
@@ -220,39 +218,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     m_pScene->addItem(m_PixmapItem);
 
-    ///////////////////// Number of frames /////////////////////
-    // add the number of used frames option to the menu
-    m_NumberOfUsedFramesLineEdit = new QLineEdit(this);
-    m_NumberOfUsedFramesLineEdit->setText("5");
-    m_NumberOfUsedFramesLineEdit->setValidator(new QIntValidator(1, 500000, this));
-
-    // prepare the layout
-    QHBoxLayout *layoutNum = new QHBoxLayout;
-    QLabel *labelNum = new QLabel(tr("Number of used Frames:"));
-    layoutNum->addWidget(labelNum);
-    layoutNum->addWidget(m_NumberOfUsedFramesLineEdit);
-
-    // put the layout into a widget
-    QWidget *widgetNum = new QWidget(this);
-    widgetNum->setLayout(layoutNum);
-    widgetNum->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(99,99,99);}");
-
-    // add the widget into the menu bar
-    m_NumberOfUsedFramesWidgetAction = new QWidgetAction(this);
-    m_NumberOfUsedFramesWidgetAction->setDefaultWidget(widgetNum);
-    ui.m_MenuBuffer->addAction(m_NumberOfUsedFramesWidgetAction);
-
-    QHBoxLayout *layoutFixedFrameRate = new QHBoxLayout;
-    QLabel *labelFixedFrameRate = new QLabel(tr("Fixed frame rate:") ,this);
-    QWidget *widgetFixedFrameRate = new QWidget(this);
-    m_NumberOfFixedFrameRateWidgetAction = new QWidgetAction(this);
-    m_NumberOfFixedFrameRate = new QLineEdit("60", this);
-    m_NumberOfFixedFrameRate->setValidator(new QIntValidator(5, 100000, this));
-    layoutFixedFrameRate->addWidget(labelFixedFrameRate);
-    layoutFixedFrameRate->addWidget(m_NumberOfFixedFrameRate);
-    widgetFixedFrameRate->setLayout(layoutFixedFrameRate);
-    widgetFixedFrameRate->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(79,79,79);}");
-    m_NumberOfFixedFrameRateWidgetAction->setDefaultWidget(widgetFixedFrameRate);
 
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
@@ -267,27 +232,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     UpdateViewerLayout();
     UpdateZoomButtons();
-
-
-    // set check boxes state for mmap according to variable m_MMAP_BUFFER
-
-    if (IO_METHOD_USERPTR == m_MMAP_BUFFER)
-    {
-        ui.m_TitleUseUSERPTR->setChecked(true);
-    }
-    else
-    {
-        ui.m_TitleUseUSERPTR->setChecked(false);
-    }
-
-    if (IO_METHOD_MMAP == m_MMAP_BUFFER)
-    {
-        ui.m_TitleUseMMAP->setChecked(true);
-    }
-    else
-    {
-        ui.m_TitleUseMMAP->setChecked(false);
-    }
 
     ui.m_camerasListCheckBox->setChecked(true);
     m_pEnumerationControlWidget = new ControlsHolderWidget();
@@ -327,22 +271,6 @@ V4L2Viewer::~V4L2Viewer()
 void V4L2Viewer::OnMenuCloseTriggered()
 {
     close();
-}
-
-void V4L2Viewer::OnUseMMAP()
-{
-    m_MMAP_BUFFER = IO_METHOD_MMAP;
-
-    ui.m_TitleUseMMAP->setChecked(true);
-    ui.m_TitleUseUSERPTR->setChecked(false);
-}
-
-void V4L2Viewer::OnUseUSERPTR()
-{
-    m_MMAP_BUFFER = IO_METHOD_USERPTR;
-
-    ui.m_TitleUseMMAP->setChecked(false);
-    ui.m_TitleUseUSERPTR->setChecked(true);
 }
 
 void V4L2Viewer::OnShowFrames()
@@ -485,9 +413,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
     }
 
     ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
-
-    ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
 }
 
 // The event handler for starting
@@ -822,7 +747,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
     // start streaming
 
-    if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadSize) == 0)
+    if (m_Camera.CreateUserBuffer(m_NUMBER_OF_USED_FRAMES, payloadSize) == 0)
     {
         m_Camera.QueueAllUserBuffer();
         m_Camera.StartStreaming();
@@ -980,8 +905,6 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
     }
 
     ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
-    ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
 }
 
 // The event handler to open a camera on double click event
@@ -1011,15 +934,11 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
     }
 
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
-    ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
 }
 
 // Update the viewer range
 void V4L2Viewer::UpdateViewerLayout()
 {
-    m_NumberOfUsedFramesWidgetAction->setEnabled(!m_bIsOpen);
-
     if (!m_bIsOpen)
     {
         QPixmap pix(":/V4L2Viewer/icon_camera_256.png");
@@ -1125,7 +1044,7 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
 
     if (err != 0)
     {
-        CustomDialog::Warning( this, tr("Video4Linux"), tr("Camera can't be opened, because it is in use by another application or was disconnected!"));
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("The camera cannot be opened because it is in use by another application or it has been disconnected!"));
     }
 
     return err;
