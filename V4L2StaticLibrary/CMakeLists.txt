@@ -38,6 +38,7 @@ ${HEADERS_PATH}/EnumeratorInterface/ListEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ListIntEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ControlEditWidget.h
 ${HEADERS_PATH}/CustomGraphicsView.h
+${HEADERS_PATH}/CustomDialog.h
 )
 
 list(APPEND SOURCE_FILES
@@ -70,6 +71,7 @@ ${SOURCES_PATH}/EnumeratorInterface/ListEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ListIntEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ControlEditWidget.cpp
 ${SOURCES_PATH}/CustomGraphicsView.cpp
+${SOURCES_PATH}/CustomDialog.cpp
 )
 
 
@@ -115,6 +117,7 @@ ${RESOURCES_PATH}/Forms/ControlsHolderWidget.ui
 ${RESOURCES_PATH}/Forms/V4L2Viewer.ui
 ${RESOURCES_PATH}/Forms/ActiveExposureWidget.ui
 ${RESOURCES_PATH}/Forms/AboutWidget.ui
+${RESOURCES_PATH}/Forms/CustomDialog.ui
 )
 
 add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})

@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ListEnumerationControl.h"
 #include "ListIntEnumerationControl.h"
 #include "CustomGraphicsView.h"
+#include "CustomDialog.h"
 #include "GitRevision.h"
 
 #include <QtCore>
@@ -529,7 +530,7 @@ void V4L2Viewer::OnLanguageChange()
     }
     else
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("Language has been already set!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("Language has been already set!") );
     }
 }
 
@@ -777,12 +778,7 @@ void V4L2Viewer::OnCheckFrameRateAutoClicked()
         return;
     }
     uint32_t numerator = 0;
-    uint32_t denominator = 0;
-    uint32_t width = 0;
-    uint32_t height = 0;
-    uint32_t pixelFormat = 0;
-
-    m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
+    uint32_t denominator = ui.m_edFrameRate->text().toInt();
 
     if (ui.m_chkFrameRateAuto->isChecked())
     {
@@ -790,14 +786,14 @@ void V4L2Viewer::OnCheckFrameRateAutoClicked()
         ui.m_labelFrameRate->setEnabled(false);
         ui.m_edFrameRate->setEnabled(false);
         m_Camera.SetFrameRate(numerator, denominator);
-        m_DefaultDenominator = denominator;
     }
     else
     {
         numerator = 1;
         ui.m_labelFrameRate->setEnabled(true);
         ui.m_edFrameRate->setEnabled(true);
-        m_Camera.SetFrameRate(numerator, m_DefaultDenominator);
+        qDebug() << denominator;
+        m_Camera.SetFrameRate(numerator, denominator);
     }
 }
 
@@ -1129,7 +1125,7 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
 
     if (err != 0)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("Camera can't be opened, because is in use by another application \n or was disconnected!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("Camera can't be opened, because it is in use by another application or was disconnected!"));
     }
 
     return err;
@@ -1159,7 +1155,7 @@ void V4L2Viewer::OnWidth()
     {
         uint32_t width = 0;
         uint32_t height = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
         m_Camera.ReadFrameSize(width, height);
         ui.m_edWidth->setText(QString("%1").arg(width));
         ui.m_edHeight->setText(QString("%1").arg(height));
@@ -1179,7 +1175,7 @@ void V4L2Viewer::OnHeight()
 
     if (m_Camera.SetFrameSize(ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt()) < 0)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
     }
     else
     {
@@ -1199,7 +1195,7 @@ void V4L2Viewer::OnGain()
     if (m_Camera.SetGain(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Gain!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Gain!") );
         m_Camera.ReadGain(tmp);
         ui.m_edGain->setText(QString("%1").arg(tmp));
         UpdateSlidersPositions(ui.m_sliderGain, tmp);
@@ -1236,7 +1232,7 @@ void V4L2Viewer::OnExposure()
         int32_t nValAbs = static_cast<int32_t>(nVal/100000);
         if (m_Camera.SetExposureAbs(nValAbs) < 0)
         {
-            QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ExposureAbs!") );
+            CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ExposureAbs!") );
             GetImageInformation();
         }
         else
@@ -1249,7 +1245,7 @@ void V4L2Viewer::OnExposure()
         int32_t nVal32 = int64_2_int32(nVal);
         if (m_Camera.SetExposure(nVal32) < 0)
         {
-            QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
+            CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
             GetImageInformation();
         }
         else
@@ -1292,7 +1288,7 @@ void V4L2Viewer::OnPixelFormatChanged(const QString &item)
 
     if (m_Camera.SetPixelFormat(result, "") < 0)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SET pixelFormat!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SET pixelFormat!") );
     }
 }
 
@@ -1303,7 +1299,7 @@ void V4L2Viewer::OnGamma()
     if (m_Camera.SetGamma(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE gamma!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE gamma!") );
         m_Camera.ReadGamma(tmp);
         ui.m_edGamma->setText(QString("%1").arg(tmp));
         UpdateSlidersPositions(ui.m_sliderGamma, tmp);
@@ -1321,7 +1317,7 @@ void V4L2Viewer::OnBrightness()
     if (m_Camera.SetBrightness(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE brightness!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE brightness!") );
         m_Camera.ReadBrightness(tmp);
         ui.m_edBrightness->setText(QString("%1").arg(tmp));
         UpdateSlidersPositions(ui.m_sliderBrightness, tmp);
@@ -1352,7 +1348,7 @@ void V4L2Viewer::OnFrameRate()
     uint32_t value = frameRate.toInt(&bIsConverted);
     if (!bIsConverted)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("Only Framerate [Hz] value is acepted!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("Only Framerate [Hz] value is acepted!") );
         return;
     }
     numerator = 1;
@@ -1363,7 +1359,7 @@ void V4L2Viewer::OnFrameRate()
 
     if (m_Camera.SetFrameRate(numerator, denominator) < 0)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame rate!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame rate!") );
         m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
         denominator /= 1000;
         ui.m_edFrameRate->setText(QString("%1").arg(denominator));
@@ -1683,7 +1679,6 @@ void V4L2Viewer::GetImageInformation()
 
             denominator /= 1000;
             ui.m_edFrameRate->setText(QString("%1").arg(denominator));
-            m_DefaultDenominator = denominator;
 
             if (numerator == 0)
             {
