@@ -1047,7 +1047,7 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>0</x>
+              <x>-345</x>
               <y>0</y>
               <width>1247</width>
               <height>378</height>
@@ -2421,6 +2421,7 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
   <tabstop>m_sliderGamma</tabstop>
   <tabstop>m_AllControlsButton</tabstop>
   <tabstop>m_edFrameRate</tabstop>
+  <tabstop>m_chkFrameRateAuto</tabstop>
   <tabstop>m_pixelFormats</tabstop>
   <tabstop>m_edWidth</tabstop>
   <tabstop>m_edHeight</tabstop>
