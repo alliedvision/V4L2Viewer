@@ -65,6 +65,7 @@ private:
     int32_t m_NUMBER_OF_USED_FRAMES;
     bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
+    bool m_bIsImageFitByFirstImage;
 
     // The currently streaming camera
     Camera m_Camera;

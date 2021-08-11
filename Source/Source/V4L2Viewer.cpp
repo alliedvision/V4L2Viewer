@@ -99,6 +99,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     , m_SavedFramesCounter(0)
     , m_LastImageSaveFormat(".png")
     , m_DefaultDenominator(24)
+    , m_bIsImageFitByFirstImage(false)
 {
     QFontDatabase::addApplicationFont(":/Fonts/Open_Sans/OpenSans-Regular.ttf");
     QFont font;
@@ -231,7 +232,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     QMainWindow::showMaximized();
 
     UpdateViewerLayout();
-    UpdateZoomButtons();
 
     ui.m_camerasListCheckBox->setChecked(true);
     m_pEnumerationControlWidget = new ControlsHolderWidget();
@@ -398,6 +398,9 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             SetTitleText();
 
             ui.m_ImageControlFrame->setEnabled(false);
+
+            ui.m_ZoomFitButton->setChecked(false);
+            m_bIsImageFitByFirstImage = false;
         }
 
         if (false == m_bIsOpen)
@@ -717,7 +720,6 @@ void V4L2Viewer::OnCheckFrameRateAutoClicked()
         numerator = 1;
         ui.m_labelFrameRate->setEnabled(true);
         ui.m_edFrameRate->setEnabled(true);
-        qDebug() << denominator;
         m_Camera.SetFrameRate(numerator, denominator);
     }
 }
@@ -862,8 +864,13 @@ void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &fra
                 m_pScene->setSceneRect(0, 0, image.width(), image.height());
                 m_PixmapItem->setPixmap(QPixmap::fromImage(image));
                 ui.m_ImageView->show();
-
                 ui.m_FrameIdLabel->setText(QString("Frame ID: %1, W: %2, H: %3").arg(frameId).arg(image.width()).arg(image.height()));
+            }
+            if (!m_bIsImageFitByFirstImage)
+            {
+                ui.m_ZoomFitButton->setChecked(true);
+                OnZoomFitButtonClicked();
+                m_bIsImageFitByFirstImage = true;
             }
         }
     }
@@ -1011,6 +1018,7 @@ void V4L2Viewer::OnZoomOutButtonClicked()
 void V4L2Viewer::UpdateZoomButtons()
 {
     ui.m_ZoomFitButton->setEnabled(m_bIsOpen);
+    ui.m_ZoomLabel->setEnabled(m_bIsOpen);
 
     if (ui.m_ImageView->GetScaleFactorValue() >= CustomGraphicsView::MAX_ZOOM_IN)
     {
@@ -1030,8 +1038,15 @@ void V4L2Viewer::UpdateZoomButtons()
         ui.m_ZoomOutButton->setEnabled(true && m_bIsOpen && !ui.m_ZoomFitButton->isChecked());
     }
 
-    ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
-    ui.m_ZoomLabel->setEnabled(m_bIsOpen && m_bIsStreaming && !ui.m_ZoomFitButton->isChecked());
+    if (ui.m_ZoomFitButton->isChecked())
+    {
+        double scaleFitToView = ui.m_ImageView->transform().m11();
+        ui.m_ZoomLabel->setText(QString("%1%").arg(scaleFitToView * 100, 1, 'f',1));
+    }
+    else
+    {
+        ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
+    }
 }
 
 // Open/Close the camera
@@ -1044,7 +1059,7 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
 
     if (err != 0)
     {
-        CustomDialog::Warning( this, tr("Video4Linux"), tr("The camera cannot be opened because it is in use by another application or it has been disconnected!"));
+        CustomDialog::Error( this, tr("Video4Linux"), tr("The camera cannot be opened because it is in use by another application or it has been disconnected!"));
     }
 
     return err;
@@ -1074,7 +1089,7 @@ void V4L2Viewer::OnWidth()
     {
         uint32_t width = 0;
         uint32_t height = 0;
-        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
         m_Camera.ReadFrameSize(width, height);
         ui.m_edWidth->setText(QString("%1").arg(width));
         ui.m_edHeight->setText(QString("%1").arg(height));
@@ -1094,7 +1109,7 @@ void V4L2Viewer::OnHeight()
 
     if (m_Camera.SetFrameSize(ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt()) < 0)
     {
-        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
     }
     else
     {
@@ -1114,7 +1129,7 @@ void V4L2Viewer::OnGain()
     if (m_Camera.SetGain(nVal) < 0)
     {
         int32_t tmp = 0;
-        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Gain!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE Gain!") );
         m_Camera.ReadGain(tmp);
         ui.m_edGain->setText(QString("%1").arg(tmp));
         UpdateSlidersPositions(ui.m_sliderGain, tmp);
@@ -1151,7 +1166,7 @@ void V4L2Viewer::OnExposure()
         int32_t nValAbs = static_cast<int32_t>(nVal/100000);
         if (m_Camera.SetExposureAbs(nValAbs) < 0)
         {
-            CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ExposureAbs!") );
+            CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE ExposureAbs!") );
             GetImageInformation();
         }
         else
@@ -1164,7 +1179,7 @@ void V4L2Viewer::OnExposure()
         int32_t nVal32 = int64_2_int32(nVal);
         if (m_Camera.SetExposure(nVal32) < 0)
         {
-            CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
+            CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
             GetImageInformation();
         }
         else
@@ -1207,7 +1222,7 @@ void V4L2Viewer::OnPixelFormatChanged(const QString &item)
 
     if (m_Camera.SetPixelFormat(result, "") < 0)
     {
-        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SET pixelFormat!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SET pixelFormat!") );
     }
 }
 
@@ -1218,7 +1233,7 @@ void V4L2Viewer::OnGamma()
     if (m_Camera.SetGamma(nVal) < 0)
     {
         int32_t tmp = 0;
-        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE gamma!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE gamma!") );
         m_Camera.ReadGamma(tmp);
         ui.m_edGamma->setText(QString("%1").arg(tmp));
         UpdateSlidersPositions(ui.m_sliderGamma, tmp);
@@ -1236,7 +1251,7 @@ void V4L2Viewer::OnBrightness()
     if (m_Camera.SetBrightness(nVal) < 0)
     {
         int32_t tmp = 0;
-        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE brightness!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE brightness!") );
         m_Camera.ReadBrightness(tmp);
         ui.m_edBrightness->setText(QString("%1").arg(tmp));
         UpdateSlidersPositions(ui.m_sliderBrightness, tmp);
@@ -1278,7 +1293,7 @@ void V4L2Viewer::OnFrameRate()
 
     if (m_Camera.SetFrameRate(numerator, denominator) < 0)
     {
-        CustomDialog::Warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame rate!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE frame rate!") );
         m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
         denominator /= 1000;
         ui.m_edFrameRate->setText(QString("%1").arg(denominator));
@@ -1596,9 +1611,6 @@ void V4L2Viewer::GetImageInformation()
             ui.m_labelFrameRateAuto->setEnabled(true);
             ui.m_chkFrameRateAuto->setEnabled(true);
 
-            denominator /= 1000;
-            ui.m_edFrameRate->setText(QString("%1").arg(denominator));
-
             if (numerator == 0)
             {
                 ui.m_chkFrameRateAuto->setChecked(true);
@@ -1610,6 +1622,8 @@ void V4L2Viewer::GetImageInformation()
                 ui.m_chkFrameRateAuto->setChecked(false);
                 ui.m_edFrameRate->setEnabled(true);
                 ui.m_labelFrameRate->setEnabled(true);
+                denominator /= 1000;
+                ui.m_edFrameRate->setText(QString("%1").arg(denominator));
             }
         }
         else

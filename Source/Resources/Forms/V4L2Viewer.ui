@@ -517,6 +517,10 @@ QLabel{
 background:none;
 }
 
+QLabel::disabled{
+color:rgba(165,165,165,20%);
+}
+
  QCheckBox{
 background-color:rgb(125,129,133);
 border-radius: 6px;
@@ -604,6 +608,9 @@ QPushButton::disabled{
             </item>
             <item row="0" column="6">
              <widget class="QLabel" name="m_ZoomLabel">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -710,6 +717,9 @@ QPushButton::disabled{
               </property>
               <property name="checkable">
                <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -1037,7 +1047,7 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>-345</x>
+              <x>0</x>
               <y>0</y>
               <width>1247</width>
               <height>378</height>
@@ -2226,11 +2236,6 @@ border: 1px solid gray;
     <property name="title">
      <string>Settings</string>
     </property>
-    <widget class="QMenu" name="m_MenuBuffer">
-     <property name="cursor">
-      <cursorShape>PointingHandCursor</cursorShape>
-     </property>
-    </widget>
     <addaction name="separator"/>
     <addaction name="m_TitleLogtofile"/>
     <addaction name="separator"/>
