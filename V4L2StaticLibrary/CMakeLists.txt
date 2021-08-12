@@ -36,7 +36,6 @@ ${HEADERS_PATH}/EnumeratorInterface/BooleanEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ButtonEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ListEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ListIntEnumerationControl.h
-${HEADERS_PATH}/EnumeratorInterface/ControlEditWidget.h
 ${HEADERS_PATH}/CustomGraphicsView.h
 ${HEADERS_PATH}/CustomDialog.h
 )
@@ -69,7 +68,6 @@ ${SOURCES_PATH}/EnumeratorInterface/BooleanEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ButtonEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ListEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ListIntEnumerationControl.cpp
-${SOURCES_PATH}/EnumeratorInterface/ControlEditWidget.cpp
 ${SOURCES_PATH}/CustomGraphicsView.cpp
 ${SOURCES_PATH}/CustomDialog.cpp
 )
