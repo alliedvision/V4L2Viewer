@@ -84,7 +84,7 @@ static int32_t int64_2_int32(const int64_t value)
 V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     : QMainWindow(parent, flags)
     , m_BLOCKING_MODE(true)
-    , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
+    , m_BUFFER_TYPE(IO_METHOD_USERPTR) // use mmap by default
     , m_NUMBER_OF_USED_FRAMES(5)
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
     , m_ShowFrames(true)
@@ -767,7 +767,6 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
         UpdateViewerLayout();
 
         m_FramesReceivedTimer.start(1000);
-        m_Camera.QueueAllUserBuffer();
     }
 }
 
@@ -1053,7 +1052,7 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
     int err = 0;
 
     std::string devName = deviceName.toStdString();
-    err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
+    err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_BUFFER_TYPE, m_VIDIOC_TRY_FMT);
 
     if (err != 0)
     {
@@ -1741,7 +1740,7 @@ void V4L2Viewer::Check4IOReadAbility()
         deviceName = devName.left(devName.indexOf('(') - 1).toStdString();
         bool ioRead;
 
-        m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
+        m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_BUFFER_TYPE, m_VIDIOC_TRY_FMT);
         m_Camera.GetCameraReadCapability(ioRead);
         m_Camera.CloseDevice();
     }

@@ -61,7 +61,7 @@ private:
     std::list<QSharedPointer<V4L2Viewer> > m_pViewer;
 
     bool m_BLOCKING_MODE;
-    IO_METHOD_TYPE m_MMAP_BUFFER;
+    IO_METHOD_TYPE m_BUFFER_TYPE;
     int32_t m_NUMBER_OF_USED_FRAMES;
     bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
