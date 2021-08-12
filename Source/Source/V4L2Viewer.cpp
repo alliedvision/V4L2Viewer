@@ -1311,6 +1311,7 @@ void V4L2Viewer::OnCropXOffset()
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
+        m_bIsImageFitByFirstImage = false;
         xOffset = ui.m_edCropXOffset->text().toInt();
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
@@ -1336,6 +1337,7 @@ void V4L2Viewer::OnCropYOffset()
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
+        m_bIsImageFitByFirstImage = false;
         yOffset = ui.m_edCropYOffset->text().toInt();
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
@@ -1360,6 +1362,7 @@ void V4L2Viewer::OnCropWidth()
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
+        m_bIsImageFitByFirstImage = false;
         width = ui.m_edCropWidth->text().toInt();
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
@@ -1385,6 +1388,7 @@ void V4L2Viewer::OnCropHeight()
     uint32_t height;
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
+        m_bIsImageFitByFirstImage = false;
         height = ui.m_edCropHeight->text().toInt();
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {

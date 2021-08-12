@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <QDebug>
 
 #include <sstream>
 
