@@ -1548,19 +1548,6 @@ void V4L2Viewer::GetImageInformation()
         ui.m_chkAutoExposure->setEnabled(false);
     }
 
-    min = 0;
-    max = 0;
-    if (m_Camera.ReadMinMaxGamma(min, max) != -2)
-    {
-        ui.m_sliderGamma->setEnabled(true);
-        ui.m_sliderGamma->setMinimum(min);
-        ui.m_sliderGamma->setMaximum(max);
-    }
-    else
-    {
-        ui.m_sliderGamma->setEnabled(false);
-    }
-
     nSVal = 0;
     if (m_Camera.ReadGamma(nSVal) != -2)
     {
@@ -1573,6 +1560,19 @@ void V4L2Viewer::GetImageInformation()
     {
         ui.m_edGamma->setEnabled(false);
         ui.m_labelGamma->setEnabled(false);
+    }
+
+    min = 0;
+    max = 0;
+    if (m_Camera.ReadMinMaxGamma(min, max) != -2)
+    {
+        ui.m_sliderGamma->setEnabled(true);
+        ui.m_sliderGamma->setMinimum(min);
+        ui.m_sliderGamma->setMaximum(max);
+    }
+    else
+    {
+        ui.m_sliderGamma->setEnabled(false);
     }
 
     nSVal = 0;
