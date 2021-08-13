@@ -30,6 +30,8 @@
 #define ABOUTWIDGET_H
 
 #include <QLabel>
+#include "ui_AboutWidget.h"
+
 
 class AboutWidget : public QWidget
 {
@@ -39,9 +41,12 @@ public:
     // This function updates strings in the widget. It is used
     // for the internationalization
     void UpdateStrings();
+    void SetVersion(QString version);
+
+    Ui::AboutWidget ui;
 
 private:
-    QLabel *m_TextLabel;
+
 };
 
 #endif // ABOUTWIDGET_H

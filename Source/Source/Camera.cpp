@@ -82,9 +82,6 @@ struct v4l2_stats_t
 
 #define VIDIOC_STREAMSTAT                   _IOR('V', BASE_VIDIOC_PRIVATE + 5, struct v4l2_stats_t)
 
-#define V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE      (V4L2_CID_CAMERA_CLASS_BASE+44)
-#define V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR  (V4L2_CID_CAMERA_CLASS_BASE+45)
-#define V4L2_CID_EXPOSURE_ACTIVE_INVERT         (V4L2_CID_CAMERA_CLASS_BASE+46)
 #define V4L2_CID_PREFFERED_STRIDE               (V4L2_CID_CAMERA_CLASS_BASE+5998)
 
 
@@ -100,29 +97,20 @@ Camera::Camera()
     connect(&m_CameraObserver, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
 
     m_pAutoExposureReader = new AutoReader();
-    connect(m_pAutoExposureReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassExposureValue()));
+    connect(m_pAutoExposureReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassExposureValue()), Qt::DirectConnection);
     m_pAutoExposureReader->MoveToThreadAndStart();
 
     m_pAutoGainReader = new AutoReader();
-    connect(m_pAutoGainReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassGainValue()));
+    connect(m_pAutoGainReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassGainValue()), Qt::DirectConnection);
     m_pAutoGainReader->MoveToThreadAndStart();
-
-    m_pAutoWhiteBalanceReader = new AutoReader();
-    connect(m_pAutoWhiteBalanceReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassWhiteBalanceValue()));
-    m_pAutoWhiteBalanceReader->MoveToThreadAndStart();
 }
 
 Camera::~Camera()
 {
-    m_pAutoExposureReader->DeleteThread();
-    m_pAutoGainReader->DeleteThread();
-    m_pAutoWhiteBalanceReader->DeleteThread();
     delete m_pAutoExposureReader;
     m_pAutoExposureReader = nullptr;
     delete m_pAutoGainReader;
     m_pAutoGainReader = nullptr;
-    delete m_pAutoWhiteBalanceReader;
-    m_pAutoWhiteBalanceReader = nullptr;
 
     m_CameraObserver.SetTerminateFlag();
     if (NULL != m_pFrameObserver.data())
@@ -139,107 +127,6 @@ unsigned int Camera::GetReceivedFramesCount()
 unsigned int Camera::GetRenderedFramesCount()
 {
     return m_pFrameObserver->GetRenderedFramesCount();
-}
-
-unsigned int Camera::GetDroppedFramesCount()
-{
-    return m_pFrameObserver->GetDroppedFramesCount();
-}
-
-int Camera::ReadExposureActiveLineMode(bool &state)
-{
-    int32_t val;
-    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Read Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_CAMERA_CLASS);
-    if (result >= 0)
-    {
-        state = (val == 1) ? true : false;
-    }
-    return result;
-}
-
-int Camera::ReadExposureActiveLineSelector(int32_t &value, int32_t &min, int32_t &max, int32_t &step)
-{
-    int result = -1;
-    result = ReadExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR", V4L2_CID_CAMERA_CLASS);
-
-    if (result < 0)
-    {
-        return result;
-    }
-
-    result = ReadMinMax(min, max, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
-
-    if (result < 0)
-    {
-        return result;
-    }
-
-    result = ReadStep(step, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Read Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
-
-    return result;
-}
-
-int Camera::ReadExposureActiveInvert(bool &state)
-{
-    int32_t val;
-
-    int result = ReadExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Read Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_CAMERA_CLASS);
-    if (result >= 0)
-    {
-        state = (val == 1) ? true : false;
-    }
-    return result;
-}
-
-int Camera::SetExposureActiveLineMode(bool state)
-{
-    int32_t value = static_cast<int32_t>(state);
-    return SetExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE, "Set Exposure Active Line Mode", "V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE", V4L2_CID_CAMERA_CLASS);
-}
-
-int Camera::SetExposureActiveLineSelector(int32_t value)
-{
-    bool bIsOn = true;
-    int result = ReadExposureActiveLineMode(bIsOn);
-
-    if (result < 0)
-    {
-        return result;
-    }
-
-    if (!bIsOn)
-    {
-        result = SetExtControl(value, V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR, "Set Exposure Active Line Selector", "V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR", V4L2_CID_CAMERA_CLASS);
-    }
-    else
-    {
-        Logger::LogEx("V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE is enabled, can't set V4L2_CID_EXPOSURE_ACTIVE_LINE_SELECTOR");
-    }
-
-    return result;
-}
-
-int Camera::SetExposureActiveInvert(bool state)
-{
-    bool bIsOn = true;
-    int result = ReadExposureActiveLineMode(bIsOn);
-
-    if (result < 0)
-    {
-        return result;
-    }
-
-    if (!bIsOn)
-    {
-        int32_t val = static_cast<int32_t>(state);
-        result = SetExtControl(val, V4L2_CID_EXPOSURE_ACTIVE_INVERT, "Set Exposure Active Invert", "V4L2_CID_EXPOSURE_ACTIVE_INVERT", V4L2_CID_CAMERA_CLASS);
-    }
-    else
-    {
-        Logger::LogEx("V4L2_CID_EXPOSURE_ACTIVE_LINE_MODE is enabled, can't set V4L2_CID_EXPOSURE_ACTIVE_INVERT");
-    }
-
-    return result;
 }
 
 int Camera::OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,
@@ -424,8 +311,6 @@ int Camera::StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint3
     m_pFrameObserver->StartStream(m_BlockingMode, m_nFileDescriptor, pixelFormat,
                                   payloadSize, width, height, bytesPerLine,
                                   enableLogging);
-
-    m_pFrameObserver->ResetDroppedFramesCount();
 
     // start stream returns always success
     Logger::LogEx("Camera::StartStreamChannel OK.");
@@ -1418,6 +1303,30 @@ int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const cha
     return result;
 }
 
+int Camera::ReadMinMax(int64_t &min, int64_t &max, uint32_t controlID, const char *functionName, const char *controlName)
+{
+    int result = 0;
+    v4l2_query_ext_ctrl extCtrl;
+
+    CLEAR(extCtrl);
+    extCtrl.id = controlID;
+
+    if (iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERY_EXT_CTRL, &extCtrl) >= 0)
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, extCtrl.minimum, extCtrl.maximum, extCtrl.default_value);
+
+        min = extCtrl.minimum;
+        max = extCtrl.maximum;
+    }
+    else
+    {
+        Logger::LogEx("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, ConvertErrno2String(errno).c_str());
+        result = -2;
+    }
+
+    return result;
+}
+
 int Camera::ReadStep(int32_t &step, uint32_t controlID, const char *functionName, const char *controlName)
 {
     int result = 0;
@@ -1454,7 +1363,7 @@ int Camera::ReadMinMaxExposure(int32_t &min, int32_t &max)
     return ReadMinMax(min, max, V4L2_CID_EXPOSURE, "ReadExposureMinMax", "V4L2_CID_EXPOSURE");
 }
 
-int Camera::ReadMinMaxExposureAbs(int32_t &min, int32_t &max)
+int Camera::ReadMinMaxExposureAbs(int64_t &min, int64_t &max)
 {
     return ReadMinMax(min, max, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureMinMaxAbs", "V4L2_CID_EXPOSURE_ABSOLUTE");
 }
@@ -1468,17 +1377,17 @@ int Camera::ReadAutoExposure(bool &flag)
     return result;
 }
 
-int Camera::SetAutoExposure(bool value)
+int Camera::SetAutoExposure(bool autoexposure)
 {
-//    if (value)
-//    {
-//        m_pAutoExposureReader->StartThread();
-//    }
-//    else
-//    {
-//        m_pAutoExposureReader->StopThread();
-//    }
-    return SetExtControl(value ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
+    if (autoexposure)
+    {
+        m_pAutoExposureReader->StartThread();
+    }
+    else
+    {
+        m_pAutoExposureReader->StopThread();
+    }
+    return SetExtControl(autoexposure ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
 }
 
 //////////////////// Controls ////////////////////////
@@ -1511,14 +1420,14 @@ int Camera::ReadAutoGain(bool &flag)
 
 int Camera::SetAutoGain(bool value)
 {
-//    if (value)
-//    {
-//        m_pAutoGainReader->StartThread();
-//    }
-//    else
-//    {
-//        m_pAutoGainReader->StopThread();
-//    }
+    if (value)
+    {
+        m_pAutoGainReader->StartThread();
+    }
+    else
+    {
+        m_pAutoGainReader->StopThread();
+    }
     return SetExtControl(value, V4L2_CID_AUTOGAIN, "SetAutoGain", "V4L2_CID_AUTOGAIN", V4L2_CTRL_CLASS_USER);
 }
 
@@ -1599,16 +1508,14 @@ bool Camera::IsAutoWhiteBalanceSupported()
     }
 }
 
-int Camera::SetContinousWhiteBalance(bool flag)
+int Camera::SetAutoWhiteBalance(bool flag)
 {
     if (flag)
     {
-        //m_pAutoWhiteBalanceReader->StartThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance on", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
     else
     {
-        //m_pAutoWhiteBalanceReader->StopThread();
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
 }
@@ -2346,22 +2253,15 @@ std::string Camera::ConvertPixelFormat2String(int pixelFormat)
 void Camera::PassGainValue()
 {
     int32_t value = 0;
-    ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_CAMERA);
+    ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
     emit PassAutoGainValue(value);
 }
 
 void Camera::PassExposureValue()
 {
     int32_t value = 0;
-    ReadExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
+    ReadExtControl(value, V4L2_CID_EXPOSURE, "ReadExposure", "V4L2_CID_EXPOSURE", V4L2_CTRL_CLASS_USER);
     emit PassAutoExposureValue(value);
-}
-
-void Camera::PassWhiteBalanceValue()
-{
-    int32_t value = 0;
-    ReadExtControl(value, V4L2_CID_WHITE_BALANCE_TEMPERATURE, "ReadWhiteBalance", "V4L2_CID_WHITE_BALANCE_TEMPERATURE", V4L2_CTRL_CLASS_CAMERA);
-    emit PassAutoWhiteBalanceValue(value);
 }
 
 void Camera::SetEnumerationControlValueIntList(int32_t id, int64_t val)

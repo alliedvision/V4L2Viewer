@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
+    <width>498</width>
     <height>501</height>
    </rect>
   </property>
@@ -206,6 +206,9 @@ QComboBox:on {
 </string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetMaximumSize</enum>
+   </property>
    <item row="0" column="0">
     <widget class="QListWidget" name="m_ControlsList">
      <property name="styleSheet">

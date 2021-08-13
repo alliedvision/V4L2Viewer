@@ -28,7 +28,6 @@ ${HEADERS_PATH}/AboutWidget.h
 ${HEADERS_PATH}/CameraListCustomItem.h
 ${HEADERS_PATH}/AutoReader.h
 ${HEADERS_PATH}/AutoReaderWorker.h
-${HEADERS_PATH}/ActiveExposureWidget.h
 ${HEADERS_PATH}/EnumeratorInterface/IControlEnumerationHolder.h
 ${HEADERS_PATH}/EnumeratorInterface/IntegerEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/Integer64EnumerationControl.h
@@ -37,8 +36,8 @@ ${HEADERS_PATH}/EnumeratorInterface/BooleanEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ButtonEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ListEnumerationControl.h
 ${HEADERS_PATH}/EnumeratorInterface/ListIntEnumerationControl.h
-${HEADERS_PATH}/EnumeratorInterface/ControlEditWidget.h
 ${HEADERS_PATH}/CustomGraphicsView.h
+${HEADERS_PATH}/CustomDialog.h
 )
 
 list(APPEND SOURCE_FILES
@@ -61,7 +60,6 @@ ${SOURCES_PATH}/AboutWidget.cpp
 ${SOURCES_PATH}/CameraListCustomItem.cpp
 ${SOURCES_PATH}/AutoReader.cpp
 ${SOURCES_PATH}/AutoReaderWorker.cpp
-${SOURCES_PATH}/ActiveExposureWidget.cpp
 ${SOURCES_PATH}/EnumeratorInterface/IControlEnumerationHolder.cpp
 ${SOURCES_PATH}/EnumeratorInterface/IntegerEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/Integer64EnumerationControl.cpp
@@ -70,9 +68,25 @@ ${SOURCES_PATH}/EnumeratorInterface/BooleanEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ButtonEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ListEnumerationControl.cpp
 ${SOURCES_PATH}/EnumeratorInterface/ListIntEnumerationControl.cpp
-${SOURCES_PATH}/EnumeratorInterface/ControlEditWidget.cpp
 ${SOURCES_PATH}/CustomGraphicsView.cpp
+${SOURCES_PATH}/CustomDialog.cpp
 )
+
+
+set(GIT_REVISION_FILE ${CMAKE_SOURCE_DIR}/Source/Headers/GitRevision.h)
+set_property(SOURCE ${GIT_REVISION_FILE} PROPERTY SKIP_AUTOGEN ON)
+
+add_custom_command(
+  OUTPUT ${GIT_REVISION_FILE}
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${GIT_REVISION_FILE}
+  COMMAND ${CMAKE_COMMAND} -E echo_append "#define GIT_VERSION " >> ${GIT_REVISION_FILE}
+  COMMAND git log -1 "--pretty=format:\"%H\"" >> ${GIT_REVISION_FILE}
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  DEPENDS ${CMAKE_SOURCE_DIR}/.git/logs/HEAD
+  VERBATIM
+)
+list(APPEND HEADER_FILES ${GIT_REVISION_FILE})
+
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${RESOURCES_PATH}/Forms)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -100,9 +114,12 @@ ${RESOURCES_PATH}/V4L2Viewer.rc
 ${RESOURCES_PATH}/Forms/ControlsHolderWidget.ui
 ${RESOURCES_PATH}/Forms/V4L2Viewer.ui
 ${RESOURCES_PATH}/Forms/ActiveExposureWidget.ui
+${RESOURCES_PATH}/Forms/AboutWidget.ui
+${RESOURCES_PATH}/Forms/CustomDialog.ui
 )
 
 add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
+
 target_link_libraries(V4L2StaticLib ${QT_LIBRARIES})
 target_include_directories(V4L2StaticLib PUBLIC ${HEADERS_PATH} ${ENUM_INT_PATH})
 

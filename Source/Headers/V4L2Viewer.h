@@ -37,7 +37,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "AboutWidget.h"
 #include "ui_V4L2Viewer.h"
 #include "ControlsHolderWidget.h"
-#include "ActiveExposureWidget.h"
 #include "CustomGraphicsView.h"
 
 #include <list>
@@ -48,42 +47,37 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QTranslator>
 #include <QDockWidget>
 
-// This defines index of the master viewer, it is used
-// when opening more than one viewer's windows
-#define VIEWER_MASTER       0
 
 class V4L2Viewer : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    V4L2Viewer( QWidget *parent = 0, Qt::WindowFlags flags = 0, int viewerNumber = VIEWER_MASTER );
+    V4L2Viewer( QWidget *parent = 0, Qt::WindowFlags flags = 0 );
     ~V4L2Viewer();
 
 private:
 
     std::list<QSharedPointer<V4L2Viewer> > m_pViewer;
-    int m_nViewerNumber;
 
     bool m_BLOCKING_MODE;
-    IO_METHOD_TYPE m_MMAP_BUFFER;
+    IO_METHOD_TYPE m_BUFFER_TYPE;
+    int32_t m_NUMBER_OF_USED_FRAMES;
     bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
+    bool m_bIsImageFitByFirstImage;
 
     // The currently streaming camera
     Camera m_Camera;
-
-    uint32_t m_nDroppedFrames;
     uint32_t m_nStreamNumber;
+
+    // Value stores counter for saved frames
+    uint64_t m_SavedFramesCounter;
+    // Value stores last used image format to save
+    QString m_LastImageSaveFormat;
 
     // The Qt GUI
     Ui::V4L2ViewerClass ui;
-    // The menu widget to setup the number of used frames
-    QWidgetAction *m_NumberOfUsedFramesWidgetAction;
-    // The line which holds the number of used frames
-    QLineEdit *m_NumberOfUsedFramesLineEdit;
-    QWidgetAction *m_NumberOfFixedFrameRateWidgetAction;
-    QLineEdit *m_NumberOfFixedFrameRate;
     // A list of known camera IDs
     std::vector<uint32_t> m_cameras;
     // The state of the camera (opened/closed)
@@ -104,23 +98,25 @@ private:
     AboutWidget *m_pAboutWidget;
     // The settings menu on the top bar
     QMenu *m_pSettingsMenu;
-    // This variable contains state of the strict frame aquisition
-    bool m_bIsFixedRate;
     // This variable stores minimum exposure for the logarithmic slider calculations
     int32_t m_MinimumExposure;
     // This variable stores maximum exposure for the logarithmic slider calculations
     int32_t m_MaximumExposure;
 
+    int32_t m_MinimumExposureAbs;
+    int32_t m_MaximumExposureAbs;
+
     int32_t m_sliderGainValue;
-    int32_t m_sliderBlackLevelValue;
+    int32_t m_sliderBrightnessValue;
     int32_t m_sliderGammaValue;
     int32_t m_sliderExposureValue;
 
     // The enumeration control widget which holds all of the enum controls gathered
     // from the Camera class object
     ControlsHolderWidget *m_pEnumerationControlWidget;
-    // The active exposure widget
-    QPointer<ActiveExposureWidget> m_pActiveExposureWidget;
+    bool m_bIsCropAvailable;
+
+    uint32_t m_DefaultDenominator;
 
     // Queries and lists all known cameras
     //
@@ -161,12 +157,6 @@ private:
     // [in] (uint32_t) bytesPerLine
     void StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
 
-    // This function overrides close event, in order to
-    // close more than one viewers if opened
-    //
-    // Parameters:
-    // [in] (QCloseEvent *) event - close event
-    virtual void closeEvent(QCloseEvent *event) override;
     // This function overrides change event, in order to
     // update language when changed
     //
@@ -195,12 +185,6 @@ private:
     // [in] (QSlider *) slider - slider object
     // [in] (int32_t) value - new value to update slider
     void UpdateSlidersPositions(QSlider *slider, int32_t value);
-    // This function is called during each arrived frame to check whether strict
-    // acquisition has achieved desirable number of frames
-    //
-    // Parameters:
-    // [in] (int) framesCount - frames count
-    void CheckAquiredFixedFrames(int framesCount);
     // This function returns slider value based on the logarithmic value
     //
     // Parameters:
@@ -215,14 +199,6 @@ private slots:
     void OnShowFrames();
     // The event handler to close the program
     void OnMenuCloseTriggered();
-    // The event handler to set IO MMAP
-    void OnUseMMAP();
-    // The event handler to set IO USERPTR
-    void OnUseUSERPTR();
-    // The event handler to set VIDIOC_TRY_FMT
-    void OnUseVIDIOC_TRY_FMT();
-    // The event handler to open a next viewer
-    void OnMenuOpenNextViewer();
     // The event handler for open / close camera
     void OnOpenCloseButtonClicked();
     // The event handler for the camera list changed event
@@ -249,12 +225,6 @@ private slots:
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
 
-    // This slot function is called when user change the save format in the
-    // settings in top menu bar. It changes format to be .png
-    void OnSavePNG();
-    // This slot function is called when user change the save format in the
-    // settings in top menu bar. It changes format to be raw
-    void OnSaveRAW();
     // This slot function is called when the xOffset line edit is edited,
     // then crops the image in the X axis
     void OnCropXOffset();
@@ -285,9 +255,6 @@ private slots:
     // This slot function is called when the exposure auto checkbox is clicked.
     // It changes state of the auto exposure
     void OnAutoExposure();
-    // This slot function is called when the exposure abs line edit value
-    // is changed. It tries to pass new value to the camera
-    void OnExposureAbs();
     // This slot function is called when the pixel format on the comboBox widget
     // has changed, then the chosen format is set to the camera
     void OnPixelFormatChanged(const QString &item);
@@ -344,7 +311,7 @@ private slots:
     //
     // Parameters:
     // [in] (int) value - value to be passed
-    void OnSliderBlackLevelValueChange(int value);
+    void OnSliderBrightnessValueChange(int value);
     // This slot function is called when the sliders are being released,
     // then it updates all of the controls
     void OnSlidersReleased();
@@ -358,9 +325,6 @@ private slots:
     // [in] (int) pos - position to which the splitter was moved
     // [in] (int) index - index of the splitter's element which was moved
     void OnMenuSplitterMoved(int pos, int index);
-    // This slot function is called when the strict frames acquisition button
-    // was clicked
-    void OnFixedFrameRateButtonClicked();
 
     // This slot function shows/hides enumeration control on button click
     void ShowHideEnumerationControlWidget();
@@ -425,26 +389,6 @@ private slots:
     // [in] (bool) bIsReadOnly - state which indicates whether control is readonly
     void PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
 
-    // This slot function is called when the exposure active button was clicked
-    void OnExposureActiveClicked();
-
-    // This slot function passes invert state to the camera
-    //
-    // Parameters:
-    // [in] (bool) state - new state
-    void PassInvertState(bool state);
-    // This slot function passes active line mode state to the camera
-    //
-    // Parameters:
-    // [in] (bool) state - new state
-    void PassActiveState(bool state);
-    // This slot function passes active line selector value to the camera
-    //
-    // Parameters:
-    // [in] (int32_t) state - new value
-    void PassLineSelectorValue(int32_t value);
-    // This slot function updates zoom label on zoom event from the CustomGraphicsView
-    // object
     void OnUpdateZoomLabel();
     // This slot function is called when the dock widget is docked or undocked
     //
@@ -452,6 +396,10 @@ private slots:
     // Parameters:
     // [in] (bool) topLevel - state of the docker widget (docked/undocked)
     void OnDockWidgetPositionChanged(bool topLevel);
+
+    void OnDockWidgetVisibilityChanged(bool visible);
+
+    void OnCheckFrameRateAutoClicked();
 };
 
 #endif // V4L2VIEWER_H

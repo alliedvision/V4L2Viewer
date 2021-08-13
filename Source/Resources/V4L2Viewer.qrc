@@ -29,6 +29,8 @@
         <file>icon_camera.png</file>
         <file>icon_camera_256.png</file>
         <file>Cross128.png</file>
+        <file>g7848.ico</file>
+        <file>g7848-scaled.ico</file>
     </qresource>
     <qresource prefix="/Fonts">
         <file>Open_Sans/OpenSans-Bold.ttf</file>

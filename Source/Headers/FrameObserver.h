@@ -100,15 +100,6 @@ public:
     // (unsigned int) - rendered frames count
     unsigned int GetRenderedFramesCount();
 
-    // This function will return counter of the dropped frames
-    //
-    // Returns:
-    // (unsigned int) - dropped frames count
-    unsigned int GetDroppedFramesCount();
-
-    // This function sets the number of uncompleted frames
-    void ResetDroppedFramesCount();
-
     // This function sets file descriptor
     //
     // Parameters:
@@ -189,9 +180,6 @@ protected:
 
     // Counter to count the rendered frames
     uint32_t m_nRenderedFramesCounter;
-
-    // Counter to count the received uncompleted images
-    unsigned int m_nDroppedFramesCounter;
 
     int m_nFileDescriptor;
     uint32_t m_PixelFormat;

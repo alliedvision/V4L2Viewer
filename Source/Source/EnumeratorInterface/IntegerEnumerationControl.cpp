@@ -64,7 +64,7 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, in
     else
     {
         setEnabled(true);
-        connect(&m_LineEdit, SIGNAL(returnPressed()), this, SLOT(OnLineEditPressed()));
+        connect(&m_LineEdit, SIGNAL(editingFinished()), this, SLOT(OnLineEditPressed()));
         connect(&m_Slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
         if (id == V4L2_CID_EXPOSURE)
         {

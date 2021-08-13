@@ -275,7 +275,7 @@ public:
     //
     // Returns:
     // (int) - result of reading
-    int ReadMinMaxExposureAbs(int32_t &min, int32_t &max);
+    int ReadMinMaxExposureAbs(int64_t &min, int64_t &max);
     // This function reads state of the auto exposure
     //
     // Parameters:
@@ -385,7 +385,7 @@ public:
     //
     // Returns:
     // (int) - result of setting
-    int SetContinousWhiteBalance(bool flag);
+    int SetAutoWhiteBalance(bool flag);
     // This function reads auto white balance support by camera
     //
     // Returns:
@@ -557,6 +557,18 @@ public:
     // Returns:
     // (int) - result of reading
     int ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
+    // This function reads min and max of the given control
+    //
+    // Parameters:
+    // [in] (int64_t &) min - minimum value
+    // [in] (int64_t &) max - maximum value
+    // [in] (uint32_t) controlID - id of the control
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (uised in logger)
+    //
+    // Returns:
+    // (int) - result of reading
+    int ReadMinMax(int64_t &min, int64_t &max, uint32_t controlID, const char *functionName, const char* controlName);
 
     // This function reads step of the given control
     //
@@ -733,63 +745,6 @@ public:
     // Returns:
     // (unsigned int) - number of rendered frames
     unsigned int GetRenderedFramesCount();
-    // This function returns dropped frames count
-    //
-    // Returns:
-    // (unsigned int) - number of dropped frames
-    unsigned int GetDroppedFramesCount();
-
-    // This function read exposure active line mode
-    //
-    // Parameters:
-    // [in] (bool &) state - state of the active line mode
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExposureActiveLineMode(bool &state);
-    // This function read exposure active line selector
-    //
-    // Parameters:
-    // [in] (int32_t &) value - current value of the line selector
-    // [in] (int32_t &) min - minimum value of the line selector
-    // [in] (int32_t &) max - maximum value of the line selector
-    // [in] (int32_t &) step - step of the line selector
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExposureActiveLineSelector(int32_t &value, int32_t &min, int32_t &max, int32_t &step);
-    // This function read exposure active invert
-    //
-    // Parameters:
-    // [in] (bool &) state - state of the active invert
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExposureActiveInvert(bool &state);
-    // This function sets exposure active line mode
-    //
-    // Parameters:
-    // [in] (bool) state - state of the active line mode
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExposureActiveLineMode(bool state);
-    // This function sets exposure active line selector
-    //
-    // Parameters:
-    // [in] (int32_t) value - value of the active line selector
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExposureActiveLineSelector(int32_t value);
-    // This function sets exposure active invert
-    //
-    // Parameters:
-    // [in] (bool) state - state of the active invert
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExposureActiveInvert(bool state);
 
     // This function switches frame transfer to gui
     //
@@ -854,9 +809,6 @@ public slots:
     // This slot function passes exposure value from a thread
     // to a gui when auto is turned on
     void PassExposureValue();
-    // This slot function passes white balance value from a thread
-    // to a gui when auto is turned on
-    void PassWhiteBalanceValue();
 
     // This slot function sets enumeration integer list control value
     //
@@ -918,7 +870,6 @@ private:
 
     AutoReader          *m_pAutoExposureReader;
     AutoReader          *m_pAutoGainReader;
-    AutoReader          *m_pAutoWhiteBalanceReader;
 
     CameraObserver                  m_CameraObserver;
     QSharedPointer<FrameObserver>   m_pFrameObserver;

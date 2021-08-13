@@ -38,6 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ListEnumerationControl.h"
 #include "ListIntEnumerationControl.h"
 #include "CustomGraphicsView.h"
+#include "CustomDialog.h"
+#include "GitRevision.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -64,6 +66,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CCI_GCPRM_16R                               0x0010
 #define CCI_BCRM_16R                                0x0014
 
+#define EXPOSURE_MAX_VALUE 2147483647
+
 
 static int32_t int64_2_int32(const int64_t value)
 {
@@ -77,22 +81,25 @@ static int32_t int64_2_int32(const int64_t value)
     }
 }
 
-V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
+V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     : QMainWindow(parent, flags)
-    , m_nViewerNumber(viewerNumber)
     , m_BLOCKING_MODE(true)
-    , m_MMAP_BUFFER(IO_METHOD_MMAP) // use mmap by default
+    , m_BUFFER_TYPE(IO_METHOD_USERPTR) // use mmap by default
+    , m_NUMBER_OF_USED_FRAMES(5)
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
     , m_ShowFrames(true)
-    , m_nDroppedFrames(0)
     , m_nStreamNumber(0)
     , m_bIsOpen(false)
     , m_bIsStreaming(false)
-    , m_bIsFixedRate(false)
     , m_sliderGainValue(0)
-    , m_sliderBlackLevelValue(0)
+    , m_sliderBrightnessValue(0)
     , m_sliderGammaValue(0)
     , m_sliderExposureValue(0)
+    , m_bIsCropAvailable(false)
+    , m_SavedFramesCounter(0)
+    , m_LastImageSaveFormat(".png")
+    , m_DefaultDenominator(24)
+    , m_bIsImageFitByFirstImage(false)
 {
     QFontDatabase::addApplicationFont(":/Fonts/Open_Sans/OpenSans-Regular.ttf");
     QFont font;
@@ -110,10 +117,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     // connect the menu actions
     connect(ui.m_MenuClose, SIGNAL(triggered()), this, SLOT(OnMenuCloseTriggered()));
-    if (VIEWER_MASTER == m_nViewerNumber)
-        connect(ui.m_MenuOpenNextViewer, SIGNAL(triggered()), this, SLOT(OnMenuOpenNextViewer()));
-    else
-        ui.m_MenuOpenNextViewer->setEnabled(false);
 
     // Connect GUI events with event handlers
     connect(ui.m_OpenCloseButton,             SIGNAL(clicked()),         this, SLOT(OnOpenCloseButtonClicked()));
@@ -123,7 +126,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(ui.m_ZoomInButton,                SIGNAL(clicked()),         this, SLOT(OnZoomInButtonClicked()));
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
-    connect(ui.m_ExposureActiveButton,        SIGNAL(clicked()),         this, SLOT(OnExposureActiveClicked()));
 
     SetTitleText();
 
@@ -133,8 +135,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)),                                                          this, SLOT(OnFrameID(const unsigned long long &)));
     connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &)));
 
-    connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)));
-    connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)));
+    qRegisterMetaType<int32_t>("int32_t");
+
+    connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)), Qt::QueuedConnection);
+    connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)), Qt::QueuedConnection);
 
     connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)),      this, SLOT(PassIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SentInt64DataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)),    this, SLOT(PassIntDataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)));
@@ -151,23 +155,18 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     connect(ui.m_sliderExposure,    SIGNAL(valueChanged(int)),  this, SLOT(OnSliderExposureValueChange(int)));
     connect(ui.m_sliderGain,        SIGNAL(valueChanged(int)),  this, SLOT(OnSliderGainValueChange(int)));
-    connect(ui.m_sliderBlackLevel,  SIGNAL(valueChanged(int)),  this, SLOT(OnSliderBlackLevelValueChange(int)));
+    connect(ui.m_sliderBrightness,  SIGNAL(valueChanged(int)),  this, SLOT(OnSliderBrightnessValueChange(int)));
     connect(ui.m_sliderGamma,       SIGNAL(valueChanged(int)),  this, SLOT(OnSliderGammaValueChange(int)));
     connect(ui.m_sliderExposure,    SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
     connect(ui.m_sliderGain,        SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
-    connect(ui.m_sliderBlackLevel,  SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
+    connect(ui.m_sliderBrightness,  SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
     connect(ui.m_sliderGamma,       SIGNAL(sliderReleased()),   this, SLOT(OnSlidersReleased()));
 
-    connect(ui.m_TitleUseMMAP, SIGNAL(triggered()), this, SLOT(OnUseMMAP()));
-    connect(ui.m_TitleUseUSERPTR, SIGNAL(triggered()), this, SLOT(OnUseUSERPTR()));
-    connect(ui.m_TitleEnable_VIDIOC_TRY_FMT, SIGNAL(triggered()), this, SLOT(OnUseVIDIOC_TRY_FMT()));
     connect(ui.m_DisplayImagesCheckBox, SIGNAL(clicked()), this, SLOT(OnShowFrames()));
 
     connect(ui.m_TitleLogtofile, SIGNAL(triggered()), this, SLOT(OnLogToFile()));
     connect(ui.m_TitleLangEnglish, SIGNAL(triggered()), this, SLOT(OnLanguageChange()));
     connect(ui.m_TitleLangGerman, SIGNAL(triggered()), this, SLOT(OnLanguageChange()));
-    connect(ui.m_TitleSavePNG, SIGNAL(triggered()), this, SLOT(OnSavePNG()));
-    connect(ui.m_TitleSaveRAW, SIGNAL(triggered()), this, SLOT(OnSaveRAW()));
 
     connect(ui.m_camerasListCheckBox, SIGNAL(clicked()), this, SLOT(OnCameraListButtonClicked()));
     connect(ui.m_Splitter1, SIGNAL(splitterMoved(int, int)), this, SLOT(OnMenuSplitterMoved(int, int)));
@@ -184,33 +183,24 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     qRegisterMetaType<QSharedPointer<MyFrame> >("QSharedPointer<MyFrame>");
 
     // connect the buttons for Image m_ControlRequestTimer
-    connect(ui.m_edWidth, SIGNAL(returnPressed()), this, SLOT(OnWidth()));
-    connect(ui.m_edHeight, SIGNAL(returnPressed()), this, SLOT(OnHeight()));
-
-    connect(ui.m_edGain, SIGNAL(returnPressed()), this, SLOT(OnGain()));
+    connect(ui.m_edGain, SIGNAL(editingFinished()), this, SLOT(OnGain()));
     connect(ui.m_chkAutoGain, SIGNAL(clicked()), this, SLOT(OnAutoGain()));
-    connect(ui.m_edExposure, SIGNAL(returnPressed()), this, SLOT(OnExposure()));
-    connect(ui.m_edExposureAbs, SIGNAL(returnPressed()), this, SLOT(OnExposureAbs()));
+    connect(ui.m_edExposure, SIGNAL(editingFinished()), this, SLOT(OnExposure()));
     connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
     connect(ui.m_pixelFormats, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnPixelFormatChanged(const QString &)));
-    connect(ui.m_edGamma, SIGNAL(returnPressed()), this, SLOT(OnGamma()));
-    connect(ui.m_edBlackLevel, SIGNAL(returnPressed()), this, SLOT(OnBrightness()));
+    connect(ui.m_edGamma, SIGNAL(editingFinished()), this, SLOT(OnGamma()));
+    connect(ui.m_edBrightness, SIGNAL(editingFinished()), this, SLOT(OnBrightness()));
 
     connect(ui.m_chkContWhiteBalance, SIGNAL(clicked()), this, SLOT(OnContinousWhiteBalance()));
-    connect(ui.m_edFrameRate, SIGNAL(returnPressed()), this, SLOT(OnFrameRate()));
-    connect(ui.m_edCropXOffset, SIGNAL(returnPressed()), this, SLOT(OnCropXOffset()));
-    connect(ui.m_edCropYOffset, SIGNAL(returnPressed()), this, SLOT(OnCropYOffset()));
-    connect(ui.m_edCropWidth, SIGNAL(returnPressed()), this, SLOT(OnCropWidth()));
-    connect(ui.m_edCropHeight, SIGNAL(returnPressed()), this, SLOT(OnCropHeight()));
-
-    connect(ui.m_nFramesAcquisitionButton, SIGNAL(clicked()), this, SLOT(OnFixedFrameRateButtonClicked()));
-
-    m_pActiveExposureWidget = new ActiveExposureWidget();
-    connect(m_pActiveExposureWidget, SIGNAL(SendInvertState(bool)), this, SLOT(PassInvertState(bool)));
-    connect(m_pActiveExposureWidget, SIGNAL(SendActiveState(bool)), this, SLOT(PassActiveState(bool)));
-    connect(m_pActiveExposureWidget, SIGNAL(SendLineSelectorValue(int32_t)), this, SLOT(PassLineSelectorValue(int32_t)));
+    connect(ui.m_edFrameRate, SIGNAL(editingFinished()), this, SLOT(OnFrameRate()));
+    connect(ui.m_edCropXOffset, SIGNAL(editingFinished()), this, SLOT(OnCropXOffset()));
+    connect(ui.m_edCropYOffset, SIGNAL(editingFinished()), this, SLOT(OnCropYOffset()));
+    connect(ui.m_edCropWidth, SIGNAL(editingFinished()), this, SLOT(OnCropWidth()));
+    connect(ui.m_edCropHeight, SIGNAL(editingFinished()), this, SLOT(OnCropHeight()));
 
     connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
+
+    connect(ui.m_chkFrameRateAuto, SIGNAL(clicked()), this, SLOT(OnCheckFrameRateAutoClicked()));
 
     // Set the splitter stretch factors
     ui.m_Splitter1->setStretchFactor(0, 45);
@@ -228,43 +218,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
 
     m_pScene->addItem(m_PixmapItem);
 
-    ///////////////////// Number of frames /////////////////////
-    // add the number of used frames option to the menu
-    m_NumberOfUsedFramesLineEdit = new QLineEdit(this);
-    m_NumberOfUsedFramesLineEdit->setText("5");
-    m_NumberOfUsedFramesLineEdit->setValidator(new QIntValidator(1, 500000, this));
-
-    // prepare the layout
-    QHBoxLayout *layoutNum = new QHBoxLayout;
-    QLabel *labelNum = new QLabel(tr("Number of used Frames:"));
-    layoutNum->addWidget(labelNum);
-    layoutNum->addWidget(m_NumberOfUsedFramesLineEdit);
-
-    // put the layout into a widget
-    QWidget *widgetNum = new QWidget(this);
-    widgetNum->setLayout(layoutNum);
-    widgetNum->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(79,79,79);}");
-
-    // add the widget into the menu bar
-    m_NumberOfUsedFramesWidgetAction = new QWidgetAction(this);
-    m_NumberOfUsedFramesWidgetAction->setDefaultWidget(widgetNum);
-    ui.m_MenuBuffer->addAction(m_NumberOfUsedFramesWidgetAction);
-
-    QHBoxLayout *layoutFixedFrameRate = new QHBoxLayout;
-    QLabel *labelFixedFrameRate = new QLabel(tr("Fixed frame rate:") ,this);
-    QWidget *widgetFixedFrameRate = new QWidget(this);
-    m_NumberOfFixedFrameRateWidgetAction = new QWidgetAction(this);
-    m_NumberOfFixedFrameRate = new QLineEdit("60", this);
-    m_NumberOfFixedFrameRate->setValidator(new QIntValidator(5, 100000, this));
-    layoutFixedFrameRate->addWidget(labelFixedFrameRate);
-    layoutFixedFrameRate->addWidget(m_NumberOfFixedFrameRate);
-    widgetFixedFrameRate->setLayout(layoutFixedFrameRate);
-    widgetFixedFrameRate->setStyleSheet("QWidget{background:transparent; color:white;} QWidget::disabled{color:rgb(79,79,79);}");
-    m_NumberOfFixedFrameRateWidgetAction->setDefaultWidget(widgetFixedFrameRate);
-    ui.m_MenuNFramesAcquisition->addAction(m_NumberOfFixedFrameRateWidgetAction);
 
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
+    m_pAboutWidget->SetVersion(QString("%1.%2.%3").arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
     QWidgetAction *aboutWidgetAction = new QWidgetAction(this);
     aboutWidgetAction->setDefaultWidget(m_pAboutWidget);
     ui.m_MenuAbout->addAction(aboutWidgetAction);
@@ -274,32 +231,10 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     QMainWindow::showMaximized();
 
     UpdateViewerLayout();
-    UpdateZoomButtons();
 
-
-    // set check boxes state for mmap according to variable m_MMAP_BUFFER
-
-    if (IO_METHOD_USERPTR == m_MMAP_BUFFER)
-    {
-        ui.m_TitleUseUSERPTR->setChecked(true);
-    }
-    else
-    {
-        ui.m_TitleUseUSERPTR->setChecked(false);
-    }
-
-    if (IO_METHOD_MMAP == m_MMAP_BUFFER)
-    {
-        ui.m_TitleUseMMAP->setChecked(true);
-    }
-    else
-    {
-        ui.m_TitleUseMMAP->setChecked(false);
-    }
-
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked((m_VIDIOC_TRY_FMT));
     ui.m_camerasListCheckBox->setChecked(true);
     m_pEnumerationControlWidget = new ControlsHolderWidget();
+
 
     ui.m_ImageControlFrame->setEnabled(false);
     ui.m_FlipHorizontalCheckBox->setEnabled(false);
@@ -308,11 +243,18 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags, int viewerNumber)
     ui.m_SaveImageButton->setEnabled(false);
 
     connect(ui.m_allFeaturesDockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(OnDockWidgetPositionChanged(bool)));
+    connect(ui.m_allFeaturesDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(OnDockWidgetVisibilityChanged(bool)));
+
     ui.m_allFeaturesDockWidget->setWidget(m_pEnumerationControlWidget);
     ui.m_allFeaturesDockWidget->hide();
     ui.m_allFeaturesDockWidget->setStyleSheet("QDockWidget {"
                                                 "titlebar-close-icon: url(:/V4L2Viewer/Cross128.png);"
                                                 "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}");
+
+    Logger::LogEx(QString("V4L2Viewer git commit = %1").arg(GIT_VERSION).toStdString().c_str());
+
+    ui.m_MenuLang->menuAction()->setEnabled(false);
+    ui.m_MenuLang->menuAction()->setVisible(false);
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -322,36 +264,12 @@ V4L2Viewer::~V4L2Viewer()
     // if we are streaming stop streaming
     if ( true == m_bIsOpen )
         OnOpenCloseButtonClicked();
-
-    delete m_pActiveExposureWidget;
 }
 
 // The event handler to close the program
 void V4L2Viewer::OnMenuCloseTriggered()
 {
     close();
-}
-
-void V4L2Viewer::OnUseMMAP()
-{
-    m_MMAP_BUFFER = IO_METHOD_MMAP;
-
-    ui.m_TitleUseMMAP->setChecked(true);
-    ui.m_TitleUseUSERPTR->setChecked(false);
-}
-
-void V4L2Viewer::OnUseUSERPTR()
-{
-    m_MMAP_BUFFER = IO_METHOD_USERPTR;
-
-    ui.m_TitleUseMMAP->setChecked(false);
-    ui.m_TitleUseUSERPTR->setChecked(true);
-}
-
-void V4L2Viewer::OnUseVIDIOC_TRY_FMT()
-{
-    m_VIDIOC_TRY_FMT = !m_VIDIOC_TRY_FMT;
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setChecked(m_VIDIOC_TRY_FMT);
 }
 
 void V4L2Viewer::OnShowFrames()
@@ -369,31 +287,6 @@ void V4L2Viewer::RemoteClose()
 {
     if ( true == m_bIsOpen )
         OnOpenCloseButtonClicked();
-}
-
-// The event handler to open a next viewer
-void V4L2Viewer::OnMenuOpenNextViewer()
-{
-    QSharedPointer<V4L2Viewer> viewer(new V4L2Viewer(0, 0, (int)(m_pViewer.size() + 2)));
-    m_pViewer.push_back(viewer);
-    viewer->show();
-}
-
-void V4L2Viewer::closeEvent(QCloseEvent *event)
-{
-    if (VIEWER_MASTER == m_nViewerNumber)
-    {
-        std::list<QSharedPointer<V4L2Viewer> >::iterator xIter;
-        for (xIter = m_pViewer.begin(); xIter != m_pViewer.end(); xIter++)
-        {
-            QSharedPointer<V4L2Viewer> viewer = *xIter;
-            viewer->RemoteClose();
-            viewer->close();
-        }
-        QApplication::quit();
-    }
-
-    event->accept();
 }
 
 void V4L2Viewer::changeEvent(QEvent *event)
@@ -504,6 +397,9 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             SetTitleText();
 
             ui.m_ImageControlFrame->setEnabled(false);
+
+            ui.m_ZoomFitButton->setChecked(false);
+            m_bIsImageFitByFirstImage = false;
         }
 
         if (false == m_bIsOpen)
@@ -519,10 +415,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
     }
 
     ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
-
-    ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
 // The event handler for starting
@@ -565,18 +457,22 @@ void V4L2Viewer::OnLanguageChange()
     }
     else
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("Language has been already set!") );
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("Language has been already set!") );
     }
 }
 
 void V4L2Viewer::OnUpdateAutoExposure(int32_t value)
 {
     ui.m_edExposure->setText(QString::number(value));
+    value = value/100000;
+    int32_t result = GetSliderValueFromLog(value);
+    UpdateSlidersPositions(ui.m_sliderExposure, result);
 }
 
 void V4L2Viewer::OnUpdateAutoGain(int32_t value)
 {
     ui.m_edGain->setText(QString::number(value));
+    UpdateSlidersPositions(ui.m_sliderGain, value);
 }
 
 void V4L2Viewer::OnSliderExposureValueChange(int value)
@@ -584,16 +480,26 @@ void V4L2Viewer::OnSliderExposureValueChange(int value)
     int minSliderVal = ui.m_sliderExposure->minimum();
     int maxSliderVal = ui.m_sliderExposure->maximum();
 
-    double minExp = log(m_MinimumExposure);
-    double maxExp = log(m_MaximumExposure);
+    double minExp = log(m_MinimumExposureAbs);
+    double maxExp = log(m_MaximumExposureAbs);
 
     double scale = (maxExp - minExp) / (maxSliderVal-minSliderVal);
-
     double outValue = exp(minExp + scale*(value-minSliderVal));
-    m_sliderExposureValue = static_cast<int32_t>(outValue);
-    ui.m_edExposure->setText(QString("%1").arg(m_sliderExposureValue));
 
-    m_Camera.SetExposure(m_sliderExposureValue);
+    int64_t sliderExposureValue64 = static_cast<int64_t>(outValue*100000);
+
+    if (sliderExposureValue64 < EXPOSURE_MAX_VALUE)
+    {
+        int32_t sliderExposureValue = int64_2_int32(sliderExposureValue64);
+        ui.m_edExposure->setText(QString("%1").arg(sliderExposureValue));
+        m_Camera.SetExposure(sliderExposureValue);
+    }
+    else
+    {
+        int32_t sliderExposureValue = static_cast<int32_t>(sliderExposureValue64/100000);
+        ui.m_edExposure->setText(QString("%1").arg(sliderExposureValue64));
+        m_Camera.SetExposureAbs(sliderExposureValue);
+    }
 }
 
 void V4L2Viewer::OnSliderGainValueChange(int value)
@@ -610,11 +516,11 @@ void V4L2Viewer::OnSliderGammaValueChange(int value)
     m_Camera.SetGamma(m_sliderGammaValue);
 }
 
-void V4L2Viewer::OnSliderBlackLevelValueChange(int value)
+void V4L2Viewer::OnSliderBrightnessValueChange(int value)
 {
-    ui.m_edBlackLevel->setText(QString::number(value));
-    m_sliderBlackLevelValue = static_cast<int32_t>(value);
-    m_Camera.SetBrightness(m_sliderBlackLevelValue);
+    ui.m_edBrightness->setText(QString::number(value));
+    m_sliderBrightnessValue = static_cast<int32_t>(value);
+    m_Camera.SetBrightness(m_sliderBrightnessValue);
 }
 
 void V4L2Viewer::OnSlidersReleased()
@@ -644,12 +550,6 @@ void V4L2Viewer::OnMenuSplitterMoved(int pos, int index)
     {
         ui.m_camerasListCheckBox->setChecked(true);
     }
-}
-
-void V4L2Viewer::OnFixedFrameRateButtonClicked()
-{
-    OnStartButtonClicked();
-    m_bIsFixedRate = true;
 }
 
 void V4L2Viewer::ShowHideEnumerationControlWidget()
@@ -772,38 +672,6 @@ void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QLis
     }
 }
 
-void V4L2Viewer::OnExposureActiveClicked()
-{
-    QPoint point(this->width()/2 - m_pActiveExposureWidget->width()/2, this->height()/2 - m_pActiveExposureWidget->height()/2);
-    QPoint glob = mapToGlobal(point);
-    m_pActiveExposureWidget->setGeometry(glob.x(), glob.y(), m_pActiveExposureWidget->width(), m_pActiveExposureWidget->height());
-    m_pActiveExposureWidget->show();
-}
-
-void V4L2Viewer::PassInvertState(bool state)
-{
-    if (m_Camera.SetExposureActiveInvert(state) >= 0)
-    {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::PassActiveState(bool state)
-{
-    if (m_Camera.SetExposureActiveLineMode(state) >= 0)
-    {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::PassLineSelectorValue(int32_t value)
-{
-    if (m_Camera.SetExposureActiveLineSelector(value) >= 0)
-    {
-        GetImageInformation();
-    }
-}
-
 void V4L2Viewer::OnUpdateZoomLabel()
 {
     UpdateZoomButtons();
@@ -817,20 +685,69 @@ void V4L2Viewer::OnDockWidgetPositionChanged(bool topLevel)
     }
 }
 
+void V4L2Viewer::OnDockWidgetVisibilityChanged(bool visible)
+{
+    if (visible)
+    {
+        ui.m_AllControlsButton->setText(tr("Close"));
+    }
+    else
+    {
+        ui.m_AllControlsButton->setText(tr("Open"));
+    }
+}
+
+void V4L2Viewer::OnCheckFrameRateAutoClicked()
+{
+    if (m_bIsStreaming)
+    {
+        return;
+    }
+    uint32_t numerator = 0;
+    uint32_t denominator = ui.m_edFrameRate->text().toInt();
+
+    if (ui.m_chkFrameRateAuto->isChecked())
+    {
+        numerator = 0;
+        ui.m_labelFrameRate->setEnabled(false);
+        ui.m_edFrameRate->setEnabled(false);
+        m_Camera.SetFrameRate(numerator, denominator);
+    }
+    else
+    {
+        numerator = 1;
+        ui.m_labelFrameRate->setEnabled(true);
+        ui.m_edFrameRate->setEnabled(true);
+        m_Camera.SetFrameRate(numerator, denominator);
+    }
+}
+
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
     int err = 0;
 
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
-    ui.m_nFramesAcquisitionButton->setEnabled(false);
-    QApplication::processEvents();
 
-    m_nDroppedFrames = 0;
+    ui.m_labelPixelFormats->setEnabled(false);
+    ui.m_pixelFormats->setEnabled(false);
+
+    ui.m_labelFrameRate->setEnabled(false);
+    ui.m_edFrameRate->setEnabled(false);
+
+    ui.m_labelFrameRateAuto->setEnabled(false);
+    ui.m_chkFrameRateAuto->setEnabled(false);
+
+    if (m_bIsCropAvailable)
+    {
+        ui.m_cropWidget->setEnabled(false);
+    }
+
+    QApplication::processEvents();
 
     // start streaming
 
-    if (m_Camera.CreateUserBuffer(m_NumberOfUsedFramesLineEdit->text().toLong(), payloadSize) == 0)
+    if (m_Camera.CreateUserBuffer(m_NUMBER_OF_USED_FRAMES, payloadSize) == 0)
     {
         m_Camera.QueueAllUserBuffer();
         m_Camera.StartStreaming();
@@ -850,7 +767,6 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
         UpdateViewerLayout();
 
         m_FramesReceivedTimer.start(1000);
-        m_Camera.QueueAllUserBuffer();
     }
 }
 
@@ -859,14 +775,29 @@ void V4L2Viewer::OnStopButtonClicked()
 {
     // disable the stop button to show that the stop acquisition is in process
     ui.m_StopButton->setEnabled(false);
-    ui.m_nFramesAcquisitionButton->setEnabled(true);
+
+    ui.m_pixelFormats->setEnabled(true);
+    ui.m_labelPixelFormats->setEnabled(true);
+
+    ui.m_labelFrameRateAuto->setEnabled(true);
+    ui.m_chkFrameRateAuto->setEnabled(true);
+
+    if (!ui.m_chkFrameRateAuto->isChecked())
+    {
+        ui.m_labelFrameRate->setEnabled(true);
+        ui.m_edFrameRate->setEnabled(true);
+    }
+
+    if(m_bIsCropAvailable)
+    {
+        ui.m_cropWidget->setEnabled(true);
+    }
 
     m_Camera.StopStreamChannel();
     m_Camera.StopStreaming();
 
     QApplication::processEvents();
 
-    m_bIsFixedRate = false;
     m_bIsStreaming = false;
     UpdateViewerLayout();
 
@@ -877,28 +808,29 @@ void V4L2Viewer::OnStopButtonClicked()
 
 void V4L2Viewer::OnSaveImageClicked()
 {
-    if (ui.m_TitleSavePNG->isChecked())
+    QString filename = "/Frame_"+QString::number(m_SavedFramesCounter)+m_LastImageSaveFormat;
+    QString fullPath = QFileDialog::getSaveFileName(this, tr("Save file"), QDir::homePath()+filename, "*.png *.raw");
+
+    if (fullPath.contains(".png"))
     {
-        QString format;
-        format = "png";
+        m_LastImageSaveFormat = ".png";
         QPixmap pixmap = m_PixmapItem->pixmap();
         QImage image = pixmap.toImage();
-        QString filename = QFileDialog::getSaveFileName(this, tr("Save file"), QDir::homePath(), ".png");
-        image.save(filename,"png");
+        image.save(fullPath,"png");
+        m_SavedFramesCounter++;
     }
-    else
+    else if(fullPath.contains(".raw"))
     {
-        QString format;
-        format = "raw";
+        m_LastImageSaveFormat = ".raw";
         QPixmap pixmap = m_PixmapItem->pixmap();
         QImage image = pixmap.toImage();
         int size = image.byteCount();
         QByteArray data(reinterpret_cast<const char*>(image.bits()), size);
-        QString filename = QFileDialog::getSaveFileName(this, tr("Save file"), QDir::homePath(), ".raw");
-        QFile file(filename);
+        QFile file(fullPath);
         file.open(QIODevice::WriteOnly);
         file.write(data);
         file.close();
+        m_SavedFramesCounter++;
     }
 }
 
@@ -929,17 +861,18 @@ void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &fra
                 m_pScene->setSceneRect(0, 0, image.width(), image.height());
                 m_PixmapItem->setPixmap(QPixmap::fromImage(image));
                 ui.m_ImageView->show();
-
                 ui.m_FrameIdLabel->setText(QString("Frame ID: %1, W: %2, H: %3").arg(frameId).arg(image.width()).arg(image.height()));
             }
+            if (!m_bIsImageFitByFirstImage)
+            {
+                ui.m_ZoomFitButton->setChecked(true);
+                OnZoomFitButtonClicked();
+                m_bIsImageFitByFirstImage = true;
+            }
         }
-        else
-            m_nDroppedFrames++;
     }
     else
         ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
-
-    CheckAquiredFixedFrames(frameId);
 }
 
 // The event handler to show the processed frame
@@ -976,39 +909,12 @@ void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber,
     }
 
     ui.m_OpenCloseButton->setEnabled( 0 < m_cameras.size() || m_bIsOpen );
-    ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
 // The event handler to open a camera on double click event
 void V4L2Viewer::OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item)
 {
     OnOpenCloseButtonClicked();
-}
-
-void V4L2Viewer::OnSavePNG()
-{
-    if (ui.m_TitleSavePNG->isChecked())
-    {
-        ui.m_TitleSaveRAW->setChecked(false);
-    }
-    else
-    {
-        ui.m_TitleSavePNG->setChecked(true);
-    }
-}
-
-void V4L2Viewer::OnSaveRAW()
-{
-    if (ui.m_TitleSaveRAW->isChecked())
-    {
-        ui.m_TitleSavePNG->setChecked(false);
-    }
-    else
-    {
-        ui.m_TitleSaveRAW->setChecked(true);
-    }
 }
 
 // Queries and lists all known camera
@@ -1032,16 +938,11 @@ void V4L2Viewer::UpdateCameraListBox(uint32_t cardNumber, uint64_t cameraID, con
     }
 
     ui.m_OpenCloseButton->setEnabled((0 < m_cameras.size()) || m_bIsOpen);
-    ui.m_TitleUseMMAP->setEnabled( !m_bIsOpen );
-    ui.m_TitleUseUSERPTR->setEnabled( !m_bIsOpen );
-    ui.m_TitleEnable_VIDIOC_TRY_FMT->setEnabled( !m_bIsOpen );
 }
 
 // Update the viewer range
 void V4L2Viewer::UpdateViewerLayout()
 {
-    m_NumberOfUsedFramesWidgetAction->setEnabled(!m_bIsOpen);
-
     if (!m_bIsOpen)
     {
         QPixmap pix(":/V4L2Viewer/icon_camera_256.png");
@@ -1071,7 +972,6 @@ void V4L2Viewer::UpdateViewerLayout()
         }
     }
 
-    ui.m_nFramesAcquisitionButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StartButton->setEnabled(m_bIsOpen && !m_bIsStreaming);
     ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FramesPerSecondLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
@@ -1115,6 +1015,7 @@ void V4L2Viewer::OnZoomOutButtonClicked()
 void V4L2Viewer::UpdateZoomButtons()
 {
     ui.m_ZoomFitButton->setEnabled(m_bIsOpen);
+    ui.m_ZoomLabel->setEnabled(m_bIsOpen);
 
     if (ui.m_ImageView->GetScaleFactorValue() >= CustomGraphicsView::MAX_ZOOM_IN)
     {
@@ -1134,8 +1035,15 @@ void V4L2Viewer::UpdateZoomButtons()
         ui.m_ZoomOutButton->setEnabled(true && m_bIsOpen && !ui.m_ZoomFitButton->isChecked());
     }
 
-    ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
-    ui.m_ZoomLabel->setEnabled(m_bIsOpen && m_bIsStreaming && !ui.m_ZoomFitButton->isChecked());
+    if (ui.m_ZoomFitButton->isChecked())
+    {
+        double scaleFitToView = ui.m_ImageView->transform().m11();
+        ui.m_ZoomLabel->setText(QString("%1%").arg(scaleFitToView * 100, 1, 'f',1));
+    }
+    else
+    {
+        ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
+    }
 }
 
 // Open/Close the camera
@@ -1144,7 +1052,12 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
     int err = 0;
 
     std::string devName = deviceName.toStdString();
-    err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
+    err = m_Camera.OpenDevice(devName, m_BLOCKING_MODE, m_BUFFER_TYPE, m_VIDIOC_TRY_FMT);
+
+    if (err != 0)
+    {
+        CustomDialog::Error( this, tr("Video4Linux"), tr("The camera cannot be opened because it is in use by another application or it has been disconnected!"));
+    }
 
     return err;
 }
@@ -1163,9 +1076,8 @@ void V4L2Viewer::OnUpdateFramesReceived()
 {
     unsigned int fpsReceived = m_Camera.GetReceivedFramesCount();
     unsigned int fpsRendered = m_Camera.GetRenderedFramesCount();
-    unsigned int uncompletedFrames = m_Camera.GetDroppedFramesCount() + m_nDroppedFrames;
 
-    ui.m_FramesPerSecondLabel->setText(QString("fps: %1 received/%2 rendered [drops %3]").arg(fpsReceived).arg(fpsRendered).arg(uncompletedFrames));
+    ui.m_FramesPerSecondLabel->setText(QString("fps: %1 received/%2 rendered").arg(fpsReceived).arg(fpsRendered));
 }
 
 void V4L2Viewer::OnWidth()
@@ -1174,7 +1086,7 @@ void V4L2Viewer::OnWidth()
     {
         uint32_t width = 0;
         uint32_t height = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
         m_Camera.ReadFrameSize(width, height);
         ui.m_edWidth->setText(QString("%1").arg(width));
         ui.m_edHeight->setText(QString("%1").arg(height));
@@ -1194,7 +1106,7 @@ void V4L2Viewer::OnHeight()
 
     if (m_Camera.SetFrameSize(ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt()) < 0)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
     }
     else
     {
@@ -1214,7 +1126,7 @@ void V4L2Viewer::OnGain()
     if (m_Camera.SetGain(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Gain!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE Gain!") );
         m_Camera.ReadGain(tmp);
         ui.m_edGain->setText(QString("%1").arg(tmp));
         UpdateSlidersPositions(ui.m_sliderGain, tmp);
@@ -1244,36 +1156,33 @@ void V4L2Viewer::OnAutoGain()
 
 void V4L2Viewer::OnExposure()
 {
-    int32_t nVal = int64_2_int32(ui.m_edExposure->text().toLongLong());
+    int64_t nVal = static_cast<int64_t>(ui.m_edExposure->text().toLongLong());
 
-    if (m_Camera.SetExposure(nVal) < 0)
+    if (nVal >= EXPOSURE_MAX_VALUE)
     {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
-        m_Camera.ReadExposure(tmp);
-        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
-        UpdateSlidersPositions(ui.m_sliderExposure, tmp);
+        int32_t nValAbs = static_cast<int32_t>(nVal/100000);
+        if (m_Camera.SetExposureAbs(nValAbs) < 0)
+        {
+            CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE ExposureAbs!") );
+            GetImageInformation();
+        }
+        else
+        {
+            GetImageInformation();
+        }
     }
     else
     {
-        GetImageInformation();
-    }
-}
-
-void V4L2Viewer::OnExposureAbs()
-{
-    int32_t nVal = int64_2_int32(ui.m_edExposureAbs->text().toLongLong());
-
-    if (m_Camera.SetExposureAbs(nVal) < 0)
-    {
-        int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE ExposureAbs!") );
-        m_Camera.ReadExposureAbs(tmp);
-        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
-    }
-    else
-    {
-        GetImageInformation();
+        int32_t nVal32 = int64_2_int32(nVal);
+        if (m_Camera.SetExposure(nVal32) < 0)
+        {
+            CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
+            GetImageInformation();
+        }
+        else
+        {
+            GetImageInformation();
+        }
     }
 }
 
@@ -1310,7 +1219,7 @@ void V4L2Viewer::OnPixelFormatChanged(const QString &item)
 
     if (m_Camera.SetPixelFormat(result, "") < 0)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SET pixelFormat!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SET pixelFormat!") );
     }
 }
 
@@ -1321,7 +1230,7 @@ void V4L2Viewer::OnGamma()
     if (m_Camera.SetGamma(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE gamma!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE gamma!") );
         m_Camera.ReadGamma(tmp);
         ui.m_edGamma->setText(QString("%1").arg(tmp));
         UpdateSlidersPositions(ui.m_sliderGamma, tmp);
@@ -1334,15 +1243,15 @@ void V4L2Viewer::OnGamma()
 
 void V4L2Viewer::OnBrightness()
 {
-    int32_t nVal = int64_2_int32(ui.m_edBlackLevel->text().toLongLong());
+    int32_t nVal = int64_2_int32(ui.m_edBrightness->text().toLongLong());
 
     if (m_Camera.SetBrightness(nVal) < 0)
     {
         int32_t tmp = 0;
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE brightness!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE brightness!") );
         m_Camera.ReadBrightness(tmp);
-        ui.m_edBlackLevel->setText(QString("%1").arg(tmp));
-        UpdateSlidersPositions(ui.m_sliderBlackLevel, tmp);
+        ui.m_edBrightness->setText(QString("%1").arg(tmp));
+        UpdateSlidersPositions(ui.m_sliderBrightness, tmp);
     }
     else
     {
@@ -1352,7 +1261,7 @@ void V4L2Viewer::OnBrightness()
 
 void V4L2Viewer::OnContinousWhiteBalance()
 {
-    m_Camera.SetContinousWhiteBalance(ui.m_chkContWhiteBalance->isChecked());
+    m_Camera.SetAutoWhiteBalance(ui.m_chkContWhiteBalance->isChecked());
 }
 
 void V4L2Viewer::OnFrameRate()
@@ -1363,44 +1272,28 @@ void V4L2Viewer::OnFrameRate()
     uint32_t bytesPerLine = 0;
     QString pixelFormatText;
     QString frameRate = ui.m_edFrameRate->text();
-    QStringList frameRateList = frameRate.split('/');
     uint32_t numerator = 0;
     uint32_t denominator = 0;
 
-    if (frameRateList.size() < 2)
+    bool bIsConverted = false;
+    uint32_t value = frameRate.toInt(&bIsConverted);
+    if (!bIsConverted)
     {
-        bool bIsConverted = false;
-        uint32_t value = frameRate.toInt(&bIsConverted);
-        if (!bIsConverted)
-        {
-            QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1/100 or normal value!") );
-            return;
-        }
-        numerator = 1;
-        denominator = value;
+        CustomDialog::Warning( this, tr("Video4Linux"), tr("Only Framerate [Hz] value is acepted!") );
+        return;
     }
-    else
-    {
-        bool bIsNumeratorConverted = false;
-        bool bIsDenominatorConverted = true;
-        numerator = frameRateList.at(0).toInt(&bIsNumeratorConverted);
-        denominator = frameRateList.at(1).toInt(&bIsDenominatorConverted);
-
-        if (!bIsNumeratorConverted || !bIsDenominatorConverted)
-        {
-            QMessageBox::warning( this, tr("Video4Linux"), tr("Missing parameter. Format: 1/100 or normal value!") );
-            return;
-        }
-    }
+    numerator = 1;
+    denominator = value;
 
     m_Camera.ReadFrameSize(width, height);
     m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
 
     if (m_Camera.SetFrameRate(numerator, denominator) < 0)
     {
-        QMessageBox::warning( this, tr("Video4Linux"), tr("FAILED TO SAVE frame rate!") );
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE frame rate!") );
         m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
-        ui.m_edFrameRate->setText(QString("%1/%2").arg(numerator).arg(denominator));
+        denominator /= 1000;
+        ui.m_edFrameRate->setText(QString("%1").arg(denominator));
     }
     else
     {
@@ -1417,6 +1310,7 @@ void V4L2Viewer::OnCropXOffset()
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
+        m_bIsImageFitByFirstImage = false;
         xOffset = ui.m_edCropXOffset->text().toInt();
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
@@ -1442,6 +1336,7 @@ void V4L2Viewer::OnCropYOffset()
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
+        m_bIsImageFitByFirstImage = false;
         yOffset = ui.m_edCropYOffset->text().toInt();
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
@@ -1466,6 +1361,7 @@ void V4L2Viewer::OnCropWidth()
 
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
+        m_bIsImageFitByFirstImage = false;
         width = ui.m_edCropWidth->text().toInt();
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
@@ -1491,6 +1387,7 @@ void V4L2Viewer::OnCropHeight()
     uint32_t height;
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
     {
+        m_bIsImageFitByFirstImage = false;
         height = ui.m_edCropHeight->text().toInt();
         if (m_Camera.SetCrop(xOffset, yOffset, width, height) == 0)
         {
@@ -1524,6 +1421,10 @@ void V4L2Viewer::GetImageInformation()
     int32_t gain = 0;
     int32_t min = 0;
     int32_t max = 0;
+    int32_t minExp = 0;
+    int32_t maxExp = 0;
+    int64_t minExpAbs = 0;
+    int64_t maxExpAbs = 0;
     int32_t step = 0;
     int32_t value = 0;
     bool autogain = false;
@@ -1580,11 +1481,13 @@ void V4L2Viewer::GetImageInformation()
 
     if (m_Camera.ReadAutoGain(autogain) != -2)
     {
+        ui.m_labelGainAuto->setEnabled(true);
         ui.m_chkAutoGain->setEnabled(true);
         ui.m_chkAutoGain->setChecked(autogain);
     }
     else
     {
+        ui.m_labelGainAuto->setEnabled(false);
         ui.m_chkAutoGain->setEnabled(false);
     }
 
@@ -1592,7 +1495,6 @@ void V4L2Viewer::GetImageInformation()
     {
         ui.m_edExposure->setEnabled(true);
         ui.m_labelExposure->setEnabled(true);
-        ui.m_edExposure->setText(QString("%1").arg(exposure));
     }
     else
     {
@@ -1600,18 +1502,33 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelExposure->setEnabled(false);
     }
 
-    min = 0;
-    max = 0;
-    if (m_Camera.ReadMinMaxExposure(min, max) != -2)
+    m_Camera.ReadExposureAbs(exposureAbs);
+
+    int64_t exp64 = static_cast<int64_t>(exposureAbs)*100000;
+    if (exp64 >= EXPOSURE_MAX_VALUE)
+    {
+        ui.m_edExposure->setText(QString("%1").arg(exp64));
+    }
+    else
+    {
+        ui.m_edExposure->setText(QString("%1").arg(exposure));
+        exposureAbs = exposure / 100000;
+    }
+
+    if (m_Camera.ReadMinMaxExposure(minExp, maxExp) != -2 &&
+        m_Camera.ReadMinMaxExposureAbs(minExpAbs, maxExpAbs) != -2)
     {
         ui.m_sliderExposure->blockSignals(true);
         ui.m_sliderExposure->setEnabled(true);
-        ui.m_sliderExposure->setMinimum(min);
-        ui.m_sliderExposure->setMaximum(max);
         ui.m_sliderExposure->blockSignals(false);
-        m_MinimumExposure = min;
-        m_MaximumExposure = max;
-        int32_t result = GetSliderValueFromLog(exposure);
+
+        m_MinimumExposureAbs = minExpAbs;
+        m_MaximumExposureAbs = maxExpAbs;
+
+        m_MinimumExposure = minExp;
+        m_MaximumExposure = maxExp;
+
+        int32_t result = GetSliderValueFromLog(exposureAbs);
         UpdateSlidersPositions(ui.m_sliderExposure, result);
     }
     else
@@ -1619,39 +1536,16 @@ void V4L2Viewer::GetImageInformation()
         ui.m_sliderExposure->setEnabled(false);
     }
 
-    if (m_Camera.ReadExposureAbs(exposureAbs) != -2)
-    {
-        ui.m_edExposureAbs->setEnabled(true);
-        ui.m_labelExposureAbs->setEnabled(true);
-        ui.m_edExposureAbs->setText(QString("%1").arg(exposureAbs));
-    }
-    else
-    {
-        ui.m_edExposureAbs->setEnabled(false);
-        ui.m_labelExposureAbs->setEnabled(false);
-    }
-
     if (m_Camera.ReadAutoExposure(autoexposure) != -2)
     {
+        ui.m_labelExposureAuto->setEnabled(true);
         ui.m_chkAutoExposure->setEnabled(true);
         ui.m_chkAutoExposure->setChecked(autoexposure);
     }
     else
     {
+        ui.m_labelExposureAuto->setEnabled(false);
         ui.m_chkAutoExposure->setEnabled(false);
-    }
-
-    nSVal = 0;
-    if (m_Camera.ReadGamma(nSVal) != -2)
-    {
-        ui.m_edGamma->setEnabled(true);
-        ui.m_labelGamma->setEnabled(true);
-        ui.m_edGamma->setText(QString("%1").arg(nSVal));
-    }
-    else
-    {
-        ui.m_edGamma->setEnabled(false);
-        ui.m_labelGamma->setEnabled(false);
     }
 
     min = 0;
@@ -1661,7 +1555,6 @@ void V4L2Viewer::GetImageInformation()
         ui.m_sliderGamma->setEnabled(true);
         ui.m_sliderGamma->setMinimum(min);
         ui.m_sliderGamma->setMaximum(max);
-        UpdateSlidersPositions(ui.m_sliderGamma, nSVal);
     }
     else
     {
@@ -1669,109 +1562,93 @@ void V4L2Viewer::GetImageInformation()
     }
 
     nSVal = 0;
-    if (m_Camera.ReadBrightness(nSVal) != -2)
+    if (m_Camera.ReadGamma(nSVal) != -2)
     {
-        ui.m_edBlackLevel->setEnabled(true);
-        ui.m_labelBlackLevel->setEnabled(true);
-        ui.m_edBlackLevel->setText(QString("%1").arg(nSVal));
+        ui.m_edGamma->setEnabled(true);
+        ui.m_labelGamma->setEnabled(true);
+        ui.m_edGamma->setText(QString("%1").arg(nSVal));
+        UpdateSlidersPositions(ui.m_sliderGamma, nSVal);
     }
     else
     {
-        ui.m_edBlackLevel->setEnabled(false);
-        ui.m_labelBlackLevel->setEnabled(false);
+        ui.m_edGamma->setEnabled(false);
+        ui.m_labelGamma->setEnabled(false);
+    }
+
+    nSVal = 0;
+    if (m_Camera.ReadBrightness(nSVal) != -2)
+    {
+        ui.m_edBrightness->setEnabled(true);
+        ui.m_labelBrightness->setEnabled(true);
+        ui.m_edBrightness->setText(QString("%1").arg(nSVal));
+    }
+    else
+    {
+        ui.m_edBrightness->setEnabled(false);
+        ui.m_labelBrightness->setEnabled(false);
     }
 
     min = 0;
     max = 0;
     if (m_Camera.ReadMinMaxBrightness(min, max) != -2)
     {
-        ui.m_sliderBlackLevel->setEnabled(true);
-        ui.m_sliderBlackLevel->setMinimum(min);
-        ui.m_sliderBlackLevel->setMaximum(max);
-        UpdateSlidersPositions(ui.m_sliderBlackLevel, nSVal);
+        ui.m_sliderBrightness->setEnabled(true);
+        ui.m_sliderBrightness->setMinimum(min);
+        ui.m_sliderBrightness->setMaximum(max);
+        UpdateSlidersPositions(ui.m_sliderBrightness, nSVal);
     }
     else
     {
-        ui.m_sliderBlackLevel->setEnabled(false);
+        ui.m_sliderBrightness->setEnabled(false);
     }
 
     m_Camera.ReadFrameSize(width, height);
     m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
-    if (m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat) != -2)
-    {
-        ui.m_edFrameRate->setEnabled(true);
-        ui.m_labelFrameRate->setEnabled(true);
-        ui.m_edFrameRate->setText(QString("%1/%2").arg(numerator).arg(denominator));
-    }
-    else
-    {
-        ui.m_edFrameRate->setEnabled(false);
-        ui.m_labelFrameRate->setEnabled(false);
-    }
 
-    if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
+    if (!m_bIsStreaming)
     {
-        ui.m_CropLabel->setEnabled(true);
-        ui.m_edCropXOffset->setEnabled(true);
-        ui.m_labelCropXOffset->setEnabled(true);
-        ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
-        ui.m_edCropYOffset->setEnabled(true);
-        ui.m_labelCropYOffset->setEnabled(true);
-        ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
-        ui.m_edCropWidth->setEnabled(true);
-        ui.m_labelCropWidth->setEnabled(true);
-        ui.m_edCropWidth->setText(QString("%1").arg(width));
-        ui.m_edCropHeight->setEnabled(true);
-        ui.m_labelCropHeight->setEnabled(true);
-        ui.m_edCropHeight->setText(QString("%1").arg(height));
-    }
-    else
-    {
-        ui.m_CropLabel->setEnabled(false);
-        ui.m_edCropXOffset->setEnabled(false);
-        ui.m_edCropYOffset->setEnabled(false);
-        ui.m_edCropWidth->setEnabled(false);
-        ui.m_edCropHeight->setEnabled(false);
-        ui.m_labelCropXOffset->setEnabled(false);
-        ui.m_labelCropYOffset->setEnabled(false);
-        ui.m_labelCropWidth->setEnabled(false);
-        ui.m_labelCropHeight->setEnabled(false);
-    }
+        if (m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat) != -2)
+        {
+            ui.m_labelFrameRateAuto->setEnabled(true);
+            ui.m_chkFrameRateAuto->setEnabled(true);
 
-    bool bIsActive = false;
-    bool bIsInverted = false;
+            if (numerator == 0)
+            {
+                ui.m_chkFrameRateAuto->setChecked(true);
+                ui.m_edFrameRate->setEnabled(false);
+                ui.m_labelFrameRate->setEnabled(false);
+            }
+            else
+            {
+                ui.m_chkFrameRateAuto->setChecked(false);
+                ui.m_edFrameRate->setEnabled(true);
+                ui.m_labelFrameRate->setEnabled(true);
+                denominator /= 1000;
+                ui.m_edFrameRate->setText(QString("%1").arg(denominator));
+            }
+        }
+        else
+        {
+            ui.m_edFrameRate->setEnabled(false);
+            ui.m_labelFrameRate->setEnabled(false);
+            ui.m_labelFrameRateAuto->setEnabled(false);
+            ui.m_chkFrameRateAuto->setEnabled(false);
+        }
 
-    if (m_Camera.ReadExposureActiveLineMode(bIsActive) < 0)
-    {
-        m_pActiveExposureWidget->setEnabled(false);
-        ui.m_ExposureActiveButton->setEnabled(false);
+        if (m_Camera.ReadCrop(xOffset, yOffset, width, height) != -2)
+        {
+            ui.m_cropWidget->setEnabled(true);
+            ui.m_edCropXOffset->setText(QString("%1").arg(xOffset));
+            ui.m_edCropYOffset->setText(QString("%1").arg(yOffset));
+            ui.m_edCropWidth->setText(QString("%1").arg(width));
+            ui.m_edCropHeight->setText(QString("%1").arg(height));
+            m_bIsCropAvailable = true;
+        }
+        else
+        {
+            ui.m_cropWidget->setEnabled(false);
+        }
     }
-    else
-    {
-        m_pActiveExposureWidget->BlockInvertAndLineSelector(bIsActive);
-        m_pActiveExposureWidget->SetActive(bIsActive);
-    }
-
-    if (m_Camera.ReadExposureActiveLineSelector(value, min, max, step) < 0)
-    {
-        m_pActiveExposureWidget->setEnabled(false);
-        ui.m_ExposureActiveButton->setEnabled(false);
-    }
-    else
-    {
-        m_pActiveExposureWidget->SetLineSelectorRange(value, min, max, step);
-    }
-
-    if (m_Camera.ReadExposureActiveInvert(bIsInverted) < 0)
-    {
-        m_pActiveExposureWidget->setEnabled(false);
-        ui.m_ExposureActiveButton->setEnabled(false);
-    }
-    else
-    {
-        m_pActiveExposureWidget->SetInvert(bIsInverted);
-    }
-
     m_Camera.EnumAllControlNewStyle();
 }
 
@@ -1838,24 +1715,10 @@ void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
     slider->blockSignals(false);
 }
 
-void V4L2Viewer::CheckAquiredFixedFrames(int framesCount)
-{
-    if (!m_bIsFixedRate)
-    {
-        return;
-    }
-
-    int framesMax = m_NumberOfFixedFrameRate->text().toInt();
-    if (framesCount >= framesMax)
-    {
-        OnStopButtonClicked();
-    }
-}
-
 int32_t V4L2Viewer::GetSliderValueFromLog(int32_t value)
 {
-    double logExpMin = log(m_MinimumExposure);
-    double logExpMax = log(m_MaximumExposure);
+    double logExpMin = log(m_MinimumExposureAbs);
+    double logExpMax = log(m_MaximumExposureAbs);
     int32_t minimumSliderExposure = ui.m_sliderExposure->minimum();
     int32_t maximumSliderExposure = ui.m_sliderExposure->maximum();
     double scale = (logExpMax - logExpMin) / (maximumSliderExposure - minimumSliderExposure);
@@ -1877,7 +1740,7 @@ void V4L2Viewer::Check4IOReadAbility()
         deviceName = devName.left(devName.indexOf('(') - 1).toStdString();
         bool ioRead;
 
-        m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_MMAP_BUFFER, m_VIDIOC_TRY_FMT);
+        m_Camera.OpenDevice(deviceName, m_BLOCKING_MODE, m_BUFFER_TYPE, m_VIDIOC_TRY_FMT);
         m_Camera.GetCameraReadCapability(ioRead);
         m_Camera.CloseDevice();
     }
@@ -1885,9 +1748,6 @@ void V4L2Viewer::Check4IOReadAbility()
 
 void V4L2Viewer::SetTitleText()
 {
-    if (VIEWER_MASTER == m_nViewerNumber)
-        setWindowTitle(QString(tr("%1 V%2.%3.%4")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
-    else
-        setWindowTitle(QString(tr("%1 V%2.%3.%4 - %5. viewer")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH).arg(m_nViewerNumber));
+    setWindowTitle(QString(tr("%1 V%2.%3.%4")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
 }
 

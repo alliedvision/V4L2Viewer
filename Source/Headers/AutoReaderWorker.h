@@ -30,6 +30,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QDebug>
 
 class AutoReaderWorker : public QObject {
     Q_OBJECT

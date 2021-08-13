@@ -84,6 +84,14 @@ IControlEnumerationHolder* ControlsHolderWidget::GetControlWidget(int32_t id, bo
     return nullptr;
 }
 
+QSize ControlsHolderWidget::sizeHint() const
+{
+    QSize size;
+    size.setWidth(500);
+    size.setHeight(this->height());
+    return size;
+}
+
 void ControlsHolderWidget::OnListItemChanged(int row)
 {
     QString info = dynamic_cast<IControlEnumerationHolder *>(ui.m_ControlsList->itemWidget(ui.m_ControlsList->item(row)))->GetControlInfo();
