@@ -41,7 +41,6 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
                           .arg(m_Min)
                           .arg(m_Max)
                           .arg(unit));
-    m_LineEdit.setValidator(new QIntValidator(m_Min, m_Max, this));
     m_LineEdit.setText(QString::number(m_Value));
     m_CurrentValue.setText(QString::number(m_Value));
     m_Slider.setOrientation(Qt::Horizontal);
