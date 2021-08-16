@@ -101,8 +101,15 @@ void Logger::LogBuffer(const std::string &filename, uint8_t *buffer, uint32_t le
 
 void Logger::LogSwitch(bool flag)
 {
-    LogEx("Logger switched %s", (flag)?"on":"off");
-
-    m_LogSwitch = flag;
+    if (flag)
+    {
+        m_LogSwitch = true;
+        LogEx("Logger switched on");
+    }
+    else
+    {
+        LogEx("Logger switched off");
+        m_LogSwitch = false;
+    }
 }
 
