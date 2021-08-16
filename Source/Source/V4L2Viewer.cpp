@@ -983,18 +983,9 @@ void V4L2Viewer::UpdateViewerLayout()
 // The event handler to resize the image to fit to window
 void V4L2Viewer::OnZoomFitButtonClicked()
 {
-    if (ui.m_ZoomFitButton->isChecked())
-    {
-        ui.m_ImageView->SetZoomAllowed(false);
-        ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
-    }
-    else
-    {
-        ui.m_ImageView->SetZoomAllowed(true);
-        ui.m_ImageView->TransformImageView();
-    }
-
-    UpdateZoomButtons();
+    ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
+    double scaleFitToView = ui.m_ImageView->transform().m11();
+    ui.m_ZoomLabel->setText(QString("%1%").arg(scaleFitToView * 100, 1, 'f',1));
 }
 
 // The event handler for resize the image
@@ -1023,7 +1014,7 @@ void V4L2Viewer::UpdateZoomButtons()
     }
     else
     {
-        ui.m_ZoomInButton->setEnabled(true && m_bIsOpen && !ui.m_ZoomFitButton->isChecked());
+        ui.m_ZoomInButton->setEnabled(m_bIsOpen);
     }
 
     if (ui.m_ImageView->GetScaleFactorValue() <= CustomGraphicsView::MAX_ZOOM_OUT)
@@ -1032,18 +1023,9 @@ void V4L2Viewer::UpdateZoomButtons()
     }
     else
     {
-        ui.m_ZoomOutButton->setEnabled(true && m_bIsOpen && !ui.m_ZoomFitButton->isChecked());
+        ui.m_ZoomOutButton->setEnabled(m_bIsOpen);
     }
-
-    if (ui.m_ZoomFitButton->isChecked())
-    {
-        double scaleFitToView = ui.m_ImageView->transform().m11();
-        ui.m_ZoomLabel->setText(QString("%1%").arg(scaleFitToView * 100, 1, 'f',1));
-    }
-    else
-    {
-        ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
-    }
+    ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
 }
 
 // Open/Close the camera
