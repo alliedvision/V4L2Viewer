@@ -306,7 +306,7 @@ QCheckBox::disabled {
           <bool>true</bool>
          </property>
          <property name="text">
-          <string>- fps [drops -]</string>
+          <string>- fps</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse</set>
@@ -1047,7 +1047,7 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>-345</x>
+              <x>0</x>
               <y>0</y>
               <width>1247</width>
               <height>378</height>
