@@ -344,6 +344,10 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             {
                 ui.m_ImageControlFrame->setEnabled(true);
                 GetImageInformation();
+                // Set auto framerate to on always when camera is opened
+                ui.m_chkFrameRateAuto->setChecked(true);
+                ui.m_edFrameRate->setText(QString::number(DEFAULT_FRAME_RATE));
+                OnCheckFrameRateAutoClicked();
                 SetTitleText();
                 ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
                 CameraListCustomItem *newItem = new CameraListCustomItem(devName, this);
@@ -1124,6 +1128,7 @@ void V4L2Viewer::OnAutoGain()
     bool autogain = false;
 
     m_Camera.SetAutoGain(ui.m_chkAutoGain->isChecked());
+    ui.m_sliderGain->setEnabled(!ui.m_chkAutoGain->isChecked());
 
     if (m_Camera.ReadAutoGain(autogain) != -2)
     {
@@ -1173,6 +1178,7 @@ void V4L2Viewer::OnAutoExposure()
     bool autoexposure = false;
 
     m_Camera.SetAutoExposure(ui.m_chkAutoExposure->isChecked());
+    ui.m_sliderExposure->setEnabled(!ui.m_chkAutoExposure->isChecked());
 
     if (m_Camera.ReadAutoExposure(autoexposure) != -2)
     {
@@ -1593,13 +1599,21 @@ void V4L2Viewer::GetImageInformation()
         {
             ui.m_labelFrameRateAuto->setEnabled(true);
             ui.m_chkFrameRateAuto->setEnabled(true);
-            ui.m_edFrameRate->setEnabled(true);
-            ui.m_labelFrameRate->setEnabled(true);
-            denominator /= 1000;
-            ui.m_edFrameRate->setText(QString("%1").arg(denominator));
 
-            ui.m_chkFrameRateAuto->setChecked(true);
-            OnCheckFrameRateAutoClicked();
+            if (numerator == 0)
+            {
+                ui.m_chkFrameRateAuto->setChecked(true);
+                ui.m_edFrameRate->setEnabled(false);
+                ui.m_labelFrameRate->setEnabled(false);
+            }
+            else
+            {
+                ui.m_chkFrameRateAuto->setChecked(false);
+                ui.m_edFrameRate->setEnabled(true);
+                ui.m_labelFrameRate->setEnabled(true);
+                denominator /= 1000;
+                ui.m_edFrameRate->setText(QString("%1").arg(denominator));
+            }
         }
         else
         {
@@ -1624,6 +1638,9 @@ void V4L2Viewer::GetImageInformation()
         }
     }
     m_Camera.EnumAllControlNewStyle();
+
+    ui.m_sliderExposure->setDisabled(autoexposure && ui.m_sliderExposure->isEnabled());
+    ui.m_sliderGain->setDisabled(autogain && ui.m_sliderGain->isEnabled());
 }
 
 void V4L2Viewer::UpdateCameraFormat()
