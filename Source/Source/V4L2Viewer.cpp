@@ -404,6 +404,9 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
             ui.m_ZoomFitButton->setChecked(false);
             m_bIsImageFitByFirstImage = false;
+
+            ui.m_FrameIdLabel->setText("FrameID: -");
+            ui.m_FramesPerSecondLabel->setText("- fps");
         }
 
         if (false == m_bIsOpen)
@@ -987,6 +990,7 @@ void V4L2Viewer::UpdateViewerLayout()
 // The event handler to resize the image to fit to window
 void V4L2Viewer::OnZoomFitButtonClicked()
 {
+    ui.m_ImageView->SetScaleFactorToDefault();
     ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
     double scaleFitToView = ui.m_ImageView->transform().m11();
     ui.m_ZoomLabel->setText(QString("%1%").arg(scaleFitToView * 100, 1, 'f',1));
@@ -1537,33 +1541,6 @@ void V4L2Viewer::GetImageInformation()
     }
 
     nSVal = 0;
-    if (m_Camera.ReadGamma(nSVal) != -2)
-    {
-        ui.m_edGamma->setEnabled(true);
-        ui.m_labelGamma->setEnabled(true);
-        ui.m_edGamma->setText(QString("%1").arg(nSVal));
-        UpdateSlidersPositions(ui.m_sliderGamma, nSVal);
-    }
-    else
-    {
-        ui.m_edGamma->setEnabled(false);
-        ui.m_labelGamma->setEnabled(false);
-    }
-
-    min = 0;
-    max = 0;
-    if (m_Camera.ReadMinMaxGamma(min, max) != -2)
-    {
-        ui.m_sliderGamma->setEnabled(true);
-        ui.m_sliderGamma->setMinimum(min);
-        ui.m_sliderGamma->setMaximum(max);
-    }
-    else
-    {
-        ui.m_sliderGamma->setEnabled(false);
-    }
-
-    nSVal = 0;
     if (m_Camera.ReadBrightness(nSVal) != -2)
     {
         ui.m_edBrightness->setEnabled(true);
@@ -1637,10 +1614,38 @@ void V4L2Viewer::GetImageInformation()
             ui.m_cropWidget->setEnabled(false);
         }
     }
-    m_Camera.EnumAllControlNewStyle();
+
+    nSVal = 0;
+    if (m_Camera.ReadGamma(nSVal) != -2)
+    {
+        ui.m_edGamma->setEnabled(true);
+        ui.m_labelGamma->setEnabled(true);
+        ui.m_edGamma->setText(QString("%1").arg(nSVal));
+        UpdateSlidersPositions(ui.m_sliderGamma, nSVal);
+    }
+    else
+    {
+        ui.m_edGamma->setEnabled(false);
+        ui.m_labelGamma->setEnabled(false);
+    }
+
+    min = 0;
+    max = 0;
+    if (m_Camera.ReadMinMaxGamma(min, max) != -2)
+    {
+        ui.m_sliderGamma->setEnabled(true);
+        ui.m_sliderGamma->setMinimum(min);
+        ui.m_sliderGamma->setMaximum(max);
+    }
+    else
+    {
+        ui.m_sliderGamma->setEnabled(false);
+    }
 
     ui.m_sliderExposure->setDisabled(autoexposure && ui.m_sliderExposure->isEnabled());
     ui.m_sliderGain->setDisabled(autogain && ui.m_sliderGain->isEnabled());
+
+    m_Camera.EnumAllControlNewStyle();
 }
 
 void V4L2Viewer::UpdateCameraFormat()
