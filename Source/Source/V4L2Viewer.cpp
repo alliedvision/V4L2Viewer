@@ -421,6 +421,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
         }
 
         UpdateViewerLayout();
+        UpdateZoomButtons();
     }
 
     ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
@@ -870,7 +871,7 @@ void V4L2Viewer::OnSaveImageClicked()
 // The event handler to show the processed frame
 void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &frameId)
 {
-    if (m_ShowFrames)
+    if (m_ShowFrames && m_bIsStreaming)
     {
         if (!image.isNull())
         {
@@ -1009,8 +1010,6 @@ void V4L2Viewer::UpdateViewerLayout()
     ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FramesPerSecondLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FrameIdLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
-
-    UpdateZoomButtons();
 }
 
 // The event handler to resize the image to fit to window
