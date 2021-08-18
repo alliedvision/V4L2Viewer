@@ -401,6 +401,9 @@ private slots:
     void OnDockWidgetVisibilityChanged(bool visible);
 
     void OnCheckFrameRateAutoClicked();
+
+    void OnFlipHorizontal(int state);
+    void OnFlipVertical(int state);
 };
 
 #endif // V4L2VIEWER_H

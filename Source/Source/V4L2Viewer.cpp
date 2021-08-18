@@ -127,6 +127,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
 
+    connect(ui.m_FlipHorizontalCheckBox,      SIGNAL(stateChanged(int)), this, SLOT(OnFlipHorizontal(int)));
+    connect(ui.m_FlipVerticalCheckBox,        SIGNAL(stateChanged(int)), this, SLOT(OnFlipVertical(int)));
+
     SetTitleText();
 
     // Start Camera
@@ -217,7 +220,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.m_ImageView->SetPixmapItem(m_PixmapItem);
 
     m_pScene->addItem(m_PixmapItem);
-
 
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
@@ -729,6 +731,30 @@ void V4L2Viewer::OnCheckFrameRateAutoClicked()
     }
 }
 
+void V4L2Viewer::OnFlipHorizontal(int state)
+{
+    Q_UNUSED(state)
+    if (!m_bIsStreaming)
+    {
+        QImage image = m_PixmapItem->pixmap().toImage();
+        image = image.mirrored(true, false);
+        m_PixmapItem->setPixmap(QPixmap::fromImage(image));
+        m_PixmapItem->update();
+    }
+}
+
+void V4L2Viewer::OnFlipVertical(int state)
+{
+    Q_UNUSED(state)
+    if (!m_bIsStreaming)
+    {
+        QImage image = m_PixmapItem->pixmap().toImage();
+        image = image.mirrored(false, true);
+        m_PixmapItem->setPixmap(QPixmap::fromImage(image));
+        m_PixmapItem->update();
+    }
+}
+
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
     int err = 0;
@@ -1213,6 +1239,8 @@ void V4L2Viewer::OnPixelFormatChanged(const QString &item)
     {
         CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SET pixelFormat!") );
     }
+
+    GetImageInformation();
 }
 
 void V4L2Viewer::OnGamma()
