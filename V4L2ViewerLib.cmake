@@ -1,7 +1,8 @@
-set(HEADERS_PATH ../Source/Headers)
-set(SOURCES_PATH ../Source/Source)
-set(RESOURCES_PATH ../Source/Resources)
+set(HEADERS_PATH Source/Headers)
+set(SOURCES_PATH Source/Source)
+set(RESOURCES_PATH Source/Resources)
 set(ENUM_INT_PATH ${HEADERS_PATH}/EnumeratorInterface)
+set(GIT_REVISION_FILE ${CMAKE_CURRENT_BINARY_DIR}/GitRevision.h)
 
 list(APPEND HEADER_FILES
   ${HEADERS_PATH}/BaseLogger.h
@@ -69,10 +70,9 @@ list(APPEND SOURCE_FILES
   ${SOURCES_PATH}/EnumeratorInterface/ListIntEnumerationControl.cpp
   ${SOURCES_PATH}/CustomGraphicsView.cpp
   ${SOURCES_PATH}/CustomDialog.cpp
+  ${GIT_REVISION_FILE}
 )
 
-
-set(GIT_REVISION_FILE ${CMAKE_CURRENT_BINARY_DIR}/GitRevision.h)
 set_property(SOURCE ${GIT_REVISION_FILE} PROPERTY SKIP_AUTOGEN ON)
 
 add_custom_command(
@@ -116,19 +116,14 @@ list(APPEND RESOURCES
   ${RESOURCES_PATH}/Forms/CustomDialog.ui
 )
 
-add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
+add_library(V4L2ViewerLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
 
-target_link_libraries(V4L2StaticLib PUBLIC ${QT_LIBRARIES})
-target_include_directories(V4L2StaticLib
+target_link_libraries(V4L2ViewerLib PUBLIC ${QT_LIBRARIES})
+target_include_directories(V4L2ViewerLib
   PUBLIC
     ${HEADERS_PATH}
     ${ENUM_INT_PATH}
-    ${CMAKE_CURRENT_BINARY_DIR}/V4L2StaticLib_autogen/include
+    ${CMAKE_CURRENT_BINARY_DIR}/V4L2ViewerLib_autogen/include
   PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}
 )
-
-
-
-
-
