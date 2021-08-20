@@ -66,6 +66,7 @@ private:
     bool m_VIDIOC_TRY_FMT;
     bool m_ShowFrames;
     bool m_bIsImageFitByFirstImage;
+    const int DEFAULT_FRAME_RATE = 8;
 
     // The currently streaming camera
     Camera m_Camera;
@@ -400,6 +401,9 @@ private slots:
     void OnDockWidgetVisibilityChanged(bool visible);
 
     void OnCheckFrameRateAutoClicked();
+
+    void OnFlipHorizontal(int state);
+    void OnFlipVertical(int state);
 };
 
 #endif // V4L2VIEWER_H

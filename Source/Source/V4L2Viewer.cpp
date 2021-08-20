@@ -127,11 +127,14 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
 
+    connect(ui.m_FlipHorizontalCheckBox,      SIGNAL(stateChanged(int)), this, SLOT(OnFlipHorizontal(int)));
+    connect(ui.m_FlipVerticalCheckBox,        SIGNAL(stateChanged(int)), this, SLOT(OnFlipVertical(int)));
+
     SetTitleText();
 
     // Start Camera
     connect(&m_Camera, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)),                                       this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
+    connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)),                                       this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)), Qt::QueuedConnection);
     connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)),                                                          this, SLOT(OnFrameID(const unsigned long long &)));
     connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &)));
 
@@ -217,7 +220,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.m_ImageView->SetPixmapItem(m_PixmapItem);
 
     m_pScene->addItem(m_PixmapItem);
-
 
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
@@ -344,6 +346,10 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             {
                 ui.m_ImageControlFrame->setEnabled(true);
                 GetImageInformation();
+                // Set auto framerate to on always when camera is opened
+                ui.m_chkFrameRateAuto->setChecked(true);
+                ui.m_edFrameRate->setText(QString::number(DEFAULT_FRAME_RATE));
+                OnCheckFrameRateAutoClicked();
                 SetTitleText();
                 ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
                 CameraListCustomItem *newItem = new CameraListCustomItem(devName, this);
@@ -400,6 +406,9 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
             ui.m_ZoomFitButton->setChecked(false);
             m_bIsImageFitByFirstImage = false;
+
+            ui.m_FrameIdLabel->setText("FrameID: -");
+            ui.m_FramesPerSecondLabel->setText("- fps");
         }
 
         if (false == m_bIsOpen)
@@ -412,6 +421,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
         }
 
         UpdateViewerLayout();
+        UpdateZoomButtons();
     }
 
     ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
@@ -722,6 +732,30 @@ void V4L2Viewer::OnCheckFrameRateAutoClicked()
     }
 }
 
+void V4L2Viewer::OnFlipHorizontal(int state)
+{
+    Q_UNUSED(state)
+    if (!m_bIsStreaming)
+    {
+        QImage image = m_PixmapItem->pixmap().toImage();
+        image = image.mirrored(true, false);
+        m_PixmapItem->setPixmap(QPixmap::fromImage(image));
+        m_PixmapItem->update();
+    }
+}
+
+void V4L2Viewer::OnFlipVertical(int state)
+{
+    Q_UNUSED(state)
+    if (!m_bIsStreaming)
+    {
+        QImage image = m_PixmapItem->pixmap().toImage();
+        image = image.mirrored(false, true);
+        m_PixmapItem->setPixmap(QPixmap::fromImage(image));
+        m_PixmapItem->update();
+    }
+}
+
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
 {
     int err = 0;
@@ -837,7 +871,7 @@ void V4L2Viewer::OnSaveImageClicked()
 // The event handler to show the processed frame
 void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &frameId)
 {
-    if (m_ShowFrames)
+    if (m_ShowFrames && m_bIsStreaming)
     {
         if (!image.isNull())
         {
@@ -976,25 +1010,15 @@ void V4L2Viewer::UpdateViewerLayout()
     ui.m_StopButton->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FramesPerSecondLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
     ui.m_FrameIdLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
-
-    UpdateZoomButtons();
 }
 
 // The event handler to resize the image to fit to window
 void V4L2Viewer::OnZoomFitButtonClicked()
 {
-    if (ui.m_ZoomFitButton->isChecked())
-    {
-        ui.m_ImageView->SetZoomAllowed(false);
-        ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
-    }
-    else
-    {
-        ui.m_ImageView->SetZoomAllowed(true);
-        ui.m_ImageView->TransformImageView();
-    }
-
-    UpdateZoomButtons();
+    ui.m_ImageView->SetScaleFactorToDefault();
+    ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
+    double scaleFitToView = ui.m_ImageView->transform().m11();
+    ui.m_ZoomLabel->setText(QString("%1%").arg(scaleFitToView * 100, 1, 'f',1));
 }
 
 // The event handler for resize the image
@@ -1023,7 +1047,7 @@ void V4L2Viewer::UpdateZoomButtons()
     }
     else
     {
-        ui.m_ZoomInButton->setEnabled(true && m_bIsOpen && !ui.m_ZoomFitButton->isChecked());
+        ui.m_ZoomInButton->setEnabled(m_bIsOpen);
     }
 
     if (ui.m_ImageView->GetScaleFactorValue() <= CustomGraphicsView::MAX_ZOOM_OUT)
@@ -1032,18 +1056,9 @@ void V4L2Viewer::UpdateZoomButtons()
     }
     else
     {
-        ui.m_ZoomOutButton->setEnabled(true && m_bIsOpen && !ui.m_ZoomFitButton->isChecked());
+        ui.m_ZoomOutButton->setEnabled(m_bIsOpen);
     }
-
-    if (ui.m_ZoomFitButton->isChecked())
-    {
-        double scaleFitToView = ui.m_ImageView->transform().m11();
-        ui.m_ZoomLabel->setText(QString("%1%").arg(scaleFitToView * 100, 1, 'f',1));
-    }
-    else
-    {
-        ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
-    }
+    ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
 }
 
 // Open/Close the camera
@@ -1142,6 +1157,7 @@ void V4L2Viewer::OnAutoGain()
     bool autogain = false;
 
     m_Camera.SetAutoGain(ui.m_chkAutoGain->isChecked());
+    ui.m_sliderGain->setEnabled(!ui.m_chkAutoGain->isChecked());
 
     if (m_Camera.ReadAutoGain(autogain) != -2)
     {
@@ -1191,6 +1207,7 @@ void V4L2Viewer::OnAutoExposure()
     bool autoexposure = false;
 
     m_Camera.SetAutoExposure(ui.m_chkAutoExposure->isChecked());
+    ui.m_sliderExposure->setEnabled(!ui.m_chkAutoExposure->isChecked());
 
     if (m_Camera.ReadAutoExposure(autoexposure) != -2)
     {
@@ -1221,6 +1238,8 @@ void V4L2Viewer::OnPixelFormatChanged(const QString &item)
     {
         CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SET pixelFormat!") );
     }
+
+    GetImageInformation();
 }
 
 void V4L2Viewer::OnGamma()
@@ -1549,33 +1568,6 @@ void V4L2Viewer::GetImageInformation()
     }
 
     nSVal = 0;
-    if (m_Camera.ReadGamma(nSVal) != -2)
-    {
-        ui.m_edGamma->setEnabled(true);
-        ui.m_labelGamma->setEnabled(true);
-        ui.m_edGamma->setText(QString("%1").arg(nSVal));
-        UpdateSlidersPositions(ui.m_sliderGamma, nSVal);
-    }
-    else
-    {
-        ui.m_edGamma->setEnabled(false);
-        ui.m_labelGamma->setEnabled(false);
-    }
-
-    min = 0;
-    max = 0;
-    if (m_Camera.ReadMinMaxGamma(min, max) != -2)
-    {
-        ui.m_sliderGamma->setEnabled(true);
-        ui.m_sliderGamma->setMinimum(min);
-        ui.m_sliderGamma->setMaximum(max);
-    }
-    else
-    {
-        ui.m_sliderGamma->setEnabled(false);
-    }
-
-    nSVal = 0;
     if (m_Camera.ReadBrightness(nSVal) != -2)
     {
         ui.m_edBrightness->setEnabled(true);
@@ -1611,13 +1603,21 @@ void V4L2Viewer::GetImageInformation()
         {
             ui.m_labelFrameRateAuto->setEnabled(true);
             ui.m_chkFrameRateAuto->setEnabled(true);
-            ui.m_edFrameRate->setEnabled(true);
-            ui.m_labelFrameRate->setEnabled(true);
-            denominator /= 1000;
-            ui.m_edFrameRate->setText(QString("%1").arg(denominator));
 
-            ui.m_chkFrameRateAuto->setChecked(true);
-            OnCheckFrameRateAutoClicked();
+            if (numerator == 0)
+            {
+                ui.m_chkFrameRateAuto->setChecked(true);
+                ui.m_edFrameRate->setEnabled(false);
+                ui.m_labelFrameRate->setEnabled(false);
+            }
+            else
+            {
+                ui.m_chkFrameRateAuto->setChecked(false);
+                ui.m_edFrameRate->setEnabled(true);
+                ui.m_labelFrameRate->setEnabled(true);
+                denominator /= 1000;
+                ui.m_edFrameRate->setText(QString("%1").arg(denominator));
+            }
         }
         else
         {
@@ -1641,6 +1641,37 @@ void V4L2Viewer::GetImageInformation()
             ui.m_cropWidget->setEnabled(false);
         }
     }
+
+    nSVal = 0;
+    if (m_Camera.ReadGamma(nSVal) != -2)
+    {
+        ui.m_edGamma->setEnabled(true);
+        ui.m_labelGamma->setEnabled(true);
+        ui.m_edGamma->setText(QString("%1").arg(nSVal));
+        UpdateSlidersPositions(ui.m_sliderGamma, nSVal);
+    }
+    else
+    {
+        ui.m_edGamma->setEnabled(false);
+        ui.m_labelGamma->setEnabled(false);
+    }
+
+    min = 0;
+    max = 0;
+    if (m_Camera.ReadMinMaxGamma(min, max) != -2)
+    {
+        ui.m_sliderGamma->setEnabled(true);
+        ui.m_sliderGamma->setMinimum(min);
+        ui.m_sliderGamma->setMaximum(max);
+    }
+    else
+    {
+        ui.m_sliderGamma->setEnabled(false);
+    }
+
+    ui.m_sliderExposure->setDisabled(autoexposure && ui.m_sliderExposure->isEnabled());
+    ui.m_sliderGain->setDisabled(autogain && ui.m_sliderGain->isEnabled());
+
     m_Camera.EnumAllControlNewStyle();
 }
 

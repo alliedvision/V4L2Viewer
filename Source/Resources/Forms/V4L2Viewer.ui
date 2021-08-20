@@ -306,7 +306,7 @@ QCheckBox::disabled {
           <bool>true</bool>
          </property>
          <property name="text">
-          <string>- fps [drops -]</string>
+          <string>- fps</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse</set>
@@ -716,7 +716,7 @@ QPushButton::disabled{
                 <normaloff>:/V4L2Viewer/magnifying-glass1.png</normaloff>:/V4L2Viewer/magnifying-glass1.png</iconset>
               </property>
               <property name="checkable">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
               <property name="checked">
                <bool>false</bool>
@@ -1047,7 +1047,7 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>-345</x>
+              <x>-313</x>
               <y>0</y>
               <width>1247</width>
               <height>378</height>
@@ -1867,6 +1867,9 @@ color:white;
                    <widget class="QCheckBox" name="m_chkFrameRateAuto">
                     <property name="cursor">
                      <cursorShape>PointingHandCursor</cursorShape>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Auto maximum frame rate&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Automatically apply the maximum frame rate, ignore the manually set value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="styleSheet">
                      <string notr="true">QCheckBox{

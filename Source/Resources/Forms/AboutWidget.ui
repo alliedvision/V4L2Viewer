@@ -162,6 +162,9 @@ Qt is The Qt Company Ltd product developed as an open source project. See &lt;a 
               <property name="wordWrap">
                <bool>true</bool>
               </property>
+              <property name="openExternalLinks">
+               <bool>true</bool>
+              </property>
               <property name="textInteractionFlags">
                <set>Qt::TextBrowserInteraction</set>
               </property>

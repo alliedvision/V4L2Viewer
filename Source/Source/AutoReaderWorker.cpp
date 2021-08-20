@@ -40,7 +40,6 @@ AutoReaderWorker::~AutoReaderWorker()
     }
     delete m_pTimer;
     m_pTimer = nullptr;
-    qDebug() << "AutoReaderWorker Deleted";
 }
 
 void AutoReaderWorker::Process()

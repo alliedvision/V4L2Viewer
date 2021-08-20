@@ -42,7 +42,7 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, in
                           .arg(m_Min)
                           .arg(m_Max)
                           .arg(unit));
-    m_LineEdit.setValidator(new QIntValidator(m_Min, m_Max, this));
+
     m_LineEdit.setText(QString::number(m_Value));
     m_CurrentValue.setText(QString::number(m_Value));
     m_Slider.setOrientation(Qt::Horizontal);
@@ -51,6 +51,8 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, in
     m_MainLayout.addWidget(&m_Slider, 0, 1);
     m_MainLayout.addWidget(&m_LineEdit, 0, 2);
     m_LineEdit.setAlignment(Qt::AlignRight);
+
+    //m_LineEdit.setMaxLength(10);
 
     m_MainLayout.setColumnStretch(0, 2);
     m_MainLayout.setColumnStretch(1, 2);

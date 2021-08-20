@@ -46,7 +46,6 @@ AutoReader::~AutoReader()
     m_pThread = nullptr;
     delete m_pAutoReaderWorker;
     m_pAutoReaderWorker = nullptr;
-    qDebug() << "AutoReader Deleted";
 }
 
 void AutoReader::StartThread()

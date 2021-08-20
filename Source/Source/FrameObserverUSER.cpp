@@ -243,7 +243,7 @@ int FrameObserverUSER::DeleteAllUserBuffer()
         for (unsigned int x = 0; x < m_UserBufferContainerList.size(); x++)
         {
             if (0 != m_UserBufferContainerList[x]->pBuffer)
-            delete [] m_UserBufferContainerList[x]->pBuffer;
+            free(m_UserBufferContainerList[x]->pBuffer);
             if (0 != m_UserBufferContainerList[x])
             delete m_UserBufferContainerList[x];
         }
