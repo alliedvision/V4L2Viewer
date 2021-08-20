@@ -4,8 +4,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(MAIN_EXEC Source/main.cpp)
 
-project(V4L2_Viewer VERSION 1.0)
-set(TARGET_NAME V4L2_Viewer)
+project(V4L2Viewer VERSION 1.0)
+set(TARGET_NAME V4L2Viewer)
 
 add_subdirectory(V4L2StaticLibrary)
 set(LIBRARIES V4L2StaticLib)
