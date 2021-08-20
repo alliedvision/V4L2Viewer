@@ -3,7 +3,6 @@ set(SOURCES_PATH ../Source/Source)
 set(RESOURCES_PATH ../Source/Resources)
 set(ENUM_INT_PATH ${HEADERS_PATH}/EnumeratorInterface)
 
-# .h files
 list(APPEND HEADER_FILES
 ${HEADERS_PATH}/BaseLogger.h
 ${HEADERS_PATH}/Camera.h
@@ -73,7 +72,7 @@ ${SOURCES_PATH}/CustomDialog.cpp
 )
 
 
-set(GIT_REVISION_FILE ${CMAKE_SOURCE_DIR}/Source/Headers/GitRevision.h)
+set(GIT_REVISION_FILE ${CMAKE_CURRENT_BINARY_DIR}/GitRevision.h)
 set_property(SOURCE ${GIT_REVISION_FILE} PROPERTY SKIP_AUTOGEN ON)
 
 add_custom_command(
@@ -86,7 +85,6 @@ add_custom_command(
   VERBATIM
 )
 list(APPEND HEADER_FILES ${GIT_REVISION_FILE})
-
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${RESOURCES_PATH}/Forms)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -120,8 +118,15 @@ ${RESOURCES_PATH}/Forms/CustomDialog.ui
 
 add_library(V4L2StaticLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
 
-target_link_libraries(V4L2StaticLib ${QT_LIBRARIES})
-target_include_directories(V4L2StaticLib PUBLIC ${HEADERS_PATH} ${ENUM_INT_PATH})
+target_link_libraries(V4L2StaticLib PUBLIC ${QT_LIBRARIES})
+target_include_directories(V4L2StaticLib
+  PUBLIC
+    ${HEADERS_PATH}
+    ${ENUM_INT_PATH}
+    ${CMAKE_CURRENT_BINARY_DIR}/V4L2StaticLib_autogen/include
+  PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 
 
