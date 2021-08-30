@@ -25,3 +25,5 @@ include(V4L2ViewerLib.cmake)
 
 add_executable(V4L2Viewer Source/main.cpp)
 target_link_libraries(V4L2Viewer V4L2ViewerLib)
+install(TARGETS V4L2Viewer DESTINATION /)
+install(FILES LICENSE.md DESTINATION /)
