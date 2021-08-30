@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ControlsHolderWidget</class>
+ <widget class="QWidget" name="ControlsHolderWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>498</width>
+    <height>501</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>All Features Window</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget{
+  background-color: qlineargradient(x1:0, y1:0, x1:1, y1:6, stop: 0.9#39393b, stop:1#39393b);
+  border:none;
+  color:white;
+}
+
+QListWidget{
+padding:15px;
+}
+
+QListWidget::item:selected
+{
+background: transparent;
+border:none;
+}
+
+QScrollBar:vertical {
+  background: transparent;
+  width: 13px;
+  margin: 0px 0 0px 0;
+}
+
+QScrollBar::handle:vertical {
+  background: gray;
+  min-height: 13px;
+  border-radius:6px;
+}
+
+QScrollBar::add-line:vertical {
+  border: none;
+  background: none;
+  height: 0;
+  subcontrol-position: top;
+  subcontrol-origin: margin;
+  }
+
+QScrollBar::sub-line:vertical {
+  border: none;
+  background: none;
+  height: 0;
+  subcontrol-position: top;
+  subcontrol-origin: margin;
+  }
+
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+  border: none;
+  width: 0;
+  height: 0;
+  background: none;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+  background: none;
+}
+
+QScrollBar:horizontal {
+  background: transparent;
+  height: 13px;
+  margin: 0px 0 0px 0;
+}
+
+QScrollBar::handle:horizontal {
+  background: gray;
+  min-width: 13px;
+  border-radius:6px;
+  }
+
+QScrollBar::add-line:horizontal {
+  border: none;
+  background: none;
+  height: 0;
+  subcontrol-position: left;
+  subcontrol-origin: margin;
+  }
+
+QScrollBar::sub-line:horizontal {
+  border: none;
+  background: none;
+  width: 0;
+  subcontrol-position: left;
+  subcontrol-origin: margin;
+  }
+
+QScrollBar::up-arrow:horizontal, QScrollBar::down-arrow:horizontal {
+  border: none;
+  width: 0;
+  height: 0;
+  background: none;
+}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+  background: none;
+}
+
+QPushButton{
+  color:rgb(21,21,21);
+  border: 1px solid rgb(94, 94, 94);
+  background-color:rgb(125,129,133);
+  min-height:30px;
+  border-radius:6px;
+}
+
+QPushButton:hover{
+  background-color:rgb(164, 168, 172);
+}
+
+QPushButton:pressed{
+  background-color:rgb(166, 166, 166);
+}
+
+QLineEdit {
+background:transparent;
+border: none;
+border-radius:0px;
+}
+
+QLineEdit::focus {
+border-bottom: 1px solid gray;
+}
+
+QLabel{
+  background:none;
+}
+
+QListWidget{
+  background-color:rgb(45,45,45);
+  border:1px solid rgb(25,25,25);
+  border-radius:4px;
+}
+
+QSlider{
+background:transparent;
+}
+
+QSlider::groove:horizontal{
+border: none;
+background: rgb(41,41,41);
+height:1px;
+border-bottom:1px solid rgb(51,51,51);
+}
+
+QSlider::handle:horizontal {
+background: rgb(114,114,114);
+width: 12px;
+height: 18px;
+border-radius: 2px;
+margin: -5px 0; 
+}
+
+QSlider::sub-page:horizontal {
+    background: rgb(0, 100, 207);
+}
+
+QSlider::sub-page:horizontal::disabled{
+    background: rgb(107, 155, 209);
+}
+
+QSlider::groove:horizontal::disabled{
+border: none;
+background: rgb(81,81,81);
+height:1px;
+border-bottom:1px solid rgb(71,71,71);
+}
+
+QComboBox {
+background:transparent;
+min-width:80px;
+}
+
+QComboBox::drop-down:button {
+background:transparent;
+width:15px;
+}
+
+QComboBox::down-arrow {
+image: url(:/V4L2Viewer/triangle-copy-3.png);
+}
+
+QComboBox:on { 
+    padding-top: 3px;
+    padding-left: 4px;
+}
+
+</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetMaximumSize</enum>
+   </property>
+   <item row="0" column="0">
+    <widget class="QListWidget" name="m_ControlsList">
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="m_DescriptionLabel">
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(45,45,45);
+border:1px solid rgb(25,25,25);
+border-radius:4px;
+padding:5px;</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

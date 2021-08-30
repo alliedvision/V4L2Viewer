@@ -16,14 +16,39 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
+#ifndef AUTOREADERWORKER_H
+#define AUTOREADERWORKER_H
+
+#include <QObject>
+#include <QTimer>
 #include <QDebug>
 
-int main( int argc, char *argv[] )
-{
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+class AutoReaderWorker : public QObject {
+    Q_OBJECT
+
+public:
+    AutoReaderWorker(QObject *parent = nullptr);
+    ~AutoReaderWorker();
+
+signals:
+    // This signal emits info to read control's value
+    void ReadSignal();
+
+public slots:
+    // This slot function preparing the thread and connects QTimer with slot
+    void Process();
+    // This slot function starts timer
+    void StartProcess();
+    // This slot function stops timer
+    void StopProcess();
+
+private slots:
+    // This slot function is called by qtimer and emits read signal
+    void ReadData();
+
+private:
+    // Timer object which is started and stopped in this class, which is a thread worker.
+    QTimer *m_pTimer;
+};
+
+#endif // AUTOREADERWORKER_H

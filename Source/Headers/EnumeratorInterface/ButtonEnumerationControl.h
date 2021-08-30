@@ -16,14 +16,31 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#ifndef BUTTONENUMERATIONCONTROL_H
+#define BUTTONENUMERATIONCONTROL_H
 
-int main( int argc, char *argv[] )
+#include "IControlEnumerationHolder.h"
+
+class ButtonEnumerationControl : public IControlEnumerationHolder
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+    Q_OBJECT
+public:
+    ButtonEnumerationControl(int32_t id, QString name, QString unit, bool bIsReadOnly, QWidget *parent);
+
+signals:
+    // This signal passes info about action which needs to be performed
+    //
+    // Parameters:
+    // [in] (int32_t) id - id of the control
+    void PassActionPerform(int32_t id);
+
+private slots:
+    // This slot function is called after button is pressed
+    void OnButtonClicked();
+
+private:
+    // Main element of the class, after pressing the action is going to be performed.
+    QPushButton m_PushButton;
+};
+
+#endif // BUTTONENUMERATIONCONTROL_H

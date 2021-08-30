@@ -16,14 +16,39 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#ifndef THREAD_H
+#define THREAD_H
 
-int main( int argc, char *argv[] )
+#include <pthread.h>
+#include <stdint.h>
+#include <sys/time.h>
+#include <sys/errno.h>
+
+typedef void *(*THREAD_START_ROUTINE)(void *);
+
+
+namespace base {
+
+class Thread
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+public:
+    Thread();
+    ~Thread(void);
+
+    // This function starts thread
+    void *StartThread(THREAD_START_ROUTINE threadStartRoutine, void* params);
+    // This function returns thread id
+    void *GetThreadID();
+    // This function joins thread
+    uint32_t Join();
+    // This function joins thread with a delay
+    uint32_t JoinTimed(int msec);
+
+private:
+    pthread_t m_ThreadID;
+};
+
+} // namespace base
+
+#endif // THREAD_H
+

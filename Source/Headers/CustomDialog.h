@@ -15,15 +15,39 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
+#ifndef CUSTOMDIALOG_H
+#define CUSTOMDIALOG_H
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#include <QWidget>
+#include <QEvent>
+#include <QDialog>
+#include "ui_CustomDialog.h"
 
-int main( int argc, char *argv[] )
+class CustomDialog : public QDialog
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+    Q_OBJECT
+public:
+    static void Warning(QWidget *parent, QString title, QString text);
+    static void Info(QWidget *parent, QString title, QString text);
+    static void Error(QWidget *parent, QString title, QString text);
+
+private slots:
+    void OnOkButtonClicked();
+
+private:
+    explicit CustomDialog(QString title, QString text, int type, QWidget *parent);
+    void closeEvent(QCloseEvent *event);
+
+    QString m_Title;
+    QString m_Text;
+
+    enum{
+        warning = 0,
+        info = 1,
+        error = 2
+    };
+
+    Ui::CustomDialog ui;
+};
+
+#endif // CUSTOMDIALOG_H

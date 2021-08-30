@@ -16,14 +16,28 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#include "AboutWidget.h"
+#include "GitRevision.h"
+#include <QGridLayout>
+#include <QPixmap>
+#include <QScrollArea>
 
-int main( int argc, char *argv[] )
+AboutWidget::AboutWidget(QWidget *parent) : QWidget(parent)
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
+    setWindowFlags(Qt::FramelessWindowHint);
+    ui.setupUi(this);
 }
+
+void AboutWidget::UpdateStrings()
+{
+    QString text = ui.m_versionLabel->text();
+    ui.m_versionLabel->setText(text);
+}
+
+void AboutWidget::SetVersion(QString version)
+{
+    ui.m_versionLabel->setText(tr("<br>Version: %1 <br>").arg(version) +
+                               tr("Git commit: %1 <br>").arg(GIT_VERSION));
+}
+
+

@@ -16,14 +16,22 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#include <errno.h>
+#include <sys/ioctl.h>
 
-int main( int argc, char *argv[] )
+namespace iohelper {
+
+int xioctl(int fh, int request, void *arg)
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
+    int result = 0;
+
+    do
+    {
+        result = ioctl(fh, request, arg);
+    }
+    while (-1 == result && EINTR == errno);
+
+    return result;
 }
+
+} // namespace iohelper

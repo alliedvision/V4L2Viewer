@@ -1,6 +1,0 @@
-[submodule "Externals/Makefiles"]
-	path = Externals/Makefiles
-	url = git@ssh.dev.azure.com:v3/AlliedVisionTech/Makefiles/Makefiles
-[submodule "Externals/build_scripts"]
-	path = Externals/build_scripts
-	url = git@ssh.dev.azure.com:v3/AlliedVisionTech/build_scripts/build_scripts

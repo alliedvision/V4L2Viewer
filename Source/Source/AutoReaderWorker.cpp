@@ -16,14 +16,44 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#include "AutoReaderWorker.h"
 
-int main( int argc, char *argv[] )
+AutoReaderWorker::AutoReaderWorker(QObject *parent) : QObject(parent), m_pTimer(nullptr)
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
+
+}
+
+AutoReaderWorker::~AutoReaderWorker()
+{
+    if (m_pTimer->isActive())
+    {
+        m_pTimer->stop();
+    }
+    delete m_pTimer;
+    m_pTimer = nullptr;
+}
+
+void AutoReaderWorker::Process()
+{
+    if (m_pTimer == nullptr)
+    {
+        m_pTimer = new QTimer();
+        connect(m_pTimer, SIGNAL(timeout()), this, SLOT(ReadData()));
+        m_pTimer->setInterval(1000);
+    }
+}
+
+void AutoReaderWorker::StartProcess()
+{
+    m_pTimer->start();
+}
+
+void AutoReaderWorker::StopProcess()
+{
+    m_pTimer->stop();
+}
+
+void AutoReaderWorker::ReadData()
+{
+    emit ReadSignal();
 }

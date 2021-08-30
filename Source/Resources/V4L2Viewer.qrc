@@ -1,0 +1,50 @@
+<RCC>
+    <qresource prefix="/V4L2Viewer">
+        <file>loading-animation.gif</file>
+        <file>calculate-live.png</file>
+        <file>export.png</file>
+        <file>addReference.ico</file>
+        <file>back.ico</file>
+        <file>calculate.ico</file>
+        <file>next.ico</file>
+        <file>recordStart.ico</file>
+        <file>recordStop.ico</file>
+        <file>removeRecord.ico</file>
+        <file>saveSeries.ico</file>
+        <file>saveSingle.ico</file>
+        <file>play128orange.png</file>
+        <file>bars-graphic.png</file>
+        <file>binary5.png</file>
+        <file>increase.png</file>
+        <file>resize4.png</file>
+        <file>magnifying-glass1.png</file>
+        <file>magnifying-glass2.png</file>
+        <file>zoom75.png</file>
+        <file>play128.png</file>
+        <file>stop4.png</file>
+        <file>Viewer.png</file>
+        <file>triangle-copy-3.png</file>
+        <file>Qt_logo_2016.png</file>
+        <file>g7848.png</file>
+        <file>icon_camera.png</file>
+        <file>icon_camera_256.png</file>
+        <file>Cross128.png</file>
+        <file>g7848.ico</file>
+        <file>g7848-scaled.ico</file>
+    </qresource>
+    <qresource prefix="/Fonts">
+        <file>Open_Sans/OpenSans-Bold.ttf</file>
+        <file>Open_Sans/OpenSans-BoldItalic.ttf</file>
+        <file>Open_Sans/OpenSans-ExtraBold.ttf</file>
+        <file>Open_Sans/OpenSans-ExtraBoldItalic.ttf</file>
+        <file>Open_Sans/OpenSans-Italic.ttf</file>
+        <file>Open_Sans/OpenSans-Light.ttf</file>
+        <file>Open_Sans/OpenSans-LightItalic.ttf</file>
+        <file>Open_Sans/OpenSans-Regular.ttf</file>
+        <file>Open_Sans/OpenSans-SemiBold.ttf</file>
+        <file>Open_Sans/OpenSans-SemiBoldItalic.ttf</file>
+    </qresource>
+    <qresource prefix="/Translations">
+        <file>Translations/german.qm</file>
+    </qresource>
+</RCC>

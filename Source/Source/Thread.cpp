@@ -16,14 +16,51 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#include "Thread.h"
 
-int main( int argc, char *argv[] )
+
+namespace base {
+
+Thread::Thread()
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
 }
+
+Thread::~Thread(void)
+{
+}
+
+void *Thread::StartThread(THREAD_START_ROUTINE threadStartRoutine, void* params)
+{
+    pthread_create(&m_ThreadID, NULL, threadStartRoutine, params);
+    return (void*)m_ThreadID;
+}
+
+void *Thread::GetThreadID()
+{
+    return (void*)m_ThreadID;
+}
+
+uint32_t Thread::Join()
+{
+    uint32_t result;
+    result = pthread_join(m_ThreadID, NULL);
+    return result;
+}
+
+uint32_t Thread::JoinTimed(int msec)
+{
+    uint32_t  result;
+
+    if (0 >= msec)
+        return -1;
+
+    struct timespec ts;
+    ts.tv_sec = time(NULL);
+    ts.tv_sec += msec / 1000;
+    ts.tv_nsec = (msec - ((msec / 1000) * 1000)) * 1000;
+    result = pthread_timedjoin_np(m_ThreadID, NULL, &ts);
+
+    return result;
+}
+
+} // namespace base

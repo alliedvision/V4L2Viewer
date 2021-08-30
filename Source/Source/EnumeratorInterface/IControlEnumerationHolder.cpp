@@ -16,14 +16,29 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#include "IControlEnumerationHolder.h"
+#include <QMouseEvent>
 
-int main( int argc, char *argv[] )
+IControlEnumerationHolder::IControlEnumerationHolder(int32_t id, QString name, QWidget *parent) :
+    QWidget(parent),
+    m_id(id)
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
+    m_NameOfControl.setText(name);
+    setLayout(&m_MainLayout);
+    m_MainLayout.setMargin(0);
+}
+
+IControlEnumerationHolder::~IControlEnumerationHolder()
+{
+
+}
+
+int32_t IControlEnumerationHolder::GetWidgetControlId()
+{
+    return m_id;
+}
+
+QString IControlEnumerationHolder::GetControlInfo()
+{
+    return m_ControlInfo;
 }

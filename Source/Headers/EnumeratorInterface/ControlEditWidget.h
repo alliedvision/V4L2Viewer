@@ -16,14 +16,18 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#ifndef CONTROLEDITWIDGET_H
+#define CONTROLEDITWIDGET_H
 
-int main( int argc, char *argv[] )
+#include <QWidget>
+#include <QLayout>
+
+class ControlEditWidget : public QWidget
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+    Q_OBJECT
+public:
+    explicit ControlEditWidget(QWidget *parent = nullptr);
+    QGridLayout *m_pLayout;
+};
+
+#endif // CONTROLEDITWIDGET_H

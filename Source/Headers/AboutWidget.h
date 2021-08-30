@@ -16,14 +16,27 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#ifndef ABOUTWIDGET_H
+#define ABOUTWIDGET_H
 
-int main( int argc, char *argv[] )
+#include <QLabel>
+#include "ui_AboutWidget.h"
+
+
+class AboutWidget : public QWidget
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+    Q_OBJECT
+public:
+    explicit AboutWidget(QWidget *parent = nullptr);
+    // This function updates strings in the widget. It is used
+    // for the internationalization
+    void UpdateStrings();
+    void SetVersion(QString version);
+
+    Ui::AboutWidget ui;
+
+private:
+
+};
+
+#endif // ABOUTWIDGET_H

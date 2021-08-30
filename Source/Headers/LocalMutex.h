@@ -16,14 +16,39 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#ifndef LOCALMUTEX_H
+#define LOCALMUTEX_H
 
-int main( int argc, char *argv[] )
+#include <pthread.h>
+
+namespace base {
+
+class LocalMutex
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+public:
+    LocalMutex()
+    {
+        pthread_mutex_init(&m_Mutex, NULL);
+    }
+    virtual ~LocalMutex()
+    {
+        pthread_mutex_destroy(&m_Mutex);
+    }
+
+    // This function locks mutex
+    void Lock()
+    {
+        pthread_mutex_lock(&m_Mutex);
+    }
+    // This function unlocks mutex
+    void Unlock()
+    {
+        pthread_mutex_unlock(&m_Mutex);
+    }
+
+    pthread_mutex_t  m_Mutex;
+};
+
+} // namespace base
+
+#endif // LOCALMUTEX_H

@@ -16,14 +16,33 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#ifndef LOCALMUTEXLOCKGUARD_H
+#define LOCALMUTEXLOCKGUARD_H
 
-int main( int argc, char *argv[] )
+#include "LocalMutex.h"
+
+#include <pthread.h>
+
+namespace base {
+
+class LocalMutexLockGuard
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+public:
+    LocalMutexLockGuard(LocalMutex &mutex)
+        : m_Mutex(mutex)
+    {
+        m_Mutex.Lock();
+    }
+
+    virtual ~LocalMutexLockGuard()
+    {
+        m_Mutex.Unlock();
+    }
+
+private:
+    LocalMutex &m_Mutex;
+};
+
+} // namespace base
+
+#endif // LOCALMUTEXLOCKGUARD_H
