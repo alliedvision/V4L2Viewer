@@ -30,6 +30,7 @@ Use the sources on Jetson boards:
 
    apt install qt5-default cmake
    mkdir build
+   cd build
    cmake ..
    make
 
