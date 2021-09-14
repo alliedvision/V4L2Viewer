@@ -1363,7 +1363,7 @@ int Camera::ReadAutoExposure(bool &flag)
     int result = 0;
     uint32_t value = 0;
     result = ReadExtControl(value, V4L2_CID_EXPOSURE_AUTO, "ReadAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
-    flag = (value == V4L2_EXPOSURE_AUTO) ? true : false;
+    flag = bool(value);
     return result;
 }
 
@@ -1377,7 +1377,7 @@ int Camera::SetAutoExposure(bool autoexposure)
     {
         m_pAutoExposureReader->StopThread();
     }
-    return SetExtControl(autoexposure ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
+    return SetExtControl(autoexposure, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
 }
 
 //////////////////// Controls ////////////////////////
