@@ -53,7 +53,7 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
         setEnabled(true);
         connect(&m_LineEdit, SIGNAL(editingFinished()), this, SLOT(OnLineEditPressed()));
         connect(&m_Slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
-        if (id == V4L2_CID_EXPOSURE_ABSOLUTE)
+        if (id == V4L2_CID_EXPOSURE)
         {
             connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderLogValueChanged(int)));
             m_Slider.setMaximum(1000);
@@ -78,7 +78,7 @@ void Integer64EnumerationControl::UpdateValue(int64_t value)
     m_LineEdit.blockSignals(false);
 
     m_Slider.blockSignals(true);
-    if (m_id != V4L2_CID_EXPOSURE_ABSOLUTE)
+    if (m_id != V4L2_CID_EXPOSURE)
     {
         m_Slider.setValue(value);
     }
