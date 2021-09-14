@@ -1363,7 +1363,7 @@ int Camera::ReadAutoExposure(bool &flag)
     int result = 0;
     uint32_t value = 0;
     result = ReadExtControl(value, V4L2_CID_EXPOSURE_AUTO, "ReadAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
-    flag = bool(value);
+    flag = (value == V4L2_EXPOSURE_AUTO) ? true : false;
     return result;
 }
 
@@ -1382,17 +1382,17 @@ int Camera::SetAutoExposure(bool autoexposure)
 
 //////////////////// Controls ////////////////////////
 
-int Camera::ReadGain(int32_t &value)
+int Camera::ReadGain(int64_t &value)
 {
     return ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
 }
 
-int Camera::SetGain(int32_t value)
+int Camera::SetGain(int64_t value)
 {
     return SetExtControl(value, V4L2_CID_GAIN, "SetGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
 }
 
-int Camera::ReadMinMaxGain(int32_t &min, int32_t &max)
+int Camera::ReadMinMaxGain(int64_t &min, int64_t &max)
 {
     return ReadMinMax(min, max, V4L2_CID_GAIN, "ReadMinMaxGain", "V4L2_CID_GAIN");
 }

@@ -181,7 +181,7 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadGain(int32_t &gain);
+    int ReadGain(int64_t &gain);
     // This function set camera gain
     //
     // Parameters:
@@ -189,7 +189,7 @@ public:
     //
     // Returns:
     // (int) - result of the setting
-    int SetGain(int32_t gain);
+    int SetGain(int64_t gain);
     // This function read camera min max gain
     //
     // Parameters:
@@ -198,7 +198,7 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadMinMaxGain(int32_t &min, int32_t &max);
+    int ReadMinMaxGain(int64_t &min, int64_t &max);
     // This function reads auto gain state
     //
     // Parameters:

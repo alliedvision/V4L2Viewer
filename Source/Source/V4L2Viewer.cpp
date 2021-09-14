@@ -1125,11 +1125,11 @@ void V4L2Viewer::OnHeight()
 
 void V4L2Viewer::OnGain()
 {
-    int32_t nVal = int64_2_int32(ui.m_edGain->text().toLongLong());
+    int64_t nVal = ui.m_edGain->text().toLongLong();
 
     if (m_Camera.SetGain(nVal) < 0)
     {
-        int32_t tmp = 0;
+        int64_t tmp = 0;
         CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE Gain!") );
         m_Camera.ReadGain(tmp);
         ui.m_edGain->setText(QString("%1").arg(tmp));
@@ -1426,7 +1426,7 @@ void V4L2Viewer::GetImageInformation()
     uint32_t height = 0;
     uint32_t xOffset = 0;
     uint32_t yOffset = 0;
-    int32_t gain = 0;
+    int64_t gain = 0;
     int32_t min = 0;
     int32_t max = 0;
     int32_t minExp = 0;
@@ -1475,11 +1475,11 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelGain->setEnabled(false);
     }
 
-    if (m_Camera.ReadMinMaxGain(min, max) != -2)
+    if (int64_t min64, max64; m_Camera.ReadMinMaxGain(min64, max64) != -2)
     {
         ui.m_sliderGain->setEnabled(true);
-        ui.m_sliderGain->setMinimum(min);
-        ui.m_sliderGain->setMaximum(max);
+        ui.m_sliderGain->setMinimum(min64);
+        ui.m_sliderGain->setMaximum(max64);
         UpdateSlidersPositions(ui.m_sliderGain, gain);
     }
     else
