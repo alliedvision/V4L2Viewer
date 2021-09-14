@@ -223,15 +223,7 @@ public:
     //
     // Returns:
     // (int) - result of reading
-    int ReadExposure(int32_t &exposure);
-    // This function reads exposure absolute
-    //
-    // Parameters:
-    // [in] (int32_t &) exposure
-    //
-    // Returns:
-    // (int) - result of reading
-    int ReadExposureAbs(int32_t &exposure);
+    int ReadExposure(int64_t &exposure);
     // This function sets exposure
     //
     // Parameters:
@@ -239,15 +231,7 @@ public:
     //
     // Returns:
     // (int) - result of setting
-    int SetExposure(int32_t exposure);
-    // This function sets exposure absolute
-    //
-    // Parameters:
-    // [in] (int32_t) exposure
-    //
-    // Returns:
-    // (int) - result of setting
-    int SetExposureAbs(int32_t exposure);
+    int SetExposure(int64_t exposure);
     // This function reads min and max of the exposure
     //
     // Parameters:
@@ -256,16 +240,7 @@ public:
     //
     // Returns:
     // (int) - result of reading
-    int ReadMinMaxExposure(int32_t &min, int32_t &max);
-    // This function reads min and max of the exposure absolute
-    //
-    // Parameters:
-    // [in] (int32_t &) min - minimum exposure
-    // [in] (int32_t &) max - maximum exposure
-    //
-    // Returns:
-    // (int) - result of reading
-    int ReadMinMaxExposureAbs(int64_t &min, int64_t &max);
+    int ReadMinMaxExposure(int64_t &min, int64_t &max);
     // This function reads state of the auto exposure
     //
     // Parameters:

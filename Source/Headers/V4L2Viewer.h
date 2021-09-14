@@ -89,17 +89,14 @@ private:
     // The settings menu on the top bar
     QMenu *m_pSettingsMenu;
     // This variable stores minimum exposure for the logarithmic slider calculations
-    int32_t m_MinimumExposure;
+    int64_t m_MinimumExposure;
     // This variable stores maximum exposure for the logarithmic slider calculations
-    int32_t m_MaximumExposure;
+    int64_t m_MaximumExposure;
 
-    int32_t m_MinimumExposureAbs;
-    int32_t m_MaximumExposureAbs;
-
-    int32_t m_sliderGainValue;
+    int64_t m_sliderGainValue;
     int32_t m_sliderBrightnessValue;
     int32_t m_sliderGammaValue;
-    int32_t m_sliderExposureValue;
+    int64_t m_sliderExposureValue;
 
     // The enumeration control widget which holds all of the enum controls gathered
     // from the Camera class object
@@ -182,7 +179,7 @@ private:
     //
     // Returns:
     // (int32_t) - position on slider
-    int32_t GetSliderValueFromLog(int32_t value);
+    int64_t GetSliderValueFromLog(int64_t value);
 
 private slots:
     void OnLogToFile();
