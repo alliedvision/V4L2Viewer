@@ -282,7 +282,7 @@ public:
     //
     // Returns:
     // (int) - result of reading
-    int ReadMinMaxGamma(int32_t &min, int32_t &max);
+    int ReadMinMaxGamma(int64_t &min, int64_t &max);
 
     // This function reads reverseX value
     //

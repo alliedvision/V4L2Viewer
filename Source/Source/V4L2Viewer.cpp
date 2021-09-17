@@ -1445,6 +1445,7 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelGain->setEnabled(false);
     }
 
+    ui.m_sliderGain->blockSignals(true);
     if (int64_t min64, max64; m_Camera.ReadMinMaxGain(min64, max64) != -2)
     {
         ui.m_sliderGain->setEnabled(true);
@@ -1456,6 +1457,7 @@ void V4L2Viewer::GetImageInformation()
     {
         ui.m_sliderGain->setEnabled(false);
     }
+    ui.m_sliderGain->blockSignals(false);
 
     if (m_Camera.ReadAutoGain(autogain) != -2)
     {
@@ -1481,12 +1483,10 @@ void V4L2Viewer::GetImageInformation()
     }
 
     ui.m_edExposure->setText(QString("%1").arg(exposure));
-
+    ui.m_sliderExposure->blockSignals(true);
     if (m_Camera.ReadMinMaxExposure(minExp, maxExp) != -2)
     {
-        ui.m_sliderExposure->blockSignals(true);
         ui.m_sliderExposure->setEnabled(true);
-        ui.m_sliderExposure->blockSignals(false);
 
         m_MinimumExposure = minExp;
         m_MaximumExposure = maxExp;
@@ -1498,6 +1498,7 @@ void V4L2Viewer::GetImageInformation()
     {
         ui.m_sliderExposure->setEnabled(false);
     }
+    ui.m_sliderExposure->blockSignals(false);
 
     if (m_Camera.ReadAutoExposure(autoexposure) != -2)
     {
@@ -1526,6 +1527,7 @@ void V4L2Viewer::GetImageInformation()
 
     min = 0;
     max = 0;
+    ui.m_sliderBrightness->blockSignals(true);
     if (m_Camera.ReadMinMaxBrightness(min, max) != -2)
     {
         ui.m_sliderBrightness->setEnabled(true);
@@ -1537,6 +1539,7 @@ void V4L2Viewer::GetImageInformation()
     {
         ui.m_sliderBrightness->setEnabled(false);
     }
+    ui.m_sliderBrightness->blockSignals(false);
 
     m_Camera.ReadFrameSize(width, height);
     m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
@@ -1600,18 +1603,18 @@ void V4L2Viewer::GetImageInformation()
         ui.m_labelGamma->setEnabled(false);
     }
 
-    min = 0;
-    max = 0;
-    if (m_Camera.ReadMinMaxGamma(min, max) != -2)
+    ui.m_sliderGamma->blockSignals(true);
+    if (m_Camera.ReadMinMaxGamma(minExp, maxExp) != -2)
     {
         ui.m_sliderGamma->setEnabled(true);
-        ui.m_sliderGamma->setMinimum(min);
-        ui.m_sliderGamma->setMaximum(max);
+        ui.m_sliderGamma->setMinimum(minExp);
+        ui.m_sliderGamma->setMaximum(maxExp);
     }
     else
     {
         ui.m_sliderGamma->setEnabled(false);
     }
+    ui.m_sliderGamma->blockSignals(false);
 
     ui.m_sliderExposure->setDisabled(autoexposure && ui.m_sliderExposure->isEnabled());
     ui.m_sliderGain->setDisabled(autogain && ui.m_sliderGain->isEnabled());

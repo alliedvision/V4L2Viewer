@@ -1427,7 +1427,7 @@ int Camera::SetGamma(int32_t value)
     return SetExtControl(value, V4L2_CID_GAMMA, "SetGamma", "V4L2_CID_GAMMA", V4L2_CTRL_CLASS_USER);
 }
 
-int Camera::ReadMinMaxGamma(int32_t &min, int32_t &max)
+int Camera::ReadMinMaxGamma(int64_t &min, int64_t &max)
 {
     return ReadMinMax(min, max, V4L2_CID_GAMMA, "ReadMinMaxGamma", "V4L2_CID_GAMMA");
 }
