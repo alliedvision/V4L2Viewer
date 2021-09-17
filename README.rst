@@ -8,11 +8,11 @@ Additionally, you can use the viewer with any other CSI-2 camera or another boar
 
 Compatibility
 -------------
-Allied Vision V4L2 Viewer v1.0.0 was tested with:
+Allied Vision V4L2 Viewer v1.1.0 was tested with:
 
 -  NVIDIA Jetson Nano, AGX Xavier, Xavier NX, TX2
 -  JetPack 4.5.1 (L4T 32.5.1)
--  Allied Vision driver version 2.0.0, see https://github.com/alliedvision/linux_nvidia_jetson
+-  Allied Vision driver version 3.0.0, see https://github.com/alliedvision/linux_nvidia_jetson
 -  Alvium CSI-2 cameras with firmware version  0.6.0.35992
 
 
@@ -60,9 +60,6 @@ Known issues:
 
 -  Pixel format tp31 is displayed, but cannot be used.
 -  When auto (exposure or gain) is enabled, the manual values are not updated with the current value.
--  Exposure Abs (available via **All Features**) and the Exposure slider below the play button are not in sync.
-   To achieve exposure times > 1 s, use the Exposure feature on the **All Features** tab. Depending on the 
-   camera model, the maximum exposure time may be limited.
 -  Reverse X/Y in combination with a Bayer pixel format causes images with incorrect colors or an incorrect pixel format.
 -  Reverse X/Y cannot be set during image acquisition.
 -  Saving images during image acquisition is not always possible. 
