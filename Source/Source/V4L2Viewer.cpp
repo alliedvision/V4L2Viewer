@@ -38,18 +38,11 @@
 #include <ctime>
 #include <limits>
 #include <sstream>
+#include "Version.h"
 
 #define NUM_COLORS 3
 #define BIT_DEPTH 8
 
-#define MANUF_NAME_AV       "Allied Vision"
-#define APP_NAME            "Allied Vision V4L2 Viewer"
-#define APP_VERSION_MAJOR   1
-#define APP_VERSION_MINOR   0
-#define APP_VERSION_PATCH   0
-#ifndef SCM_REVISION
-#define SCM_REVISION        0
-#endif
 
 // CCI registers
 #define CCI_GCPRM_16R                               0x0010
@@ -303,9 +296,25 @@ void V4L2Viewer::changeEvent(QEvent *event)
     }
 }
 
-// The event handler for open / close camera
-void V4L2Viewer::OnOpenCloseButtonClicked()
+bool V4L2Viewer::OpenCloseCamera(QString deviceName)
 {
+    int nRow = [&] {
+        for(int i = 0; i < ui.m_CamerasListBox->count(); ++i) {
+            QString curDevName = dynamic_cast<CameraListCustomItem*>(ui.m_CamerasListBox->itemWidget(ui.m_CamerasListBox->item(i)))->GetCameraName();
+            QString curDeviceName = curDevName.right(curDevName.length() - curDevName.indexOf(':') - 2);
+            curDeviceName = curDeviceName.left(curDeviceName.indexOf('(') - 1);
+
+            if(curDeviceName == deviceName) {
+                return i;
+            }
+        }
+        return -1;
+    }();
+
+    if(nRow == -1) {
+        return false;
+    }
+
     if (false == m_bIsOpen)
     {
         // check if IO parameter are correct
@@ -317,107 +326,116 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
     QApplication::processEvents();
 
     int err;
-    int nRow = ui.m_CamerasListBox->currentRow();
 
-    if (-1 < nRow)
+    QString devName = dynamic_cast<CameraListCustomItem*>(ui.m_CamerasListBox->itemWidget(ui.m_CamerasListBox->item(nRow)))->GetCameraName();
+    if (false == m_bIsOpen)
     {
-        QString devName = dynamic_cast<CameraListCustomItem*>(ui.m_CamerasListBox->itemWidget(ui.m_CamerasListBox->item(nRow)))->GetCameraName();
-        QString deviceName = devName.right(devName.length() - devName.indexOf(':') - 2);
-
-        deviceName = deviceName.left(deviceName.indexOf('(') - 1);
-
-        if (false == m_bIsOpen)
+        // Start
+        err = OpenAndSetupCamera(deviceName);
+        // Set up Qt image
+        if (0 == err)
         {
-            // Start
-            err = OpenAndSetupCamera(m_cameras[nRow], deviceName);
-            // Set up Qt image
-            if (0 == err)
-            {
-                ui.m_ImageControlFrame->setEnabled(true);
-                GetImageInformation();
-                // Set auto framerate to on always when camera is opened
-                ui.m_chkFrameRateAuto->setChecked(true);
-                ui.m_edFrameRate->setText(QString::number(DEFAULT_FRAME_RATE));
-                OnCheckFrameRateAutoClicked();
-                SetTitleText();
-                ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
-                CameraListCustomItem *newItem = new CameraListCustomItem(devName, this);
-                QString devInfo = GetDeviceInfo();
-                newItem->SetCameraInformation(devInfo);
-                ui.m_CamerasListBox->item(nRow)->setSizeHint(newItem->sizeHint());
-                ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
-                ui.m_Splitter1->setSizes(QList<int>{0,1});
-                ui.m_camerasListCheckBox->setChecked(false);
-                ui.m_ImageView->SetZoomAllowed(true);
-                ui.m_FlipHorizontalCheckBox->setEnabled(true);
-                ui.m_FlipVerticalCheckBox->setEnabled(true);
-                ui.m_DisplayImagesCheckBox->setEnabled(true);
-                ui.m_SaveImageButton->setEnabled(true);
-            }
-            else
-                CloseCamera(m_cameras[nRow]);
-
-            m_bIsOpen = (0 == err);
-        }
-        else
-        {
-            m_bIsOpen = false;
-
-            // Stop
-            if (true == m_bIsStreaming)
-            {
-                OnStopButtonClicked();
-            }
-
-            ui.m_ImageView->SetScaleFactorToDefault();
-            ui.m_ImageView->SetZoomAllowed(false);
-
-            ui.m_FlipHorizontalCheckBox->setEnabled(false);
-            ui.m_FlipVerticalCheckBox->setEnabled(false);
-            ui.m_DisplayImagesCheckBox->setEnabled(false);
-            ui.m_SaveImageButton->setEnabled(false);
-
-            err = CloseCamera(m_cameras[nRow]);
-            if (0 == err)
-            {
-                ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
-                CameraListCustomItem *newItem = new CameraListCustomItem(devName, this);
-                ui.m_CamerasListBox->item(nRow)->setSizeHint(newItem->sizeHint());
-                ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
-            }
-
-            m_pEnumerationControlWidget->RemoveElements();
-            ui.m_allFeaturesDockWidget->hide();
-
+            ui.m_ImageControlFrame->setEnabled(true);
+            GetImageInformation();
+            // Set auto framerate to on always when camera is opened
+            ui.m_chkFrameRateAuto->setChecked(true);
+            ui.m_edFrameRate->setText(QString::number(DEFAULT_FRAME_RATE));
+            OnCheckFrameRateAutoClicked();
             SetTitleText();
-
-            ui.m_ImageControlFrame->setEnabled(false);
-
-            ui.m_ZoomFitButton->setChecked(false);
-            m_bIsImageFitByFirstImage = false;
-
-            ui.m_FrameIdLabel->setText("FrameID: -");
-            ui.m_FramesPerSecondLabel->setText("- fps");
-        }
-
-        if (false == m_bIsOpen)
-        {
-            ui.m_OpenCloseButton->setText(QString(tr("Open Camera")));
+            ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
+            CameraListCustomItem *newItem = new CameraListCustomItem(devName, this);
+            QString devInfo = GetDeviceInfo();
+            newItem->SetCameraInformation(devInfo);
+            ui.m_CamerasListBox->item(nRow)->setSizeHint(newItem->sizeHint());
+            ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
+            ui.m_Splitter1->setSizes(QList<int>{0,1});
+            ui.m_camerasListCheckBox->setChecked(false);
+            ui.m_ImageView->SetZoomAllowed(true);
+            ui.m_FlipHorizontalCheckBox->setEnabled(true);
+            ui.m_FlipVerticalCheckBox->setEnabled(true);
+            ui.m_DisplayImagesCheckBox->setEnabled(true);
+            ui.m_SaveImageButton->setEnabled(true);
         }
         else
+            CloseCamera(m_cameras[nRow]);
+
+        m_bIsOpen = (0 == err);
+    }
+    else
+    {
+        m_bIsOpen = false;
+
+        // Stop
+        if (true == m_bIsStreaming)
         {
-            ui.m_OpenCloseButton->setText(QString(tr("Close Camera")));
+            OnStopButtonClicked();
         }
 
-        UpdateViewerLayout();
-        UpdateZoomButtons();
+        ui.m_ImageView->SetScaleFactorToDefault();
+        ui.m_ImageView->SetZoomAllowed(false);
+
+        ui.m_FlipHorizontalCheckBox->setEnabled(false);
+        ui.m_FlipVerticalCheckBox->setEnabled(false);
+        ui.m_DisplayImagesCheckBox->setEnabled(false);
+        ui.m_SaveImageButton->setEnabled(false);
+
+        err = CloseCamera(m_cameras[nRow]);
+        if (0 == err)
+        {
+            ui.m_CamerasListBox->removeItemWidget(ui.m_CamerasListBox->item(nRow));
+            CameraListCustomItem *newItem = new CameraListCustomItem(devName, this);
+            ui.m_CamerasListBox->item(nRow)->setSizeHint(newItem->sizeHint());
+            ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
+        }
+
+        m_pEnumerationControlWidget->RemoveElements();
+        ui.m_allFeaturesDockWidget->hide();
+
+        SetTitleText();
+
+        ui.m_ImageControlFrame->setEnabled(false);
+
+        ui.m_ZoomFitButton->setChecked(false);
+        m_bIsImageFitByFirstImage = false;
+
+        ui.m_FrameIdLabel->setText("FrameID: -");
+        ui.m_FramesPerSecondLabel->setText("- fps");
     }
 
+    if (false == m_bIsOpen)
+    {
+        ui.m_OpenCloseButton->setText(QString(tr("Open Camera")));
+    }
+    else
+    {
+        ui.m_OpenCloseButton->setText(QString(tr("Close Camera")));
+    }
+
+    UpdateViewerLayout();
+    UpdateZoomButtons();
+
     ui.m_OpenCloseButton->setEnabled( 0 <= m_cameras.size() || m_bIsOpen );
+
+    return m_bIsOpen;
 }
 
-// The event handler for starting
-void V4L2Viewer::OnStartButtonClicked()
+// The event handler for open / close camera
+void V4L2Viewer::OnOpenCloseButtonClicked()
+{
+    int nRow = ui.m_CamerasListBox->currentRow();
+    if (-1 == nRow)
+    {
+        return;
+    }
+
+    QString devName = dynamic_cast<CameraListCustomItem*>(ui.m_CamerasListBox->itemWidget(ui.m_CamerasListBox->item(nRow)))->GetCameraName();
+    QString deviceName = devName.right(devName.length() - devName.indexOf(':') - 2);
+    deviceName = deviceName.left(deviceName.indexOf('(') - 1);
+
+    OpenCloseCamera(deviceName);
+}
+
+void V4L2Viewer::StartStream()
 {
     uint32_t payloadSize = 0;
     uint32_t width = 0;
@@ -435,6 +453,13 @@ void V4L2Viewer::OnStartButtonClicked()
     if (result == 0)
         StartStreaming(pixelFormat, payloadSize, width, height, bytesPerLine);
 }
+
+// The event handler for starting
+void V4L2Viewer::OnStartButtonClicked()
+{
+    StartStream();
+}
+
 
 void V4L2Viewer::OnCameraPixelFormat(const QString& pixelFormat)
 {
@@ -1051,7 +1076,7 @@ void V4L2Viewer::UpdateZoomButtons()
 }
 
 // Open/Close the camera
-int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName)
+int V4L2Viewer::OpenAndSetupCamera(const QString &deviceName)
 {
     int err = 0;
 

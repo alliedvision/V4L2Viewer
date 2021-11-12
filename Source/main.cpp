@@ -18,12 +18,47 @@
 
 #include "V4L2Viewer.h"
 #include <QDebug>
+#include <iostream>
+#include "Version.h"
+#include "GitRevision.h"
 
 int main( int argc, char *argv[] )
 {
     QApplication a( argc, argv );
+    a.setApplicationVersion(QString("%1.%2.%3 (%4)")
+        .arg(APP_VERSION_MAJOR)
+        .arg(APP_VERSION_MINOR)
+        .arg(APP_VERSION_PATCH)
+        .arg(GIT_VERSION));
+
+    QCommandLineParser parser;
+    QCommandLineOption startOption(QStringList() << "s" << "stream",
+            QCoreApplication::translate("main", "Automatically start stream."));
+    parser.addOption(startOption);
+    QCommandLineOption deviceOption(QStringList() << "d" << "device",
+    QCoreApplication::translate("main", "Immediately open camera."),
+    QCoreApplication::translate("main", "camera"));
+    parser.addOption(deviceOption);
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    parser.process(a);
+
     Q_INIT_RESOURCE(V4L2Viewer);
     V4L2Viewer w;
     w.show();
+    if(parser.isSet(deviceOption)) {
+        QString deviceName = parser.value(deviceOption);
+        if(!w.OpenCloseCamera(deviceName)) {
+            std::cerr << "Failed to open camera " << deviceName.toStdString() << std::endl;
+            return -1;
+        }
+        if(parser.isSet(startOption)) {
+            w.StartStream();
+        }
+    } else if(parser.isSet(startOption)) {
+        std::cerr << "Cannot start streaming without a device" << std::endl;
+        return -1;
+    }
     return a.exec();
 }
