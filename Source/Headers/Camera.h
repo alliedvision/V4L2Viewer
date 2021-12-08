@@ -25,6 +25,9 @@
 
 #include <QObject>
 #include <QMutex>
+#include <QString>
+#include <QVector>
+#include <map>
 #include <vector>
 
 
@@ -52,7 +55,7 @@ public:
     //
     // Returns:
     // (int) - result of the opening
-    int OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,
+    int OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bool blockingMode, IO_METHOD_TYPE ioMethodType,
                    bool v4l2TryFmt);
     // This function simply closes the opened device
     //
@@ -69,6 +72,16 @@ public:
     // Returns:
     // (int) - result of the discovery stop
     int DeviceDiscoveryStop();
+    // This function starts discover of the sub-devices
+    //
+    // Returns:
+    // (int) - result of the discovery start
+    int SubDeviceDiscoveryStart();
+    // This function stops discover of the sub-devices
+    //
+    // Returns:
+    // (int) - result of the discovery stop
+    int SubDeviceDiscoveryStop();
 
     // This function starts streaming from the camera
     //
@@ -407,6 +420,7 @@ public:
     // it reads control's value using ext approach
     //
     // Parameters:
+    // [in] (int) fileDescriptor - the file descriptor to read from
     // [in] (uint32_t &) value - new value
     // [in] (uint32_t) controlID - controlID
     // [in] (const char *) functionName - name of the function (used in logger)
@@ -415,7 +429,7 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadExtControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int ReadExtControl(int fileDescriptor, uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
     // This function is used by all of the controls in the application,
     // it sets control's value using ext approach
@@ -434,6 +448,7 @@ public:
     // it reads control's value using ext approach
     //
     // Parameters:
+    // [in] (int) fileDescriptor - the file descriptor to read from
     // [in] (int32_t &) value - new value
     // [in] (int32_t) controlID - controlID
     // [in] (const char *) functionName - name of the function (used in logger)
@@ -442,7 +457,7 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int ReadExtControl(int fileDescriptor, int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
     // This function is used by all of the controls in the application,
     // it sets control's value using ext approach
@@ -461,6 +476,7 @@ public:
     // it reads control's value using ext approach
     //
     // Parameters:
+    // [in] (int) fileDescriptor - the file descriptor to read from
     // [in] (uint64_t &) value - new value
     // [in] (uint32_t) controlID - controlID
     // [in] (const char *) functionName - name of the function (used in logger)
@@ -469,7 +485,25 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadExtControl(uint64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int ReadExtControl(int fileDescriptor, uint64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+
+    // This function is used by all of the controls in the application,
+    // it reads control's value using ext approach
+    //
+    // Parameters:
+    // [in] (T &) value - new value
+    // [in] (uint32_t) controlID - controlID
+    // [in] (const char *) functionName - name of the function (used in logger)
+    // [in] (const char *) controlName - name of the control (used in logger)
+    // [in] (uint32_t) controlClass - class of the control
+    //
+    // Returns:
+    // (int) - result of the reading
+    template<typename T>
+    int ReadExtControl(T &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass)
+    {
+        return ReadExtControl(m_ControlIdToFileDescriptorMap[controlID], value, controlID, functionName, controlName, controlClass);
+    }
 
     // This function is used by all of the controls in the application,
     // it sets control's value using ext approach
@@ -488,6 +522,7 @@ public:
     // it reads control's value using ext approach
     //
     // Parameters:
+    // [in] (int) fileDescriptor - the file descriptor to read from
     // [in] (int64_t &) value - new value
     // [in] (int32_t) controlID - controlID
     // [in] (const char *) functionName - name of the function (used in logger)
@@ -496,7 +531,7 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadExtControl(int64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int ReadExtControl(int fileDescriptor, int64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
     // This function reads min and max of the given control
     //
@@ -687,6 +722,14 @@ public:
     // Returns:
     // (int) - result of the operation
     int GetCameraCapabilities(std::string &strText);
+    // This function returns sub-device capabilities
+    //
+    // Parameters:
+    // [in] (std::string &) strText - sub-device capabilities
+    //
+    // Returns:
+    // (int) - result of the operation
+    int GetSubDevicesCapabilities(std::string &strText);
 
     // This function returns driver stream statistics
     //
@@ -733,39 +776,9 @@ public:
     // (std::string) - device serial number
     std::string getAvtDeviceSerialNumber();
 
-    // This function converts errors to string and returns it
-    //
-    // Parameters:
-    // [in] (int) errnumber - error number
-    //
-    // Returns:
-    // std::string - error
-    static std::string ConvertErrno2String(int errnumber);
-    // This function converts pixel format to string and returns it
-    //
-    // Parameters:
-    // [in] (int) pixelFormat - pixel format
-    //
-    // Returns:
-    // std::string - pixelFormat
-    static std::string ConvertPixelFormat2String(int pixelFormat);
-    // This function converts pixel format to enum string and returns it
-    //
-    // Parameters:
-    // [in] (int) pixelFormat - pixel format
-    //
-    // Returns:
-    // std::string - enum pixelFormat
-    static std::string ConvertPixelFormat2EnumString(int pixelFormat);
-    // This function converts control id to string and returns it
-    //
-    // Parameters:
-    // [in] (int) controlID - control id
-    //
-    // Returns:
-    // std::string - control id
-    static std::string ConvertControlID2String(uint32_t controlID);
 
+private:
+    void QueryControls(int fd, std::string const& name);
 
 public slots:
     // This slot function passes gain value from a thread
@@ -824,14 +837,18 @@ public slots:
     void SetSliderEnumerationControlValue(int32_t id, int64_t val);
 
 private:
-    std::string         m_DeviceName;
-    int                 m_nFileDescriptor;
-    bool                m_BlockingMode;
-    bool                m_ShowFrames;
-    bool                m_UseV4L2TryFmt;
-    bool                m_Recording;
-    bool                m_IsAvtCamera;
-    QMutex              m_ReadExtControlMutex;
+    std::string                  m_DeviceName;
+    int                          m_DeviceFileDescriptor;
+    std::vector<int>             m_SubDeviceFileDescriptors;
+    std::map<uint32_t, int>      m_ControlIdToFileDescriptorMap;
+    bool                         m_BlockingMode;
+    bool                         m_ShowFrames;
+    bool                         m_UseV4L2TryFmt;
+    bool                         m_Recording;
+    bool                         m_IsAvtCamera;
+    QMutex                       m_ReadExtControlMutex;
+    v4l2_buf_type                m_DeviceBufferType;
+    std::map<int, v4l2_buf_type> m_SubDeviceBufferTypes;
 
     AutoReader          *m_pAutoExposureReader;
     AutoReader          *m_pAutoGainReader;
@@ -848,6 +865,8 @@ private:
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
     void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);
+    // The sub-device list changed signal that passes the new camera and the its state directly
+    void OnSubDeviceListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);
     // Event will be called when a frame is processed by the internal thread and ready to show
     void OnCameraFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
     // Event will be called when a frame ID is processed by the internal thread and ready to show
@@ -888,6 +907,8 @@ signals:
 private slots:
     // The event handler to set or remove devices
     void OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &);
+    // The event handler to set or remove sub-devices
+    void OnSubDeviceListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &);
     // The event handler to show the processed frame
     void OnFrameReady(const QImage &image, const unsigned long long &frameId);
     // The event handler to show the processed frame ID

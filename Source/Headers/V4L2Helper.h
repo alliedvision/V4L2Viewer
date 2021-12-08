@@ -26,6 +26,22 @@
 namespace v4l2helper
 {
 
+// This function converts errors to string and returns it
+//
+// Parameters:
+// [in] (int) errnumber - error number
+//
+// Returns:
+// std::string - error
+std::string ConvertErrno2String(int errnumber);
+// This function converts pixel format to string and returns it
+//
+// Parameters:
+// [in] (int) pixelFormat - pixel format
+//
+// Returns:
+// std::string - pixelFormat
+std::string ConvertPixelFormat2String(int pixelFormat);
 // Function converts pixel format from integer to string
 //
 // Parameters:

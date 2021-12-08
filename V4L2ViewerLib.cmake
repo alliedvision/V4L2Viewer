@@ -37,6 +37,7 @@ list(APPEND HEADER_FILES
   ${HEADERS_PATH}/MemoryHelper.h
   ${HEADERS_PATH}/MyFrame.h
   ${HEADERS_PATH}/MyFrameQueue.h
+  ${HEADERS_PATH}/SelectSubDeviceDialog.h
   ${HEADERS_PATH}/Thread.h
   ${HEADERS_PATH}/V4L2Helper.h
   ${HEADERS_PATH}/V4L2Viewer.h
@@ -70,6 +71,7 @@ list(APPEND SOURCE_FILES
   ${SOURCES_PATH}/Logger.cpp
   ${SOURCES_PATH}/MyFrame.cpp
   ${SOURCES_PATH}/MyFrameQueue.cpp
+  ${SOURCES_PATH}/SelectSubDeviceDialog.cpp
   ${SOURCES_PATH}/Thread.cpp
   ${SOURCES_PATH}/V4L2Helper.cpp
   ${SOURCES_PATH}/V4L2Viewer.cpp

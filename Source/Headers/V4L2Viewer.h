@@ -70,6 +70,8 @@ private:
     Ui::V4L2ViewerClass ui;
     // A list of known camera IDs
     std::vector<uint32_t> m_cameras;
+    // A list of known sub-devices
+    QVector<QString> m_SubDevices;
     // The state of the camera (opened/closed)
     bool m_bIsOpen;
     // The current streaming state
@@ -125,7 +127,7 @@ private:
     //
     // Returns:
     // (int) result of open/close/setup camera
-    int OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName);
+    int OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName, const QVector<QString>& subDevices);
     // This function closes the camera
     //
     // Parameters:
@@ -190,6 +192,8 @@ private slots:
     void OnOpenCloseButtonClicked();
     // The event handler for the camera list changed event
     void OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info);
+    // The event handler for the sub-device list changed event
+    void OnSubDeviceListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info);
     // The event handler for starting acquisition
     void OnStartButtonClicked();
     // The event handler for stopping acquisition

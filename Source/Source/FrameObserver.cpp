@@ -72,6 +72,7 @@ FrameObserver::FrameObserver(bool showFrames)
     : m_nReceivedFramesCounter(0)
     , m_nRenderedFramesCounter(0)
     , m_nFileDescriptor(0)
+    , m_BufferType(V4L2_BUF_TYPE_VIDEO_CAPTURE)
     , m_PixelFormat(0)
     , m_nWidth(0)
     , m_nHeight(0)
@@ -367,4 +368,10 @@ void FrameObserver::SwitchFrameTransfer2GUI(bool showFrames)
 void FrameObserver::setFileDescriptor(int fd)
 {
     m_nFileDescriptor = fd;
+}
+
+
+void FrameObserver::setBufferType(v4l2_buf_type bufferType)
+{
+    m_BufferType = bufferType;
 }

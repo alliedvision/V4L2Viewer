@@ -67,6 +67,7 @@ void CameraObserver::run()
     while (!m_bAbort)
     {
         CheckDevices();
+        CheckSubDevices();
 
         QThread::msleep(1000);
     }
@@ -85,36 +86,44 @@ int CameraObserver::CheckDevices()
 
         if ((fileDiscriptor = open(deviceName.toStdString().c_str(), O_RDWR)) == -1)
         {
-            Logger::LogEx("Camera::DeviceDiscoveryStart open %s failed", deviceName.toLatin1().data());
-            emit OnCameraError_Signal("DeviceDiscoveryStart: open " + deviceName + " failed");
+            Logger::LogEx("CameraObserver::CheckDevices open %s failed", deviceName.toLatin1().data());
+            emit OnCameraError_Signal("CameraObserver::CheckDevices: open " + deviceName + " failed");
         }
         else
         {
             v4l2_capability cap;
 
-            Logger::LogEx("Camera::DeviceDiscoveryStart open %s found", deviceName.toLatin1().data());
-            emit OnCameraMessage_Signal("DeviceDiscoveryStart: open " + deviceName + " found");
+            Logger::LogEx("CameraObserver::CheckDevices open %s found", deviceName.toLatin1().data());
+            emit OnCameraMessage_Signal("CameraObserver::CheckDevices: open " + deviceName + " found");
 
             // query device capabilities
             if (-1 == iohelper::xioctl(fileDiscriptor, VIDIOC_QUERYCAP, &cap))
             {
-                Logger::LogEx("Camera::DeviceDiscoveryStart %s is no V4L2 device", deviceName.toLatin1().data());
-                emit OnCameraError_Signal("DeviceDiscoveryStart: " + deviceName + " is no V4L2 device");
+                Logger::LogEx("CameraObserver::CheckDevices %s is no V4L2 device", deviceName.toLatin1().data());
+                emit OnCameraError_Signal("CameraObserver::CheckDevices: " + deviceName + " is no V4L2 device");
             }
             else
             {
-                if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
+                if(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)
                 {
-                    Logger::LogEx("Camera::DeviceDiscoveryStart %s is no video capture device", deviceName.toLatin1().data());
-                    emit OnCameraError_Signal("DeviceDiscoveryStart: " + deviceName + " is no video capture device");
+                    Logger::LogEx("CameraObserver::CheckDevices %s is a single-plane video capture device", deviceName.toLatin1().data());
+                }
+                else if(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE)
+                {
+                    Logger::LogEx("CameraObserver::CheckDevices %s is a multi-plane video capture device", deviceName.toLatin1().data());
+                }
+                else
+                {
+                    Logger::LogEx("CameraObserver::CheckDevices %s is no video capture device", deviceName.toLatin1().data());
+                    emit OnCameraError_Signal("CameraObserver::CheckDevices: " + deviceName + " is no video capture device");
                 }
             }
 
 
             if (-1 == close(fileDiscriptor))
             {
-                Logger::LogEx("Camera::DeviceDiscoveryStart close %s failed", deviceName.toLatin1().data());
-                emit OnCameraError_Signal("DeviceDiscoveryStart: close " + deviceName + " failed");
+                Logger::LogEx("CameraObserver::CheckDevices close %s failed", deviceName.toLatin1().data());
+                emit OnCameraError_Signal("CameraObserver::CheckDevices: close " + deviceName + " failed");
             }
             else
             {
@@ -122,8 +131,8 @@ int CameraObserver::CheckDevices()
 
                 deviceCount++;
 
-                Logger::LogEx("Camera::DeviceDiscoveryStart close %s OK", deviceName.toLatin1().data());
-                emit OnCameraMessage_Signal("DeviceDiscoveryStart: close " + deviceName + " OK");
+                Logger::LogEx("CameraObserver::CheckDevices close %s OK", deviceName.toLatin1().data());
+                emit OnCameraMessage_Signal("CameraObserver::CheckDevices: close " + deviceName + " OK");
             }
         }
     }
@@ -210,5 +219,146 @@ void CameraObserver::OnMessage(const char *text, void *pPrivateData)
     if (!m_bTerminate)
     {
         Logger::LogEx("CameraObserver: message = '%s'", text);
+    }
+}
+
+int CameraObserver::CheckSubDevices()
+{
+    uint32_t subDeviceCount = 0;
+    QString subDeviceName;
+    int fileDiscriptor = -1;
+    std::map<int, std::string>    subDeviceList;
+
+    do
+    {
+        subDeviceName.sprintf("/dev/video%d", subDeviceCount);
+
+        if ((fileDiscriptor = open(subDeviceName.toStdString().c_str(), O_RDWR)) == -1)
+        {
+            Logger::LogEx("CameraObserver::CheckSubDevices open %s failed", subDeviceName.toLatin1().data());
+            emit OnSubDeviceError_Signal("CameraObserver::CheckSubDevices: open " + subDeviceName + " failed");
+        }
+        else
+        {
+            v4l2_capability cap;
+
+            Logger::LogEx("CameraObserver::CheckSubDevices open %s found", subDeviceName.toLatin1().data());
+            emit OnCameraMessage_Signal("CameraObserver::CheckSubDevices: open " + subDeviceName + " found");
+
+            // query device capabilities
+            if (-1 == iohelper::xioctl(fileDiscriptor, VIDIOC_QUERYCAP, &cap))
+            {
+                Logger::LogEx("CameraObserver::CheckSubDevices %s is no V4L2 device", subDeviceName.toLatin1().data());
+                emit OnSubDeviceError_Signal("CameraObserver::CheckSubDevices: " + subDeviceName + " is no V4L2 device");
+            }
+            else
+            {
+                if(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)
+                {
+                    Logger::LogEx("CameraObserver::CheckSubDevices %s is a single-plane video capture device", subDeviceName.toLatin1().data());
+                }
+                else if(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE)
+                {
+                    Logger::LogEx("CameraObserver::CheckSubDevices %s is a multi-plane video capture device", subDeviceName.toLatin1().data());
+                }
+                else
+                {
+                    Logger::LogEx("CameraObserver::CheckSubDevices %s is no video capture device", subDeviceName.toLatin1().data());
+                    emit OnSubDeviceError_Signal("CameraObserver::CheckSubDevices: " + subDeviceName + " is no video capture device");
+                }
+            }
+
+
+            if (-1 == close(fileDiscriptor))
+            {
+                Logger::LogEx("CameraObserver::CheckSubDevices close %s failed", subDeviceName.toLatin1().data());
+                emit OnCameraError_Signal("CameraObserver::CheckSubDevices: close " + subDeviceName + " failed");
+            }
+            else
+            {
+                subDeviceList[subDeviceCount] = subDeviceName.toStdString();
+
+                subDeviceCount++;
+
+                Logger::LogEx("CameraObserver::CheckDevices close %s OK", subDeviceName.toLatin1().data());
+                emit OnSubDeviceMessage_Signal("CameraObserver::CheckDevices: close " + subDeviceName + " OK");
+            }
+        }
+    }
+    while(++subDeviceCount < MAX_DEVICE_COUNT);
+
+    for (unsigned int i=0; i<subDeviceList.size(); i++)
+    {
+        bool found = false;
+
+        for (unsigned int ii=0; ii<m_SubDeviceList.size(); ii++)
+        {
+            if (subDeviceList[i] == m_SubDeviceList[ii])
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            unsigned int ii = 0;
+            for (ii=0; ii<m_SubDeviceList.size(); ii++)
+            {
+                bool found = false;
+                for (std::map<int, std::string>::iterator iii=m_SubDeviceList.begin(); iii!=m_SubDeviceList.end(); iii++)
+                {
+                    if (iii->first == static_cast<int>(ii) )
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found == false)
+                    break;
+            }
+            m_SubDeviceList[ii] = subDeviceList[i].c_str();
+            emit OnSubDeviceListChanged_Signal(UpdateTriggerPluggedIn, 0, ii, m_SubDeviceList[ii].c_str(), "");
+        }
+    }
+
+    for (unsigned int i=0; i<m_SubDeviceList.size(); i++)
+    {
+        bool found = false;
+
+        for (unsigned int ii=0; ii<subDeviceList.size(); ii++)
+        {
+            if (subDeviceList[ii] == m_SubDeviceList[i])
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            m_SubDeviceList.erase(i);
+            emit OnSubDeviceListChanged_Signal(UpdateTriggerPluggedOut, 0, i, m_SubDeviceList[i].c_str(), "");
+        }
+    }
+
+    return 0;
+}
+
+// Callbacks
+
+void CameraObserver::OnSubDeviceReady(uint32_t cardNumber, uint64_t deviceID, const void *pPrivateData)
+{
+    if (!m_bTerminate)
+    {
+        emit OnSubDeviceListChanged_Signal(UpdateTriggerPluggedIn, cardNumber, deviceID, "", "");
+    }
+}
+
+void CameraObserver::OnSubDeviceRemoved(uint32_t cardNumber, uint64_t deviceID, const void *pPrivateData)
+{
+    if (!m_bTerminate)
+    {
+        emit OnSubDeviceListChanged_Signal(UpdateTriggerPluggedOut, cardNumber, deviceID, "", "");
     }
 }
