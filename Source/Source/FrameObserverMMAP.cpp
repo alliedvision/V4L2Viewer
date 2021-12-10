@@ -116,18 +116,18 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         {
             if (EINVAL == errno)
             {
-                Logger::LogEx("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_REQBUFS does not support memory map i/o");
+                LOG_EX("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_REQBUFS does not support memory map i/o");
             }
             else
             {
-                Logger::LogEx("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_REQBUFS errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                LOG_EX("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_REQBUFS errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
         else
         {
             base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
-            Logger::LogEx("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_REQBUFS OK");
+            LOG_EX("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_REQBUFS OK");
 
             // create local buffer container
             m_UserBufferContainerList.resize(bufferCount);
@@ -135,7 +135,7 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
             if (m_UserBufferContainerList.size() != bufferCount)
             {
                 m_UserBufferContainerList.resize(0);
-                Logger::LogEx("FrameObserverMMAP::CreateAllUserBuffer buffer container error");
+                LOG_EX("FrameObserverMMAP::CreateAllUserBuffer buffer container error");
                 return -1;
             }
 
@@ -152,16 +152,16 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
                 {
                     buf.m.planes = &planes[0];
                     buf.length = planes.size();
-                    Logger::LogEx("FrameObserverMMAP::CreateAllUserBuffer plane count=%d", buf.length);
+                    LOG_EX("FrameObserverMMAP::CreateAllUserBuffer plane count=%d", buf.length);
                 }
 
                 if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYBUF, &buf))
                 {
-                    Logger::LogEx("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_QUERYBUF errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                    LOG_EX("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_QUERYBUF errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
                     return -1;
                 }
 
-                Logger::LogEx("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_QUERYBUF MMAP OK length=%d", buf.length);
+                LOG_EX("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_QUERYBUF MMAP OK length=%d", buf.length);
 
                 UserBuffer* pTmpBuffer = new UserBuffer;
                 pTmpBuffer->nBufferlength = (m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE ? buf.m.planes[0].length : buf.length);
@@ -214,12 +214,12 @@ int FrameObserverMMAP::QueueAllUserBuffer()
 
         if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
         {
-            Logger::LogEx("FrameObserverMMAP::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed, errno=%d=%s", i, m_UserBufferContainerList[i]->pBuffer, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            LOG_EX("FrameObserverMMAP::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed, errno=%d=%s", i, m_UserBufferContainerList[i]->pBuffer, errno, v4l2helper::ConvertErrno2String(errno).c_str());
             return result;
         }
         else
         {
-            Logger::LogEx("FrameObserverMMAP::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
+            LOG_EX("FrameObserverMMAP::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
             result = 0;
         }
     }
@@ -251,7 +251,7 @@ int FrameObserverMMAP::QueueSingleUserBuffer(const int index)
         {
             if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
             {
-                Logger::LogEx("FrameObserverMMAP::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed, errno=%d=%s", index, m_UserBufferContainerList[index]->pBuffer, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                LOG_EX("FrameObserverMMAP::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed, errno=%d=%s", index, m_UserBufferContainerList[index]->pBuffer, errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
     }

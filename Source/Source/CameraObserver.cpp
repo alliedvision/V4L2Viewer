@@ -86,35 +86,35 @@ int CameraObserver::CheckDevices()
 
         if ((fileDiscriptor = open(deviceName.toStdString().c_str(), O_RDWR)) == -1)
         {
-            Logger::LogEx("CameraObserver::CheckDevices open %s failed", deviceName.toLatin1().data());
+            LOG_EX("CameraObserver::CheckDevices open %s failed", deviceName.toLatin1().data());
             emit OnCameraError_Signal("CameraObserver::CheckDevices: open " + deviceName + " failed");
         }
         else
         {
             v4l2_capability cap;
 
-            Logger::LogEx("CameraObserver::CheckDevices open %s found", deviceName.toLatin1().data());
+            LOG_EX("CameraObserver::CheckDevices open %s found", deviceName.toLatin1().data());
             emit OnCameraMessage_Signal("CameraObserver::CheckDevices: open " + deviceName + " found");
 
             // query device capabilities
             if (-1 == iohelper::xioctl(fileDiscriptor, VIDIOC_QUERYCAP, &cap))
             {
-                Logger::LogEx("CameraObserver::CheckDevices %s is no V4L2 device", deviceName.toLatin1().data());
+                LOG_EX("CameraObserver::CheckDevices %s is no V4L2 device", deviceName.toLatin1().data());
                 emit OnCameraError_Signal("CameraObserver::CheckDevices: " + deviceName + " is no V4L2 device");
             }
             else
             {
                 if(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)
                 {
-                    Logger::LogEx("CameraObserver::CheckDevices %s is a single-plane video capture device", deviceName.toLatin1().data());
+                    LOG_EX("CameraObserver::CheckDevices %s is a single-plane video capture device", deviceName.toLatin1().data());
                 }
                 else if(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE)
                 {
-                    Logger::LogEx("CameraObserver::CheckDevices %s is a multi-plane video capture device", deviceName.toLatin1().data());
+                    LOG_EX("CameraObserver::CheckDevices %s is a multi-plane video capture device", deviceName.toLatin1().data());
                 }
                 else
                 {
-                    Logger::LogEx("CameraObserver::CheckDevices %s is no video capture device", deviceName.toLatin1().data());
+                    LOG_EX("CameraObserver::CheckDevices %s is no video capture device", deviceName.toLatin1().data());
                     emit OnCameraError_Signal("CameraObserver::CheckDevices: " + deviceName + " is no video capture device");
                 }
             }
@@ -122,7 +122,7 @@ int CameraObserver::CheckDevices()
 
             if (-1 == close(fileDiscriptor))
             {
-                Logger::LogEx("CameraObserver::CheckDevices close %s failed", deviceName.toLatin1().data());
+                LOG_EX("CameraObserver::CheckDevices close %s failed", deviceName.toLatin1().data());
                 emit OnCameraError_Signal("CameraObserver::CheckDevices: close " + deviceName + " failed");
             }
             else
@@ -131,7 +131,7 @@ int CameraObserver::CheckDevices()
 
                 deviceCount++;
 
-                Logger::LogEx("CameraObserver::CheckDevices close %s OK", deviceName.toLatin1().data());
+                LOG_EX("CameraObserver::CheckDevices close %s OK", deviceName.toLatin1().data());
                 emit OnCameraMessage_Signal("CameraObserver::CheckDevices: close " + deviceName + " OK");
             }
         }
@@ -218,7 +218,7 @@ void CameraObserver::OnMessage(const char *text, void *pPrivateData)
 {
     if (!m_bTerminate)
     {
-        Logger::LogEx("CameraObserver: message = '%s'", text);
+        LOG_EX("CameraObserver: message = '%s'", text);
     }
 }
 
@@ -235,35 +235,35 @@ int CameraObserver::CheckSubDevices()
 
         if ((fileDiscriptor = open(subDeviceName.toStdString().c_str(), O_RDWR)) == -1)
         {
-            Logger::LogEx("CameraObserver::CheckSubDevices open %s failed", subDeviceName.toLatin1().data());
+            LOG_EX("CameraObserver::CheckSubDevices open %s failed", subDeviceName.toLatin1().data());
             emit OnSubDeviceError_Signal("CameraObserver::CheckSubDevices: open " + subDeviceName + " failed");
         }
         else
         {
             v4l2_capability cap;
 
-            Logger::LogEx("CameraObserver::CheckSubDevices open %s found", subDeviceName.toLatin1().data());
+            LOG_EX("CameraObserver::CheckSubDevices open %s found", subDeviceName.toLatin1().data());
             emit OnCameraMessage_Signal("CameraObserver::CheckSubDevices: open " + subDeviceName + " found");
 
             // query device capabilities
             if (-1 == iohelper::xioctl(fileDiscriptor, VIDIOC_QUERYCAP, &cap))
             {
-                Logger::LogEx("CameraObserver::CheckSubDevices %s is no V4L2 device", subDeviceName.toLatin1().data());
+                LOG_EX("CameraObserver::CheckSubDevices %s is no V4L2 device", subDeviceName.toLatin1().data());
                 emit OnSubDeviceError_Signal("CameraObserver::CheckSubDevices: " + subDeviceName + " is no V4L2 device");
             }
             else
             {
                 if(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)
                 {
-                    Logger::LogEx("CameraObserver::CheckSubDevices %s is a single-plane video capture device", subDeviceName.toLatin1().data());
+                    LOG_EX("CameraObserver::CheckSubDevices %s is a single-plane video capture device", subDeviceName.toLatin1().data());
                 }
                 else if(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE)
                 {
-                    Logger::LogEx("CameraObserver::CheckSubDevices %s is a multi-plane video capture device", subDeviceName.toLatin1().data());
+                    LOG_EX("CameraObserver::CheckSubDevices %s is a multi-plane video capture device", subDeviceName.toLatin1().data());
                 }
                 else
                 {
-                    Logger::LogEx("CameraObserver::CheckSubDevices %s is no video capture device", subDeviceName.toLatin1().data());
+                    LOG_EX("CameraObserver::CheckSubDevices %s is no video capture device", subDeviceName.toLatin1().data());
                     emit OnSubDeviceError_Signal("CameraObserver::CheckSubDevices: " + subDeviceName + " is no video capture device");
                 }
             }
@@ -271,7 +271,7 @@ int CameraObserver::CheckSubDevices()
 
             if (-1 == close(fileDiscriptor))
             {
-                Logger::LogEx("CameraObserver::CheckSubDevices close %s failed", subDeviceName.toLatin1().data());
+                LOG_EX("CameraObserver::CheckSubDevices close %s failed", subDeviceName.toLatin1().data());
                 emit OnCameraError_Signal("CameraObserver::CheckSubDevices: close " + subDeviceName + " failed");
             }
             else
@@ -280,7 +280,7 @@ int CameraObserver::CheckSubDevices()
 
                 subDeviceCount++;
 
-                Logger::LogEx("CameraObserver::CheckDevices close %s OK", subDeviceName.toLatin1().data());
+                LOG_EX("CameraObserver::CheckDevices close %s OK", subDeviceName.toLatin1().data());
                 emit OnSubDeviceMessage_Signal("CameraObserver::CheckDevices: close " + subDeviceName + " OK");
             }
         }

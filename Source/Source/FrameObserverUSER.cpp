@@ -101,25 +101,25 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         {
             if (EINVAL == errno)
             {
-                Logger::LogEx("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
+                LOG_EX("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
             }
             else
             {
-                Logger::LogEx("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                LOG_EX("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
         else
         {
             base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
-            Logger::LogEx("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS OK");
+            LOG_EX("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS OK");
 
             // create local buffer container
             m_UserBufferContainerList.resize(bufferCount);
 
             if (m_UserBufferContainerList.size() != bufferCount)
             {
-                Logger::LogEx("FrameObserverUSER::CreateAllUserBuffer buffer container error");
+                LOG_EX("FrameObserverUSER::CreateAllUserBuffer buffer container error");
                 return -1;
             }
 
@@ -138,7 +138,7 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
                 if (!pTmpBuffer->pBuffer)
                 {
                     delete pTmpBuffer;
-                    Logger::LogEx("FrameObserverUSER::CreateAllUserBuffer buffer creation error");
+                    LOG_EX("FrameObserverUSER::CreateAllUserBuffer buffer creation error");
                     m_UserBufferContainerList.resize(0);
                     return -1;
                 }
@@ -172,12 +172,12 @@ int FrameObserverUSER::QueueAllUserBuffer()
 
         if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
         {
-            Logger::LogEx("FrameObserverUSER::QueueAllUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed, errno=%d=%s", i, m_UserBufferContainerList[i]->pBuffer, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            LOG_EX("FrameObserverUSER::QueueAllUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed, errno=%d=%s", i, m_UserBufferContainerList[i]->pBuffer, errno, v4l2helper::ConvertErrno2String(errno).c_str());
             return result;
         }
         else
         {
-            Logger::LogEx("FrameObserverUSER::QueueAllUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
+            LOG_EX("FrameObserverUSER::QueueAllUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
             result = 0;
         }
     }
@@ -204,7 +204,7 @@ int FrameObserverUSER::QueueSingleUserBuffer(const int index)
         {
             if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
             {
-                Logger::LogEx("FrameObserverUSER::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
+                LOG_EX("FrameObserverUSER::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
             }
         }
     }

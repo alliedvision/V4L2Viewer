@@ -245,7 +245,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
                                                 "titlebar-close-icon: url(:/V4L2Viewer/Cross128.png);"
                                                 "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}");
 
-    Logger::LogEx(QString("V4L2Viewer git commit = %1").arg(GIT_VERSION).toStdString().c_str());
+    LOG_EX(QString("V4L2Viewer git commit = %1").arg(GIT_VERSION).toStdString().c_str());
 
     ui.m_MenuLang->menuAction()->setEnabled(false);
     ui.m_MenuLang->menuAction()->setVisible(false);
@@ -326,12 +326,12 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
     if(false == m_bIsOpen)
     {
-        Logger::LogEx("V4L2Viewer::OnOpenCloseButtonClicked: user will select sub-devices from list of size %d", m_SubDevices.size());
+        LOG_EX("V4L2Viewer::OnOpenCloseButtonClicked: user will select sub-devices from list of size %d", m_SubDevices.size());
 
         SelectSubDeviceDialog selectSubDeviceDialog(m_SubDevices, selectedSubDeviceList, this);
         selectSubDeviceDialog.exec();
 
-        Logger::LogEx("V4L2Viewer::OnOpenCloseButtonClicked: user selected %d sub-devices", selectedSubDeviceList.size());
+        LOG_EX("V4L2Viewer::OnOpenCloseButtonClicked: user selected %d sub-devices", selectedSubDeviceList.size());
     }
 
     if (-1 < nRow)
@@ -434,7 +434,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 // The event handler for starting
 void V4L2Viewer::OnStartButtonClicked()
 {
-    Logger::LogEx("V4L2Viewer::OnStartButtonClicked");
+    LOG_EX("V4L2Viewer::OnStartButtonClicked");
 
     uint32_t payloadSize = 0;
     uint32_t width = 0;
@@ -479,6 +479,7 @@ void V4L2Viewer::OnLanguageChange()
 
 void V4L2Viewer::OnUpdateAutoExposure(int32_t value)
 {
+    LOG_EX("V4L2Viewer::OnUpdateAutoExposure: updating displayed exposure text to %d", value);
     ui.m_edExposure->setText(QString::number(value));
     value = value/100000;
     int32_t result = GetSliderValueFromLog(value);
@@ -775,13 +776,13 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 
     QApplication::processEvents();
 
-    Logger::LogEx("V4L2Viewer::StartStreaming pixelFormat=%d,payloadSize=%d,width=%d,height=%d,bytesPerLine=%d", pixelFormat, payloadSize, width, height, bytesPerLine);
+    LOG_EX("V4L2Viewer::StartStreaming pixelFormat=%d,payloadSize=%d,width=%d,height=%d,bytesPerLine=%d", pixelFormat, payloadSize, width, height, bytesPerLine);
 
     // start streaming
 
     if (m_Camera.CreateUserBuffer(m_NUMBER_OF_USED_FRAMES, payloadSize) == 0)
     {
-        Logger::LogEx("V4L2Viewer::StartStreaming streaming will be started");
+        LOG_EX("V4L2Viewer::StartStreaming streaming will be started");
         m_Camera.QueueAllUserBuffer();
         m_Camera.StartStreaming();
         err = m_Camera.StartStreamChannel(pixelFormat,

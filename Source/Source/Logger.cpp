@@ -18,6 +18,8 @@
 
 #include "Logger.h"
 
+#include <sstream>
+
 QSharedPointer<base::BaseLogger> Logger::m_pBaseLogger;
 bool Logger::m_LogSwitch = false;
 
@@ -44,9 +46,15 @@ void Logger::Log(const std::string &message)
         m_pBaseLogger->Log(message);
 }
 
-void Logger::LogEx(const char *text, ...)
+void Logger::LogEx(const char *filename, int line, const char *text, ...)
 {
-    std::string output;
+    std::stringstream prefixStream;
+    if(line > -1)
+    {
+        prefixStream << filename << ":" << line << ": ";
+    }
+
+    std::string output = prefixStream.str();
     va_list args;
     char *string;
     int sizeText = 0;
@@ -58,13 +66,13 @@ void Logger::LogEx(const char *text, ...)
     string = (char *)malloc(sizeof(char)*sizeText);
 
     if (NULL == string)
-        output = "<conversion failed>";
+        output += "<conversion failed>";
     else
     {
         va_start(args, text);
         vsnprintf(string, sizeof(char)*sizeText, text, args);
         va_end(args);
-        output = string;
+        output += string;
         free(string);
     }
 
@@ -94,11 +102,11 @@ void Logger::LogSwitch(bool flag)
     if (flag)
     {
         m_LogSwitch = true;
-        LogEx("Logger switched on");
+        LogEx("", -1, "Logger switched on");
     }
     else
     {
-        LogEx("Logger switched off");
+        LogEx("", -1, "Logger switched off");
         m_LogSwitch = false;
     }
 }
