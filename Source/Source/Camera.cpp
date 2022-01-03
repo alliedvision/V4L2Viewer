@@ -1735,9 +1735,9 @@ int Camera::SetFrameRate(uint32_t numerator, uint32_t denominator)
     return result;
 }
 
-int Camera::ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint32_t &height)
+int Camera::ReadCrop(int32_t &xOffset, int32_t &yOffset, uint32_t &width, uint32_t &height)
 {
-    int result = -1;
+    int result = -2;
 
     std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
     allFileDescriptors.push_back(m_DeviceFileDescriptor);
@@ -1762,15 +1762,13 @@ int Camera::ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint
         else
         {
             LOG_EX("Camera::ReadCrop VIDIOC_G_CROP %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
-
-            result = -2;
         }
     }
 
     return result;
 }
 
-int Camera::SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t height)
+int Camera::SetCrop(int32_t xOffset, int32_t yOffset, uint32_t width, uint32_t height)
 {
     int result = -1;
 

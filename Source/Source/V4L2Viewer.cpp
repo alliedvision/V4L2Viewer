@@ -1332,8 +1332,8 @@ void V4L2Viewer::OnFrameRate()
 
 void V4L2Viewer::OnCropXOffset()
 {
-    uint32_t xOffset;
-    uint32_t yOffset;
+    int32_t xOffset;
+    int32_t yOffset;
     uint32_t width;
     uint32_t height;
 
@@ -1358,8 +1358,8 @@ void V4L2Viewer::OnCropXOffset()
 
 void V4L2Viewer::OnCropYOffset()
 {
-    uint32_t xOffset;
-    uint32_t yOffset;
+    int32_t xOffset;
+    int32_t yOffset;
     uint32_t width;
     uint32_t height;
 
@@ -1383,8 +1383,8 @@ void V4L2Viewer::OnCropYOffset()
 
 void V4L2Viewer::OnCropWidth()
 {
-    uint32_t xOffset;
-    uint32_t yOffset;
+    int32_t xOffset;
+    int32_t yOffset;
     uint32_t width;
     uint32_t height;
 
@@ -1410,8 +1410,8 @@ void V4L2Viewer::OnCropWidth()
 
 void V4L2Viewer::OnCropHeight()
 {
-    uint32_t xOffset;
-    uint32_t yOffset;
+    int32_t xOffset;
+    int32_t yOffset;
     uint32_t width;
     uint32_t height;
     if (m_Camera.ReadCrop(xOffset, yOffset, width, height) == 0)
@@ -1445,8 +1445,8 @@ void V4L2Viewer::GetImageInformation()
 {
     uint32_t width = 0;
     uint32_t height = 0;
-    uint32_t xOffset = 0;
-    uint32_t yOffset = 0;
+    int32_t xOffset = 0;
+    int32_t yOffset = 0;
     int64_t gain = 0;
     int32_t min = 0;
     int32_t max = 0;

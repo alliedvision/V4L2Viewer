@@ -508,25 +508,25 @@ public:
     // This function reads crop
     //
     // Parameters:
-    // [in] (uint32_t &) xOffset
-    // [in] (uint32_t &) yOffset
+    // [in] (int32_t &) xOffset
+    // [in] (int32_t &) yOffset
     // [in] (uint32_t &) width
     // [in] (uint32_t &) height
     //
     // Returns
     // (int) - result of the reading
-    int ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint32_t &height);
+    int ReadCrop(int32_t &xOffset, int32_t &yOffset, uint32_t &width, uint32_t &height);
     // This function sets crop
     //
     // Parameters:
-    // [in] (uint32_t) xOffset
-    // [in] (uint32_t) yOffset
+    // [in] (int32_t) xOffset
+    // [in] (int32_t) yOffset
     // [in] (uint32_t) width
     // [in] (uint32_t) height
     //
     // Returns
     // (int) - result of the setting
-    int SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t height);
+    int SetCrop(int32_t xOffset, int32_t yOffset, uint32_t width, uint32_t height);
 
     // This function starts streaming from the camera
     //
