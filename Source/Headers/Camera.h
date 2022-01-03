@@ -37,6 +37,8 @@ enum IO_METHOD_TYPE
     IO_METHOD_USERPTR,
 };
 
+class IPixFormat;
+
 class Camera : public QObject
 {
     Q_OBJECT
@@ -415,9 +417,9 @@ public:
     //
     // Returns:
     // (int) - result of the setting
-    int SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-    // This function is used by all of the controls in the application,
-    // it reads control's value using ext approach
+    template<typename T>
+    int SetExtControl(T value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    // This function is used to determine which file descriptors have access to which controls, and is called only when the camera is opened.
     //
     // Parameters:
     // [in] (int) fileDescriptor - the file descriptor to read from
@@ -429,63 +431,8 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadExtControl(int fileDescriptor, uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-
-    // This function is used by all of the controls in the application,
-    // it sets control's value using ext approach
-    //
-    // Parameters:
-    // [in] (int32_t) value - new value
-    // [in] (int32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-    // This function is used by all of the controls in the application,
-    // it reads control's value using ext approach
-    //
-    // Parameters:
-    // [in] (int) fileDescriptor - the file descriptor to read from
-    // [in] (int32_t &) value - new value
-    // [in] (int32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExtControl(int fileDescriptor, int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-
-    // This function is used by all of the controls in the application,
-    // it sets control's value using ext approach
-    //
-    // Parameters:
-    // [in] (uint64_t) value - new value
-    // [in] (uint32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExtControl(uint64_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-    // This function is used by all of the controls in the application,
-    // it reads control's value using ext approach
-    //
-    // Parameters:
-    // [in] (int) fileDescriptor - the file descriptor to read from
-    // [in] (uint64_t &) value - new value
-    // [in] (uint32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExtControl(int fileDescriptor, uint64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    template<typename T>
+    int ReadExtControl(int fileDescriptor, T &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
     // This function is used by all of the controls in the application,
     // it reads control's value using ext approach
@@ -500,38 +447,7 @@ public:
     // Returns:
     // (int) - result of the reading
     template<typename T>
-    int ReadExtControl(T &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass)
-    {
-        return ReadExtControl(m_ControlIdToFileDescriptorMap[controlID], value, controlID, functionName, controlName, controlClass);
-    }
-
-    // This function is used by all of the controls in the application,
-    // it sets control's value using ext approach
-    //
-    // Parameters:
-    // [in] (int64_t) value - new value
-    // [in] (int32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExtControl(int64_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-    // This function is used by all of the controls in the application,
-    // it reads control's value using ext approach
-    //
-    // Parameters:
-    // [in] (int) fileDescriptor - the file descriptor to read from
-    // [in] (int64_t &) value - new value
-    // [in] (int32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExtControl(int fileDescriptor, int64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    int ReadExtControl(T &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
     // This function reads min and max of the given control
     //
@@ -544,31 +460,8 @@ public:
     //
     // Returns:
     // (int) - result of reading
-    int ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
-    // This function reads min and max of the given control
-    //
-    // Parameters:
-    // [in] (int32_t &) min - minimum value
-    // [in] (int32_t &) max - maximum value
-    // [in] (uint32_t) controlID - id of the control
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (uised in logger)
-    //
-    // Returns:
-    // (int) - result of reading
-    int ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
-    // This function reads min and max of the given control
-    //
-    // Parameters:
-    // [in] (int64_t &) min - minimum value
-    // [in] (int64_t &) max - maximum value
-    // [in] (uint32_t) controlID - id of the control
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (uised in logger)
-    //
-    // Returns:
-    // (int) - result of reading
-    int ReadMinMax(int64_t &min, int64_t &max, uint32_t controlID, const char *functionName, const char* controlName);
+    template<typename T>
+    int ReadMinMax(T &min, T &max, uint32_t controlID, const char *functionName, const char* controlName);
 
     // This function reads step of the given control
     //
@@ -722,14 +615,6 @@ public:
     // Returns:
     // (int) - result of the operation
     int GetCameraCapabilities(std::string &strText);
-    // This function returns sub-device capabilities
-    //
-    // Parameters:
-    // [in] (std::string &) strText - sub-device capabilities
-    //
-    // Returns:
-    // (int) - result of the operation
-    int GetSubDevicesCapabilities(std::string &strText);
 
     // This function returns driver stream statistics
     //
@@ -778,7 +663,7 @@ public:
 
 
 private:
-    void QueryControls(int fd, std::string const& name);
+    void QueryControls(int fd);
 
 public slots:
     // This slot function passes gain value from a thread
@@ -837,18 +722,21 @@ public slots:
     void SetSliderEnumerationControlValue(int32_t id, int64_t val);
 
 private:
-    std::string                  m_DeviceName;
-    int                          m_DeviceFileDescriptor;
-    std::vector<int>             m_SubDeviceFileDescriptors;
-    std::map<uint32_t, int>      m_ControlIdToFileDescriptorMap;
-    bool                         m_BlockingMode;
-    bool                         m_ShowFrames;
-    bool                         m_UseV4L2TryFmt;
-    bool                         m_Recording;
-    bool                         m_IsAvtCamera;
-    QMutex                       m_ReadExtControlMutex;
-    v4l2_buf_type                m_DeviceBufferType;
-    std::map<int, v4l2_buf_type> m_SubDeviceBufferTypes;
+    std::string                     m_DeviceName;
+    int                             m_DeviceFileDescriptor;
+    std::vector<int>                m_SubDeviceFileDescriptors;
+    std::map<uint32_t, int>         m_ControlIdToFileDescriptorMap;
+    std::map<uint32_t, std::string> m_ControlIdToControlNameMap;
+    bool                            m_BlockingMode;
+    bool                            m_ShowFrames;
+    bool                            m_UseV4L2TryFmt;
+    bool                            m_Recording;
+    bool                            m_IsAvtCamera;
+    QMutex                          m_ReadExtControlMutex;
+    v4l2_buf_type                   m_DeviceBufferType;
+    std::map<int, v4l2_buf_type>    m_SubDeviceBufferTypes;
+    std::map<int, std::string>      m_FileDescriptorToNameMap;
+    IPixFormat*                     m_pPixFormat;
 
     AutoReader          *m_pAutoExposureReader;
     AutoReader          *m_pAutoGainReader;

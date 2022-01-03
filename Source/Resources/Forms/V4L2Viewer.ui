@@ -2116,9 +2116,6 @@ border: 1px solid gray;
                     <property name="alignment">
                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                     </property>
-                    <property name="readOnly">
-                     <bool>true</bool>
-                    </property>
                    </widget>
                   </item>
                   <item row="1" column="0">
@@ -2147,9 +2144,6 @@ border: 1px solid gray;
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                    </property>
-                    <property name="readOnly">
-                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>

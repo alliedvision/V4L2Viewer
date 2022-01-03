@@ -178,6 +178,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     qRegisterMetaType<QSharedPointer<MyFrame> >("QSharedPointer<MyFrame>");
 
     // connect the buttons for Image m_ControlRequestTimer
+    connect(ui.m_edWidth, SIGNAL(editingFinished()), this, SLOT(OnWidth()));
+    connect(ui.m_edHeight, SIGNAL(editingFinished()), this, SLOT(OnHeight()));
     connect(ui.m_edGain, SIGNAL(editingFinished()), this, SLOT(OnGain()));
     connect(ui.m_chkAutoGain, SIGNAL(clicked()), this, SLOT(OnAutoGain()));
     connect(ui.m_edExposure, SIGNAL(editingFinished()), this, SLOT(OnExposure()));
@@ -324,7 +326,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
     QVector<QString> selectedSubDeviceList;
 
-    if(false == m_bIsOpen)
+    if(false == m_bIsOpen && !m_SubDevices.empty())
     {
         LOG_EX("V4L2Viewer::OnOpenCloseButtonClicked: user will select sub-devices from list of size %d", m_SubDevices.size());
 
@@ -434,8 +436,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 // The event handler for starting
 void V4L2Viewer::OnStartButtonClicked()
 {
-    LOG_EX("V4L2Viewer::OnStartButtonClicked");
-
     uint32_t payloadSize = 0;
     uint32_t width = 0;
     uint32_t height = 0;
@@ -448,6 +448,8 @@ void V4L2Viewer::OnStartButtonClicked()
     result = m_Camera.ReadPayloadSize(payloadSize);
     result = m_Camera.ReadFrameSize(width, height);
     result = m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
+
+    LOG_EX("V4L2Viewer::OnStartButtonClicked width=%d,height=%d", width, height);
 
     if (result == 0)
         StartStreaming(pixelFormat, payloadSize, width, height, bytesPerLine);
@@ -1131,27 +1133,15 @@ void V4L2Viewer::OnUpdateFramesReceived()
 
 void V4L2Viewer::OnWidth()
 {
-    if (m_Camera.SetFrameSize(ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt()) < 0)
-    {
-        uint32_t width = 0;
-        uint32_t height = 0;
-        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE frame size!") );
-        m_Camera.ReadFrameSize(width, height);
-        ui.m_edWidth->setText(QString("%1").arg(width));
-        ui.m_edHeight->setText(QString("%1").arg(height));
-    }
-    else
-    {
-        uint32_t payloadSize = 0;
-
-        m_Camera.ReadPayloadSize(payloadSize);
-    }
+    OnHeight();
 }
 
 void V4L2Viewer::OnHeight()
 {
     uint32_t width = 0;
     uint32_t height = 0;
+
+    LOG_EX("V4L2Viewer::OnHeight: setting frame size to width=%d, height=%d", ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt());
 
     if (m_Camera.SetFrameSize(ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt()) < 0)
     {
@@ -1164,8 +1154,11 @@ void V4L2Viewer::OnHeight()
     }
 
     m_Camera.ReadFrameSize(width, height);
+
     ui.m_edWidth->setText(QString("%1").arg(width));
     ui.m_edHeight->setText(QString("%1").arg(height));
+
+    LOG_EX("V4L2Viewer::OnHeight: read frame size back from camera as width=%d, height=%d", ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt());
 }
 
 void V4L2Viewer::OnGain()
@@ -1529,11 +1522,13 @@ void V4L2Viewer::GetImageInformation()
 
     if (m_Camera.ReadExposure(exposure) != -2)
     {
+        LOG_EX("V4L2Viewer::GetImageInformation: exposure controllable, exposure: %d", exposure);
         ui.m_edExposure->setEnabled(true);
         ui.m_labelExposure->setEnabled(true);
     }
     else
     {
+        LOG_EX("V4L2Viewer::GetImageInformation: exposure not controllable");
         ui.m_edExposure->setEnabled(false);
         ui.m_labelExposure->setEnabled(false);
     }
@@ -1597,7 +1592,15 @@ void V4L2Viewer::GetImageInformation()
     }
     ui.m_sliderBrightness->blockSignals(false);
 
-    m_Camera.ReadFrameSize(width, height);
+    if(m_Camera.ReadFrameSize(width, height) == 0)
+    {
+        LOG_EX("V4L2Viewer::GetImageInformation: width=%d, height=%d", width, height);
+        ui.m_edWidth->setEnabled(true);
+        ui.m_edHeight->setEnabled(true);
+        ui.m_edWidth->setText(QString("%1").arg(width));
+        ui.m_edHeight->setText(QString("%1").arg(height));
+    }
+
     m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
 
     if (!m_bIsStreaming)
@@ -1691,9 +1694,14 @@ void V4L2Viewer::UpdateCameraFormat()
 
     m_Camera.ReadPayloadSize(payloadSize);
 
-    m_Camera.ReadFrameSize(width, height);
-    ui.m_edWidth->setText(QString("%1").arg(width));
-    ui.m_edHeight->setText(QString("%1").arg(height));
+    if(m_Camera.ReadFrameSize(width, height) == 0)
+    {
+        LOG_EX("V4L2Viewer::UpdateCameraFormat: width=%d, height=%d", width, height);
+        ui.m_edWidth->setEnabled(true);
+        ui.m_edHeight->setEnabled(true);
+        ui.m_edWidth->setText(QString("%1").arg(width));
+        ui.m_edHeight->setText(QString("%1").arg(height));
+    }
 
     m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
     m_Camera.ReadFormats();
@@ -1729,9 +1737,7 @@ QString V4L2Viewer::GetDeviceInfo()
     QString driverVer = QString(tr("Driver version = %1")).arg(tmp.c_str());
     m_Camera.GetCameraCapabilities(tmp);
     QString capabilities = QString(tr("Capabilities = %1")).arg(tmp.c_str());
-    m_Camera.GetSubDevicesCapabilities(tmp);
-    QString subDeviceCapabilities = QString(tr("Sub-Devices' Capabilities = %1")).arg(tmp.c_str());
-    return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities + "<br>" + subDeviceCapabilities);
+    return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities + "<br>");
 }
 
 void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)

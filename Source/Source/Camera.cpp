@@ -74,6 +74,129 @@ struct v4l2_stats_t
 
 #define V4L2_CID_PREFFERED_STRIDE               (V4L2_CID_CAMERA_CLASS_BASE+5998)
 
+class IPixFormat
+{
+public:
+    virtual
+    ~IPixFormat() = default;
+
+public:
+    virtual
+    uint32_t GetSizeImage(const v4l2_format& fmt) = 0;
+
+    virtual
+    uint32_t GetWidth(const v4l2_format& fmt) = 0;
+
+    virtual
+    uint32_t GetHeight(const v4l2_format& fmt) = 0;
+
+    virtual
+    uint32_t GetField(const v4l2_format& fmt) = 0;
+
+    virtual
+    uint32_t GetBytesPerLine(const v4l2_format& fmt) = 0;
+
+    virtual
+    uint32_t GetPixelFormat(const v4l2_format& fmt) = 0;
+
+    virtual
+    void SetSizeImage(v4l2_format& fmt, const uint32_t sizeImage) = 0;
+
+    virtual
+    void SetWidth(v4l2_format& fmt, const uint32_t width) = 0;
+
+    virtual
+    void SetHeight(v4l2_format& fmt, const uint32_t height) = 0;
+
+    virtual
+    void SetField(v4l2_format& fmt, const uint32_t field) = 0;
+
+    virtual
+    void SetBytesPerLine(v4l2_format& fmt, const uint32_t bytesPerLine) = 0;
+
+    virtual
+    void SetPixelFormat(v4l2_format& fmt, const uint32_t pixelFormat) = 0;
+};
+
+class PixFormat : public IPixFormat
+{
+public:
+    virtual
+    uint32_t GetSizeImage(const v4l2_format& fmt) override {return fmt.fmt.pix.sizeimage;}
+
+    virtual
+    uint32_t GetWidth(const v4l2_format& fmt) override {return fmt.fmt.pix.width;}
+
+    virtual
+    uint32_t GetHeight(const v4l2_format& fmt) override {return fmt.fmt.pix.height;}
+
+    virtual
+    uint32_t GetField(const v4l2_format& fmt) override {return fmt.fmt.pix.field;}
+
+    virtual
+    uint32_t GetBytesPerLine(const v4l2_format& fmt) override {return fmt.fmt.pix.bytesperline;}
+
+    virtual
+    uint32_t GetPixelFormat(const v4l2_format& fmt) override {return fmt.fmt.pix.pixelformat;}
+
+    virtual
+    void SetSizeImage(v4l2_format& fmt, const uint32_t sizeImage) override {fmt.fmt.pix.sizeimage = sizeImage;}
+
+    virtual
+    void SetWidth(v4l2_format& fmt, const uint32_t width) override {fmt.fmt.pix.width = width;}
+
+    virtual
+    void SetHeight(v4l2_format& fmt, const uint32_t height) override {fmt.fmt.pix.height = height;}
+
+    virtual
+    void SetField(v4l2_format& fmt, const uint32_t field) override {fmt.fmt.pix.field = field;}
+
+    virtual
+    void SetBytesPerLine(v4l2_format& fmt, const uint32_t bytesPerLine) override {fmt.fmt.pix.bytesperline = bytesPerLine;}
+
+    virtual
+    void SetPixelFormat(v4l2_format& fmt, const uint32_t pixelFormat) override {fmt.fmt.pix.pixelformat = pixelFormat;}
+};
+
+class PixFormatMPlane : public IPixFormat
+{
+public:
+    virtual
+    uint32_t GetSizeImage(const v4l2_format& fmt) override {return fmt.fmt.pix_mp.plane_fmt[0].sizeimage;}
+
+    virtual
+    uint32_t GetWidth(const v4l2_format& fmt) override {return fmt.fmt.pix_mp.width;}
+
+    virtual
+    uint32_t GetHeight(const v4l2_format& fmt) override {return fmt.fmt.pix_mp.height;}
+
+    virtual
+    uint32_t GetField(const v4l2_format& fmt) override {return fmt.fmt.pix_mp.field;}
+
+    virtual
+    uint32_t GetBytesPerLine(const v4l2_format& fmt) override {return fmt.fmt.pix_mp.plane_fmt[0].bytesperline;}
+
+    virtual
+    uint32_t GetPixelFormat(const v4l2_format& fmt) override {return fmt.fmt.pix_mp.pixelformat;}
+
+    virtual
+    void SetSizeImage(v4l2_format& fmt, const uint32_t sizeImage) override {fmt.fmt.pix_mp.plane_fmt[0].sizeimage = sizeImage;}
+
+    virtual
+    void SetWidth(v4l2_format& fmt, const uint32_t width) override {fmt.fmt.pix_mp.width = width;}
+
+    virtual
+    void SetHeight(v4l2_format& fmt, const uint32_t height) override {fmt.fmt.pix_mp.height = height;}
+
+    virtual
+    void SetField(v4l2_format& fmt, const uint32_t field) override {fmt.fmt.pix_mp.field = field;}
+
+    virtual
+    void SetBytesPerLine(v4l2_format& fmt, const uint32_t bytesPerLine) override {fmt.fmt.pix_mp.plane_fmt[0].bytesperline = bytesPerLine;}
+
+    virtual
+    void SetPixelFormat(v4l2_format& fmt, const uint32_t pixelFormat) override {fmt.fmt.pix_mp.pixelformat = pixelFormat;}
+};
 
 
 Camera::Camera() 
@@ -87,6 +210,7 @@ Camera::Camera()
     , m_IsAvtCamera(true)
     , m_DeviceBufferType(V4L2_BUF_TYPE_VIDEO_CAPTURE)
     , m_SubDeviceBufferTypes()
+    , m_pPixFormat(nullptr)
 {
     connect(&m_CameraObserver, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
 
@@ -111,6 +235,12 @@ Camera::~Camera()
     m_CameraObserver.SetTerminateFlag();
     if (NULL != m_pFrameObserver.data())
         m_pFrameObserver->StopStream();
+
+    if(m_pPixFormat)
+    {
+        delete m_pPixFormat;
+        m_pPixFormat = nullptr;
+    }
 
     CloseDevice();
 }
@@ -153,6 +283,8 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
         else
             m_DeviceFileDescriptor = open(deviceName.c_str(), O_RDWR | O_NONBLOCK, 0);
 
+        m_FileDescriptorToNameMap[m_DeviceFileDescriptor] = deviceName;
+
         LOG_EX("Camera::OpenDevice device %s has file descriptor %d", deviceName.c_str(), m_DeviceFileDescriptor);
 
         v4l2_capability cap;
@@ -166,25 +298,25 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
 
             if (m_DeviceBufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE)
             {
+                m_pPixFormat = new PixFormat();
                 LOG_EX("Camera::OpenDevice %s is a single-plane video capture device", deviceName.c_str());
             }
             else if (m_DeviceBufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
             {
+                m_pPixFormat = new PixFormatMPlane();
                 LOG_EX("Camera::OpenDevice %s is a multi-plane video capture device", deviceName.c_str());
             }
             else
             {
                 LOG_EX("Camera::OpenDevice %s is no video capture device", deviceName.c_str());
             }
-
-
         }
 
-        QueryControls(m_DeviceBufferType, deviceName);
+        QueryControls(m_DeviceFileDescriptor);
 
         if (m_DeviceFileDescriptor == -1)
         {
-            LOG_EX("Camera::OpenDevice open '%s' failed errno=%d=%s", deviceName.c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            LOG_EX("Camera::OpenDevice open %s failed errno=%d=%s", deviceName.c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
         }
         else
         {
@@ -208,6 +340,8 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
             {
                 LOG_EX("Camera::OpenDevice sub-device %s has file descriptor %d", subDevice.toStdString().c_str(), subDeviceFileDescriptor);
                 m_SubDeviceFileDescriptors.push_back(subDeviceFileDescriptor);
+
+                m_FileDescriptorToNameMap[subDeviceFileDescriptor] = subDevice.toStdString();
             }
 
             if (-1 == iohelper::xioctl(subDeviceFileDescriptor, VIDIOC_QUERYCAP, &cap))
@@ -232,7 +366,7 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
                 }
             }
 
-            QueryControls(subDeviceFileDescriptor, subDevice.toStdString());
+            QueryControls(subDeviceFileDescriptor);
         }
     }
     else
@@ -251,11 +385,11 @@ int Camera::CloseDevice()
     {
         if (-1 == close(m_DeviceFileDescriptor))
         {
-            LOG_EX("Camera::CloseDevice close '%s' failed errno=%d=%s", m_DeviceName.c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            LOG_EX("Camera::CloseDevice close %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
         }
         else
         {
-            LOG_EX("Camera::CloseDevice close %s OK", m_DeviceName.c_str());
+            LOG_EX("Camera::CloseDevice close %s OK", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
             result = 0;
         }
     }
@@ -266,25 +400,27 @@ int Camera::CloseDevice()
     {
         if (-1 == close(subDeviceFileDescriptor))
         {
-            LOG_EX("Camera::CloseDevice sub-device close failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            LOG_EX("Camera::CloseDevice sub-device close %s failed errno=%d=%s", m_FileDescriptorToNameMap[subDeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
         }
         else
         {
-            LOG_EX("Camera::CloseDevice sub-device close OK");
+            LOG_EX("Camera::CloseDevice sub-device close %s OK", m_FileDescriptorToNameMap[subDeviceFileDescriptor].c_str());
             result = 0;
         }
     }
     m_SubDeviceFileDescriptors.clear();
     m_SubDeviceBufferTypes.clear();
 
+    m_FileDescriptorToNameMap.clear();
+
     return result;
 }
 
-void Camera::QueryControls(int fd, std::string const &name)
+void Camera::QueryControls(int fd)
 {
     const unsigned next_fl = V4L2_CTRL_FLAG_NEXT_CTRL | V4L2_CTRL_FLAG_NEXT_COMPOUND;
 
-    LOG_EX("Camera::QueryControls querying controls for %s", name.c_str());
+    LOG_EX("Camera::QueryControls querying controls for %s", m_FileDescriptorToNameMap[fd].c_str());
     v4l2_queryctrl qctrl;
     qctrl.id = next_fl;
     while (iohelper::xioctl(fd, VIDIOC_QUERYCTRL, &qctrl) == 0)
@@ -362,7 +498,7 @@ int Camera::DeviceDiscoveryStart()
 
         if ((fileDiscriptor = open(deviceName.toStdString().c_str(), O_RDWR)) == -1)
         {
-            LOG_EX("Camera::DeviceDiscoveryStart open %s failed", deviceName.toLatin1().data());
+            LOG_EX("Camera::DeviceDiscoveryStart open %s failed errno=%d=%s", deviceName.toLatin1().data(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
         }
         else
         {
@@ -373,7 +509,7 @@ int Camera::DeviceDiscoveryStart()
             // query device capabilities
             if (-1 == iohelper::xioctl(fileDiscriptor, VIDIOC_QUERYCAP, &cap))
             {
-                LOG_EX("Camera::DeviceDiscoveryStart %s is no V4L2 device", deviceName.toLatin1().data());
+                LOG_EX("Camera::DeviceDiscoveryStart %s is no V4L2 device errno=%d=%s", deviceName.toLatin1().data(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
             else
             {
@@ -399,7 +535,7 @@ int Camera::DeviceDiscoveryStart()
 
             if (-1 == close(fileDiscriptor))
             {
-                LOG_EX("Camera::DeviceDiscoveryStart close %s failed", deviceName.toLatin1().data());
+                LOG_EX("Camera::DeviceDiscoveryStart close %s failed errno=%d=%s", deviceName.toLatin1().data(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
             else
             {
@@ -433,7 +569,7 @@ int Camera::SubDeviceDiscoveryStart()
 
         if ((fileDiscriptor = open(subDeviceName.toStdString().c_str(), O_RDWR)) == -1)
         {
-            LOG_EX("Camera::SubDeviceDiscoveryStart open %s failed", subDeviceName.toLatin1().data());
+            LOG_EX("Camera::SubDeviceDiscoveryStart open %s failed errno=%d=%s", subDeviceName.toLatin1().data(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
         }
         else
         {
@@ -444,7 +580,7 @@ int Camera::SubDeviceDiscoveryStart()
             // query sub-device capabilities
             if (-1 == iohelper::xioctl(fileDiscriptor, VIDIOC_QUERYCAP, &cap))
             {
-                LOG_EX("Camera::SubDeviceDiscoveryStart %s is no V4L2 device", subDeviceName.toLatin1().data());
+                LOG_EX("Camera::SubDeviceDiscoveryStart %s is no V4L2 device errno=%d=%s", subDeviceName.toLatin1().data(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
             else
             {
@@ -469,7 +605,7 @@ int Camera::SubDeviceDiscoveryStart()
 
             if (-1 == close(fileDiscriptor))
             {
-                LOG_EX("Camera::SubDeviceDiscoveryStart close %s failed", subDeviceName.toLatin1().data());
+                LOG_EX("Camera::SubDeviceDiscoveryStart close %s failed errno=%d=%s", subDeviceName.toLatin1().data(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
             else
             {
@@ -500,7 +636,7 @@ int Camera::StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint3
 {
     int nResult = 0;
 
-    LOG_EX("Camera::StartStreamChannel pixelFormat=%d, payloadSize=%d, width=%d, height=%d.", pixelFormat, payloadSize, width, height);
+    LOG_EX("Camera::StartStreamChannel %s pixelFormat=%d, payloadSize=%d, width=%d, height=%d.", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), pixelFormat, payloadSize, width, height);
 
     m_pFrameObserver->StartStream(m_BlockingMode, m_DeviceFileDescriptor, pixelFormat,
                                   payloadSize, width, height, bytesPerLine,
@@ -547,7 +683,7 @@ int Camera::StartStreaming()
 
     if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_STREAMON, &type))
     {
-        LOG_EX("Camera::StartStreaming VIDIOC_STREAMON failed");
+        LOG_EX("Camera::StartStreaming VIDIOC_STREAMON %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
     else
     {
@@ -568,7 +704,7 @@ int Camera::StopStreaming()
 
     if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_STREAMOFF, &type))
     {
-        LOG_EX("Camera::StopStreaming VIDIOC_STREAMOFF failed");
+        LOG_EX("Camera::StopStreaming VIDIOC_STREAMOFF %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
     else
     {
@@ -590,15 +726,15 @@ int Camera::ReadPayloadSize(uint32_t &payloadSize)
 
     if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
-        LOG_EX("Camera::ReadPayloadSize VIDIOC_G_FMT OK =%d", fmt.fmt.pix.sizeimage);
+        payloadSize = m_pPixFormat->GetSizeImage(fmt);
 
-        payloadSize = fmt.fmt.pix.sizeimage;
+        LOG_EX("Camera::ReadPayloadSize VIDIOC_G_FMT %s OK =%d", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), payloadSize);
 
         result = 0;
     }
     else
     {
-        LOG_EX("Camera::ReadPayloadSize VIDIOC_G_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::ReadPayloadSize VIDIOC_G_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
 
     return result;
@@ -614,16 +750,16 @@ int Camera::ReadFrameSize(uint32_t &width, uint32_t &height)
 
     if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
-        LOG_EX("Camera::ReadFrameSize VIDIOC_G_FMT OK =%dx%d", fmt.fmt.pix.width, fmt.fmt.pix.height);
+        width = m_pPixFormat->GetWidth(fmt);
+        height = m_pPixFormat->GetHeight(fmt);
 
-        width = fmt.fmt.pix.width;
-        height = fmt.fmt.pix.height;
+        LOG_EX("Camera::ReadFrameSize VIDIOC_G_FMT %s OK =%dx%d", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), width, height);
 
         result = 0;
     }
     else
     {
-        LOG_EX("Camera::ReadFrameSize VIDIOC_G_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::ReadFrameSize VIDIOC_G_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
 
     return result;
@@ -641,17 +777,17 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
     {
         LOG_EX("Camera::SetFrameSize VIDIOC_G_FMT OK");
 
-        fmt.fmt.pix.width = width;
-        fmt.fmt.pix.height = height;
-        fmt.fmt.pix.field = V4L2_FIELD_ANY;
-        fmt.fmt.pix.bytesperline = 0;
+        m_pPixFormat->SetWidth(fmt, width);
+        m_pPixFormat->SetHeight(fmt, height);
+        m_pPixFormat->SetField(fmt, V4L2_FIELD_ANY);
+        m_pPixFormat->SetBytesPerLine(fmt, 0);
 
         if (m_UseV4L2TryFmt)
         {
             result = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_TRY_FMT, &fmt);
             if (result != 0)
             {
-                LOG_EX("Camera::SetFrameSize VIDIOC_TRY_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                LOG_EX("Camera::SetFrameSize VIDIOC_TRY_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
         else
@@ -662,15 +798,19 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
             result = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt);
             if (-1 != result)
             {
-                LOG_EX("Camera::SetFrameSize VIDIOC_S_FMT OK =%dx%d", width, height);
+                LOG_EX("Camera::SetFrameSize VIDIOC_S_FMT %s OK =%dx%d", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), width, height);
 
                 result = 0;
+            }
+            else
+            {
+                LOG_EX("Camera::SetFrameSize VIDIOC_S_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
     }
     else
     {
-        LOG_EX("Camera::SetFrameSize VIDIOC_G_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::SetFrameSize VIDIOC_G_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
 
     return result;
@@ -686,37 +826,48 @@ int Camera::SetWidth(uint32_t width)
 
     if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
-        LOG_EX("Camera::SetWidth VIDIOC_G_FMT OK");
+        LOG_EX("Camera::SetWidth VIDIOC_G_FMT %s OK", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
 
-        fmt.fmt.pix.width = width;
-        fmt.fmt.pix.field = V4L2_FIELD_ANY;
-        fmt.fmt.pix.bytesperline = 0;
+        m_pPixFormat->SetWidth(fmt, width);
+        m_pPixFormat->SetField(fmt, V4L2_FIELD_ANY);
+        m_pPixFormat->SetBytesPerLine(fmt, 0);
 
         if (m_UseV4L2TryFmt)
         {
             result = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_TRY_FMT, &fmt);
             if (result != 0)
             {
-                LOG_EX("Camera::SetWidth VIDIOC_TRY_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                LOG_EX("Camera::SetWidth VIDIOC_TRY_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            }
+            else
+            {
+                LOG_EX("Camera::SetWidth VIDIOC_TRY_FMT %s OK", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
             }
         }
         else
+        {
+            LOG_EX("Camera::SetWidth VIDIOC_TRY_FMT %s not used", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
             result = 0;
+        }
 
         if (0 == result)
         {
             result = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt);
             if (-1 != result)
             {
-                LOG_EX("Camera::SetWidth VIDIOC_S_FMT OK =%d", width);
+                LOG_EX("Camera::SetWidth VIDIOC_S_FMT %s OK =%d", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), width);
 
                 result = 0;
+            }
+            else
+            {
+                LOG_EX("Camera::SetWidth VIDIOC_S_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
     }
     else
     {
-        LOG_EX("Camera::SetWidth VIDIOC_G_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::SetWidth VIDIOC_G_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
 
     return result;
@@ -732,15 +883,15 @@ int Camera::ReadWidth(uint32_t &width)
 
     if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
-        LOG_EX("Camera::ReadWidth VIDIOC_G_FMT OK =%d", width);
+        width = m_pPixFormat->GetWidth(fmt);
 
-        width = fmt.fmt.pix.width;
+        LOG_EX("Camera::ReadWidth VIDIOC_G_FMT %s OK =%d", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), width);
 
         result = 0;
     }
     else
     {
-        LOG_EX("Camera::ReadWidth VIDIOC_G_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::ReadWidth VIDIOC_G_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
 
     return result;
@@ -756,22 +907,28 @@ int Camera::SetHeight(uint32_t height)
 
     if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
-        LOG_EX("Camera::SetHeight VIDIOC_G_FMT OK");
+        LOG_EX("Camera::SetHeight VIDIOC_G_FMT %s OK", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
 
-        fmt.fmt.pix.height = height;
-        fmt.fmt.pix.field = V4L2_FIELD_ANY;
-        fmt.fmt.pix.bytesperline = 0;
+        m_pPixFormat->SetHeight(fmt, height);
+        m_pPixFormat->SetField(fmt, V4L2_FIELD_ANY);
+        m_pPixFormat->SetBytesPerLine(fmt, 0);
 
         if (m_UseV4L2TryFmt)
         {
             result = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_TRY_FMT, &fmt);
             if (result != 0)
             {
-                LOG_EX("Camera::SetHeight VIDIOC_TRY_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                LOG_EX("Camera::SetHeight VIDIOC_TRY_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            }
+            else
+            {
+                LOG_EX("Camera::SetHeight VIDIOC_TRY_FMT %s OK", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
             }
         }
         else
         {
+            LOG_EX("Camera::SetHeight VIDIOC_TRY_FMT %s not used", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
+
             result = 0;
         }
 
@@ -780,15 +937,19 @@ int Camera::SetHeight(uint32_t height)
             result = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt);
             if (-1 != result)
             {
-                LOG_EX("Camera::SetHeight VIDIOC_S_FMT OK =%d", height);
+                LOG_EX("Camera::SetHeight VIDIOC_S_FMT %s OK =%d", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), height);
 
                 result = 0;
+            }
+            else
+            {
+                LOG_EX("Camera::SetHeight VIDIOC_S_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
     }
     else
     {
-        LOG_EX("Camera::SetHeight VIDIOC_G_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::SetHeight VIDIOC_G_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
 
     return result;
@@ -804,15 +965,15 @@ int Camera::ReadHeight(uint32_t &height)
 
     if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
-        LOG_EX("Camera::ReadHeight VIDIOC_G_FMT OK =%d", fmt.fmt.pix.height);
+        height = m_pPixFormat->GetHeight(fmt);
 
-        height = fmt.fmt.pix.height;
+        LOG_EX("Camera::ReadHeight VIDIOC_G_FMT OK =%d", height);
 
         result = 0;
     }
     else
     {
-        LOG_EX("Camera::ReadHeight VIDIOC_G_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::ReadHeight VIDIOC_G_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
 
     return result;
@@ -824,15 +985,14 @@ int Camera::ReadFormats()
     v4l2_fmtdesc fmt;
     v4l2_frmsizeenum fmtsize;
 
+    LOG_EX("Camera::ReadFormats %s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
+
     CLEAR(fmt);
     fmt.type = m_DeviceBufferType;
     while (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_ENUM_FMT, &fmt) >= 0 && fmt.index <= 100)
     {
         std::string tmp = (char*)fmt.description;
-        LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FMT index = %d", fmt.index);
-        LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FMT type = %d", fmt.type);
-        LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FMT pixel format = %d = %s", fmt.pixelformat, v4l2helper::ConvertPixelFormat2EnumString(fmt.pixelformat).c_str());
-        LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FMT description = %s", fmt.description);
+        LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FMT index = %d type = %d pixel format = %d = %s description = %s", fmt.index, fmt.type, fmt.pixelformat, v4l2helper::ConvertPixelFormat2EnumString(fmt.pixelformat).c_str(), fmt.description);
 
         emit OnCameraPixelFormat_Signal(QString("%1").arg(QString(v4l2helper::ConvertPixelFormat2String(fmt.pixelformat).c_str())));
 
@@ -846,8 +1006,7 @@ int Camera::ReadFormats()
             {
                 v4l2_frmivalenum fmtival;
 
-                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete width = %d", fmtsize.discrete.width);
-                LOG_EX("Camera::ReadFormats size VIDIOC_ENUM_FRAMESIZES enum discrete height = %d", fmtsize.discrete.height);
+                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete width = %d height = %d", fmtsize.discrete.width, fmtsize.discrete.height);
 
                 //emit OnCameraFrameSize_Signal(QString("disc:%1x%2").arg(fmtsize.discrete.width).arg(fmtsize.discrete.height));
 
@@ -863,12 +1022,8 @@ int Camera::ReadFormats()
             }
             else if (fmtsize.type == V4L2_FRMSIZE_TYPE_STEPWISE)
             {
-                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_width = %d", fmtsize.stepwise.min_width);
-                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_height = %d", fmtsize.stepwise.min_height);
-                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise max_width = %d", fmtsize.stepwise.max_width);
-                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise max_height = %d", fmtsize.stepwise.max_height);
-                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_width = %d", fmtsize.stepwise.step_width);
-                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise step_height = %d", fmtsize.stepwise.step_height);
+                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_width = %d min_height = %d max_width = %d max_height = %d step_width = %d step_height = %d",
+                        fmtsize.stepwise.min_width, fmtsize.stepwise.min_height, fmtsize.stepwise.max_width, fmtsize.stepwise.max_height, fmtsize.stepwise.step_width, fmtsize.stepwise.step_height);
 
                 //emit OnCameraFrameSize_Signal(QString("min:%1x%2,max:%3x%4,step:%5x%6").arg(fmtsize.stepwise.min_width).arg(fmtsize.stepwise.min_height).arg(fmtsize.stepwise.max_width).arg(fmtsize.stepwise.max_height).arg(fmtsize.stepwise.step_width).arg(fmtsize.stepwise.step_height));
             }
@@ -904,18 +1059,22 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
 
     if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
-        LOG_EX("Camera::SetPixelFormat VIDIOC_G_FMT OK");
+        LOG_EX("Camera::SetPixelFormat VIDIOC_G_FMT %s OK", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
 
-        fmt.fmt.pix.pixelformat = pixelFormat;
-        fmt.fmt.pix.field = V4L2_FIELD_ANY;
-        fmt.fmt.pix.bytesperline = 0;
+        m_pPixFormat->SetPixelFormat(fmt, pixelFormat);
+        m_pPixFormat->SetField(fmt, V4L2_FIELD_ANY);
+        m_pPixFormat->SetBytesPerLine(fmt, 0);
 
         if (m_UseV4L2TryFmt)
         {
             result = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_TRY_FMT, &fmt);
             if (result != 0)
             {
-                LOG_EX("Camera::SetPixelFormat VIDIOC_TRY_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                LOG_EX("Camera::SetPixelFormat VIDIOC_TRY_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            }
+            else
+            {
+                LOG_EX("Camera::SetPixelFormat VIDIOC_TRY_FMT %s OK", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
             }
         }
         else
@@ -928,19 +1087,19 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
             result = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt);
             if (-1 != result)
             {
-                LOG_EX("Camera::SetPixelFormat VIDIOC_S_FMT to %d OK", pixelFormat);
+                LOG_EX("Camera::SetPixelFormat VIDIOC_S_FMT %s to %d OK", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), pixelFormat);
                 result = 0;
             }
             else
             {
-                LOG_EX("Camera::SetPixelFormat VIDIOC_S_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                LOG_EX("Camera::SetPixelFormat VIDIOC_S_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
 
     }
     else
     {
-        LOG_EX("Camera::SetPixelFormat VIDIOC_G_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::SetPixelFormat VIDIOC_G_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
 
     return result;
@@ -956,17 +1115,17 @@ int Camera::ReadPixelFormat(uint32_t &pixelFormat, uint32_t &bytesPerLine, QStri
 
     if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
     {
-        LOG_EX("Camera::ReadPixelFormat VIDIOC_G_FMT OK =%d", fmt.fmt.pix.pixelformat);
+        LOG_EX("Camera::ReadPixelFormat VIDIOC_G_FMT %s OK =%d", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), fmt.fmt.pix.pixelformat);
 
-        pixelFormat = fmt.fmt.pix.pixelformat;
-        bytesPerLine = fmt.fmt.pix.bytesperline;
-        pfText = QString(v4l2helper::ConvertPixelFormat2EnumString(fmt.fmt.pix.pixelformat).c_str());
+        pixelFormat = m_pPixFormat->GetPixelFormat(fmt);
+        bytesPerLine = m_pPixFormat->GetBytesPerLine(fmt);
+        pfText = QString(v4l2helper::ConvertPixelFormat2EnumString(m_pPixFormat->GetPixelFormat(fmt)).c_str());
 
         result = 0;
     }
     else
     {
-        LOG_EX("Camera::ReadPixelFormat VIDIOC_G_FMT failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::ReadPixelFormat VIDIOC_G_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
 
     return result;
@@ -983,7 +1142,6 @@ int Camera::EnumAllControlNewStyle()
 
     for (const auto fileDescriptor : allFileDescriptors)
     {
-        LOG_EX("Camera::EnumAllControlNewStyle fileDescriptor: %d", fileDescriptor);
         v4l2_query_ext_ctrl qctrl;
         v4l2_querymenu queryMenu;
 
@@ -1006,7 +1164,7 @@ int Camera::EnumAllControlNewStyle()
                     continue;
                 }
 
-                LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL id=%d=%s min=%d, max=%d, default=%d", qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
+                LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s id=%d=%s min=%d, max=%d, default=%d", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
                 cidCount++;
 
                 QString name = QString((const char*) qctrl.name);
@@ -1025,7 +1183,8 @@ int Camera::EnumAllControlNewStyle()
 
                     if (result == 0)
                     {
-                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s from file descriptor=%d", qctrl.name, fileDescriptor);
+                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s will be used for %s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.name);
+                        m_ControlIdToControlNameMap[qctrl.id] = qctrl.name;
                         m_ControlIdToFileDescriptorMap[qctrl.id] = fileDescriptor;
                         emit SendIntDataToEnumerationWidget(id, min, max, value, name, unit, bIsReadOnly);
                     }
@@ -1042,7 +1201,8 @@ int Camera::EnumAllControlNewStyle()
 
                     if (result == 0)
                     {
-                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s from file descriptor=%d", qctrl.name, fileDescriptor);
+                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s will be used for %s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.name);
+                        m_ControlIdToControlNameMap[qctrl.id] = qctrl.name;
                         m_ControlIdToFileDescriptorMap[qctrl.id] = fileDescriptor;
                         emit SentInt64DataToEnumerationWidget(id, min, max, value, name, unit, bIsReadOnly);
                     }
@@ -1057,7 +1217,8 @@ int Camera::EnumAllControlNewStyle()
 
                     if (result == 0)
                     {
-                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s from file descriptor=%d", qctrl.name, fileDescriptor);
+                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s will be used for %s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.name);
+                        m_ControlIdToControlNameMap[qctrl.id] = qctrl.name;
                         m_ControlIdToFileDescriptorMap[qctrl.id] = fileDescriptor;
                         emit SendBoolDataToEnumerationWidget(id, static_cast<bool>(value), name, unit, bIsReadOnly);
                     }
@@ -1065,7 +1226,8 @@ int Camera::EnumAllControlNewStyle()
                 else if (qctrl.type == V4L2_CTRL_TYPE_BUTTON)
                 {
                     int32_t id = qctrl.id;
-                    LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s from file descriptor=%d", qctrl.name, fileDescriptor);
+                    LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s will be used for %s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.name);
+                    m_ControlIdToControlNameMap[qctrl.id] = qctrl.name;
                     m_ControlIdToFileDescriptorMap[qctrl.id] = fileDescriptor;
                     emit SendButtonDataToEnumerationWidget(id, name, unit, bIsReadOnly);
                 }
@@ -1090,7 +1252,8 @@ int Camera::EnumAllControlNewStyle()
                                 list.append(QString((const char*) queryMenu.name));
                             }
                         }
-                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s from file descriptor=%d", qctrl.name, fileDescriptor);
+                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s will be used for %s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.name);
+                        m_ControlIdToControlNameMap[qctrl.id] = qctrl.name;
                         m_ControlIdToFileDescriptorMap[qctrl.id] = fileDescriptor;
                         emit SendListDataToEnumerationWidget(id, value, list, name, unit, bIsReadOnly);
                     }
@@ -1115,7 +1278,8 @@ int Camera::EnumAllControlNewStyle()
                                 list.append(queryMenu.value);
                             }
                         }
-                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s from file descriptor=%d", qctrl.name, fileDescriptor);
+                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s will be used for %s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.name);
+                        m_ControlIdToControlNameMap[qctrl.id] = qctrl.name;
                         m_ControlIdToFileDescriptorMap[qctrl.id] = fileDescriptor;
                         emit SendListIntDataToEnumerationWidget(id, value, list, name, unit, bIsReadOnly);
                     }
@@ -1126,18 +1290,25 @@ int Camera::EnumAllControlNewStyle()
 
         if (0 == cidCount)
         {
-            LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL returned error, no controls can be enumerated.");
+            LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s returned error, no controls can be enumerated.", m_FileDescriptorToNameMap[fileDescriptor].c_str());
         }
         else
         {
-            LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL: NumControls=%d", cidCount);
+            LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s: NumControls=%d", m_FileDescriptorToNameMap[fileDescriptor].c_str(), cidCount);
             result = 0;
         }
     }
     return result;
 }
 
-int Camera::ReadExtControl(int fileDescriptor, uint32_t &value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
+template<typename T> T        getExtCtrlValue          (const v4l2_ext_control& extCtrl);
+template<>           int32_t  getExtCtrlValue<int32_t> (const v4l2_ext_control& extCtrl) {return extCtrl.value;}
+template<>           uint32_t getExtCtrlValue<uint32_t>(const v4l2_ext_control& extCtrl) {return extCtrl.value;}
+template<>           int64_t  getExtCtrlValue<int64_t> (const v4l2_ext_control& extCtrl) {return extCtrl.value64;}
+template<>           uint64_t getExtCtrlValue<uint64_t>(const v4l2_ext_control& extCtrl) {return extCtrl.value64;}
+
+template<typename T>
+int Camera::ReadExtControl(int fileDescriptor, T &value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
 {
     QMutexLocker locker(&m_ReadExtControlMutex);
     int result = -1;
@@ -1151,7 +1322,7 @@ int Camera::ReadExtControl(int fileDescriptor, uint32_t &value, uint32_t control
         v4l2_ext_controls extCtrls;
         v4l2_ext_control extCtrl;
 
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
+        LOG_EX("Camera::ReadExtControl VIDIOC_QUERYCTRL %s function name: %s control name: %s OK, min=%d, max=%d, default=%d", m_FileDescriptorToNameMap[fileDescriptor].c_str(), functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
 
         CLEAR(extCtrls);
         CLEAR(extCtrl);
@@ -1163,22 +1334,22 @@ int Camera::ReadExtControl(int fileDescriptor, uint32_t &value, uint32_t control
 
         if (-1 != iohelper::xioctl(fileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
         {
-            LOG_EX("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
+            LOG_EX("Camera::ReadExtControl VIDIOC_G_EXT_CTRLS %s function name: %s control name: %s OK =%d", m_FileDescriptorToNameMap[fileDescriptor].c_str(), functionName, controlName, extCtrl.value);
 
-            value = extCtrl.value;
+            value = getExtCtrlValue<T>(extCtrl);
 
             result = 0;
         }
         else
         {
-            LOG_EX("Camera::%s VIDIOC_G_CTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            LOG_EX("Camera::ReadExtControl VIDIOC_G_CTRL %s function name: %s control name: %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
 
             result = -2;
         }
     }
     else
     {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::ReadExtControl VIDIOC_QUERYCTRL %s function name: %s control name: %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
 
         result = -2;
     }
@@ -1186,7 +1357,23 @@ int Camera::ReadExtControl(int fileDescriptor, uint32_t &value, uint32_t control
     return result;
 }
 
-int Camera::SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
+template<typename T>
+int Camera::ReadExtControl(T &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass)
+{
+    LOG_EX("Camera::ReadExtControl %s control %s", m_FileDescriptorToNameMap[m_ControlIdToFileDescriptorMap[controlID]].c_str(), m_ControlIdToControlNameMap[controlID].c_str());
+    return ReadExtControl(m_ControlIdToFileDescriptorMap[controlID], value, controlID, functionName, controlName, controlClass);
+}
+
+template<typename T> void setExtCtrlValue                         (v4l2_ext_control& extCtrl, const T& value);
+template<>           void setExtCtrlValue<int32_t>                (v4l2_ext_control& extCtrl, const int32_t& value)                 {extCtrl.value = value;}
+template<>           void setExtCtrlValue<uint32_t>               (v4l2_ext_control& extCtrl, const uint32_t& value)                {extCtrl.value = value;}
+template<>           void setExtCtrlValue<int64_t>                (v4l2_ext_control& extCtrl, const int64_t& value)                 {extCtrl.value64 = value;}
+template<>           void setExtCtrlValue<uint64_t>               (v4l2_ext_control& extCtrl, const uint64_t& value)                {extCtrl.value64 = value;}
+template<>           void setExtCtrlValue<v4l2_exposure_auto_type>(v4l2_ext_control& extCtrl, const v4l2_exposure_auto_type& value) {extCtrl.value = value;}
+template<>           void setExtCtrlValue<bool>                   (v4l2_ext_control& extCtrl, const bool& value)                    {extCtrl.value = value;}
+
+template<typename T>
+int Camera::SetExtControl(T value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
 {
     int result = -1;
     v4l2_ext_controls extCtrls;
@@ -1195,7 +1382,7 @@ int Camera::SetExtControl(uint32_t value, uint32_t controlID, const char *functi
     CLEAR(extCtrls);
     CLEAR(extCtrl);
     extCtrl.id = controlID;
-    extCtrl.value = value;
+    setExtCtrlValue<T>(extCtrl, value);
 
     extCtrls.controls = &extCtrl;
     extCtrls.count = 1;
@@ -1205,338 +1392,46 @@ int Camera::SetExtControl(uint32_t value, uint32_t controlID, const char *functi
     {
         if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_S_EXT_CTRLS, &extCtrls))
         {
-            LOG_EX("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
+            LOG_EX("Camera::SetExtControl VIDIOC_S_EXT_CTRLS %s function name: %s control name: %s (%s) to %d OK", m_FileDescriptorToNameMap[m_ControlIdToFileDescriptorMap[controlID]].c_str(), functionName, controlName, m_ControlIdToControlNameMap[controlID].c_str(), value);
             result = 0;
         }
         else
         {
-            LOG_EX("Camera::%s VIDIOC_S_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            LOG_EX("Camera::SetExtControlVIDIOC_S_EXT_CTRLS %s function name: %s control name: %s (%s) failed errno=%d=%s", m_FileDescriptorToNameMap[m_ControlIdToFileDescriptorMap[controlID]].c_str(), functionName, controlName, m_ControlIdToControlNameMap[controlID].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
         }
     }
     else
     {
-        LOG_EX("Camera::%s VIDIOC_TRY_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::SetExtControl VIDIOC_TRY_EXT_CTRLS %s function name: %s control name: %s (%s) failed errno=%d=%s", m_FileDescriptorToNameMap[m_ControlIdToFileDescriptorMap[controlID]].c_str(), functionName, controlName, m_ControlIdToControlNameMap[controlID].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
     }
 
     return result;
 }
 
-int Camera::SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
+template<typename T> struct v4l2_ctrl_type_container;
+template<>           struct v4l2_ctrl_type_container<int32_t>  {using type = v4l2_queryctrl;};
+template<>           struct v4l2_ctrl_type_container<uint32_t> {using type = v4l2_queryctrl;};
+template<>           struct v4l2_ctrl_type_container<int64_t>  {using type = v4l2_query_ext_ctrl;};
+template<>           struct v4l2_ctrl_type_container<uint64_t> {using type = v4l2_query_ext_ctrl;};
+
+template<typename T>
+int Camera::ReadMinMax(T &min, T &max, uint32_t controlID, const char *functionName, const char *controlName)
 {
     int result = -1;
-    v4l2_ext_controls extCtrls;
-    v4l2_ext_control extCtrl;
-
-    CLEAR(extCtrls);
-    CLEAR(extCtrl);
-    extCtrl.id = controlID;
-    extCtrl.value = value;
-
-    extCtrls.controls = &extCtrl;
-    extCtrls.count = 1;
-    extCtrls.ctrl_class = controlClass;
-
-    if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_TRY_EXT_CTRLS, &extCtrls))
-    {
-        if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_S_EXT_CTRLS, &extCtrls))
-        {
-            LOG_EX("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
-            result = 0;
-        }
-        else
-        {
-            LOG_EX("Camera::%s VIDIOC_S_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-        }
-    }
-    else
-    {
-        LOG_EX("Camera::%s VIDIOC_TRY_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-    }
-
-    return result;
-}
-
-int Camera::ReadExtControl(int fileDescriptor, int32_t &value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
-{
-    QMutexLocker locker(&m_ReadExtControlMutex);
-    int result = -1;
-    v4l2_queryctrl ctrl;
-
-    CLEAR(ctrl);
-    ctrl.id = controlID;
-
-    if (iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
-    {
-        v4l2_ext_controls extCtrls;
-        v4l2_ext_control extCtrl;
-
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
-
-        CLEAR(extCtrls);
-        CLEAR(extCtrl);
-        extCtrl.id = controlID;
-
-        extCtrls.controls = &extCtrl;
-        extCtrls.count = 1;
-        extCtrls.ctrl_class = controlClass;
-
-        if (-1 != iohelper::xioctl(fileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
-        {
-            LOG_EX("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
-
-            value = extCtrl.value;
-
-            result = 0;
-        }
-        else
-        {
-            LOG_EX("Camera::%s VIDIOC_G_CTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-
-            result = -2;
-        }
-    }
-    else
-    {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-
-        result = -2;
-    }
-
-    return result;
-}
-
-int Camera::SetExtControl(uint64_t value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
-{
-    int result = -1;
-    v4l2_ext_controls extCtrls;
-    v4l2_ext_control extCtrl;
-
-    CLEAR(extCtrls);
-    CLEAR(extCtrl);
-    extCtrl.id = controlID;
-    extCtrl.value64 = value;
-
-    extCtrls.controls = &extCtrl;
-    extCtrls.count = 1;
-    extCtrls.ctrl_class = controlClass;
-
-    if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_TRY_EXT_CTRLS, &extCtrls))
-    {
-        if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_S_EXT_CTRLS, &extCtrls))
-        {
-            LOG_EX("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
-            result = 0;
-        }
-        else
-        {
-            LOG_EX("Camera::%s VIDIOC_S_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-        }
-    }
-    else
-    {
-        LOG_EX("Camera::%s VIDIOC_TRY_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-    }
-
-    return result;
-}
-
-int Camera::ReadExtControl(int fileDescriptor, uint64_t &value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
-{
-    QMutexLocker locker(&m_ReadExtControlMutex);
-    int result = -1;
-    v4l2_queryctrl ctrl;
-
-    CLEAR(ctrl);
-    ctrl.id = controlID;
-
-    if (iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
-    {
-        v4l2_ext_controls extCtrls;
-        v4l2_ext_control extCtrl;
-
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
-
-        CLEAR(extCtrls);
-        CLEAR(extCtrl);
-        extCtrl.id = controlID;
-
-        extCtrls.controls = &extCtrl;
-        extCtrls.count = 1;
-        extCtrls.ctrl_class = controlClass;
-
-        if (-1 != iohelper::xioctl(fileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
-        {
-            LOG_EX("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
-
-            value = extCtrl.value64;
-
-            result = 0;
-        }
-        else
-        {
-            LOG_EX("Camera::%s VIDIOC_G_CTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-
-            result = -2;
-        }
-    }
-    else
-    {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-
-        result = -2;
-    }
-
-    return result;
-}
-
-int Camera::SetExtControl(int64_t value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
-{
-    int result = -1;
-    v4l2_ext_controls extCtrls;
-    v4l2_ext_control extCtrl;
-
-    CLEAR(extCtrls);
-    CLEAR(extCtrl);
-    extCtrl.id = controlID;
-    extCtrl.value64 = value;
-
-    extCtrls.controls = &extCtrl;
-    extCtrls.count = 1;
-    extCtrls.ctrl_class = controlClass;
-
-    if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_TRY_EXT_CTRLS, &extCtrls))
-    {
-        if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_S_EXT_CTRLS, &extCtrls))
-        {
-            LOG_EX("Camera::%s VIDIOC_S_EXT_CTRLS %s to %d OK", functionName, controlName, value);
-            result = 0;
-        }
-        else
-        {
-            LOG_EX("Camera::%s VIDIOC_S_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-        }
-    }
-    else
-    {
-        LOG_EX("Camera::%s VIDIOC_TRY_EXT_CTRLS %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-    }
-
-    return result;
-}
-
-int Camera::ReadExtControl(int fileDescriptor, int64_t &value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
-{
-    QMutexLocker locker(&m_ReadExtControlMutex);
-    int result = -1;
-    v4l2_queryctrl ctrl;
-
-    CLEAR(ctrl);
-    ctrl.id = controlID;
-
-    if (iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
-    {
-        v4l2_ext_controls extCtrls;
-        v4l2_ext_control extCtrl;
-
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
-
-        CLEAR(extCtrls);
-        CLEAR(extCtrl);
-        extCtrl.id = controlID;
-
-        extCtrls.controls = &extCtrl;
-        extCtrls.count = 1;
-        extCtrls.ctrl_class = controlClass;
-
-        if (-1 != iohelper::xioctl(fileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
-        {
-            LOG_EX("Camera::%s VIDIOC_G_EXT_CTRLS %s OK =%d", functionName, controlName, extCtrl.value);
-
-            value = extCtrl.value64;
-
-            result = 0;
-        }
-        else
-        {
-            LOG_EX("Camera::%s VIDIOC_G_CTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-
-            result = -2;
-        }
-    }
-    else
-    {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-
-        result = -2;
-    }
-
-    return result;
-}
-
-int Camera::ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const char *functionName, const char *controlName)
-{
-    int result = -1;
-    v4l2_queryctrl ctrl;
+    typename v4l2_ctrl_type_container<T>::type ctrl;
 
     CLEAR(ctrl);
     ctrl.id = controlID;
 
     if (iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_QUERYCTRL, &ctrl) >= 0)
     {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
+        LOG_EX("Camera::ReadMinMax VIDIOC_QUERYCTRL %s function name: %s control name: %s (%s) OK, min=%d, max=%d, default=%d", m_FileDescriptorToNameMap[m_ControlIdToFileDescriptorMap[controlID]].c_str(), functionName, controlName, m_ControlIdToControlNameMap[controlID].c_str(), ctrl.minimum, ctrl.maximum, ctrl.default_value);
         min = ctrl.minimum;
         max = ctrl.maximum;
     }
     else
     {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-        result = -2;
-    }
-
-    return result;
-}
-
-int Camera::ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char *controlName)
-{
-    int result = 0;
-    v4l2_queryctrl ctrl;
-
-    CLEAR(ctrl);
-    ctrl.id = controlID;
-
-    if (iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_QUERYCTRL, &ctrl) >= 0)
-    {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, ctrl.minimum, ctrl.maximum, ctrl.default_value);
-        min = ctrl.minimum;
-        max = ctrl.maximum;
-    }
-    else
-    {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
-        result = -2;
-    }
-
-    return result;
-}
-
-int Camera::ReadMinMax(int64_t &min, int64_t &max, uint32_t controlID, const char *functionName, const char *controlName)
-{
-    int result = 0;
-    v4l2_query_ext_ctrl extCtrl;
-
-    CLEAR(extCtrl);
-    extCtrl.id = controlID;
-
-    if (iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_QUERY_EXT_CTRL, &extCtrl) >= 0)
-    {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s OK, min=%d, max=%d, default=%d", functionName, controlName, extCtrl.minimum, extCtrl.maximum, extCtrl.default_value);
-
-        min = extCtrl.minimum;
-        max = extCtrl.maximum;
-    }
-    else
-    {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::ReadMinMax VIDIOC_QUERYCTRL %s function name: %s control name: %s (%s) failed errno=%d=%s", m_FileDescriptorToNameMap[m_ControlIdToFileDescriptorMap[controlID]].c_str(), functionName, controlName, m_ControlIdToControlNameMap[controlID].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
         result = -2;
     }
 
@@ -1552,22 +1447,36 @@ int Camera::ReadStep(int32_t &step, uint32_t controlID, const char *functionName
     ctrl.id = controlID;
     if (iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_QUERYCTRL, &ctrl) >= 0)
     {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s OK, step=%d", functionName, controlName, ctrl.step);
+        LOG_EX("Camera::ReadStep VIDIOC_QUERYCTRL %s function name: %s control name: %s (%s) OK, step=%d", m_FileDescriptorToNameMap[m_ControlIdToFileDescriptorMap[controlID]].c_str(), functionName, controlName, m_ControlIdToControlNameMap[controlID].c_str(), ctrl.step);
         step = ctrl.step;
     }
     else
     {
-        LOG_EX("Camera::%s VIDIOC_QUERYCTRL %s failed errno=%d=%s", functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        LOG_EX("Camera::ReadStep VIDIOC_QUERYCTRL %s function name: %s control name: %s (%s) failed errno=%d=%s", m_FileDescriptorToNameMap[m_ControlIdToFileDescriptorMap[controlID]].c_str(), functionName, controlName, m_ControlIdToControlNameMap[controlID].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
         result = -2;
     }
 
     return result;
 }
 
+int Camera::ReadExposureAbs(int32_t &value)
+{
+    return ReadExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
+}
 
-int Camera::ReadMinMaxExposure(int64_t &min, int64_t &max)
+int Camera::SetExposureAbs(int32_t value)
+{
+    return SetExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "SetExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
+}
+
+int Camera::ReadMinMaxExposure(int32_t &min, int32_t &max)
 {
     return ReadMinMax(min, max, V4L2_CID_EXPOSURE, "ReadExposureMinMax", "V4L2_CID_EXPOSURE");
+}
+
+int Camera::ReadMinMaxExposureAbs(int64_t &min, int64_t &max)
+{
+    return ReadMinMax(min, max, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureMinMaxAbs", "V4L2_CID_EXPOSURE_ABSOLUTE");
 }
 
 int Camera::ReadAutoExposure(bool &flag)
@@ -1575,7 +1484,7 @@ int Camera::ReadAutoExposure(bool &flag)
     int result = 0;
     uint32_t value = 0;
     result = ReadExtControl(value, V4L2_CID_EXPOSURE_AUTO, "ReadAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
-    flag = bool(value);
+    flag = (value == V4L2_EXPOSURE_AUTO) ? true : false;
     return result;
 }
 
@@ -1589,22 +1498,22 @@ int Camera::SetAutoExposure(bool autoexposure)
     {
         m_pAutoExposureReader->StopThread();
     }
-    return SetExtControl(autoexposure, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
+    return SetExtControl(autoexposure ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
 }
 
 //////////////////// Controls ////////////////////////
 
-int Camera::ReadGain(int64_t &value)
+int Camera::ReadGain(int32_t &value)
 {
     return ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
 }
 
-int Camera::SetGain(int64_t value)
+int Camera::SetGain(int32_t value)
 {
     return SetExtControl(value, V4L2_CID_GAIN, "SetGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
 }
 
-int Camera::ReadMinMaxGain(int64_t &min, int64_t &max)
+int Camera::ReadMinMaxGain(int32_t &min, int32_t &max)
 {
     return ReadMinMax(min, max, V4L2_CID_GAIN, "ReadMinMaxGain", "V4L2_CID_GAIN");
 }
@@ -1633,7 +1542,7 @@ int Camera::SetAutoGain(bool value)
     return SetExtControl(value, V4L2_CID_AUTOGAIN, "SetAutoGain", "V4L2_CID_AUTOGAIN", V4L2_CTRL_CLASS_USER);
 }
 
-int Camera::ReadExposure(int64_t &value)
+int Camera::ReadExposure(int32_t &value)
 {
     return ReadExtControl(value, V4L2_CID_EXPOSURE, "ReadExposure", "V4L2_CID_EXPOSURE", V4L2_CTRL_CLASS_USER);
 }
@@ -1736,45 +1645,56 @@ int Camera::ReadAutoWhiteBalance(bool &flag)
 int Camera::ReadFrameRate(uint32_t &numerator, uint32_t &denominator, uint32_t width, uint32_t height, uint32_t pixelFormat)
 {
     int result = -1;
-    v4l2_streamparm parm;
 
-    CLEAR(parm);
-    parm.type = m_DeviceBufferType;
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-    if (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_PARM, &parm) >= 0 && parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME)
+    for (const auto fileDescriptor : allFileDescriptors)
     {
-        v4l2_frmivalenum frmival;
-        CLEAR(frmival);
-
-        frmival.index = 0;
-        frmival.pixel_format = pixelFormat;
-        frmival.width = width;
-        frmival.height = height;
-        while (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) >= 0)
-        {
-            frmival.index++;
-            LOG_EX("Camera::ReadFrameRate type=%d", frmival.type);
-        }
-        if (frmival.index == 0)
-        {
-            LOG_EX("Camera::ReadFrameRate VIDIOC_ENUM_FRAMEINTERVALS failed");
-        }
-
         v4l2_streamparm parm;
+
         CLEAR(parm);
         parm.type = m_DeviceBufferType;
 
-        if (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
+        if (iohelper::xioctl(fileDescriptor, VIDIOC_G_PARM, &parm) >= 0 && parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME)
         {
-            numerator = parm.parm.capture.timeperframe.numerator;
-            denominator = parm.parm.capture.timeperframe.denominator;
-            LOG_EX("Camera::ReadFrameRate %d/%dOK", numerator, denominator);
+            v4l2_frmivalenum frmival;
+            CLEAR(frmival);
+
+            frmival.index = 0;
+            frmival.pixel_format = pixelFormat;
+            frmival.width = width;
+            frmival.height = height;
+            while (iohelper::xioctl(fileDescriptor, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) >= 0)
+            {
+                frmival.index++;
+                LOG_EX("Camera::ReadFrameRate type=%d", frmival.type);
+            }
+            if (frmival.index == 0)
+            {
+                LOG_EX("Camera::ReadFrameRate VIDIOC_ENUM_FRAMEINTERVALS %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            }
+
+            v4l2_streamparm parm;
+            CLEAR(parm);
+            parm.type = m_DeviceBufferType;
+
+            if (iohelper::xioctl(fileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
+            {
+                numerator = parm.parm.capture.timeperframe.numerator;
+                denominator = parm.parm.capture.timeperframe.denominator;
+                LOG_EX("Camera::ReadFrameRate VIDIOC_G_PARM %s %d/%dOK", m_FileDescriptorToNameMap[fileDescriptor].c_str(), numerator, denominator);
+            }
+            else
+            {
+                LOG_EX("Camera::ReadFrameRate VIDIOC_G_PARM %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            }
         }
-    }
-    else
-    {
-        LOG_EX("Camera::ReadFrameRate VIDIOC_G_PARM V4L2_CAP_TIMEPERFRAME failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
-        result = -2;
+        else
+        {
+            LOG_EX("Camera::ReadFrameRate VIDIOC_G_PARM %s failed (or V4L2_CAP_TIMEPERFRAME not in cap) errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            result = -2;
+        }
     }
 
     return result;
@@ -1783,24 +1703,31 @@ int Camera::ReadFrameRate(uint32_t &numerator, uint32_t &denominator, uint32_t w
 int Camera::SetFrameRate(uint32_t numerator, uint32_t denominator)
 {
     int result = -1;
-    v4l2_streamparm parm;
 
-    CLEAR(parm);
-    parm.type = m_DeviceBufferType;
-    if (denominator != 0)
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
+
+    for (const auto fileDescriptor : allFileDescriptors)
     {
-        if (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
+        v4l2_streamparm parm;
+
+        CLEAR(parm);
+        parm.type = m_DeviceBufferType;
+        if (denominator != 0)
         {
-            parm.parm.capture.timeperframe.numerator = numerator;
-            parm.parm.capture.timeperframe.denominator = denominator;
-            if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_PARM, &parm))
+            if (iohelper::xioctl(fileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
             {
-                LOG_EX("Camera::SetFrameRate VIDIOC_S_PARM to %d/%d (%.2f) OK", numerator, denominator, numerator / denominator);
-                result = 0;
-            }
-            else
-            {
-                LOG_EX("Camera::SetFrameRate VIDIOC_S_PARM failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                parm.parm.capture.timeperframe.numerator = numerator;
+                parm.parm.capture.timeperframe.denominator = denominator;
+                if (-1 != iohelper::xioctl(fileDescriptor, VIDIOC_S_PARM, &parm))
+                {
+                    LOG_EX("Camera::SetFrameRate VIDIOC_S_PARM %s to %d/%d (%.2f) OK", m_FileDescriptorToNameMap[fileDescriptor].c_str(), numerator, denominator, numerator / denominator);
+                    result = 0;
+                }
+                else
+                {
+                    LOG_EX("Camera::SetFrameRate VIDIOC_S_PARM %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                }
             }
         }
     }
@@ -1811,26 +1738,33 @@ int Camera::SetFrameRate(uint32_t numerator, uint32_t denominator)
 int Camera::ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint32_t &height)
 {
     int result = -1;
-    v4l2_crop crop;
 
-    CLEAR(crop);
-    crop.type = m_DeviceBufferType;
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-    if (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_CROP, &crop) >= 0)
+    for (const auto fileDescriptor : allFileDescriptors)
     {
-        xOffset = crop.c.left;
-        yOffset = crop.c.top;
-        width = crop.c.width;
-        height = crop.c.height;
-        LOG_EX("Camera::ReadCrop VIDIOC_G_CROP x=%d, y=%d, w=%d, h=%d OK", xOffset, yOffset, width, height);
+        v4l2_crop crop;
 
-        result = 0;
-    }
-    else
-    {
-        LOG_EX("Camera::ReadCrop VIDIOC_G_CROP failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        CLEAR(crop);
+        crop.type = m_DeviceBufferType;
 
-        result = -2;
+        if (iohelper::xioctl(fileDescriptor, VIDIOC_G_CROP, &crop) >= 0)
+        {
+            xOffset = crop.c.left;
+            yOffset = crop.c.top;
+            width = crop.c.width;
+            height = crop.c.height;
+            LOG_EX("Camera::ReadCrop VIDIOC_G_CROP %s x=%d, y=%d, w=%d, h=%d OK", m_FileDescriptorToNameMap[fileDescriptor].c_str(), xOffset, yOffset, width, height);
+
+            result = 0;
+        }
+        else
+        {
+            LOG_EX("Camera::ReadCrop VIDIOC_G_CROP %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+
+            result = -2;
+        }
     }
 
     return result;
@@ -1839,25 +1773,31 @@ int Camera::ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint
 int Camera::SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t height)
 {
     int result = -1;
-    v4l2_crop crop;
 
-    CLEAR(crop);
-    crop.type = m_DeviceBufferType;
-    crop.c.left = xOffset;
-    crop.c.top = yOffset;
-    crop.c.width = width;
-    crop.c.height = height;
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-    if (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_CROP, &crop) >= 0)
+    for (const auto fileDescriptor : allFileDescriptors)
     {
-        LOG_EX("Camera::SetCrop VIDIOC_S_CROP %d, %d, %d, %d OK", xOffset, yOffset, width, height);
+        v4l2_crop crop;
 
-        result = 0;
-    }
-    else
-    {
-        LOG_EX("Camera::SetCrop VIDIOC_S_CROP failed errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        CLEAR(crop);
+        crop.type = m_DeviceBufferType;
+        crop.c.left = xOffset;
+        crop.c.top = yOffset;
+        crop.c.width = width;
+        crop.c.height = height;
 
+        if (iohelper::xioctl(fileDescriptor, VIDIOC_S_CROP, &crop) >= 0)
+        {
+            LOG_EX("Camera::SetCrop VIDIOC_S_CROP %s left=%d, top=%d, width=%d, height=%d OK", m_FileDescriptorToNameMap[fileDescriptor].c_str(), xOffset, yOffset, width, height);
+
+            result = 0;
+        }
+        else
+        {
+            LOG_EX("Camera::SetCrop VIDIOC_S_CROP %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        }
     }
 
     return result;
@@ -1912,265 +1852,275 @@ int Camera::DeleteUserBuffer()
 
 int Camera::GetCameraDriverName(std::string &strText)
 {
-    int result = 0;
-    v4l2_capability cap;
+    int result = -1;
+    std::string info;
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-    // query device capabilities
-    if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_QUERYCAP, &cap))
+    for (const auto fileDescriptor : allFileDescriptors)
     {
-        LOG_EX("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s is no V4L2 device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        LOG_EX("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
+        v4l2_capability cap;
+
+        // query device capabilities
+        if (-1 == iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCAP, &cap))
+        {
+            LOG_EX("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s is no V4L2 device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+        }
+        else
+        {
+            if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
+            {
+                LOG_EX("Camera::GetCameraDriverName %s is no video capture device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+            }
+            else
+            {
+                if(((char* )cap.driver)[0] == '\0')
+                {
+                    LOG_EX("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s no driver name\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+                }
+                else
+                {
+                    LOG_EX("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s driver name=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char* )cap.driver);
+                    if (info.empty())
+                    {
+                        info = std::string((char*) cap.driver) + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ")";
+                    }
+                    else
+                    {
+                        info += std::string(",<br>") + std::string((char*) cap.driver) + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ")";
+                    }
+                    result = 0;
+                }
+            }
+        }
     }
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
-    {
-        LOG_EX("Camera::GetCameraDriverName %s is no video capture device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        LOG_EX("Camera::GetCameraDriverName VIDIOC_QUERYCAP %s driver name=%s\n", m_DeviceName.c_str(), (char*)cap.driver);
-    }
-
-    strText = (char*)cap.driver;
+    strText = info;
 
     return result;
 }
 
 int Camera::GetCameraDeviceName(std::string &strText)
 {
-    int result = 0;
-    v4l2_capability cap;
+    int result = -1;
+    std::string info;
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-    // query device capabilities
-    if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_QUERYCAP, &cap))
+    for (const auto fileDescriptor : allFileDescriptors)
     {
-        LOG_EX("Camera::GetCameraDeviceName %s is no V4L2 device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        LOG_EX("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
+        v4l2_capability cap;
+
+        // query device capabilities
+        if (-1 != iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCAP, &cap))
+        {
+            LOG_EX("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s is no V4L2 device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+        }
+        else
+        {
+            if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
+            {
+                LOG_EX("Camera::GetCameraDeviceName %s is no video capture device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+            }
+            else
+            {
+                if(((char* )cap.card)[0] == '\0')
+                {
+                    LOG_EX("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s no device name\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+                }
+                else
+                {
+                    LOG_EX("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s device name=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char* )cap.card);
+                    if (info.empty())
+                    {
+                        info = std::string((char*) cap.card) + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ")";
+                    }
+                    else
+                    {
+                        info += std::string(",<br>") + std::string((char*) cap.card) + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ")";
+                    }
+                    result = 0;
+                }
+            }
+        }
     }
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
-    {
-        LOG_EX("Camera::GetCameraDeviceName %s is no video capture device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        LOG_EX("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
-    }
-
-    strText = (char*)cap.card;
+    strText = info;
 
     return result;
 }
 
 int Camera::GetCameraBusInfo(std::string &strText)
 {
-    int result = 0;
-    v4l2_capability cap;
+    int result = -1;
+    std::string info;
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-    // query device capabilities
-    if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_QUERYCAP, &cap))
+    for (const auto fileDescriptor : allFileDescriptors)
     {
-        LOG_EX("Camera::GetCameraBusInfo %s is no V4L2 device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        LOG_EX("Camera::GetCameraBusInfo VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
+        v4l2_capability cap;
+
+        // query device capabilities
+        if (-1 == iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCAP, &cap))
+        {
+            LOG_EX("Camera::GetCameraBusInfo VIDIOC_QUERYCAP %s is no V4L2 device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+        }
+        else
+        {
+            if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
+            {
+                LOG_EX("Camera::GetCameraBusInfo %s is no video capture device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+            }
+            else
+            {
+                if(((char* )cap.bus_info)[0] == '\0')
+                {
+                    LOG_EX("Camera::GetCameraBusInfo VIDIOC_QUERYCAP %s no bus info\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+                }
+                else
+                {
+                    LOG_EX("Camera::GetCameraBusInfo VIDIOC_QUERYCAP %s bus info=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char* )cap.bus_info);
+                    if (info.empty())
+                    {
+                        info = std::string((char*) cap.bus_info) + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ")";
+                    }
+                    else
+                    {
+                        info += std::string(",<br>") + std::string((char*) cap.bus_info) + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ")";
+                    }
+                    result = 0;
+                }
+            }
+        }
     }
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
-    {
-        LOG_EX("Camera::GetCameraBusInfo %s is no video capture device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        LOG_EX("Camera::GetCameraBusInfo VIDIOC_QUERYCAP %s bus info=%s\n", m_DeviceName.c_str(), (char*)cap.bus_info);
-    }
-
-    strText = (char*)cap.bus_info;
+    strText = info;
 
     return result;
 }
 
 int Camera::GetCameraDriverVersion(std::string &strText)
 {
-    v4l2_capability cap;
+    int result = -1;
+    std::string info;
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-    if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_QUERYCAP, &cap))
+    for (const auto fileDescriptor : allFileDescriptors)
     {
-        LOG_EX("Camera::GetCameraDriverVersion %s is no V4L2 device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
-    }
+        v4l2_capability cap;
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
-    {
-        LOG_EX("Camera::GetCameraDriverVersion %s is no video capture device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
-    }
-
-    std::string cameraDriverInfo = (char*)cap.card;
-
-    QString name = QString::fromStdString(cameraDriverInfo);
-    QStringList list = name.split(" ");
-
-    if (list.isEmpty())
-    {
-        LOG_EX("Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
-        strText = "unknown";
-        return -1;
-    }
-
-    if (list.back().contains('-'))
-    {
-        QString part = list.back();
-        QString rightPart = part.mid(part.indexOf('-')+1);
-        QString leftPart = part.mid(0, part.indexOf('-'));
-
-        QString numbers;
-        QString letters;
-        for (QString::iterator it = rightPart.begin(); it != rightPart.end(); ++it)
+        // query device capabilities
+        if (-1 == iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCAP, &cap))
         {
-            if(it->isLetter())
+            LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s is no V4L2 device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+        }
+        else
+        {
+            if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
             {
-                int index = it - rightPart.begin();
-                numbers = rightPart.mid(0, index);
-                letters = rightPart.mid(index);
-                break;
+                LOG_EX("Camera::GetCameraDriverVersion %s is no video capture device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+            }
+            else
+            {
+                if(((char* )cap.card)[0] == '\0')
+                {
+                    LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s no driver version info\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+                }
+                else
+                {
+                    std::string cameraDriverInfo = (char*)cap.card;
+
+                    LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s driver version info string=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), cameraDriverInfo.c_str());
+
+                    QString name = QString::fromStdString(cameraDriverInfo);
+                    QStringList list = name.split(" ");
+                    std::string version = "unknown";
+
+                    if (!list.isEmpty() && list.back().contains('-'))
+                    {
+                        QString part = list.back();
+                        QString rightPart = part.mid(part.indexOf('-')+1);
+                        QString leftPart = part.mid(0, part.indexOf('-'));
+
+                        QString numbers;
+                        QString letters;
+                        for (QString::iterator it = rightPart.begin(); it != rightPart.end(); ++it)
+                        {
+                            if(it->isLetter())
+                            {
+                                int index = it - rightPart.begin();
+                                numbers = rightPart.mid(0, index);
+                                letters = rightPart.mid(index);
+                                break;
+                            }
+                        }
+
+                        int num = numbers.toInt();
+                        QString parsedNumbers = QString("%1").arg(num, 3, 10,  QLatin1Char('0'));
+                        rightPart = parsedNumbers + letters;
+                        part = leftPart + '-' + rightPart;
+
+                        QFile file(QString("/sys/bus/i2c/drivers/avt_csi2/%1/driver_version").arg(part));
+                        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+                        {
+                            LOG_EX("Camera::GetCameraDriverVersion Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char*)cap.card, file.fileName().toStdString().c_str());
+                            QFile file_alt(QString("/sys/bus/i2c/drivers/avt3/%1/driver_version").arg(part));
+                            if (!file_alt.open(QIODevice::ReadOnly | QIODevice::Text))
+                            {
+                                LOG_EX("Camera::GetCameraDriverVersion Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char*)cap.card, file_alt.fileName().toStdString().c_str());
+                                version = "unknown";
+                            }
+                            else
+                            {
+                                QByteArray line = file_alt.readLine();
+                                version = line.toStdString();
+                                LOG_EX("Camera::GetCameraDriverVersion got driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char*)cap.card, file_alt.fileName().toStdString().c_str());
+                            }
+                        }
+                        else
+                        {
+                            QByteArray line = file.readLine();
+                            version = line.toStdString();
+                            LOG_EX("Camera::GetCameraDriverVersion got driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char*)cap.card, file.fileName().toStdString().c_str());
+                        }
+                    }
+                    else
+                    {
+                        LOG_EX("Camera::GetCameraDriverVersion Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char*)cap.card);
+                        version = "unknown";
+                    }
+
+                    if (info.empty())
+                    {
+                        info = version + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ")";
+                    }
+                    else
+                    {
+                        info += std::string(",<br>") + version + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ")";
+                    }
+                    result = 0;
+                }
             }
         }
 
-        int num = numbers.toInt();
-        QString parsedNumbers = QString("%1").arg(num, 3, 10,  QLatin1Char('0'));
-        rightPart = parsedNumbers + letters;
-        part = leftPart + '-' + rightPart;
-
-        QFile file(QString("/sys/bus/i2c/drivers/avt_csi2/%1/driver_version").arg(part));
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            LOG_EX("Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
-            strText = "unknown";
-            return -1;
-        }
-
-        QByteArray line = file.readLine();
-        strText = line.toStdString();
-
-        LOG_EX("Driver version for VIDIOC_QUERYCAP %s device name=%s was succesfully gathered = %s \n", m_DeviceName.c_str(), (char*)cap.card, strText.c_str());
-    }
-    else
-    {
-        LOG_EX("Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s\n", m_DeviceName.c_str(), (char*)cap.card);
-        strText = "unknown";
-        return -1;
     }
 
-    return 0;
+    strText = info;
+
+    return result;
 }
 
 int Camera::GetCameraReadCapability(bool &flag)
 {
-    int result = 0;
-    std::stringstream tmp;
-    v4l2_capability cap;
+    int result = -1;
     flag = false;
 
-    // query device capabilities
-    if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_QUERYCAP, &cap))
-    {
-        LOG_EX("Camera::GetCameraReadCapability %s is no V4L2 device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        LOG_EX("Camera::GetCameraReadCapability VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
-    }
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
-    {
-        LOG_EX("Camera::GetCameraReadCapability %s is no video capture device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        tmp << "0x" << std::hex << cap.capabilities << std::endl
-            << "    Read/Write = " << ((cap.capabilities & V4L2_CAP_READWRITE)?"Yes":"No") << std::endl
-            << "    Streaming = " << ((cap.capabilities & V4L2_CAP_STREAMING)?"Yes":"No");
-        LOG_EX("Camera::GetCameraReadCapability VIDIOC_QUERYCAP %s driver version=%s\n", m_DeviceName.c_str(), tmp.str().c_str());
-
-        if (cap.capabilities & V4L2_CAP_READWRITE)
-            flag = true;
-    }
-
-
-    return result;
-}
-
-int Camera::GetCameraCapabilities(std::string &strText)
-{
-    int result = 0;
-    std::stringstream tmp;
-    v4l2_capability cap;
-
-    // query device capabilities
-    if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_QUERYCAP, &cap))
-    {
-        LOG_EX("Camera::GetCameraCapabilities %s is no V4L2 device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        LOG_EX("Camera::GetCameraCapabilities VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
-    }
-
-    std::string driverName((char*)cap.driver);
-    std::string avtDriverName = "avt";
-    if(driverName.find(avtDriverName) != std::string::npos)
-    {
-        m_IsAvtCamera = true;
-    }
-
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
-    {
-        LOG_EX("Camera::GetCameraCapabilities %s is no video capture device\n", m_DeviceName.c_str());
-        return -1;
-    }
-    else
-    {
-        tmp << "0x" << std::hex << cap.capabilities << std::endl
-            << "    Read/Write = " << ((cap.capabilities & V4L2_CAP_READWRITE)?"Yes":"No") << std::endl
-            << "    Streaming = " << ((cap.capabilities & V4L2_CAP_STREAMING)?"Yes":"No");
-        LOG_EX("Camera::GetCameraCapabilities VIDIOC_QUERYCAP %s driver version=%s\n", m_DeviceName.c_str(), tmp.str().c_str());
-    }
-
-    strText = tmp.str();
-
-    return result;
-}
-
-int Camera::GetSubDevicesCapabilities(std::string &strText)
-{
-    int result = 0;
-
-    for (auto const fileDescriptor : m_SubDeviceFileDescriptors)
+    for (const auto fileDescriptor : allFileDescriptors)
     {
         std::stringstream tmp;
         v4l2_capability cap;
@@ -2178,34 +2128,89 @@ int Camera::GetSubDevicesCapabilities(std::string &strText)
         // query device capabilities
         if (-1 == iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCAP, &cap))
         {
-            LOG_EX("Camera::GetCameraCapabilities %s is no V4L2 device\n", m_DeviceName.c_str());
-            return -1;
+            LOG_EX("Camera::GetCameraReadCapability %s is no V4L2 device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
         }
         else
         {
-            LOG_EX("Camera::GetCameraCapabilities VIDIOC_QUERYCAP %s OK\n", m_DeviceName.c_str());
-        }
+            if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
+            {
+                LOG_EX("Camera::GetCameraReadCapability %s is no video capture device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+            }
+            else
+            {
+                tmp << "0x" << std::hex << cap.capabilities << std::endl << "    Read/Write = " << ((cap.capabilities & V4L2_CAP_READWRITE) ? "Yes" : "No") << std::endl << "    Streaming = " << ((cap.capabilities & V4L2_CAP_STREAMING) ? "Yes" : "No");
+                LOG_EX("Camera::GetCameraReadCapability VIDIOC_QUERYCAP %s capabilities=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), tmp.str().c_str());
 
-        std::string driverName((char*) cap.driver);
-        std::string avtDriverName = "avt";
-        if (driverName.find(avtDriverName) != std::string::npos)
-        {
-            m_IsAvtCamera = true;
-        }
+                if(result == 0)
+                {
+                    LOG_EX("Camera::GetCameraReadCapability VIDIOC_QUERYCAP %s setting flag again", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+                }
 
-        if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
-        {
-            LOG_EX("Camera::GetCameraCapabilities %s is no video capture device\n", m_DeviceName.c_str());
-            return -1;
-        }
-        else
-        {
-            tmp << "0x" << std::hex << cap.capabilities << std::endl << "    Read/Write = " << ((cap.capabilities & V4L2_CAP_READWRITE) ? "Yes" : "No") << std::endl << "    Streaming = " << ((cap.capabilities & V4L2_CAP_STREAMING) ? "Yes" : "No");
-            LOG_EX("Camera::GetCameraCapabilities VIDIOC_QUERYCAP %s driver version=%s\n", m_DeviceName.c_str(), tmp.str().c_str());
-        }
+                if (cap.capabilities & V4L2_CAP_READWRITE)
+                {
+                    flag = true;
+                }
+                else
+                {
+                    flag = false;
+                }
 
-        strText += tmp.str();
+                result = 0;
+            }
+        }
     }
+
+    return result;
+}
+
+int Camera::GetCameraCapabilities(std::string &strText)
+{
+    int result = -1;
+    std::string info;
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
+
+    for (const auto fileDescriptor : allFileDescriptors)
+    {
+        std::stringstream tmp;
+        v4l2_capability cap;
+
+        // query device capabilities
+        if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_QUERYCAP, &cap))
+        {
+            LOG_EX("Camera::GetCameraCapabilities %s is no V4L2 device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+        }
+        else
+        {
+            std::string driverName((char*) cap.driver);
+            std::string avtDriverName = "avt";
+            if (driverName.find(avtDriverName) != std::string::npos)
+            {
+                m_IsAvtCamera = true;
+            }
+
+            if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
+            {
+                LOG_EX("Camera::GetCameraCapabilities %s is no video capture device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+            }
+            else
+            {
+                tmp << "0x" << std::hex << cap.capabilities << std::endl << "    Read/Write = " << ((cap.capabilities & V4L2_CAP_READWRITE) ? "Yes" : "No") << std::endl << "    Streaming = " << ((cap.capabilities & V4L2_CAP_STREAMING) ? "Yes" : "No");
+                LOG_EX("Camera::GetCameraCapabilities VIDIOC_QUERYCAP %s capabilities=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), tmp.str().c_str());
+                if (info.empty())
+                {
+                    info = tmp.str() + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ") ";
+                }
+                else
+                {
+                    info += std::string(",<br>") + tmp.str() + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ") ";
+                }
+                result = 0;
+            }
+        }
+    }
+
+    strText = info;
 
     return result;
 }
@@ -2358,25 +2363,36 @@ bool Camera::getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError
 {
     bool result = false;
 
-    if(m_pFrameObserver)
-    {
-        // dummy call to set m_isAvtCamera
-        std::string dummy;
-        GetCameraCapabilities(dummy);
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-        if(m_IsAvtCamera)
+    for (const auto fileDescriptor : allFileDescriptors)
+    {
+        if(m_pFrameObserver)
         {
-            v4l2_stats_t stream_stats;
-            CLEAR(stream_stats);
-            if (ioctl(m_DeviceFileDescriptor, VIDIOC_STREAMSTAT, &stream_stats) >= 0)
+            // dummy call to set m_isAvtCamera
+            std::string dummy;
+            GetCameraCapabilities(dummy);
+
+            if(m_IsAvtCamera)
             {
-                FramesCount = stream_stats.frames_count;
-                PacketCRCError = stream_stats.packet_crc_error;
-                FramesUnderrun = stream_stats.frames_underrun;
-                FramesIncomplete = stream_stats.frames_incomplete;
-                CurrentFrameRate = (stream_stats.current_frame_interval > 0) ? (double)stream_stats.current_frame_count / ((double)stream_stats.current_frame_interval / 1000000.0)
-                                                                            : 0;
-                result = true;
+                v4l2_stats_t stream_stats;
+                CLEAR(stream_stats);
+                if (ioctl(fileDescriptor, VIDIOC_STREAMSTAT, &stream_stats) >= 0)
+                {
+                    FramesCount = stream_stats.frames_count;
+                    PacketCRCError = stream_stats.packet_crc_error;
+                    FramesUnderrun = stream_stats.frames_underrun;
+                    FramesIncomplete = stream_stats.frames_incomplete;
+                    CurrentFrameRate = (stream_stats.current_frame_interval > 0) ? (double)stream_stats.current_frame_count / ((double)stream_stats.current_frame_interval / 1000000.0)
+                                                                                : 0;
+                    result = true;
+                    LOG_EX("Camera::GetCameraCapabilities VIDIOC_STREAMSTAT %s OK\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+                }
+                else
+                {
+                    LOG_EX("Camera::GetCameraCapabilities VIDIOC_STREAMSTAT %s not OK\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+                }
             }
         }
     }
@@ -2394,24 +2410,34 @@ void Camera::reverseBytes(void* start, int size)
 int Camera::ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess)
 {
     int iRet = -1;
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-    v4l2_i2c i2c_reg;
-    i2c_reg.register_address = (__u32)nRegAddr;
-    i2c_reg.register_size = (__u32)2;
-    i2c_reg.num_bytes = (__u32)nBufferSize;
-    i2c_reg.ptr_buffer = (char*)pBuffer;
-
-    int res = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_R_I2C, &i2c_reg);
-
-    if (res >= 0)
+    for (const auto fileDescriptor : allFileDescriptors)
     {
-        iRet = 0;
-    }
+        v4l2_i2c i2c_reg;
+        i2c_reg.register_address = (__u32)nRegAddr;
+        i2c_reg.register_size = (__u32)2;
+        i2c_reg.num_bytes = (__u32)nBufferSize;
+        i2c_reg.ptr_buffer = (char*)pBuffer;
 
-    // Values in BCM register are Big Endian -> swap bytes
-    if(bConvertEndianess && (QSysInfo::ByteOrder == QSysInfo::LittleEndian))
-    {
-        reverseBytes(pBuffer, nBufferSize);
+        int res = iohelper::xioctl(fileDescriptor, VIDIOC_R_I2C, &i2c_reg);
+
+        if (res >= 0)
+        {
+            iRet = 0;
+
+            // Values in BCM register are Big Endian -> swap bytes
+            if(bConvertEndianess && (QSysInfo::ByteOrder == QSysInfo::LittleEndian))
+            {
+                reverseBytes(pBuffer, nBufferSize);
+            }
+            LOG_EX("Camera::ReadRegister VIDIOC_R_I2C %s OK\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+        }
+        else
+        {
+            LOG_EX("Camera::ReadRegister VIDIOC_R_I2C %s not OK\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+        }
     }
 
     return iRet;
@@ -2420,24 +2446,34 @@ int Camera::ReadRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize,
 int Camera::WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize, bool bConvertEndianess)
 {
     int iRet = -1;
+    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
+    allFileDescriptors.push_back(m_DeviceFileDescriptor);
 
-    // Values in BCM register are Big Endian -> swap bytes
-    if(bConvertEndianess && (QSysInfo::ByteOrder == QSysInfo::LittleEndian))
+    for (const auto fileDescriptor : allFileDescriptors)
     {
-        reverseBytes(pBuffer, nBufferSize);
-    }
+        // Values in BCM register are Big Endian -> swap bytes
+        if(bConvertEndianess && (QSysInfo::ByteOrder == QSysInfo::LittleEndian))
+        {
+            reverseBytes(pBuffer, nBufferSize);
+        }
 
-    v4l2_i2c i2c_reg;
-    i2c_reg.register_address = (__u32)nRegAddr;
-    i2c_reg.register_size = (__u32)2;
-    i2c_reg.num_bytes = (__u32)nBufferSize;
-    i2c_reg.ptr_buffer = (char*)pBuffer;
+        v4l2_i2c i2c_reg;
+        i2c_reg.register_address = (__u32)nRegAddr;
+        i2c_reg.register_size = (__u32)2;
+        i2c_reg.num_bytes = (__u32)nBufferSize;
+        i2c_reg.ptr_buffer = (char*)pBuffer;
 
-    int res = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_W_I2C, &i2c_reg);
+        int res = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_W_I2C, &i2c_reg);
 
-    if (res >= 0)
-    {
-        iRet = 0;
+        if (res >= 0)
+        {
+            iRet = 0;
+            LOG_EX("Camera::ReadRegister VIDIOC_R_I2C %s OK\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+        }
+        else
+        {
+            LOG_EX("Camera::ReadRegister VIDIOC_R_I2C %s not OK\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+        }
     }
 
     return iRet;
@@ -2467,8 +2503,6 @@ void Camera::SetEnumerationControlValueIntList(int32_t id, int64_t val)
 
     for (const auto fileDescriptor : allFileDescriptors)
     {
-        LOG_EX("Camera::SetEnumerationControlValueIntList: %d", fileDescriptor);
-
         v4l2_query_ext_ctrl qctrl;
         v4l2_ext_control extCtrl;
         v4l2_querymenu queryMenu;
@@ -2489,17 +2523,25 @@ void Camera::SetEnumerationControlValueIntList(int32_t id, int64_t val)
                 {
                     if (val == queryMenu.value)
                     {
-                        LOG_EX("Camera::SetEnumerationControlValueIntList: using file descriptor %d to set %s", fileDescriptor, queryMenu.name);
+                        LOG_EX("Camera::SetEnumerationControlValueIntList %s setting index for menu %s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), queryMenu.name);
                         result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_ID2CLASS(id));
                         if (result < 0)
                         {
-                            LOG_EX("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class", (const char*) qctrl.name);
+                            LOG_EX("Camera::SetEnumerationControlValueIntList %s index for name %s cannot be set with V4L2_CTRL_CLASS_USER class", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), qctrl.name);
                         }
                         emit SendSignalToUpdateWidgets();
                         break;
                     }
                 }
+                else
+                {
+                    LOG_EX("Camera::SetEnumerationControlValueIntList VIDIOC_QUERYMENU %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                }
             }
+        }
+        else
+        {
+            LOG_EX("Camera::SetEnumerationControlValueIntList VIDIOC_QUERY_EXT_CTRL %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
         }
     }
 }
@@ -2513,8 +2555,6 @@ void Camera::SetEnumerationControlValueList(int32_t id, const char *str)
 
     for (const auto fileDescriptor : allFileDescriptors)
     {
-        LOG_EX("Camera::SetEnumerationControlValueList: %d", fileDescriptor);
-
         v4l2_query_ext_ctrl qctrl;
         v4l2_ext_control extCtrl;
         v4l2_querymenu queryMenu;
@@ -2535,17 +2575,25 @@ void Camera::SetEnumerationControlValueList(int32_t id, const char *str)
                 {
                     if (strcmp((const char*) queryMenu.name, str) == 0)
                     {
-                        LOG_EX("Camera::SetEnumerationControlValueList: using file descriptor %d to set %s", fileDescriptor, queryMenu.name);
+                        LOG_EX("Camera::SetEnumerationControlValueList %s setting index for menu %s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), queryMenu.name);
                         result = SetExtControl(queryMenu.index, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_ID2CLASS(id));
                         if (result < 0)
                         {
-                            LOG_EX("Enumeration control %s cannot be set with V4L2_CTRL_CLASS_USER class", str);
+                            LOG_EX("Camera::SetEnumerationControlValueList %s index for name %s cannot be set with V4L2_CTRL_CLASS_USER class", m_FileDescriptorToNameMap[fileDescriptor].c_str(), queryMenu.name);
                         }
                         emit SendSignalToUpdateWidgets();
                         break;
                     }
                 }
+                else
+                {
+                    LOG_EX("Camera::SetEnumerationControlValueList VIDIOC_QUERYMENU %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                }
             }
+        }
+        else
+        {
+            LOG_EX("Camera::SetEnumerationControlValueList VIDIOC_QUERY_EXT_CTRL %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
         }
     }
 }

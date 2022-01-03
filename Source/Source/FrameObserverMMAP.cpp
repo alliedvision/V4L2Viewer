@@ -51,10 +51,10 @@ int FrameObserverMMAP::ReadFrame(v4l2_buffer &buf)
     buf.type = m_BufferType;
     buf.memory = V4L2_MEMORY_MMAP;
 
-    v4l2_plane planes[8];
+    v4l2_plane plane;
     if(m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
     {
-        buf.m.planes = planes;
+        buf.m.planes = &plane;
         buf.length = 1;
     }
 
@@ -147,11 +147,11 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
                 buf.memory = V4L2_MEMORY_MMAP;
                 buf.index = x;
 
-                std::vector<v4l2_plane> planes(8);
+                v4l2_plane plane;
                 if(m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
                 {
-                    buf.m.planes = &planes[0];
-                    buf.length = planes.size();
+                    buf.m.planes = &plane;
+                    buf.length = 1;
                     LOG_EX("FrameObserverMMAP::CreateAllUserBuffer plane count=%d", buf.length);
                 }
 
@@ -205,10 +205,10 @@ int FrameObserverMMAP::QueueAllUserBuffer()
         buf.index = i;
         buf.memory = V4L2_MEMORY_MMAP;
 
-        std::vector<v4l2_plane> planes(8);
+        v4l2_plane plane;
         if(m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
         {
-            buf.m.planes = &planes[0];
+            buf.m.planes = &plane;
             buf.length = 1;
         }
 
@@ -240,10 +240,10 @@ int FrameObserverMMAP::QueueSingleUserBuffer(const int index)
         buf.index = index;
         buf.memory = V4L2_MEMORY_MMAP;
 
-        std::vector<v4l2_plane> planes(8);
+        v4l2_plane plane;
         if(m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
         {
-            buf.m.planes = &planes[0];
+            buf.m.planes = &plane;
             buf.length = 1;
         }
 
@@ -277,7 +277,6 @@ int FrameObserverMMAP::DeleteAllUserBuffer()
     }
 
     m_UserBufferContainerList.resize(0);
-
 
     // free all internal buffers
     v4l2_requestbuffers req;
