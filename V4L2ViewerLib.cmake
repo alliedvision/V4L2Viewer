@@ -19,7 +19,6 @@ set(HEADERS_PATH Source/Headers)
 set(SOURCES_PATH Source/Source)
 set(RESOURCES_PATH Source/Resources)
 set(ENUM_INT_PATH ${HEADERS_PATH}/EnumeratorInterface)
-set(GIT_REVISION_FILE ${CMAKE_CURRENT_BINARY_DIR}/GitRevision.h)
 
 list(APPEND HEADER_FILES
   ${HEADERS_PATH}/BaseLogger.h
@@ -89,21 +88,7 @@ list(APPEND SOURCE_FILES
   ${SOURCES_PATH}/EnumeratorInterface/ListIntEnumerationControl.cpp
   ${SOURCES_PATH}/CustomGraphicsView.cpp
   ${SOURCES_PATH}/CustomDialog.cpp
-  ${GIT_REVISION_FILE}
 )
-
-set_property(SOURCE ${GIT_REVISION_FILE} PROPERTY SKIP_AUTOGEN ON)
-
-add_custom_command(
-  OUTPUT ${GIT_REVISION_FILE}
-  COMMAND ${CMAKE_COMMAND} -E remove -f ${GIT_REVISION_FILE}
-  COMMAND ${CMAKE_COMMAND} -E echo_append "#define GIT_VERSION " >> ${GIT_REVISION_FILE}
-  COMMAND git log -1 "--pretty=format:\"%H\"" >> ${GIT_REVISION_FILE}
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  DEPENDS ${CMAKE_SOURCE_DIR}/.git/logs/HEAD
-  VERBATIM
-)
-list(APPEND HEADER_FILES ${GIT_REVISION_FILE})
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${RESOURCES_PATH}/Forms)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

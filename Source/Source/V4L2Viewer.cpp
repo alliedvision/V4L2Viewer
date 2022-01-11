@@ -29,7 +29,6 @@
 #include "ListIntEnumerationControl.h"
 #include "CustomGraphicsView.h"
 #include "CustomDialog.h"
-#include "GitRevision.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -246,8 +245,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.m_allFeaturesDockWidget->setStyleSheet("QDockWidget {"
                                                 "titlebar-close-icon: url(:/V4L2Viewer/Cross128.png);"
                                                 "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}");
-
-    LOG_EX(QString("V4L2Viewer git commit = %1").arg(GIT_VERSION).toStdString().c_str());
 
     ui.m_MenuLang->menuAction()->setEnabled(false);
     ui.m_MenuLang->menuAction()->setVisible(false);
@@ -1465,6 +1462,37 @@ void V4L2Viewer::GetImageInformation()
     uint32_t bytesPerLine = 0;
 
     m_Camera.EnumAllControlNewStyle();
+    m_Camera.PrepareFrameRate();
+    m_Camera.PrepareCrop();
+
+    std::string deviceChar = "";
+    deviceChar = m_Camera.GetGainDeviceChar();
+    ui.m_labelGain->setText(ui.m_labelGain->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetAutoGainDeviceChar();
+    ui.m_labelGainAuto->setText(ui.m_labelGainAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetExposureAutoDeviceChar();
+    ui.m_labelExposureAuto->setText(ui.m_labelExposureAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetGammaDeviceChar();
+    ui.m_labelGamma->setText(ui.m_labelGamma->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetReverseXDeviceChar();
+    ui.m_FlipHorizontalCheckBox->setText(ui.m_FlipHorizontalCheckBox->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetReverseYDeviceChar();
+    ui.m_FlipVerticalCheckBox->setText(ui.m_FlipVerticalCheckBox->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetBrightnessDeviceChar();
+    ui.m_labelBrightness->setText(ui.m_labelBrightness->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetAutoWhiteBalanceDeviceChar();
+    ui.m_labelWhiteBalanceAuto->setText(ui.m_labelWhiteBalanceAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetFrameRateDeviceChar();
+    ui.m_labelFrameRateAuto->setText(ui.m_labelFrameRateAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
+    ui.m_labelFrameRate->setText(ui.m_labelFrameRate->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetCropDeviceChar();
+    ui.m_CropLabel->setText(ui.m_CropLabel->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetPixelFormatDeviceChar();
+    ui.m_labelPixelFormats->setText(ui.m_labelPixelFormats->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetWidthDeviceChar();
+    ui.m_labelWidth->setText(ui.m_labelWidth->text() + " (" + QString(deviceChar.c_str()) + ")");
+    deviceChar = m_Camera.GetHeightDeviceChar();
+    ui.m_labelHeight->setText(ui.m_labelHeight->text() + " (" + QString(deviceChar.c_str()) + ")");
 
     ui.m_chkAutoGain->setChecked(false);
     ui.m_chkAutoExposure->setChecked(false);
@@ -1537,6 +1565,24 @@ void V4L2Viewer::GetImageInformation()
     ui.m_sliderExposure->blockSignals(true);
     if (m_Camera.ReadMinMaxExposure(minExp, maxExp) != -2)
     {
+        deviceChar = m_Camera.GetExposureAbsDeviceChar();
+        ui.m_labelExposure->setText(ui.m_labelExposure->text() + " (" + QString(deviceChar.c_str()) + ")");
+        LOG_EX("V4L2Viewer::GetImageInformation: setting text to exposureAbs*100000");
+        ui.m_edExposure->setText(QString("%1").arg(exp64));
+    }
+    else
+    {
+        deviceChar = m_Camera.GetExposureDeviceChar();
+        ui.m_labelExposure->setText(ui.m_labelExposure->text() + " (" + QString(deviceChar.c_str()) + ")");
+        LOG_EX("V4L2Viewer::GetImageInformation: setting text to exposure");
+        ui.m_edExposure->setText(QString("%1").arg(exposure));
+        exposureAbs = exposure / 100000;
+    }
+
+    if (m_Camera.ReadMinMaxExposure(minExp, maxExp) != -2 &&
+        m_Camera.ReadMinMaxExposureAbs(minExpAbs, maxExpAbs) != -2)
+    {
+        ui.m_sliderExposure->blockSignals(true);
         ui.m_sliderExposure->setEnabled(true);
 
         m_MinimumExposure = minExp;

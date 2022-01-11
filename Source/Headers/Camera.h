@@ -528,6 +528,102 @@ public:
     // (int) - result of the setting
     int SetCrop(int32_t xOffset, int32_t yOffset, uint32_t width, uint32_t height);
 
+    // Prepare for setting / getting the frame rate
+    void PrepareFrameRate();
+
+    // Prepare for setting / getting the frame cropping
+    void PrepareCrop();
+
+    // Get the device used to control gain
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetGainDeviceChar();
+
+    // Get the device used to control auto gain
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetAutoGainDeviceChar();
+
+    // Get the device used to control exposure
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetExposureDeviceChar();
+
+    // Get the device used to control absolute exposure
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetExposureAbsDeviceChar();
+
+    // Get the device used to control auto exposure
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetExposureAutoDeviceChar();
+
+    // Get the device used to control gamma
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetGammaDeviceChar();
+
+    // Get the device used to control reverse-x
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetReverseXDeviceChar();
+
+    // Get the device used to control reverse-y
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetReverseYDeviceChar();
+
+    // Get the device used to control brightness
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetBrightnessDeviceChar();
+
+    // Get the device used to control auto white balance
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetAutoWhiteBalanceDeviceChar();
+
+    // Get the device used to control frame rate
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetFrameRateDeviceChar();
+
+    // Get the device used to control crop
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetCropDeviceChar();
+
+    // Get the device used to control pixel format
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetPixelFormatDeviceChar();
+
+    // Get the device used to control width
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetWidthDeviceChar();
+
+    // Get the device used to control height
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetHeightDeviceChar();
+
     // This function starts streaming from the camera
     //
     // Returns:
@@ -664,6 +760,8 @@ public:
 
 private:
     void QueryControls(int fd);
+    std::string GetDeviceChar(uint32_t controlId);
+    std::string GetDeviceCharFromFileDescriptor(int fileDescriptor);
 
 public slots:
     // This slot function passes gain value from a thread
@@ -736,6 +834,8 @@ private:
     v4l2_buf_type                   m_DeviceBufferType;
     std::map<int, v4l2_buf_type>    m_SubDeviceBufferTypes;
     std::map<int, std::string>      m_FileDescriptorToNameMap;
+    int                             m_FrameRateDeviceFileDescriptor;
+    int                             m_CropDeviceFileDescriptor;
     IPixFormat*                     m_pPixFormat;
 
     AutoReader          *m_pAutoExposureReader;
