@@ -248,6 +248,27 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     ui.m_MenuLang->menuAction()->setEnabled(false);
     ui.m_MenuLang->menuAction()->setVisible(false);
+
+    SetDefaultLabels();
+}
+
+void V4L2Viewer::SetDefaultLabels()
+{
+    ui.m_labelGain->setText(QApplication::translate("V4L2ViewerClass", "Gain [1/100dB]:", Q_NULLPTR));
+    ui.m_labelGainAuto->setText(QApplication::translate("V4L2ViewerClass", "Gain Auto", Q_NULLPTR));
+    ui.m_labelExposureAuto->setText(QApplication::translate("V4L2ViewerClass", "Exposure Auto", Q_NULLPTR));
+    ui.m_labelGamma->setText(QApplication::translate("V4L2ViewerClass", "Gamma:", Q_NULLPTR));
+    ui.m_FlipHorizontalCheckBox->setText(QApplication::translate("V4L2ViewerClass", "Flip X", Q_NULLPTR));
+    ui.m_FlipVerticalCheckBox->setText(QApplication::translate("V4L2ViewerClass", "Flip Y", Q_NULLPTR));
+    ui.m_labelBrightness->setText(QApplication::translate("V4L2ViewerClass", "Brightness:", Q_NULLPTR));
+    ui.m_labelWhiteBalanceAuto->setText(QApplication::translate("V4L2ViewerClass", "White Balance Auto", Q_NULLPTR));
+    ui.m_labelFrameRateAuto->setText(QApplication::translate("V4L2ViewerClass", "Framerate Auto", Q_NULLPTR));
+    ui.m_labelFrameRate->setText(QApplication::translate("V4L2ViewerClass", "Framerate [Hz]:", Q_NULLPTR));
+    ui.m_CropLabel->setText(QApplication::translate("V4L2ViewerClass", "Crop", Q_NULLPTR));
+    ui.m_labelPixelFormats->setText(QApplication::translate("V4L2ViewerClass", "Pixel Format:", Q_NULLPTR));
+    ui.m_labelWidth->setText(QApplication::translate("V4L2ViewerClass", "Width:", Q_NULLPTR));
+    ui.m_labelHeight->setText(QApplication::translate("V4L2ViewerClass", "Height:", Q_NULLPTR));
+    ui.m_labelExposure->setText(QApplication::translate("V4L2ViewerClass", "Exposure [ns]:", Q_NULLPTR));
 }
 
 V4L2Viewer::~V4L2Viewer()
@@ -348,7 +369,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             if (0 == err)
             {
                 ui.m_ImageControlFrame->setEnabled(true);
-                GetImageInformation();
+                GetImageInformation(true);
                 // Set auto framerate to on always when camera is opened
                 ui.m_chkFrameRateAuto->setChecked(true);
                 ui.m_edFrameRate->setText(QString::number(DEFAULT_FRAME_RATE));
@@ -1114,6 +1135,8 @@ int V4L2Viewer::CloseCamera(const uint32_t cardNumber)
 {
     int err = 0;
 
+    SetDefaultLabels();
+
     err = m_Camera.CloseDevice();
 
     return err;
@@ -1438,7 +1461,7 @@ void V4L2Viewer::OnReadAllValues()
 
 /////////////////////// Tools /////////////////////////////////////
 
-void V4L2Viewer::GetImageInformation()
+void V4L2Viewer::GetImageInformation(const bool isCalledFromOnOpen)
 {
     uint32_t width = 0;
     uint32_t height = 0;
@@ -1465,34 +1488,38 @@ void V4L2Viewer::GetImageInformation()
     m_Camera.PrepareFrameRate();
     m_Camera.PrepareCrop();
 
-    std::string deviceChar = "";
-    deviceChar = m_Camera.GetGainDeviceChar();
-    ui.m_labelGain->setText(ui.m_labelGain->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetAutoGainDeviceChar();
-    ui.m_labelGainAuto->setText(ui.m_labelGainAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetExposureAutoDeviceChar();
-    ui.m_labelExposureAuto->setText(ui.m_labelExposureAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetGammaDeviceChar();
-    ui.m_labelGamma->setText(ui.m_labelGamma->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetReverseXDeviceChar();
-    ui.m_FlipHorizontalCheckBox->setText(ui.m_FlipHorizontalCheckBox->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetReverseYDeviceChar();
-    ui.m_FlipVerticalCheckBox->setText(ui.m_FlipVerticalCheckBox->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetBrightnessDeviceChar();
-    ui.m_labelBrightness->setText(ui.m_labelBrightness->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetAutoWhiteBalanceDeviceChar();
-    ui.m_labelWhiteBalanceAuto->setText(ui.m_labelWhiteBalanceAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetFrameRateDeviceChar();
-    ui.m_labelFrameRateAuto->setText(ui.m_labelFrameRateAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
-    ui.m_labelFrameRate->setText(ui.m_labelFrameRate->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetCropDeviceChar();
-    ui.m_CropLabel->setText(ui.m_CropLabel->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetPixelFormatDeviceChar();
-    ui.m_labelPixelFormats->setText(ui.m_labelPixelFormats->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetWidthDeviceChar();
-    ui.m_labelWidth->setText(ui.m_labelWidth->text() + " (" + QString(deviceChar.c_str()) + ")");
-    deviceChar = m_Camera.GetHeightDeviceChar();
-    ui.m_labelHeight->setText(ui.m_labelHeight->text() + " (" + QString(deviceChar.c_str()) + ")");
+    if(isCalledFromOnOpen)
+    {
+        SetDefaultLabels();
+        std::string deviceChar = "";
+        deviceChar = m_Camera.GetGainDeviceChar();
+        ui.m_labelGain->setText(ui.m_labelGain->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetAutoGainDeviceChar();
+        ui.m_labelGainAuto->setText(ui.m_labelGainAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetExposureAutoDeviceChar();
+        ui.m_labelExposureAuto->setText(ui.m_labelExposureAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetGammaDeviceChar();
+        ui.m_labelGamma->setText(ui.m_labelGamma->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetReverseXDeviceChar();
+        ui.m_FlipHorizontalCheckBox->setText(ui.m_FlipHorizontalCheckBox->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetReverseYDeviceChar();
+        ui.m_FlipVerticalCheckBox->setText(ui.m_FlipVerticalCheckBox->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetBrightnessDeviceChar();
+        ui.m_labelBrightness->setText(ui.m_labelBrightness->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetAutoWhiteBalanceDeviceChar();
+        ui.m_labelWhiteBalanceAuto->setText(ui.m_labelWhiteBalanceAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetFrameRateDeviceChar();
+        ui.m_labelFrameRateAuto->setText(ui.m_labelFrameRateAuto->text() + " (" + QString(deviceChar.c_str()) + ")");
+        ui.m_labelFrameRate->setText(ui.m_labelFrameRate->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetCropDeviceChar();
+        ui.m_CropLabel->setText(ui.m_CropLabel->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetPixelFormatDeviceChar();
+        ui.m_labelPixelFormats->setText(ui.m_labelPixelFormats->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetWidthDeviceChar();
+        ui.m_labelWidth->setText(ui.m_labelWidth->text() + " (" + QString(deviceChar.c_str()) + ")");
+        deviceChar = m_Camera.GetHeightDeviceChar();
+        ui.m_labelHeight->setText(ui.m_labelHeight->text() + " (" + QString(deviceChar.c_str()) + ")");
+    }
 
     ui.m_chkAutoGain->setChecked(false);
     ui.m_chkAutoExposure->setChecked(false);
@@ -1565,15 +1592,21 @@ void V4L2Viewer::GetImageInformation()
     ui.m_sliderExposure->blockSignals(true);
     if (m_Camera.ReadMinMaxExposure(minExp, maxExp) != -2)
     {
-        deviceChar = m_Camera.GetExposureAbsDeviceChar();
-        ui.m_labelExposure->setText(ui.m_labelExposure->text() + " (" + QString(deviceChar.c_str()) + ")");
+        if(isCalledFromOnOpen)
+        {
+            std::string deviceChar = m_Camera.GetExposureAbsDeviceChar();
+            ui.m_labelExposure->setText(ui.m_labelExposure->text() + " (" + QString(deviceChar.c_str()) + ")");
+        }
         LOG_EX("V4L2Viewer::GetImageInformation: setting text to exposureAbs*100000");
         ui.m_edExposure->setText(QString("%1").arg(exp64));
     }
     else
     {
-        deviceChar = m_Camera.GetExposureDeviceChar();
-        ui.m_labelExposure->setText(ui.m_labelExposure->text() + " (" + QString(deviceChar.c_str()) + ")");
+        if(isCalledFromOnOpen)
+        {
+            std::string deviceChar = m_Camera.GetExposureDeviceChar();
+            ui.m_labelExposure->setText(ui.m_labelExposure->text() + " (" + QString(deviceChar.c_str()) + ")");
+        }
         LOG_EX("V4L2Viewer::GetImageInformation: setting text to exposure");
         ui.m_edExposure->setText(QString("%1").arg(exposure));
         exposureAbs = exposure / 100000;

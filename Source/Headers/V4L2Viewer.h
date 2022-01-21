@@ -157,7 +157,7 @@ private:
     void RemoteClose();
     // This function reads all data from the camera and updates
     // widgets
-    void GetImageInformation();
+    void GetImageInformation(const bool isCalledFromOnOpen = false);
     // Check if IO Read was checked and remove it when not capable
     void Check4IOReadAbility();
     // This function sets title text in the viewer
@@ -182,6 +182,9 @@ private:
     // Returns:
     // (int32_t) - position on slider
     int64_t GetSliderValueFromLog(int64_t value);
+
+    // Set control labels to default values in user interface
+    void SetDefaultLabels();
 
 private slots:
     void OnLogToFile();
