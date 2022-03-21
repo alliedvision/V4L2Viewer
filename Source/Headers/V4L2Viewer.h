@@ -279,7 +279,7 @@ private slots:
     //
     // Parameters:
     // [in] (int32_t) value - value to be passed
-    void OnUpdateAutoExposure(int32_t value);
+    void OnUpdateAutoExposure(int64_t value);
     // This slot function is called in one second interval, by the worker thread
     // which reads value when the gain auto is turned on
     //

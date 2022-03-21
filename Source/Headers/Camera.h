@@ -22,6 +22,7 @@
 #include "FrameObserver.h"
 #include "CameraObserver.h"
 #include "AutoReader.h"
+#include "V4L2EventHandler.h"
 
 #include <QObject>
 #include <QMutex>
@@ -769,6 +770,8 @@ public slots:
     // to a gui when auto is turned on
     void PassExposureValue();
 
+    void OnCtrlUpdate(int cid,int64_t value);
+
     // This slot function sets enumeration integer list control value
     //
     // Parameters:
@@ -838,6 +841,7 @@ private:
 
     AutoReader          *m_pAutoExposureReader;
     AutoReader          *m_pAutoGainReader;
+    V4L2EventHandler     *m_pEventHandler;
 
     CameraObserver                  m_CameraObserver;
     QSharedPointer<FrameObserver>   m_pFrameObserver;
@@ -867,7 +871,7 @@ signals:
     void OnCameraFrameSize_Signal(const QString &);
 
     // Event will be called on signal from thread when auto exposure is turend on
-    void PassAutoExposureValue(int32_t value);
+    void PassAutoExposureValue(int64_t value);
     // Event will be called on signal from thread when auto gain is turend on
     void PassAutoGainValue(int32_t value);
     // Event will be called on signal from thread when auto white balance is turend on

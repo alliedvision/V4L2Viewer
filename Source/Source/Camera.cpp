@@ -199,7 +199,7 @@ public:
 };
 
 
-Camera::Camera() 
+Camera::Camera()
     : m_DeviceFileDescriptor(-1)
     , m_SubDeviceFileDescriptors()
     , m_ControlIdToFileDescriptorMap()
@@ -213,6 +213,7 @@ Camera::Camera()
     , m_FrameRateDeviceFileDescriptor(-1)
     , m_CropDeviceFileDescriptor(-1)
     , m_pPixFormat(nullptr)
+    , m_pEventHandler(nullptr)
 {
     connect(&m_CameraObserver, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
 
@@ -225,6 +226,7 @@ Camera::Camera()
     m_pAutoGainReader = new AutoReader();
     connect(m_pAutoGainReader->GetAutoReaderWorker(), SIGNAL(ReadSignal()), this, SLOT(PassGainValue()), Qt::DirectConnection);
     m_pAutoGainReader->MoveToThreadAndStart();
+
 }
 
 Camera::~Camera()
@@ -237,6 +239,15 @@ Camera::~Camera()
     m_CameraObserver.SetTerminateFlag();
     if (NULL != m_pFrameObserver.data())
         m_pFrameObserver->StopStream();
+
+    if (nullptr != m_pEventHandler)
+	{
+		m_pEventHandler->UnsubscribeControl(V4L2_CID_EXPOSURE);
+		m_pEventHandler->UnsubscribeControl(V4L2_CID_GAIN);
+
+		m_pEventHandler->Stop();
+	}
+
 
     if(m_pPixFormat)
     {
@@ -329,6 +340,10 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
             m_DeviceName = deviceName;
 
             result = 0;
+
+            m_pEventHandler = new V4L2EventHandler(m_DeviceFileDescriptor);
+
+            connect(m_pEventHandler,SIGNAL(ControlChanged(int,int64_t)),this,SLOT(OnCtrlUpdate(int, int64_t)));
         }
 
         for (auto const subDevice : subDevices)
@@ -382,6 +397,12 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
 int Camera::CloseDevice()
 {
     int result = -1;
+
+    if (m_pEventHandler != nullptr)
+    {
+        delete m_pEventHandler;
+        m_pEventHandler = nullptr;
+    }
 
     if (-1 != m_DeviceFileDescriptor)
     {
@@ -644,6 +665,11 @@ int Camera::StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint3
                                   payloadSize, width, height, bytesPerLine,
                                   enableLogging);
 
+	m_pEventHandler->SubscribeControl(V4L2_CID_EXPOSURE);
+	m_pEventHandler->SubscribeControl(V4L2_CID_GAIN);
+
+    m_pEventHandler->start();
+
     // start stream returns always success
     LOG_EX("Camera::StartStreamChannel OK.");
 
@@ -654,7 +680,12 @@ int Camera::StopStreamChannel()
 {
     int nResult = 0;
 
-    LOG_EX("Camera::StopStreamChannel started.");
+	m_pEventHandler->UnsubscribeControl(V4L2_CID_EXPOSURE);
+	m_pEventHandler->UnsubscribeControl(V4L2_CID_GAIN);
+
+	m_pEventHandler->Stop();
+
+	LOG_EX("Camera::StopStreamChannel started.");
 
     nResult = m_pFrameObserver->StopStream();
 
@@ -668,6 +699,7 @@ int Camera::StopStreamChannel()
     }
 
     m_CsvData.resize(0);
+
 
     return nResult;
 }
@@ -1484,14 +1516,6 @@ int Camera::ReadAutoExposure(bool &flag)
 
 int Camera::SetAutoExposure(bool autoexposure)
 {
-    if (autoexposure)
-    {
-        m_pAutoExposureReader->StartThread();
-    }
-    else
-    {
-        m_pAutoExposureReader->StopThread();
-    }
     return SetExtControl(autoexposure ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
 }
 
@@ -1525,14 +1549,6 @@ int Camera::ReadAutoGain(bool &flag)
 
 int Camera::SetAutoGain(bool value)
 {
-    if (value)
-    {
-        m_pAutoGainReader->StartThread();
-    }
-    else
-    {
-        m_pAutoGainReader->StopThread();
-    }
     return SetExtControl(value, V4L2_CID_AUTOGAIN, "SetAutoGain", "V4L2_CID_AUTOGAIN", V4L2_CTRL_CLASS_USER);
 }
 
@@ -1617,10 +1633,12 @@ int Camera::SetAutoWhiteBalance(bool flag)
 {
     if (flag)
     {
+
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance on", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
     else
     {
+
         return SetExtControl(flag, V4L2_CID_AUTO_WHITE_BALANCE, "SetContinousWhiteBalance off", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     }
 }
@@ -2582,6 +2600,23 @@ int Camera::WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize
     return iRet;
 }
 
+void Camera::OnCtrlUpdate(int cid, int64_t value)
+{
+	switch (cid)
+	{
+		case V4L2_CID_GAIN:
+			emit PassAutoGainValue(value);
+			break;
+		case V4L2_CID_EXPOSURE:
+			emit PassAutoExposureValue(value);
+			break;
+		default:
+			break;
+	}
+
+	emit SentInt64DataToEnumerationWidget(cid, 0, 0, value, "", "", false);
+}
+
 void Camera::PassGainValue()
 {
     int32_t value = 0;
@@ -2591,7 +2626,7 @@ void Camera::PassGainValue()
 
 void Camera::PassExposureValue()
 {
-    int32_t value = 0;
+    int64_t value = 0;
     ReadExtControl(value, V4L2_CID_EXPOSURE, "ReadExposure", "V4L2_CID_EXPOSURE", V4L2_CTRL_CLASS_USER);
     LOG_EX("Camera::PassExposureValue: exposure is now %d", value);
     emit PassAutoExposureValue(value);

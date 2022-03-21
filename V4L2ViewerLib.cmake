@@ -55,6 +55,7 @@ list(APPEND HEADER_FILES
   ${HEADERS_PATH}/EnumeratorInterface/ListIntEnumerationControl.h
   ${HEADERS_PATH}/CustomGraphicsView.h
   ${HEADERS_PATH}/CustomDialog.h
+  ${HEADERS_PATH}/V4L2EventHandler.h
 )
 
 list(APPEND SOURCE_FILES
@@ -88,6 +89,7 @@ list(APPEND SOURCE_FILES
   ${SOURCES_PATH}/EnumeratorInterface/ListIntEnumerationControl.cpp
   ${SOURCES_PATH}/CustomGraphicsView.cpp
   ${SOURCES_PATH}/CustomDialog.cpp
+  ${SOURCES_PATH}/V4L2EventHandler.cpp
 )
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${RESOURCES_PATH}/Forms)
