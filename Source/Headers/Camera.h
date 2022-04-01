@@ -534,6 +534,8 @@ public:
     // Prepare for setting / getting the frame cropping
     void PrepareCrop();
 
+    bool UsesSubdevices();
+
     // Get the device used to control gain
     //
     // Returns

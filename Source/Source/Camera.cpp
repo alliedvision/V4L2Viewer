@@ -1416,6 +1416,12 @@ template<>           struct v4l2_ctrl_type_container<uint32_t> {using type = v4l
 template<>           struct v4l2_ctrl_type_container<int64_t>  {using type = v4l2_query_ext_ctrl;};
 template<>           struct v4l2_ctrl_type_container<uint64_t> {using type = v4l2_query_ext_ctrl;};
 
+template<typename T> constexpr int vidioc_queryctrl;
+template<> constexpr int vidioc_queryctrl<int32_t> = VIDIOC_QUERYCTRL;
+template<> constexpr int vidioc_queryctrl<uint32_t> = VIDIOC_QUERYCTRL;
+template<> constexpr int vidioc_queryctrl<int64_t> = VIDIOC_QUERY_EXT_CTRL;
+template<> constexpr int vidioc_queryctrl<uint64_t> = VIDIOC_QUERY_EXT_CTRL;
+
 template<typename T>
 int Camera::ReadMinMax(T &min, T &max, uint32_t controlID, const char *functionName, const char *controlName)
 {
@@ -1425,7 +1431,7 @@ int Camera::ReadMinMax(T &min, T &max, uint32_t controlID, const char *functionN
     CLEAR(ctrl);
     ctrl.id = controlID;
 
-    if (iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_QUERYCTRL, &ctrl) >= 0)
+    if (iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], vidioc_queryctrl<T>, &ctrl) >= 0)
     {
         LOG_EX("Camera::ReadMinMax VIDIOC_QUERYCTRL %s function name: %s control name: %s (%s) OK, min=%d, max=%d, default=%d", m_FileDescriptorToNameMap[m_ControlIdToFileDescriptorMap[controlID]].c_str(), functionName, controlName, m_ControlIdToControlNameMap[controlID].c_str(), ctrl.minimum, ctrl.maximum, ctrl.default_value);
         min = ctrl.minimum;
@@ -1461,24 +1467,10 @@ int Camera::ReadStep(int32_t &step, uint32_t controlID, const char *functionName
     return result;
 }
 
-int Camera::ReadExposureAbs(int32_t &value)
-{
-    return ReadExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
-}
 
-int Camera::SetExposureAbs(int32_t value)
-{
-    return SetExtControl(value, V4L2_CID_EXPOSURE_ABSOLUTE, "SetExposureAbs", "V4L2_CID_EXPOSURE_ABSOLUTE", V4L2_CTRL_CLASS_CAMERA);
-}
-
-int Camera::ReadMinMaxExposure(int32_t &min, int32_t &max)
+int Camera::ReadMinMaxExposure(int64_t &min, int64_t &max)
 {
     return ReadMinMax(min, max, V4L2_CID_EXPOSURE, "ReadExposureMinMax", "V4L2_CID_EXPOSURE");
-}
-
-int Camera::ReadMinMaxExposureAbs(int64_t &min, int64_t &max)
-{
-    return ReadMinMax(min, max, V4L2_CID_EXPOSURE_ABSOLUTE, "ReadExposureMinMaxAbs", "V4L2_CID_EXPOSURE_ABSOLUTE");
 }
 
 int Camera::ReadAutoExposure(bool &flag)
@@ -1505,17 +1497,17 @@ int Camera::SetAutoExposure(bool autoexposure)
 
 //////////////////// Controls ////////////////////////
 
-int Camera::ReadGain(int32_t &value)
+int Camera::ReadGain(int64_t &value)
 {
     return ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
 }
 
-int Camera::SetGain(int32_t value)
+int Camera::SetGain(int64_t value)
 {
     return SetExtControl(value, V4L2_CID_GAIN, "SetGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
 }
 
-int Camera::ReadMinMaxGain(int32_t &min, int32_t &max)
+int Camera::ReadMinMaxGain(int64_t &min, int64_t &max)
 {
     return ReadMinMax(min, max, V4L2_CID_GAIN, "ReadMinMaxGain", "V4L2_CID_GAIN");
 }
@@ -1544,7 +1536,7 @@ int Camera::SetAutoGain(bool value)
     return SetExtControl(value, V4L2_CID_AUTOGAIN, "SetAutoGain", "V4L2_CID_AUTOGAIN", V4L2_CTRL_CLASS_USER);
 }
 
-int Camera::ReadExposure(int32_t &value)
+int Camera::ReadExposure(int64_t &value)
 {
     return ReadExtControl(value, V4L2_CID_EXPOSURE, "ReadExposure", "V4L2_CID_EXPOSURE", V4L2_CTRL_CLASS_USER);
 }
@@ -1692,7 +1684,14 @@ void Camera::PrepareCrop()
     }
 }
 
+
+bool Camera::UsesSubdevices() {
+    return !m_SubDeviceFileDescriptors.empty();
+}
+
+
 ////////////////// GetDeviceChar ///////////////////
+
 
 std::string Camera::GetDeviceChar(uint32_t controlId)
 {
