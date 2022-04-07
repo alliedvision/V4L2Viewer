@@ -10,10 +10,10 @@ Compatibility
 -------------
 Allied Vision V4L2 Viewer v1.1.0 was tested with:
 
--  NVIDIA Jetson Nano, AGX Xavier, Xavier NX, TX2
--  JetPack 4.5.1 (L4T 32.5.1)
--  Allied Vision driver version 3.0.0, see https://github.com/alliedvision/linux_nvidia_jetson
--  Alvium CSI-2 cameras with firmware version  0.6.0.35992
+-  NVIDIA Jetson Nano, AGX Xavier, Xavier NX, TX2, TX2 NX
+-  JetPack 4.6.1 (L4T 32.7.1)
+-  Allied Vision driver version 4.0.0, see https://github.com/alliedvision/linux_nvidia_jetson
+-  Alvium CSI-2 cameras with firmware version 6.0 or newer
 
 
 Installation
@@ -58,11 +58,8 @@ Known issues
 ------------
 Known issues:
 
--  Pixel format tp31 is displayed, but cannot be used.
--  When auto (exposure or gain) is enabled, the manual values are not updated with the current value.
 -  Reverse X/Y in combination with a Bayer pixel format causes images with incorrect colors or an incorrect pixel format.
 -  Reverse X/Y cannot be set during image acquisition.
 -  Saving images during image acquisition is not always possible. 
--  The displayed temperature is not updated while the camera is open. To update the displayed temperature, close and reopen the camera.
 
 
