@@ -1789,7 +1789,6 @@ QString V4L2Viewer::GetDeviceInfo()
     std::string tmp;
 
     QString firmware = QString(tr("Camera FW Version = %1")).arg(QString::fromStdString(m_Camera.getAvtDeviceFirmwareVersion()));
-    QString devTemp = QString(tr("Camera Device Temperature = %1C")).arg(QString::fromStdString(m_Camera.getAvtDeviceTemperature()));
     QString devSerial = QString(tr("Camera Serial Number = %1")).arg(QString::fromStdString(m_Camera.getAvtDeviceSerialNumber()));
 
     m_Camera.GetCameraDriverName(tmp);
@@ -1800,7 +1799,7 @@ QString V4L2Viewer::GetDeviceInfo()
     QString driverVer = QString(tr("Driver version = %1")).arg(tmp.c_str());
     m_Camera.GetCameraCapabilities(tmp);
     QString capabilities = QString(tr("Capabilities = %1")).arg(tmp.c_str());
-    return QString(firmware + "<br>" + devTemp + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities + "<br>");
+    return QString(firmware + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities + "<br>");
 }
 
 void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)

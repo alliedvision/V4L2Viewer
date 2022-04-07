@@ -748,11 +748,7 @@ public:
     // Returns:
     // (std::string) - firmware version
     std::string getAvtDeviceFirmwareVersion();
-    // This function returns AVT Device Temperature
-    //
-    // Returns:
-    // (std::string) - device temperature
-    std::string getAvtDeviceTemperature();
+
     // This function returns AVT Device Serial Number
     //
     // Returns:

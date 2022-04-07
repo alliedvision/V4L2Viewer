@@ -2425,43 +2425,6 @@ std::string Camera::getAvtDeviceFirmwareVersion()
 }
 
 
-std::string Camera::getAvtDeviceTemperature()
-{
-    std::string result = "";
-
-    if(m_pFrameObserver)
-    {
-        // dummy call to set m_isAvtCamera
-        std::string dummy;
-        GetCameraCapabilities(dummy);
-
-        if(m_IsAvtCamera)
-        {
-            const int CCI_BCRM_REG = 0x0014;
-            const int BCRM_DEV_TEMPERATURE = 0x0310;
-
-            uint16_t nBCRMAddress = 0;
-            int res = ReadRegister(CCI_BCRM_REG, &nBCRMAddress, sizeof(nBCRMAddress), true);
-
-            if (res >= 0)
-            {
-                int32_t deviceTemperture = 0;
-                res = ReadRegister((__u32)nBCRMAddress + BCRM_DEV_TEMPERATURE, &deviceTemperture, sizeof(deviceTemperture), true);
-
-                if (res >= 0)
-                {
-                    char buff[32];
-                    snprintf(buff, sizeof(buff), "%.1f", (double)deviceTemperture/10);
-                    result = std::string(buff);
-                }
-            }
-        }
-    }
-
-    return result;
-
-}
-
 std::string Camera::getAvtDeviceSerialNumber()
 {
     std::string result = "";
