@@ -17,6 +17,7 @@
 
 
 #include "AboutWidget.h"
+#include "GitRevision.h"
 #include <QGridLayout>
 #include <QPixmap>
 #include <QScrollArea>
@@ -35,7 +36,8 @@ void AboutWidget::UpdateStrings()
 
 void AboutWidget::SetVersion(QString version)
 {
-    ui.m_versionLabel->setText(tr("<br>Version: %1 <br>").arg(version));
+    ui.m_versionLabel->setText(tr("<br>Version: %1 <br>").arg(version) +
+                               tr("Git commit: %1 <br>").arg(GIT_VERSION));
 }
 
 

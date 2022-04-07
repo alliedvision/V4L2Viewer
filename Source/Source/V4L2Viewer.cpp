@@ -29,6 +29,7 @@
 #include "ListIntEnumerationControl.h"
 #include "CustomGraphicsView.h"
 #include "CustomDialog.h"
+#include "GitRevision.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -245,6 +246,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.m_allFeaturesDockWidget->setStyleSheet("QDockWidget {"
                                                 "titlebar-close-icon: url(:/V4L2Viewer/Cross128.png);"
                                                 "titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);}");
+
+    LOG_EX(QString("V4L2Viewer git commit = %1").arg(GIT_VERSION).toStdString().c_str());
 
     ui.m_MenuLang->menuAction()->setEnabled(false);
     ui.m_MenuLang->menuAction()->setVisible(false);
