@@ -73,7 +73,7 @@ static int32_t int64_2_int32(const int64_t value)
 V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     : QMainWindow(parent, flags)
     , m_BLOCKING_MODE(true)
-    , m_BUFFER_TYPE(IO_METHOD_MMAP) // use mmap by default
+    , m_BUFFER_TYPE(IO_METHOD_USERPTR) // use userptr by default
     , m_NUMBER_OF_USED_FRAMES(5)
     , m_VIDIOC_TRY_FMT(true) // use VIDIOC_TRY_FMT by default
     , m_ShowFrames(true)
