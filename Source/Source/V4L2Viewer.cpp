@@ -130,8 +130,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &)));
 
     qRegisterMetaType<int32_t>("int32_t");
+    qRegisterMetaType<int64_t>("int64_t");
 
-    connect(&m_Camera, SIGNAL(PassAutoExposureValue(int32_t)), this, SLOT(OnUpdateAutoExposure(int32_t)), Qt::QueuedConnection);
+    connect(&m_Camera, SIGNAL(PassAutoExposureValue(int64_t)), this, SLOT(OnUpdateAutoExposure(int64_t)), Qt::QueuedConnection);
     connect(&m_Camera, SIGNAL(PassAutoGainValue(int32_t)), this, SLOT(OnUpdateAutoGain(int32_t)), Qt::QueuedConnection);
 
     connect(&m_Camera, SIGNAL(SendIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)),      this, SLOT(PassIntDataToEnumerationWidget(int32_t, int32_t, int32_t, int32_t, QString, QString, bool)));
@@ -500,12 +501,11 @@ void V4L2Viewer::OnLanguageChange()
     }
 }
 
-void V4L2Viewer::OnUpdateAutoExposure(int32_t value)
+void V4L2Viewer::OnUpdateAutoExposure(int64_t value)
 {
     LOG_EX("V4L2Viewer::OnUpdateAutoExposure: updating displayed exposure text to %d", value);
     ui.m_edExposure->setText(QString::number(value));
-    value = value/100000;
-    int32_t result = GetSliderValueFromLog(value);
+    int64_t result = GetSliderValueFromLog(value);
     UpdateSlidersPositions(ui.m_sliderExposure, result);
 }
 
