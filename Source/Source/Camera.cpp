@@ -1201,7 +1201,10 @@ int Camera::EnumAllControlNewStyle()
                 LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s id=%d=%s min=%d, max=%d, default=%d", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
                 cidCount++;
 
-                QString name = QString((const char*) qctrl.name) + " (" + (fileDescriptor == m_DeviceFileDescriptor ? "d" : "s") + ")";
+                QString name = QString((const char*) qctrl.name);
+                if(UsesSubdevices()) {
+                    name += QString(" (") + (fileDescriptor == m_DeviceFileDescriptor ? "d" : "s") + ")";
+                }
 
                 QString unit = QString::fromStdString(v4l2helper::GetControlUnit(qctrl.id));
 
