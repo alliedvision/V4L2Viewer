@@ -41,6 +41,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <iomanip>
 
 // Custom ioctl definitions
 struct v4l2_i2c
@@ -2435,7 +2436,7 @@ std::string Camera::getAvtDeviceFirmwareVersion()
                     uint32_t patchVersion = (deviceFirmwareVersion >> 32) & 0xFFFFFFFF;
 
                     std::stringstream ss;
-                    ss << (unsigned)specialVersion << "." << (unsigned)majorVersion << "." << (unsigned)minorVersion << "." << (unsigned)patchVersion;
+                    ss << (unsigned)specialVersion << "." << (unsigned)majorVersion << "." << (unsigned)minorVersion << "." << std::hex << std::setw(8) << std::setfill('0') << (unsigned)patchVersion;
                     result = ss.str();
                 }
             }
