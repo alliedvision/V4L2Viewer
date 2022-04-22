@@ -61,21 +61,23 @@ ListEnumerationControl::ListEnumerationControl(int32_t id, int32_t value, QList<
 void ListEnumerationControl::UpdateValue(QList<QString> list, int32_t value)
 {
     m_ComboBox.blockSignals(true);
-    m_ComboBox.clear();
-    for (QList<QString>::iterator it = list.begin(); it<list.end(); ++it)
-    {
-        m_ComboBox.addItem(*it);
-    }
+	if (list.empty() && m_ComboBox.count() > value)
+	{
+		m_ComboBox.setCurrentIndex(value);
+	}
+	else {
+		m_ComboBox.clear();
+		for (QList<QString>::iterator it = list.begin(); it < list.end(); ++it) {
+			m_ComboBox.addItem(*it);
+		}
 
-    if (value >= list.count())
-    {
-        m_ComboBox.addItem("Unknown Value");
-        m_ComboBox.setCurrentText("Unknown Value");
-    }
-    else
-    {
-        m_ComboBox.setCurrentText(list.at(value));
-    }
+		if (value >= list.count()) {
+			m_ComboBox.addItem("Unknown Value");
+			m_ComboBox.setCurrentText("Unknown Value");
+		} else {
+			m_ComboBox.setCurrentText(list.at(value));
+		}
+	}
 
     m_ComboBox.blockSignals(false);
 }

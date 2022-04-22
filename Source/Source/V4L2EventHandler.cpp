@@ -20,14 +20,19 @@
 #include <sys/poll.h>
 #include <linux/videodev2.h>
 #include <sys/eventfd.h>
+#include <unistd.h>
 
 #include "V4L2EventHandler.h"
 
 V4L2EventHandler::V4L2EventHandler(int fd) : m_Fd(fd)
 {
+
     m_eventFd = eventfd(0,0);
 }
 
+V4L2EventHandler::~V4L2EventHandler()
+{
+}
 
 void V4L2EventHandler::SubscribeControl(int id)
 {
@@ -73,7 +78,7 @@ void V4L2EventHandler::run()
                 {
                     if (event.type == V4L2_EVENT_CTRL)
                     {
-                        emit ControlChanged(event.id,event.u.ctrl.value64);
+                        emit ControlChanged(event.id,event.u.ctrl);
                     }
                 }
             }
@@ -90,5 +95,9 @@ void V4L2EventHandler::Stop()
     eventfd_write(m_eventFd,0xfffffffffffffffe);
     eventfd_t value;
     eventfd_read(m_eventFd,&value);
+
+	v4l2_event_subscription subscription = {0};
+	subscription.type = V4L2_EVENT_ALL;
+	ioctl(m_Fd,VIDIOC_UNSUBSCRIBE_EVENT,&subscription);
 }
 

@@ -199,6 +199,7 @@ public:
     void SetPixelFormat(v4l2_format& fmt, const uint32_t pixelFormat) override {fmt.fmt.pix_mp.pixelformat = pixelFormat;}
 };
 
+Q_DECLARE_METATYPE(v4l2_event_ctrl);
 
 Camera::Camera()
     : m_DeviceFileDescriptor(-1)
@@ -241,13 +242,7 @@ Camera::~Camera()
     if (NULL != m_pFrameObserver.data())
         m_pFrameObserver->StopStream();
 
-    if (nullptr != m_pEventHandler)
-	{
-		m_pEventHandler->UnsubscribeControl(V4L2_CID_EXPOSURE);
-		m_pEventHandler->UnsubscribeControl(V4L2_CID_GAIN);
 
-		m_pEventHandler->Stop();
-	}
 
 
     if(m_pPixFormat)
@@ -344,7 +339,25 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
 
             m_pEventHandler = new V4L2EventHandler(m_DeviceFileDescriptor);
 
-            connect(m_pEventHandler,SIGNAL(ControlChanged(int,int64_t)),this,SLOT(OnCtrlUpdate(int, int64_t)));
+			qRegisterMetaType<v4l2_event_ctrl>();
+
+            connect(m_pEventHandler,SIGNAL(ControlChanged(int,v4l2_event_ctrl)),this,SLOT(OnCtrlUpdate(int, v4l2_event_ctrl)));
+
+
+			m_pEventHandler->SubscribeControl(V4L2_CID_EXPOSURE);
+			m_pEventHandler->SubscribeControl(V4L2_CID_GAIN);
+
+			m_pEventHandler->SubscribeControl(V4L2_CID_AUTOGAIN);
+			m_pEventHandler->SubscribeControl(V4L2_CID_EXPOSURE_AUTO);
+
+			if (IsAutoWhiteBalanceSupported())
+			{
+				m_pEventHandler->SubscribeControl(V4L2_CID_AUTO_WHITE_BALANCE);
+				m_pEventHandler->SubscribeControl(V4L2_CID_RED_BALANCE);
+				m_pEventHandler->SubscribeControl(V4L2_CID_BLUE_BALANCE);
+			}
+
+			m_pEventHandler->start();
         }
 
         for (auto const subDevice : subDevices)
@@ -401,6 +414,8 @@ int Camera::CloseDevice()
 
     if (m_pEventHandler != nullptr)
     {
+		m_pEventHandler->Stop();
+
         delete m_pEventHandler;
         m_pEventHandler = nullptr;
     }
@@ -666,10 +681,6 @@ int Camera::StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint3
                                   payloadSize, width, height, bytesPerLine,
                                   enableLogging);
 
-	m_pEventHandler->SubscribeControl(V4L2_CID_EXPOSURE);
-	m_pEventHandler->SubscribeControl(V4L2_CID_GAIN);
-
-    m_pEventHandler->start();
 
     // start stream returns always success
     LOG_EX("Camera::StartStreamChannel OK.");
@@ -680,11 +691,6 @@ int Camera::StartStreamChannel(uint32_t pixelFormat, uint32_t payloadSize, uint3
 int Camera::StopStreamChannel()
 {
     int nResult = 0;
-
-	m_pEventHandler->UnsubscribeControl(V4L2_CID_EXPOSURE);
-	m_pEventHandler->UnsubscribeControl(V4L2_CID_GAIN);
-
-	m_pEventHandler->Stop();
 
 	LOG_EX("Camera::StopStreamChannel started.");
 
@@ -1426,6 +1432,7 @@ int Camera::SetExtControl(T value, uint32_t controlID, const char *functionName,
     extCtrls.count = 1;
     extCtrls.ctrl_class = controlClass;
 
+
     if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_TRY_EXT_CTRLS, &extCtrls))
     {
         if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_S_EXT_CTRLS, &extCtrls))
@@ -1515,12 +1522,17 @@ int Camera::ReadAutoExposure(bool &flag)
     uint32_t value = 0;
     result = ReadExtControl(value, V4L2_CID_EXPOSURE_AUTO, "ReadAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
     flag = (value == V4L2_EXPOSURE_AUTO) ? true : false;
+
     return result;
 }
 
 int Camera::SetAutoExposure(bool autoexposure)
 {
-    return SetExtControl(autoexposure ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
+	uint32_t value = autoexposure ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL;
+
+	emit SendListDataToEnumerationWidget(V4L2_CID_EXPOSURE_AUTO, value, QList<QString>(), "", "", false);
+
+    return SetExtControl(value, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
 }
 
 //////////////////// Controls ////////////////////////
@@ -1548,11 +1560,14 @@ int Camera::ReadAutoGain(bool &flag)
     result = ReadExtControl(value, V4L2_CID_AUTOGAIN, "ReadAutoGain", "V4L2_CID_AUTOGAIN", V4L2_CTRL_CLASS_USER);
 
     flag = (value) ? true : false;
+
     return result;
 }
 
 int Camera::SetAutoGain(bool value)
 {
+	emit SendBoolDataToEnumerationWidget(V4L2_CID_AUTOGAIN, value, "", "", false);
+
     return SetExtControl(value, V4L2_CID_AUTOGAIN, "SetAutoGain", "V4L2_CID_AUTOGAIN", V4L2_CTRL_CLASS_USER);
 }
 
@@ -1635,6 +1650,9 @@ bool Camera::IsAutoWhiteBalanceSupported()
 
 int Camera::SetAutoWhiteBalance(bool flag)
 {
+
+	emit SendBoolDataToEnumerationWidget(V4L2_CID_AUTO_WHITE_BALANCE, flag,  "", "", false);
+
     if (flag)
     {
 
@@ -1653,6 +1671,9 @@ int Camera::ReadAutoWhiteBalance(bool &flag)
     uint32_t value = 0;
     result = ReadExtControl(value, V4L2_CID_AUTO_WHITE_BALANCE, "ReadAutoWhiteBalance", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     flag = (value == V4L2_WHITE_BALANCE_AUTO) ? true : false;
+
+
+
     return result;
 }
 
@@ -2604,28 +2625,46 @@ int Camera::WriteRegister(uint16_t nRegAddr, void* pBuffer, uint32_t nBufferSize
     return iRet;
 }
 
-void Camera::OnCtrlUpdate(int cid, int64_t value)
-{
-	switch (cid)
-	{
-		case V4L2_CID_GAIN:
-			emit PassAutoGainValue(value);
-			break;
-		case V4L2_CID_EXPOSURE:
-			emit PassAutoExposureValue(value);
-			break;
-		default:
-			break;
-	}
-
-	emit SentInt64DataToEnumerationWidget(cid, 0, 0, value, "", "", false);
-}
-
 void Camera::PassGainValue()
 {
     int32_t value = 0;
     ReadExtControl(value, V4L2_CID_GAIN, "ReadGain", "V4L2_CID_GAIN", V4L2_CTRL_CLASS_USER);
     emit PassAutoGainValue(value);
+}
+
+void Camera::OnCtrlUpdate(int cid, v4l2_event_ctrl ctrl)
+{
+	switch (cid)
+	{
+		case V4L2_CID_GAIN:
+			emit PassAutoGainValue(ctrl.value64);
+			break;
+		case V4L2_CID_EXPOSURE:
+			emit PassAutoExposureValue(ctrl.value64);
+			break;
+		default:
+			break;
+	}
+
+	switch (ctrl.type) {
+		case V4L2_CTRL_TYPE_INTEGER:
+			emit SendIntDataToEnumerationWidget(cid, 0, 0, ctrl.value, "", "", false);
+			break;
+		case V4L2_CTRL_TYPE_INTEGER_MENU:
+			emit SendListIntDataToEnumerationWidget(cid, ctrl.value, QList<int64_t>(), "", "", false);
+			break;
+		case V4L2_CTRL_TYPE_MENU:
+			emit SendListDataToEnumerationWidget(cid, ctrl.value, QList<QString>(), "", "", false);
+			break;
+		case V4L2_CTRL_TYPE_INTEGER64:
+			emit SentInt64DataToEnumerationWidget(cid, 0, 0, ctrl.value64, "", "", false);
+			break;
+		case V4L2_CTRL_TYPE_BOOLEAN:
+			emit SendBoolDataToEnumerationWidget(cid,ctrl.value,"","",false);
+		default:
+			break;
+	}
+
 }
 
 void Camera::PassExposureValue()

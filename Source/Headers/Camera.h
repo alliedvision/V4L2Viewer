@@ -770,7 +770,7 @@ public slots:
     // to a gui when auto is turned on
     void PassExposureValue();
 
-    void OnCtrlUpdate(int cid,int64_t value);
+    void OnCtrlUpdate(int cid,v4l2_event_ctrl ctrl);
 
     // This slot function sets enumeration integer list control value
     //

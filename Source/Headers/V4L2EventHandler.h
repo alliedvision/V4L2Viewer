@@ -25,7 +25,7 @@ class V4L2EventHandler : public QThread {
     Q_OBJECT
 public:
     explicit V4L2EventHandler(int fd);
-    virtual ~V4L2EventHandler() {};
+    virtual ~V4L2EventHandler();
 
     // This function enables the reception of changes for the control id
     void SubscribeControl(int id);
@@ -37,7 +37,7 @@ public:
     void Stop();
 signals:
     // This signal is emitted when the value of a control has changed and contains the new value
-    void ControlChanged(int cid,int64_t value);
+    void ControlChanged(int cid,v4l2_event_ctrl value);
 protected:
     // Function of the thread
     void run() override;

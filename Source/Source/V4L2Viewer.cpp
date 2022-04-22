@@ -1676,7 +1676,7 @@ void V4L2Viewer::GetImageInformation(const bool isCalledFromOnOpen)
             ui.m_labelFrameRateAuto->setEnabled(true);
             ui.m_chkFrameRateAuto->setEnabled(true);
 
-            if (numerator == 0)
+            if (denominator == 0)
             {
                 ui.m_chkFrameRateAuto->setChecked(true);
                 ui.m_edFrameRate->setEnabled(false);
