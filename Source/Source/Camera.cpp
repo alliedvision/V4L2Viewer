@@ -350,12 +350,9 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
 			m_pEventHandler->SubscribeControl(V4L2_CID_AUTOGAIN);
 			m_pEventHandler->SubscribeControl(V4L2_CID_EXPOSURE_AUTO);
 
-			if (IsAutoWhiteBalanceSupported())
-			{
-				m_pEventHandler->SubscribeControl(V4L2_CID_AUTO_WHITE_BALANCE);
-				m_pEventHandler->SubscribeControl(V4L2_CID_RED_BALANCE);
-				m_pEventHandler->SubscribeControl(V4L2_CID_BLUE_BALANCE);
-			}
+			m_pEventHandler->SubscribeControl(V4L2_CID_AUTO_WHITE_BALANCE);
+			m_pEventHandler->SubscribeControl(V4L2_CID_RED_BALANCE);
+			m_pEventHandler->SubscribeControl(V4L2_CID_BLUE_BALANCE);
 
 			m_pEventHandler->start();
         }
