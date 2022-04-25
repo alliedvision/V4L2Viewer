@@ -341,4 +341,64 @@ std::string GetControlUnit(int32_t id)
     return res;
 }
 
+
+
+std::string ConvertErrno2String(int errnumber)
+{
+    std::string result;
+
+    switch(errnumber)
+    {
+        case EPERM: result = "EPERM=Operation not permitted"; break;
+        case ENOENT: result = "ENOENT=No such file or directory"; break;
+        case ESRCH: result = "ESRCH=No such process"; break;
+        case EINTR: result = "EINTR=Interrupted system call"; break;
+        case EIO: result = "EIO=I/O error"; break;
+        case ENXIO: result = "ENXIO=No such device or address"; break;
+        case E2BIG: result = "E2BIG=Argument list too long"; break;
+        case ENOEXEC: result = "ENOEXEC=Exec format error"; break;
+        case EBADF: result = "EBADF=Bad file number"; break;
+        case ECHILD: result = "ECHILD=No child processes"; break;
+        case EAGAIN: result = "EAGAIN=Try again"; break;
+        case ENOMEM: result = "ENOMEM=Out of memory"; break;
+        case EACCES: result = "EACCES=Permission denied"; break;
+        case EFAULT: result = "EFAULT=Bad address"; break;
+        case ENOTBLK: result = "ENOTBLK=Block device required"; break;
+        case EBUSY: result = "EBUSY=Device or resource busy"; break;
+        case EEXIST: result = "EEXIST=File exists"; break;
+        case EXDEV: result = "EXDEV=Cross-device link"; break;
+        case ENODEV: result = "ENODEV=No such device"; break;
+        case ENOTDIR: result = "ENOTDIR=Not a directory"; break;
+        case EISDIR: result = "EISDIR=Is a directory"; break;
+        case EINVAL: result = "EINVAL=Invalid argument"; break;
+        case ENFILE: result = "ENFILE=File table overflow"; break;
+        case EMFILE: result = "EMFILE=Too many open files"; break;
+        case ENOTTY: result = "ENOTTY=Not a typewriter"; break;
+        case ETXTBSY: result = "ETXTBSY=Text file busy"; break;
+        case EFBIG: result = "EFBIG=File too large"; break;
+        case ENOSPC: result = "ENOSPC=No space left on device"; break;
+        case ESPIPE: result = "ESPIPE=Illegal seek"; break;
+        case EROFS: result = "EROFS=Read-only file system"; break;
+        case EMLINK: result = "EMLINK=Too many links"; break;
+        case EPIPE: result = "EPIPE=Broken pipe"; break;
+        case EDOM: result = "EDOM=Math argument out of domain of func"; break;
+        case ERANGE: result = "ERANGE=Math result not representable"; break;
+        default: result = "<unknown>"; break;
+    }
+
+    return result;
+}
+
+std::string ConvertPixelFormat2String(int pixelFormat)
+{
+    std::string s;
+
+    s += pixelFormat & 0xff;
+    s += (pixelFormat >> 8) & 0xff;
+    s += (pixelFormat >> 16) & 0xff;
+    s += (pixelFormat >> 24) & 0xff;
+
+    return s;
+}
+
 } // namespace v4l2helper

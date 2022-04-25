@@ -96,6 +96,12 @@ public:
     // [in] (int) fd - file descriptor
     void setFileDescriptor(int fd);
 
+    // This function sets buffer type
+    //
+    // Parameters:
+    // [in] (int) bufferType - buffer type
+    void setBufferType(v4l2_buf_type bufferType);
+
     // This function creates all user buffer
     //
     // Parameters:
@@ -172,6 +178,7 @@ protected:
     uint32_t m_nRenderedFramesCounter;
 
     int m_nFileDescriptor;
+    v4l2_buf_type m_BufferType;
     uint32_t m_PixelFormat;
     uint32_t m_nWidth;
     uint32_t m_nHeight;
