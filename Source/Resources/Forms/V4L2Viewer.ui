@@ -1627,7 +1627,7 @@ QCheckBox::disabled{
                      <string notr="true"/>
                     </property>
                     <property name="maxLength">
-                     <number>10</number>
+                     <number>12</number>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
