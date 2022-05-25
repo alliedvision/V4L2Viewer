@@ -715,6 +715,8 @@ public:
     // (int) - result of the operation
     int GetCameraCapabilities(std::string &strText);
 
+	int GetCameraCardName(std::string &strText);
+
     // This function returns driver stream statistics
     //
     // Parameters:
@@ -756,7 +758,11 @@ public:
     // (std::string) - device serial number
     std::string getAvtDeviceSerialNumber();
 
+	QList<QString> GetFrameSizes(uint32_t fourcc);
 
+	int GetFrameSizeIndex();
+
+	void SetFrameSizeByIndex(int index);
 private:
     void QueryControls(int fd);
     std::string GetDeviceChar(uint32_t controlId);
@@ -893,6 +899,8 @@ signals:
 
     // Event will be called on enumeration control change value
     void SendSignalToUpdateWidgets();
+
+	void SendControlStateChange(int32_t id,bool enabled);
 
 private slots:
     // The event handler to set or remove devices

@@ -141,6 +141,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(int32_t, QString, QString, bool)),                              this, SLOT(PassButtonDataToEnumerationWidget(int32_t, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)),       this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)),    this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)));
+	connect(&m_Camera,SIGNAL(SendControlStateChange(int32_t, bool)),this,SLOT(PassControlStateChange(int32_t, bool)));
 
     connect(&m_Camera, SIGNAL(SendSignalToUpdateWidgets()), this, SLOT(OnReadAllValues()));
 
@@ -186,6 +187,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_edExposure, SIGNAL(editingFinished()), this, SLOT(OnExposure()));
     connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
     connect(ui.m_pixelFormats, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnPixelFormatChanged(const QString &)));
+	connect(ui.m_frameSizes, SIGNAL(currentIndexChanged(int)), this, SLOT(OnFrameSizeIndexChanged(int)));
     connect(ui.m_edGamma, SIGNAL(editingFinished()), this, SLOT(OnGamma()));
     connect(ui.m_edBrightness, SIGNAL(editingFinished()), this, SLOT(OnBrightness()));
 
@@ -702,6 +704,49 @@ void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QLis
     }
 }
 
+void V4L2Viewer::PassControlStateChange(int32_t id, bool enabled)
+{
+	bool bIsSucced;
+	IControlEnumerationHolder *obj = m_pEnumerationControlWidget->GetControlWidget(id, bIsSucced);
+	if (bIsSucced)
+	{
+		obj->setEnabled(enabled);
+	}
+
+	switch (id) {
+		case V4L2_CID_BRIGHTNESS:
+			ui.m_edBrightness->setEnabled(enabled);
+			ui.m_sliderBrightness->setEnabled(enabled);
+			ui.m_labelBrightness->setEnabled(enabled);
+			break;
+		case V4L2_CID_GAMMA:
+			ui.m_edGamma->setEnabled(enabled);
+			ui.m_sliderGamma->setEnabled(enabled);
+			ui.m_labelGamma->setEnabled(enabled);
+			break;
+		case V4L2_CID_GAIN:
+			ui.m_edGain->setEnabled(enabled);
+			ui.m_sliderGain->setEnabled(enabled);
+			ui.m_labelGain->setEnabled(enabled);
+			break;
+		case V4L2_CID_EXPOSURE:
+			ui.m_edExposure->setEnabled(enabled);
+			ui.m_sliderExposure->setEnabled(enabled);
+			ui.m_labelExposure->setEnabled(enabled);
+			break;
+		case V4L2_CID_AUTOGAIN:
+			ui.m_chkAutoGain->setEnabled(enabled);
+			ui.m_labelGainAuto->setEnabled(enabled);
+			break;
+		case V4L2_CID_EXPOSURE_AUTO:
+			ui.m_chkAutoExposure->setEnabled(enabled);
+			ui.m_labelExposureAuto->setEnabled(enabled);
+			break;
+		default:
+			break;
+	}
+}
+
 void V4L2Viewer::OnUpdateZoomLabel()
 {
     UpdateZoomButtons();
@@ -784,7 +829,9 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
     ui.m_StartButton->setEnabled(false);
 
     ui.m_labelPixelFormats->setEnabled(false);
+	ui.m_labelFrameSizes->setEnabled(false);
     ui.m_pixelFormats->setEnabled(false);
+	ui.m_frameSizes->setEnabled(false);
 
     ui.m_labelFrameRate->setEnabled(false);
     ui.m_edFrameRate->setEnabled(false);
@@ -834,7 +881,9 @@ void V4L2Viewer::OnStopButtonClicked()
     ui.m_StopButton->setEnabled(false);
 
     ui.m_pixelFormats->setEnabled(true);
+	ui.m_frameSizes->setEnabled(true);
     ui.m_labelPixelFormats->setEnabled(true);
+	ui.m_labelFrameSizes->setEnabled(true);
 
     ui.m_labelFrameRateAuto->setEnabled(true);
     ui.m_chkFrameRateAuto->setEnabled(true);
@@ -1123,6 +1172,7 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
     int err = 0;
 
     std::string devName = deviceName.toStdString();
+	QString cameraName;
     QVector<QString> subDevs = subDevices;
     err = m_Camera.OpenDevice(devName, subDevs, m_BLOCKING_MODE, m_BUFFER_TYPE, m_VIDIOC_TRY_FMT);
 
@@ -1271,6 +1321,14 @@ void V4L2Viewer::OnPixelFormatChanged(const QString &item)
     {
         CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SET pixelFormat!") );
     }
+
+	QList<QString> framesizes = m_Camera.GetFrameSizes(result);
+
+	ui.m_frameSizes->blockSignals(true);
+	ui.m_frameSizes->clear();
+	ui.m_frameSizes->addItems(framesizes);
+	ui.m_frameSizes->setCurrentIndex(m_Camera.GetFrameSizeIndex());
+	ui.m_frameSizes->blockSignals(false);
 
     GetImageInformation();
 }
@@ -1781,6 +1839,26 @@ void V4L2Viewer::UpdateCurrentPixelFormatOnList(QString pixelFormat)
     {
         if (ui.m_pixelFormats->itemText(i) == pixelFormat)
         {
+			std::string tmp = pixelFormat.toStdString();
+			char *s = (char*)tmp.c_str();
+			uint32_t result = 0;
+
+			if (tmp.size() == 4)
+			{
+				result += *s++;
+				result += *s++ << 8;
+				result += *s++ << 16;
+				result += *s++ << 24;
+			}
+
+			QList<QString> framesizes = m_Camera.GetFrameSizes(result);
+
+			ui.m_frameSizes->blockSignals(true);
+			ui.m_frameSizes->clear();
+			ui.m_frameSizes->addItems(framesizes);
+			ui.m_frameSizes->setCurrentIndex(m_Camera.GetFrameSizeIndex());
+			ui.m_frameSizes->blockSignals(false);
+
             ui.m_pixelFormats->setCurrentIndex(i);
         }
     }
@@ -1848,3 +1926,9 @@ void V4L2Viewer::SetTitleText()
     setWindowTitle(QString(tr("%1 V%2.%3.%4")).arg(APP_NAME).arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
 }
 
+void V4L2Viewer::OnFrameSizeIndexChanged(int index)
+{
+	m_Camera.SetFrameSizeByIndex(index);
+
+	GetImageInformation();
+}

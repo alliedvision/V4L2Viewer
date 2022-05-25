@@ -343,17 +343,6 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
 
             connect(m_pEventHandler,SIGNAL(ControlChanged(int,v4l2_event_ctrl)),this,SLOT(OnCtrlUpdate(int, v4l2_event_ctrl)));
 
-
-			m_pEventHandler->SubscribeControl(V4L2_CID_EXPOSURE);
-			m_pEventHandler->SubscribeControl(V4L2_CID_GAIN);
-
-			m_pEventHandler->SubscribeControl(V4L2_CID_AUTOGAIN);
-			m_pEventHandler->SubscribeControl(V4L2_CID_EXPOSURE_AUTO);
-
-			m_pEventHandler->SubscribeControl(V4L2_CID_AUTO_WHITE_BALANCE);
-			m_pEventHandler->SubscribeControl(V4L2_CID_RED_BALANCE);
-			m_pEventHandler->SubscribeControl(V4L2_CID_BLUE_BALANCE);
-
 			m_pEventHandler->start();
         }
 
@@ -1143,6 +1132,82 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
     return result;
 }
 
+QList<QString> Camera::GetFrameSizes(uint32_t fourcc)
+{
+	int result = -1,index = 0;
+	v4l2_frmsizeenum frmsizeenum;
+	QList<QString> framesizes;
+
+	frmsizeenum.pixel_format = fourcc;
+	frmsizeenum.index = index;
+
+	while (!iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_ENUM_FRAMESIZES,&frmsizeenum)) {
+		framesizes.append(QString("%1x%2").arg(frmsizeenum.discrete.width).arg(frmsizeenum.discrete.height));
+
+
+		frmsizeenum.index = (++index);
+	}
+
+	return framesizes;
+}
+
+int Camera::GetFrameSizeIndex()
+{
+	v4l2_format fmt;
+	v4l2_frmsizeenum frmsizeenum;
+
+	CLEAR(fmt);
+	fmt.type = m_DeviceBufferType;
+
+	if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
+	{
+		int index = 0;
+
+		frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
+		frmsizeenum.index = index;
+
+		v4l2_selection sel;
+		sel.target = V4L2_SEL_TGT_NATIVE_SIZE;
+		sel.type = m_DeviceBufferType;
+
+		if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_SELECTION, &sel)) {
+
+			while (!iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum))
+			{
+				if (frmsizeenum.discrete.width == sel.r.width &&
+					frmsizeenum.discrete.height == sel.r.height)
+					return index;
+
+				frmsizeenum.index = (++index);
+			}
+		}
+	}
+
+	return -1;
+}
+
+void Camera::SetFrameSizeByIndex(int index)
+{
+	v4l2_format fmt;
+	v4l2_frmsizeenum frmsizeenum;
+
+	CLEAR(fmt);
+	fmt.type = m_DeviceBufferType;
+
+	if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
+	{
+		frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
+		frmsizeenum.index = index;
+
+		if (!iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_ENUM_FRAMESIZES,&frmsizeenum)) {
+			fmt.fmt.pix.width = frmsizeenum.discrete.width;
+			fmt.fmt.pix.height = frmsizeenum.discrete.height;
+
+			iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt);
+		}
+	}
+}
+
 int Camera::ReadPixelFormat(uint32_t &pixelFormat, uint32_t &bytesPerLine, QString &pfText)
 {
     int result = -1;
@@ -1201,6 +1266,20 @@ int Camera::EnumAllControlNewStyle()
                     qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
                     continue;
                 }
+
+				if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
+				{
+					bIsReadOnly = true;
+				}
+
+				if (qctrl.flags & V4L2_CTRL_FLAG_VOLATILE && (qctrl.flags & V4L2_CTRL_FLAG_EXECUTE_ON_WRITE) == 0)
+				{
+					bIsReadOnly = true;
+				}
+
+				if (m_pEventHandler != nullptr) {
+					m_pEventHandler->SubscribeControl(qctrl.id);
+				}
 
                 LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s id=%d=%s min=%d, max=%d, default=%d", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
                 cidCount++;
@@ -2092,7 +2171,7 @@ int Camera::GetCameraDeviceName(std::string &strText)
         v4l2_capability cap;
 
         // query device capabilities
-        if (-1 != iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCAP, &cap))
+        if (-1 == iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCAP, &cap))
         {
             LOG_EX("Camera::GetCameraDeviceName VIDIOC_QUERYCAP %s is no V4L2 device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
         }
@@ -2660,6 +2739,18 @@ void Camera::OnCtrlUpdate(int cid, v4l2_event_ctrl ctrl)
 			emit SendBoolDataToEnumerationWidget(cid,ctrl.value,"","",false);
 		default:
 			break;
+	}
+
+	if (ctrl.changes & V4L2_EVENT_CTRL_CH_FLAGS)
+	{
+		if (ctrl.flags & V4L2_CTRL_FLAG_INACTIVE || ctrl.flags & V4L2_CTRL_FLAG_GRABBED)
+		{
+			emit SendControlStateChange(cid,false);
+		}
+		else
+		{
+			emit SendControlStateChange(cid,true);
+		}
 	}
 
 }

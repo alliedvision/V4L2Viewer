@@ -397,6 +397,10 @@ private slots:
 
     void OnFlipHorizontal(int state);
     void OnFlipVertical(int state);
+
+	void OnFrameSizeIndexChanged(int index);
+
+	void PassControlStateChange(int32_t id, bool enabled);
 };
 
 #endif // V4L2VIEWER_H

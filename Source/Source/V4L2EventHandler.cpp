@@ -39,6 +39,7 @@ void V4L2EventHandler::SubscribeControl(int id)
     v4l2_event_subscription subscription = {0};
     subscription.id = id;
     subscription.type = V4L2_EVENT_CTRL;
+	subscription.flags = V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK;
     ioctl(m_Fd,VIDIOC_SUBSCRIBE_EVENT,&subscription);
 }
 
@@ -65,7 +66,7 @@ void V4L2EventHandler::run()
         pfds[1].events = POLLIN;
         pfds[1].fd = m_eventFd;
 
-        int ret = poll(pfds,2,0);
+        int ret = poll(pfds,2,-1);
         if (ret > 0)
         {
             if (pfds[0].revents & POLLPRI)

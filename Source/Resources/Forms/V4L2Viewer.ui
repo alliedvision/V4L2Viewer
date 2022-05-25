@@ -459,7 +459,7 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>900</width>
+              <width>896</width>
               <height>297</height>
              </rect>
             </property>
@@ -1047,7 +1047,7 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>-313</x>
+              <x>-349</x>
               <y>0</y>
               <width>1247</width>
               <height>378</height>
@@ -1781,20 +1781,7 @@ border: 1px solid gray;
                     </property>
                    </widget>
                   </item>
-                  <item row="3" column="0" colspan="2">
-                   <widget class="QLabel" name="m_labelPixelFormats">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Pixel Format:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="0" colspan="3">
+                  <item row="5" column="0" colspan="3">
                    <spacer name="verticalSpacer_8">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
@@ -1913,6 +1900,71 @@ QCheckBox::disabled{
                    <widget class="QLabel" name="m_labelFrameRateAuto">
                     <property name="text">
                      <string>Framerate Auto</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="0" colspan="2">
+                   <widget class="QLabel" name="m_labelPixelFormats">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Pixel Format:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0" colspan="2">
+                   <widget class="QLabel" name="m_labelFrameSizes">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Framesize:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="2">
+                   <widget class="QComboBox" name="m_frameSizes">
+                    <property name="maximumSize">
+                     <size>
+                      <width>140</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">QWidget{
+border:none;
+}
+
+QComboBox{
+border:none;
+padding: 1px 0px 1px 3px;
+}
+
+QComboBox::disabled{
+color: rgb(77,78,79);
+}
+
+QComboBox::drop-down{
+background-image: url(:/V4L2Viewer/triangle-copy-3.png);
+background-repeat:no-repeat;
+background-position:center;
+}
+
+QListView{
+border:none;
+}
+
+QComboBox::item{
+color:white;
+}
+</string>
                     </property>
                    </widget>
                   </item>
