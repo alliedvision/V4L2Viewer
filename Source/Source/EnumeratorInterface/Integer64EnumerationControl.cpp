@@ -56,7 +56,7 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
         setEnabled(true);
         connect(&m_LineEdit, SIGNAL(editingFinished()), this, SLOT(OnLineEditPressed()));
         connect(&m_Slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
-        if (id == V4L2_CID_EXPOSURE)
+        if (name.contains("exposure",Qt::CaseInsensitive))
         {
             connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderLogValueChanged(int)));
             m_Slider.setMaximum(1000);
@@ -66,9 +66,9 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
         else
         {
             connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderValueChanged(int)));
-            m_Slider.setMaximum(max);
-            m_Slider.setMinimum(min);
-            m_Slider.setValue(value);
+            m_Slider.setMaximum(ConvertToSliderValue(max));
+            m_Slider.setMinimum(ConvertToSliderValue(min));
+            m_Slider.setValue(ConvertToSliderValue(value));
         }
     }
 }
@@ -81,13 +81,13 @@ void Integer64EnumerationControl::UpdateValue(int64_t value)
     m_LineEdit.blockSignals(false);
 
     m_Slider.blockSignals(true);
-    if (m_id != V4L2_CID_EXPOSURE)
+    if (m_NameOfControl.text().contains("exposure",Qt::CaseInsensitive))
     {
-        m_Slider.setValue(value);
+        m_Slider.setValue(GetSliderLogValue(value));
     }
     else
     {
-        m_Slider.setValue(GetSliderLogValue(value));
+        m_Slider.setValue(ConvertToSliderValue(value));
     }
     m_Slider.blockSignals(false);
 }
@@ -100,8 +100,8 @@ void Integer64EnumerationControl::OnLineEditPressed()
 
 void Integer64EnumerationControl::OnSliderValueChanged(int value)
 {
-    m_LineEdit.setText(QString::number(value));
-    m_SliderValue = static_cast<int64_t>(value);
+    m_LineEdit.setText(QString::number(ConvertFromSliderValue(value)));
+    m_SliderValue = ConvertFromSliderValue(value);
 
     emit PassSliderValue(m_id, m_SliderValue);
 }
@@ -137,4 +137,39 @@ int32_t Integer64EnumerationControl::GetSliderLogValue(int64_t value)
     double scale = (logExposureMax - logExposureMin) / (maxSliderExp - minSliderExp);
     double result = minSliderExp + ( log(value) - logExposureMin ) / scale;
     return static_cast<int32_t>(result);
+}
+
+int32_t Integer64EnumerationControl::ConvertToSliderValue(int64_t value) const
+{
+    int64_t range = m_Max - m_Min;
+    int64_t offset = value - m_Min;
+
+    if (range < INT32_MAX) {
+        return static_cast<int32_t>(offset);
+    }
+
+    int64_t fac = GetConversionFactor();
+
+    return static_cast<int32_t>(offset / fac);
+}
+
+int64_t Integer64EnumerationControl::ConvertFromSliderValue(int32_t value) const
+{
+    int64_t range = m_Max - m_Min;
+
+    if (range < INT32_MAX) {
+        return m_Min + value;
+    }
+
+    int64_t fac = GetConversionFactor();
+
+    return m_Min + (value * fac);
+}
+
+int64_t Integer64EnumerationControl::GetConversionFactor() const
+{
+    int64_t range = m_Max - m_Min;
+
+    //Add 1 to factor to avoid rounding issues.
+    return (range / INT32_MAX) + 1;
 }

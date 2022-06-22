@@ -1281,7 +1281,7 @@ int Camera::EnumAllControlNewStyle()
 					m_pEventHandler->SubscribeControl(qctrl.id);
 				}
 
-                LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s id=%d=%s min=%d, max=%d, default=%d", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
+                LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s id=%d=%s min=%ld, max=%ld, default=%ld", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
                 cidCount++;
 
                 QString name = QString((const char*) qctrl.name);
