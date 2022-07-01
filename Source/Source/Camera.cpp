@@ -254,14 +254,14 @@ Camera::~Camera()
     CloseDevice();
 }
 
-unsigned int Camera::GetReceivedFramesCount()
+double Camera::GetReceivedFPS()
 {
-    return m_pFrameObserver->GetReceivedFramesCount();
+    return m_pFrameObserver->GetReceivedFPS();
 }
 
-unsigned int Camera::GetRenderedFramesCount()
+double Camera::GetRenderedFPS()
 {
-    return m_pFrameObserver->GetRenderedFramesCount();
+    return m_pFrameObserver->GetRenderedFPS();
 }
 
 int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bool blockingMode, IO_METHOD_TYPE ioMethodType,

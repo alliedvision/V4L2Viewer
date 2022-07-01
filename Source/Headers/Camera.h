@@ -729,16 +729,16 @@ public:
     // Returns:
     // (bool) - result of the gathering statistics
     bool getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError, uint64_t &FramesUnderrun, uint64_t &FramesIncomplete, double &CurrentFrameRate);
-    // This function returns received frames count
+    // This function returns received framerate
     //
     // Returns:
-    // (unsigned int) - number of received frames
-    unsigned int GetReceivedFramesCount();
-    // This function returns rendered frames count
+    // (double) - received framerate
+    double GetReceivedFPS();
+    // This function returns rendered framerate
     //
     // Returns:
-    // (unsigned int) - number of rendered frames
-    unsigned int GetRenderedFramesCount();
+    // (double) - rendered framerate
+    double GetRenderedFPS();
 
     // This function switches frame transfer to gui
     //

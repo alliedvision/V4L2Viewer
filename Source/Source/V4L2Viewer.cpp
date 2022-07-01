@@ -35,6 +35,7 @@
 #include <QtGlobal>
 #include <QStringList>
 #include <QFontDatabase>
+#include <QTextStream>
 
 #include <ctime>
 #include <limits>
@@ -1198,10 +1199,9 @@ int V4L2Viewer::CloseCamera(const uint32_t cardNumber)
 // The event handler to show the frames received
 void V4L2Viewer::OnUpdateFramesReceived()
 {
-    unsigned int fpsReceived = m_Camera.GetReceivedFramesCount();
-    unsigned int fpsRendered = m_Camera.GetRenderedFramesCount();
-
-    ui.m_FramesPerSecondLabel->setText(QString("fps: %1 received/%2 rendered").arg(fpsReceived).arg(fpsRendered));
+    auto const fpsReceived = m_Camera.GetReceivedFPS();
+    auto const fpsRendered = m_Camera.GetRenderedFPS();
+    ui.m_FramesPerSecondLabel->setText(QString::asprintf("%.2f received/ %.2f rendered", fpsReceived, fpsRendered));
 }
 
 void V4L2Viewer::OnWidth()

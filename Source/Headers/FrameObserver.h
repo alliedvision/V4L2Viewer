@@ -35,6 +35,7 @@
 #include <queue>
 #include <vector>
 #include "V4L2Helper.h"
+#include "FPSCalculator.h"
 
 #define MAX_VIEWER_USER_BUFFER_COUNT    50
 
@@ -83,12 +84,12 @@ public:
     //
     // Returns:
     // (unsigned int) - received frames count
-    unsigned int GetReceivedFramesCount();
+    double GetReceivedFPS();
     // This function will return counter of the rendered frames
     //
     // Returns:
     // (unsigned int) - rendered frames count
-    unsigned int GetRenderedFramesCount();
+    double GetRenderedFPS();
 
     // This function sets file descriptor
     //
@@ -171,11 +172,8 @@ protected:
     virtual void run();
 
 protected:
-    // Counter to count the received images
-    uint32_t m_nReceivedFramesCounter;
-
-    // Counter to count the rendered frames
-    uint32_t m_nRenderedFramesCounter;
+    FPSCalculator m_ReceivedFPS;
+    FPSCalculator m_RenderedFPS;
 
     int m_nFileDescriptor;
     v4l2_buf_type m_BufferType;
