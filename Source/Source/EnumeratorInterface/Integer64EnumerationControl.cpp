@@ -39,7 +39,7 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
     m_MainLayout.addWidget(&m_Slider, 0, 1);
     m_MainLayout.addWidget(&m_LineEdit, 0, 2);
 
-    auto const len = int(std::ceil(std::log10(max)));
+    auto const len = int(std::ceil(std::log10(max+1)));
     m_LineEdit.setMaxLength(len);
 
     m_MainLayout.setColumnStretch(0, 2);
