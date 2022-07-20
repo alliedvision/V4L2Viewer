@@ -62,6 +62,13 @@ public:
     // (int) - result of operation
     int CheckDevices();
 
+    // This function check for the sub-devices, after finding
+    // any, emits signal with the sub-device information
+    //
+    // Returns:
+    // (int) - result of operation
+    int CheckSubDevices();
+
     // Callbacks
 
     // This function emits signal plugged in
@@ -78,6 +85,21 @@ public:
     // [in] (uint64_t) deviceID
     // [in] (const void *) pPrivateData
     virtual void OnDeviceRemoved(uint32_t cardNumber, uint64_t deviceID, const void *pPrivateData);
+
+    // This function emits signal plugged in
+    //
+    // Parameters:
+    // [in] (uint32_t) cardNumber
+    // [in] (uint64_t) deviceID
+    // [in] (const void *) pPrivateData
+    virtual void OnSubDeviceReady(uint32_t cardNumber, uint64_t deviceID, const void *pPrivateData);
+    // This function emits signal plugged out
+    //
+    // Parameters:
+    // [in] (uint32_t) cardNumber
+    // [in] (uint64_t) deviceID
+    // [in] (const void *) pPrivateData
+    virtual void OnSubDeviceRemoved(uint32_t cardNumber, uint64_t deviceID, const void *pPrivateData);
 
 
 private:
@@ -98,11 +120,19 @@ signals:
     // Event will be called on message
     void OnCameraMessage_Signal(const QString &text);
 
+    // The sub-device list changed signal that passes the new camera and the its state directly
+    void OnSubDeviceListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);
+    // Event will be called on error
+    void OnSubDeviceError_Signal(const QString &text);
+    // Event will be called on message
+    void OnSubDeviceMessage_Signal(const QString &text);
+
 private:
     bool                                        m_bTerminate;
     // Variable to abort the running thread
     bool                                        m_bAbort;
     std::map<int, std::string>                  m_DeviceList;
+    std::map<int, std::string>                  m_SubDeviceList;
 };
 
 #endif // CAMERAOBSERVER_H
