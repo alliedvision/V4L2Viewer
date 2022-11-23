@@ -25,7 +25,7 @@ IControlEnumerationHolder::IControlEnumerationHolder(int32_t id, QString name, Q
 {
     m_NameOfControl.setText(name);
     setLayout(&m_MainLayout);
-    m_MainLayout.setMargin(0);
+    m_MainLayout.setContentsMargins(0,0,0,0);
 }
 
 IControlEnumerationHolder::~IControlEnumerationHolder()
