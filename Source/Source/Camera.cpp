@@ -808,6 +808,7 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
         m_pPixFormat->SetHeight(fmt, height);
         m_pPixFormat->SetField(fmt, V4L2_FIELD_ANY);
         m_pPixFormat->SetBytesPerLine(fmt, 0);
+        m_pPixFormat->SetSizeImage(fmt, 0);
 
         if (m_UseV4L2TryFmt)
         {
@@ -858,6 +859,7 @@ int Camera::SetWidth(uint32_t width)
         m_pPixFormat->SetWidth(fmt, width);
         m_pPixFormat->SetField(fmt, V4L2_FIELD_ANY);
         m_pPixFormat->SetBytesPerLine(fmt, 0);
+        m_pPixFormat->SetSizeImage(fmt, 0);
 
         if (m_UseV4L2TryFmt)
         {
@@ -939,6 +941,7 @@ int Camera::SetHeight(uint32_t height)
         m_pPixFormat->SetHeight(fmt, height);
         m_pPixFormat->SetField(fmt, V4L2_FIELD_ANY);
         m_pPixFormat->SetBytesPerLine(fmt, 0);
+        m_pPixFormat->SetSizeImage(fmt, 0);
 
         if (m_UseV4L2TryFmt)
         {
@@ -1091,6 +1094,7 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
         m_pPixFormat->SetPixelFormat(fmt, pixelFormat);
         m_pPixFormat->SetField(fmt, V4L2_FIELD_ANY);
         m_pPixFormat->SetBytesPerLine(fmt, 0);
+        m_pPixFormat->SetSizeImage(fmt, 0);
 
         if (m_UseV4L2TryFmt)
         {
@@ -1200,8 +1204,10 @@ void Camera::SetFrameSizeByIndex(int index)
 		frmsizeenum.index = index;
 
 		if (!iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_ENUM_FRAMESIZES,&frmsizeenum)) {
-			fmt.fmt.pix.width = frmsizeenum.discrete.width;
-			fmt.fmt.pix.height = frmsizeenum.discrete.height;
+			m_pPixFormat->SetWidth(fmt, frmsizeenum.discrete.width);
+			m_pPixFormat->SetHeight(fmt, frmsizeenum.discrete.height);
+			m_pPixFormat->SetBytesPerLine(fmt, 0);
+		        m_pPixFormat->SetSizeImage(fmt, 0);
 
 			iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt);
 		}
