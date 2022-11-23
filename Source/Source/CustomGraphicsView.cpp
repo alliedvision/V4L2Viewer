@@ -37,9 +37,9 @@ void CustomGraphicsView::wheelEvent(QWheelEvent *event)
 {
     if (m_bIsZoomAllowed)
     {
-        QPointF point = mapToScene(event->pos());
+        QPointF point = mapToScene(event->position().toPoint());
         centerOn(point);
-        if (event->delta() > 0)
+        if (event->angleDelta().y() > 0)
             OnZoomIn();
         else
             OnZoomOut();
@@ -79,7 +79,7 @@ void CustomGraphicsView::mousePressEvent(QMouseEvent *event)
 void CustomGraphicsView::SetScaleFactorToDefault()
 {
     m_dScaleFactor = 1.0;
-    resetMatrix();
+    resetTransform();
 }
 
 double CustomGraphicsView::GetScaleFactorValue()

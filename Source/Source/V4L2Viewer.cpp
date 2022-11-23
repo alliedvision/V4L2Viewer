@@ -89,7 +89,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     qApp->setFont(font);
 
     m_pGermanTranslator = new QTranslator(this);
-    m_pGermanTranslator->load(":/Translations/Translations/german.qm");
+    (void)m_pGermanTranslator->load(":/Translations/Translations/german.qm");
 
     srand((unsigned)time(0));
 
@@ -872,7 +872,7 @@ void V4L2Viewer::OnSaveImageClicked()
         m_LastImageSaveFormat = ".raw";
         QPixmap pixmap = m_PixmapItem->pixmap();
         QImage image = pixmap.toImage();
-        int size = image.byteCount();
+        int size = image.sizeInBytes();
         QByteArray data(reinterpret_cast<const char*>(image.bits()), size);
         QFile file(fullPath);
         file.open(QIODevice::WriteOnly);

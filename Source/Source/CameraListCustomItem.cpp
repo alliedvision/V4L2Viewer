@@ -33,7 +33,7 @@ CameraListCustomItem::CameraListCustomItem(QString cameraName, QWidget *parent) 
     m_pMainLayout = new QGridLayout(this);
     m_pMainLayout->addWidget(&m_CameraName, 0, 0);
 
-    m_pMainLayout->setMargin(0);
+    m_pMainLayout->setContentsMargins(0,0,0,0);
     setLayout(m_pMainLayout);
 }
 

@@ -108,21 +108,32 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
-find_package(Threads REQUIRED)
-
-list(APPEND QT_LIBRARIES
-  Qt5::Core
-  Qt5::Gui
-  Qt5::Widgets
-  Threads::Threads
-)
-
 list(APPEND QT_RESOURCES
   ${RESOURCES_PATH}/V4L2Viewer.qrc
 )
 
-qt5_add_resources(RESOURCES ${QT_RESOURCES})
+find_package(Qt6 COMPONENTS Core Widgets Gui QUIET)
+if(Qt6_FOUND)
+  list(APPEND QT_LIBRARIES
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Threads::Threads
+  )
+  qt6_add_resources(RESOURCES ${QT_RESOURCES})
+else()
+  find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
+  list(APPEND QT_LIBRARIES
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Widgets
+    Threads::Threads
+  )
+  qt5_add_resources(RESOURCES ${QT_RESOURCES})
+endif()
+add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
+
+find_package(Threads REQUIRED)
 
 list(APPEND RESOURCES
   ${RESOURCES_PATH}/V4L2Viewer.rc
