@@ -590,7 +590,7 @@ int Camera::SubDeviceDiscoveryStart()
 
     do
     {
-        subDeviceName.sprintf("/dev/v4l-subdev%d", subDeviceCount);
+        subDeviceName = QString("/dev/v4l-subdev%1").arg(subDeviceCount);
 
         if ((fileDiscriptor = open(subDeviceName.toStdString().c_str(), O_RDWR)) == -1)
         {
