@@ -41,11 +41,14 @@ public:
     // Parameters:
     // [in] (const std::string &) message
     static void Log(const std::string &message);
-    // This function logs passed message with additional arguments
+    // This function logs passed message with additional arguments.
+    // It is preferable to use the LOG_EX macro below
     //
     // Parameters:
+    // [in] (const char *) filename
+    // [in] (int) line - set to a negative number to disable logging of filename and line number
     // [in] (const char *text) text
-    static void LogEx(const char *text, ...);
+    static void LogEx(const char *filename, int line, const char *text, ...);
     // This function dumps passed message
     //
     // Parameters:
@@ -70,5 +73,23 @@ private:
     static QSharedPointer<base::BaseLogger> m_pBaseLogger;
     static bool m_LogSwitch;
 };
+
+constexpr const char* filepathToFilename(const char* filepath)
+{
+    const char* begin = filepath;
+    for(const char* p = filepath; *p != '\0'; ++p)
+    {
+        if(*p == '/')
+        {
+            begin = p + 1;
+        }
+    }
+    return begin;
+}
+
+#define __FILENAME__ filepathToFilename(__FILE__)
+
+#define LOG_EX(...) \
+    Logger::LogEx(__FILENAME__, __LINE__, __VA_ARGS__)
 
 #endif // LOGGER_H

@@ -42,7 +42,8 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, in
     m_MainLayout.addWidget(&m_LineEdit, 0, 2);
     m_LineEdit.setAlignment(Qt::AlignRight);
 
-    //m_LineEdit.setMaxLength(10);
+    auto const len = int(std::ceil(std::log10(max+1)));
+    m_LineEdit.setMaxLength(len);
 
     m_MainLayout.setColumnStretch(0, 2);
     m_MainLayout.setColumnStretch(1, 2);

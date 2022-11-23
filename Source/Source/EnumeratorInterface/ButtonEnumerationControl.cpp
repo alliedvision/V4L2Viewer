@@ -39,8 +39,9 @@ ButtonEnumerationControl::ButtonEnumerationControl(int32_t id, QString name, QSt
     else
     {
         setEnabled(true);
-        connect(&m_PushButton, SIGNAL(clicked()), this, SLOT(OnButtonClicked()));
     }
+
+	connect(&m_PushButton, SIGNAL(clicked()), this, SLOT(OnButtonClicked()));
 }
 
 void ButtonEnumerationControl::OnButtonClicked()
