@@ -42,7 +42,7 @@ class V4L2Viewer : public QMainWindow
     Q_OBJECT
 
 public:
-    V4L2Viewer( QWidget *parent = 0, Qt::WindowFlags flags = 0 );
+    V4L2Viewer( QWidget *parent = 0, Qt::WindowFlags flags = Qt::WindowFlags() );
     ~V4L2Viewer();
 
     bool OpenCloseCamera(QString deviceName);

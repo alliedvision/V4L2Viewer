@@ -81,7 +81,7 @@ int CameraObserver::CheckDevices()
 
     do
     {
-        deviceName.sprintf("/dev/video%d", deviceCount);
+        deviceName = QString("/dev/video%1").arg(deviceCount);
 
         if ((fileDiscriptor = open(deviceName.toStdString().c_str(), O_RDWR)) == -1)
         {
