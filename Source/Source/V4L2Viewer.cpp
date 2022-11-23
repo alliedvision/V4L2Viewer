@@ -89,7 +89,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     qApp->setFont(font);
 
     m_pGermanTranslator = new QTranslator(this);
-    m_pGermanTranslator->load(":/Translations/Translations/german.qm");
+    (void)m_pGermanTranslator->load(":/Translations/Translations/german.qm");
 
     srand((unsigned)time(0));
 
