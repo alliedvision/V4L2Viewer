@@ -45,9 +45,6 @@ public:
     V4L2Viewer( QWidget *parent = 0, Qt::WindowFlags flags = Qt::WindowFlags() );
     ~V4L2Viewer();
 
-    bool OpenCloseCamera(QString deviceName);
-    void StartStream();
-
 private:
 
     std::list<QSharedPointer<V4L2Viewer> > m_pViewer;
@@ -126,11 +123,12 @@ private:
     // Open/Close the camera
     //
     // Parameters:
+    // [in] (const uint32_t) cardNumber
     // [in] (const QString &) deviceName
     //
     // Returns:
     // (int) result of open/close/setup camera
-    int OpenAndSetupCamera(const QString &deviceName);
+    int OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName);
     // This function closes the camera
     //
     // Parameters:
