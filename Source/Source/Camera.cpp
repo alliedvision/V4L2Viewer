@@ -272,18 +272,31 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
     m_BlockingMode = blockingMode;
     m_UseV4L2TryFmt = v4l2TryFmt;
 
-    switch (ioMethodType)
-    {
-    case IO_METHOD_MMAP:
-         m_pFrameObserver = QSharedPointer<FrameObserverMMAP>(new FrameObserverMMAP(m_ShowFrames));
-         break;
-    case IO_METHOD_USERPTR:
-         m_pFrameObserver = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER(m_ShowFrames));
-         break;
-    }
-    connect(m_pFrameObserver.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
-    connect(m_pFrameObserver.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
-    connect(m_pFrameObserver.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
+    std::vector<IO_METHOD_TYPE> ioMethodList = {IO_METHOD_USERPTR, IO_METHOD_MMAP};
+
+    auto ioMethodToMemory = [](IO_METHOD_TYPE method) -> int {
+        switch (method)
+        {
+            case IO_METHOD_USERPTR:
+                return V4L2_MEMORY_USERPTR;
+            case IO_METHOD_MMAP:
+                return V4L2_MEMORY_MMAP;
+        }
+
+        return 0;
+    };
+
+    auto testIoMethod = [&](IO_METHOD_TYPE method) {
+        v4l2_create_buffers createBuffers = {0};
+        createBuffers.count = 0;
+        createBuffers.memory = ioMethodToMemory(method);
+        createBuffers.format.type = m_DeviceBufferType;
+
+        if (iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_CREATE_BUFS,&createBuffers) == 0)
+            return true;
+
+        return false;
+    };
 
     if (-1 == m_DeviceFileDescriptor)
     {
@@ -390,6 +403,34 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
     {
         LOG_EX("Camera::OpenDevice open %s failed because %s is already open", deviceName.c_str(), m_DeviceName.c_str());
     }
+
+    for (auto method : ioMethodList)
+    {
+        if (testIoMethod(method))
+        {
+            ioMethodType = method;
+            LOG_EX("Camera::OpenDevice test memory type %d successful",ioMethodToMemory(method));
+            break;
+        }
+        else
+        {
+            LOG_EX("Camera::OpenDevice test memory type %d failed",ioMethodToMemory(method));
+        }
+    }
+
+    switch (ioMethodType)
+    {
+        case IO_METHOD_MMAP:
+            m_pFrameObserver = QSharedPointer<FrameObserverMMAP>(new FrameObserverMMAP(m_ShowFrames));
+            break;
+        case IO_METHOD_USERPTR:
+            m_pFrameObserver = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER(m_ShowFrames));
+            break;
+    }
+    connect(m_pFrameObserver.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
+    connect(m_pFrameObserver.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
+    connect(m_pFrameObserver.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
+
 
     return result;
 }
@@ -1983,11 +2024,8 @@ int Camera::SetFrameRate(uint32_t numerator, uint32_t denominator)
 {
     int result = -1;
 
-    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
-    allFileDescriptors.push_back(m_DeviceFileDescriptor);
+    auto const fileDescriptor = m_DeviceFileDescriptor;
 
-    for (const auto fileDescriptor : allFileDescriptors)
-    {
         v4l2_streamparm parm;
 
         CLEAR(parm);
@@ -2009,7 +2047,6 @@ int Camera::SetFrameRate(uint32_t numerator, uint32_t denominator)
                 }
             }
         }
-    }
 
     return result;
 }

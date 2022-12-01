@@ -41,6 +41,9 @@
 #include <limits>
 #include <sstream>
 
+#include <linux/media.h>
+
+
 #define NUM_COLORS 3
 #define BIT_DEPTH 8
 
@@ -58,7 +61,6 @@
 #define CCI_BCRM_16R                                0x0014
 
 #define EXPOSURE_MAX_VALUE 2147483647
-
 
 static int32_t int64_2_int32(const int64_t value)
 {
@@ -333,6 +335,68 @@ void V4L2Viewer::changeEvent(QEvent *event)
     }
 }
 
+struct MediaNode {
+    uint32_t id;
+    std::string name;
+    std::string devNodePath;
+    QVector<QSharedPointer<MediaNode>> sources;
+    QVector<QSharedPointer<MediaNode>> sinks;
+};
+
+std::string readDevNode(const media_entity_desc & entity)
+{
+    if (entity.dev.major != 0)
+    {
+        auto const charDevId = std::to_string(entity.dev.major) + ":" + std::to_string(entity.dev.minor);
+        QFile devNodeIdPath(QString::fromStdString("/dev/char/" + charDevId));
+
+        if (devNodeIdPath.exists())
+        {
+            return devNodeIdPath.symLinkTarget().toStdString();
+        }
+    }
+
+     return "";
+}
+
+void readSinkNodes(int mediaFd,const media_entity_desc & sourceEntity, const QSharedPointer<MediaNode> sourceNode) {
+    media_link_desc *linkDesc = new media_link_desc[sourceEntity.links];
+    media_links_enum linksEnum{
+            .entity = sourceEntity.id,
+            .pads = nullptr,
+            .links = linkDesc,
+
+    };
+
+    if (ioctl(mediaFd,MEDIA_IOC_ENUM_LINKS,&linksEnum) == 0)
+    {
+        for (int i = 0; i < sourceEntity.links; i++)
+        {
+            const auto & link = linkDesc[i];
+
+            media_entity_desc sinkEntity = {0};
+            sinkEntity.id = link.sink.entity;
+
+
+            if (ioctl(mediaFd,MEDIA_IOC_ENUM_ENTITIES,&sinkEntity) == 0)
+            {
+                QSharedPointer<MediaNode> sinkNode(new MediaNode{
+                        .id = sinkEntity.id,
+                        .name = std::string(sinkEntity.name),
+                        .devNodePath = readDevNode(sinkEntity)
+                });
+
+                sinkNode->sources.push_back(sourceNode);
+                sourceNode->sinks.push_back(sinkNode);
+
+                readSinkNodes(mediaFd,sinkEntity,sinkNode);
+            }
+        }
+    }
+
+    delete[] linkDesc;
+};
+
 // The event handler for open / close camera
 void V4L2Viewer::OnOpenCloseButtonClicked()
 {
@@ -351,7 +415,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
     QVector<QString> selectedSubDeviceList;
 
-    if(false == m_bIsOpen && !m_SubDevices.empty())
+    /*if(false == m_bIsOpen && !m_SubDevices.empty())
     {
         LOG_EX("V4L2Viewer::OnOpenCloseButtonClicked: user will select sub-devices from list of size %d", m_SubDevices.size());
 
@@ -359,7 +423,84 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
         selectSubDeviceDialog.exec();
 
         LOG_EX("V4L2Viewer::OnOpenCloseButtonClicked: user selected %d sub-devices", selectedSubDeviceList.size());
+    }*/
+
+
+    QVector<QSharedPointer<MediaNode>> sensorNodes;
+
+    int mediaFd = open("/dev/media0",O_RDWR);
+
+
+
+    if (mediaFd > 0)
+    {
+        struct media_entity_desc mediaEntity = {0};
+        mediaEntity.id |= MEDIA_ENT_ID_FLAG_NEXT;
+
+        while(ioctl(mediaFd,MEDIA_IOC_ENUM_ENTITIES,&mediaEntity) == 0)
+        {
+            LOG_EX("Read next media entity...");
+
+            if (mediaEntity.type == MEDIA_ENT_F_CAM_SENSOR)
+            {
+                LOG_EX("Media entity %s is a camera.",mediaEntity.name);
+
+                QSharedPointer<MediaNode> sensorNode(new MediaNode{
+                    .id = mediaEntity.id,
+                    .name = std::string(mediaEntity.name),
+                    .devNodePath = readDevNode(mediaEntity)
+                });
+
+                readSinkNodes(mediaFd,mediaEntity,sensorNode);
+
+                sensorNodes.push_back(sensorNode);
+            }
+
+            mediaEntity.id |= MEDIA_ENT_ID_FLAG_NEXT;
+        }
+
+        for (const auto & node : sensorNodes)
+        {
+            std::string text = node->name + "( " + node->devNodePath + " )";
+
+            auto readNode = node;
+
+            while (!readNode->sinks.empty())
+            {
+                auto next = readNode->sinks.first();
+
+                text += " -> " + next->name + "( " + next->devNodePath + " )";
+
+                readNode = next;
+            }
+
+            LOG_EX("Topology: %s",text.c_str());
+
+        }
+
+        ::close(mediaFd);
     }
+
+    auto getCameraNode = [&](QString deviceName) {
+        for (const auto & node : sensorNodes)
+        {
+            auto readNode = node;
+
+            while (!readNode->sinks.empty())
+            {
+                auto next = readNode->sinks.first();
+
+                if (deviceName.toStdString() == next->devNodePath)
+                {
+                    return node;
+                }
+
+                readNode = next;
+            }
+        }
+
+        return QSharedPointer<MediaNode>();
+    };
 
     if (-1 < nRow)
     {
@@ -370,6 +511,26 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
         if (false == m_bIsOpen)
         {
+            const auto cameraNode = getCameraNode(deviceName);
+
+            if (!cameraNode.isNull())
+            {
+                selectedSubDeviceList.clear();
+
+                LOG_EX("Selected camera node %s",cameraNode->name.c_str());
+
+                auto readNode = cameraNode;
+
+                while (!readNode->sinks.empty())
+                {
+                    if (!readNode->devNodePath.empty())
+                        selectedSubDeviceList.append(QString::fromStdString(readNode->devNodePath));
+
+                    auto next = readNode->sinks.first();
+                    readNode = next;
+                }
+            }
+
             // Start
             err = OpenAndSetupCamera(m_cameras[nRow], deviceName, selectedSubDeviceList);
             // Set up Qt image
@@ -855,24 +1016,66 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
     {
         LOG_EX("V4L2Viewer::StartStreaming streaming will be started");
         m_Camera.QueueAllUserBuffer();
-        m_Camera.StartStreaming();
-        err = m_Camera.StartStreamChannel(pixelFormat,
-                                          payloadSize,
-                                          width,
-                                          height,
-                                          bytesPerLine,
-                                          NULL,
-                                          ui.m_TitleLogtofile->isChecked());
-
-        if (0 == err)
+        if (m_Camera.StartStreaming() == 0)
         {
-            m_bIsStreaming = true;
+            err = m_Camera.StartStreamChannel(pixelFormat,
+                                              payloadSize,
+                                              width,
+                                              height,
+                                              bytesPerLine,
+                                              NULL,
+                                              ui.m_TitleLogtofile->isChecked());
+
+            if (0 == err)
+            {
+                m_bIsStreaming = true;
+
+                UpdateViewerLayout();
+
+                m_FramesReceivedTimer.start(1000);
+
+                return;
+            }
+
+            CustomDialog::Error( this, tr("Video4Linux"), tr("Start stream channel failed!") );
         }
+        else
+        {
+            CustomDialog::Error( this, tr("Video4Linux"), tr("Start streaming failed!") );
+        }
+        
+        m_Camera.StopStreaming();
 
-        UpdateViewerLayout();
-
-        m_FramesReceivedTimer.start(1000);
+        m_Camera.DeleteUserBuffer();
     }
+    else
+    {
+        CustomDialog::Error( this, tr("Video4Linux"), tr("Create user buffer failed!") );
+    }
+
+
+    ui.m_pixelFormats->setEnabled(true);
+    ui.m_frameSizes->setEnabled(true);
+    ui.m_labelPixelFormats->setEnabled(true);
+    ui.m_labelFrameSizes->setEnabled(true);
+
+    ui.m_labelFrameRateAuto->setEnabled(true);
+    ui.m_chkFrameRateAuto->setEnabled(true);
+
+    if (!ui.m_chkFrameRateAuto->isChecked())
+    {
+        ui.m_labelFrameRate->setEnabled(true);
+        ui.m_edFrameRate->setEnabled(true);
+    }
+
+    if(m_bIsCropAvailable)
+    {
+        ui.m_cropWidget->setEnabled(true);
+    }
+
+
+    UpdateViewerLayout();
+
 }
 
 // The event handler for stopping acquisition
@@ -1402,7 +1605,7 @@ void V4L2Viewer::OnFrameRate()
     {
         CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE frame rate!") );
         m_Camera.ReadFrameRate(numerator, denominator, width, height, pixelFormat);
-        denominator /= 1000;
+        denominator /= numerator;
         ui.m_edFrameRate->setText(QString("%1").arg(denominator));
     }
     else
@@ -1636,6 +1839,7 @@ void V4L2Viewer::GetImageInformation(const bool isCalledFromOnOpen)
     {
         ui.m_labelGainAuto->setEnabled(false);
         ui.m_chkAutoGain->setEnabled(false);
+        autogain = false;
     }
 
     if (m_Camera.ReadExposure(exposure) != -2)
@@ -1685,6 +1889,7 @@ void V4L2Viewer::GetImageInformation(const bool isCalledFromOnOpen)
     {
         ui.m_labelExposureAuto->setEnabled(false);
         ui.m_chkAutoExposure->setEnabled(false);
+        autoexposure = false;
     }
 
     nSVal = 0;
@@ -1745,7 +1950,7 @@ void V4L2Viewer::GetImageInformation(const bool isCalledFromOnOpen)
                 ui.m_chkFrameRateAuto->setChecked(false);
                 ui.m_edFrameRate->setEnabled(true);
                 ui.m_labelFrameRate->setEnabled(true);
-                denominator /= 1000;
+                denominator /= numerator;
                 ui.m_edFrameRate->setText(QString("%1").arg(denominator));
             }
         }
