@@ -350,13 +350,6 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
 
             result = 0;
 
-            m_pEventHandler = new V4L2EventHandler(m_DeviceFileDescriptor);
-
-			qRegisterMetaType<v4l2_event_ctrl>();
-
-            connect(m_pEventHandler,SIGNAL(ControlChanged(int,v4l2_event_ctrl)),this,SLOT(OnCtrlUpdate(int, v4l2_event_ctrl)));
-
-			m_pEventHandler->start();
         }
 
         for (auto const subDevice : subDevices)
@@ -430,6 +423,18 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
     connect(m_pFrameObserver.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
     connect(m_pFrameObserver.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
+
+    auto fileDescriptors = m_SubDeviceFileDescriptors;
+    fileDescriptors.push_back(m_DeviceFileDescriptor);
+
+
+    m_pEventHandler = new V4L2EventHandler(fileDescriptors);
+
+    qRegisterMetaType<v4l2_event_ctrl>();
+
+    connect(m_pEventHandler,SIGNAL(ControlChanged(int,v4l2_event_ctrl)),this,SLOT(OnCtrlUpdate(int, v4l2_event_ctrl)));
+
+    m_pEventHandler->start();
 
 
     return result;

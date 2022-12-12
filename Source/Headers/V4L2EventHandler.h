@@ -20,11 +20,13 @@
 #define V4L2EVENTREADER_H
 
 #include <QThread>
+#include <QVector>
+#include <linux/videodev2.h>
 
 class V4L2EventHandler : public QThread {
     Q_OBJECT
 public:
-    explicit V4L2EventHandler(int fd);
+    explicit V4L2EventHandler(const std::vector<int>  & fds);
     virtual ~V4L2EventHandler();
 
     // This function enables the reception of changes for the control id
@@ -43,7 +45,7 @@ protected:
     void run() override;
 private:
     // File descriptor of the camera
-    int m_Fd;
+    std::vector<int> m_Fds;
     int m_eventFd;
 };
 

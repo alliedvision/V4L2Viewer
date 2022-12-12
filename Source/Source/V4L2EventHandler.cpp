@@ -22,9 +22,10 @@
 #include <sys/eventfd.h>
 #include <unistd.h>
 
+
 #include "V4L2EventHandler.h"
 
-V4L2EventHandler::V4L2EventHandler(int fd) : m_Fd(fd)
+V4L2EventHandler::V4L2EventHandler(const std::vector<int>  & fds) : m_Fds(fds)
 {
 
     m_eventFd = eventfd(0,0);
@@ -36,19 +37,25 @@ V4L2EventHandler::~V4L2EventHandler()
 
 void V4L2EventHandler::SubscribeControl(int id)
 {
-    v4l2_event_subscription subscription = {0};
-    subscription.id = id;
-    subscription.type = V4L2_EVENT_CTRL;
-	subscription.flags = V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK;
-    ioctl(m_Fd,VIDIOC_SUBSCRIBE_EVENT,&subscription);
+    for (const auto & fd : m_Fds)
+    {
+        v4l2_event_subscription subscription = {0};
+        subscription.id = id;
+        subscription.type = V4L2_EVENT_CTRL;
+        subscription.flags = V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK;
+        ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &subscription);
+    }
 }
 
 void V4L2EventHandler::UnsubscribeControl(int id)
 {
-    v4l2_event_subscription subscription = {0};
-    subscription.id = id;
-    subscription.type = V4L2_EVENT_CTRL;
-    ioctl(m_Fd,VIDIOC_UNSUBSCRIBE_EVENT,&subscription);
+    for (const auto & fd : m_Fds)
+    {
+        v4l2_event_subscription subscription = {0};
+        subscription.id = id;
+        subscription.type = V4L2_EVENT_CTRL;
+        ioctl(fd, VIDIOC_UNSUBSCRIBE_EVENT, &subscription);
+    }
 }
 
 void V4L2EventHandler::run()
@@ -57,29 +64,43 @@ void V4L2EventHandler::run()
 
     while (!isInterruptionRequested())
     {
-        pollfd pfds[2];
 
+        std::vector<pollfd> pfds;
 
-        pfds[0].events = POLLPRI;
-        pfds[0].fd = m_Fd;
+        for (const auto fd : m_Fds)
+        {
+            pollfd pfd = {
+                .fd = fd,
+                .events = POLLPRI,
+            };
 
-        pfds[1].events = POLLIN;
-        pfds[1].fd = m_eventFd;
+            pfds.push_back(pfd);
+        }
 
-        int ret = poll(pfds,2,-1);
+        pollfd event_pfd = {
+            .fd = m_eventFd,
+            .events = POLLIN,
+        };
+
+        pfds.push_back(event_pfd);
+
+        int ret = poll(pfds.data(),pfds.size(),-1);
         if (ret > 0)
         {
-            if (pfds[0].revents & POLLPRI)
+            for (const auto & pfd : pfds)
             {
-                v4l2_event event = {0};
-
-                int error = ioctl(m_Fd,VIDIOC_DQEVENT,&event);
-
-                if (!error)
+                if (pfd.revents & POLLPRI)
                 {
-                    if (event.type == V4L2_EVENT_CTRL)
+                    v4l2_event event = {0};
+
+                    int error = ioctl(pfd.fd,VIDIOC_DQEVENT,&event);
+
+                    if (!error)
                     {
-                        emit ControlChanged(event.id,event.u.ctrl);
+                        if (event.type == V4L2_EVENT_CTRL)
+                        {
+                            emit ControlChanged(event.id,event.u.ctrl);
+                        }
                     }
                 }
             }
@@ -97,8 +118,11 @@ void V4L2EventHandler::Stop()
     eventfd_t value;
     eventfd_read(m_eventFd,&value);
 
-	v4l2_event_subscription subscription = {0};
-	subscription.type = V4L2_EVENT_ALL;
-	ioctl(m_Fd,VIDIOC_UNSUBSCRIBE_EVENT,&subscription);
+	for (const auto & fd : m_Fds)
+    {
+        v4l2_event_subscription subscription = {0};
+        subscription.type = V4L2_EVENT_ALL;
+        ioctl(fd,VIDIOC_UNSUBSCRIBE_EVENT,&subscription);
+    }
 }
 
