@@ -22,9 +22,13 @@
 #include "FrameObserver.h"
 #include "CameraObserver.h"
 #include "AutoReader.h"
+#include "V4L2EventHandler.h"
 
 #include <QObject>
 #include <QMutex>
+#include <QString>
+#include <QVector>
+#include <map>
 #include <vector>
 
 
@@ -33,6 +37,8 @@ enum IO_METHOD_TYPE
     IO_METHOD_MMAP,
     IO_METHOD_USERPTR,
 };
+
+class IPixFormat;
 
 class Camera : public QObject
 {
@@ -52,7 +58,7 @@ public:
     //
     // Returns:
     // (int) - result of the opening
-    int OpenDevice(std::string &deviceName, bool blockingMode, IO_METHOD_TYPE ioMethodType,
+    int OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bool blockingMode, IO_METHOD_TYPE ioMethodType,
                    bool v4l2TryFmt);
     // This function simply closes the opened device
     //
@@ -69,6 +75,16 @@ public:
     // Returns:
     // (int) - result of the discovery stop
     int DeviceDiscoveryStop();
+    // This function starts discover of the sub-devices
+    //
+    // Returns:
+    // (int) - result of the discovery start
+    int SubDeviceDiscoveryStart();
+    // This function stops discover of the sub-devices
+    //
+    // Returns:
+    // (int) - result of the discovery stop
+    int SubDeviceDiscoveryStop();
 
     // This function starts streaming from the camera
     //
@@ -181,7 +197,7 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadGain(int32_t &gain);
+    int ReadGain(int64_t &gain);
     // This function set camera gain
     //
     // Parameters:
@@ -189,7 +205,7 @@ public:
     //
     // Returns:
     // (int) - result of the setting
-    int SetGain(int32_t gain);
+    int SetGain(int64_t gain);
     // This function read camera min max gain
     //
     // Parameters:
@@ -198,7 +214,7 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadMinMaxGain(int32_t &min, int32_t &max);
+    int ReadMinMaxGain(int64_t &min, int64_t &max);
     // This function reads auto gain state
     //
     // Parameters:
@@ -223,15 +239,7 @@ public:
     //
     // Returns:
     // (int) - result of reading
-    int ReadExposure(int32_t &exposure);
-    // This function reads exposure absolute
-    //
-    // Parameters:
-    // [in] (int32_t &) exposure
-    //
-    // Returns:
-    // (int) - result of reading
-    int ReadExposureAbs(int32_t &exposure);
+    int ReadExposure(int64_t &exposure);
     // This function sets exposure
     //
     // Parameters:
@@ -239,15 +247,7 @@ public:
     //
     // Returns:
     // (int) - result of setting
-    int SetExposure(int32_t exposure);
-    // This function sets exposure absolute
-    //
-    // Parameters:
-    // [in] (int32_t) exposure
-    //
-    // Returns:
-    // (int) - result of setting
-    int SetExposureAbs(int32_t exposure);
+    int SetExposure(int64_t exposure);
     // This function reads min and max of the exposure
     //
     // Parameters:
@@ -256,16 +256,7 @@ public:
     //
     // Returns:
     // (int) - result of reading
-    int ReadMinMaxExposure(int32_t &min, int32_t &max);
-    // This function reads min and max of the exposure absolute
-    //
-    // Parameters:
-    // [in] (int32_t &) min - minimum exposure
-    // [in] (int32_t &) max - maximum exposure
-    //
-    // Returns:
-    // (int) - result of reading
-    int ReadMinMaxExposureAbs(int64_t &min, int64_t &max);
+    int ReadMinMaxExposure(int64_t &min, int64_t &max);
     // This function reads state of the auto exposure
     //
     // Parameters:
@@ -307,7 +298,7 @@ public:
     //
     // Returns:
     // (int) - result of reading
-    int ReadMinMaxGamma(int32_t &min, int32_t &max);
+    int ReadMinMaxGamma(int64_t &min, int64_t &max);
 
     // This function reads reverseX value
     //
@@ -427,11 +418,12 @@ public:
     //
     // Returns:
     // (int) - result of the setting
-    int SetExtControl(uint32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-    // This function is used by all of the controls in the application,
-    // it reads control's value using ext approach
+    template<typename T>
+    int SetExtControl(T value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    // This function is used to determine which file descriptors have access to which controls, and is called only when the camera is opened.
     //
     // Parameters:
+    // [in] (int) fileDescriptor - the file descriptor to read from
     // [in] (uint32_t &) value - new value
     // [in] (uint32_t) controlID - controlID
     // [in] (const char *) functionName - name of the function (used in logger)
@@ -440,53 +432,14 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadExtControl(uint32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    template<typename T>
+    int ReadExtControl(int fileDescriptor, T &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
-    // This function is used by all of the controls in the application,
-    // it sets control's value using ext approach
-    //
-    // Parameters:
-    // [in] (int32_t) value - new value
-    // [in] (int32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExtControl(int32_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
     // This function is used by all of the controls in the application,
     // it reads control's value using ext approach
     //
     // Parameters:
-    // [in] (int32_t &) value - new value
-    // [in] (int32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExtControl(int32_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-
-    // This function is used by all of the controls in the application,
-    // it sets control's value using ext approach
-    //
-    // Parameters:
-    // [in] (uint64_t) value - new value
-    // [in] (uint32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExtControl(uint64_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-    // This function is used by all of the controls in the application,
-    // it reads control's value using ext approach
-    //
-    // Parameters:
-    // [in] (uint64_t &) value - new value
+    // [in] (T &) value - new value
     // [in] (uint32_t) controlID - controlID
     // [in] (const char *) functionName - name of the function (used in logger)
     // [in] (const char *) controlName - name of the control (used in logger)
@@ -494,34 +447,8 @@ public:
     //
     // Returns:
     // (int) - result of the reading
-    int ReadExtControl(uint64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-
-    // This function is used by all of the controls in the application,
-    // it sets control's value using ext approach
-    //
-    // Parameters:
-    // [in] (int64_t) value - new value
-    // [in] (int32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the setting
-    int SetExtControl(int64_t value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
-    // This function is used by all of the controls in the application,
-    // it reads control's value using ext approach
-    //
-    // Parameters:
-    // [in] (int64_t &) value - new value
-    // [in] (int32_t) controlID - controlID
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (used in logger)
-    // [in] (uint32_t) controlClass - class of the control
-    //
-    // Returns:
-    // (int) - result of the reading
-    int ReadExtControl(int64_t &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
+    template<typename T>
+    int ReadExtControl(T &value, uint32_t controlID, const char *functionName, const char* controlName, uint32_t controlClass);
 
     // This function reads min and max of the given control
     //
@@ -534,31 +461,8 @@ public:
     //
     // Returns:
     // (int) - result of reading
-    int ReadMinMax(uint32_t &min, uint32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
-    // This function reads min and max of the given control
-    //
-    // Parameters:
-    // [in] (int32_t &) min - minimum value
-    // [in] (int32_t &) max - maximum value
-    // [in] (uint32_t) controlID - id of the control
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (uised in logger)
-    //
-    // Returns:
-    // (int) - result of reading
-    int ReadMinMax(int32_t &min, int32_t &max, uint32_t controlID, const char *functionName, const char* controlName);
-    // This function reads min and max of the given control
-    //
-    // Parameters:
-    // [in] (int64_t &) min - minimum value
-    // [in] (int64_t &) max - maximum value
-    // [in] (uint32_t) controlID - id of the control
-    // [in] (const char *) functionName - name of the function (used in logger)
-    // [in] (const char *) controlName - name of the control (uised in logger)
-    //
-    // Returns:
-    // (int) - result of reading
-    int ReadMinMax(int64_t &min, int64_t &max, uint32_t controlID, const char *functionName, const char* controlName);
+    template<typename T>
+    int ReadMinMax(T &min, T &max, uint32_t controlID, const char *functionName, const char* controlName);
 
     // This function reads step of the given control
     //
@@ -605,25 +509,123 @@ public:
     // This function reads crop
     //
     // Parameters:
-    // [in] (uint32_t &) xOffset
-    // [in] (uint32_t &) yOffset
+    // [in] (int32_t &) xOffset
+    // [in] (int32_t &) yOffset
     // [in] (uint32_t &) width
     // [in] (uint32_t &) height
     //
     // Returns
     // (int) - result of the reading
-    int ReadCrop(uint32_t &xOffset, uint32_t &yOffset, uint32_t &width, uint32_t &height);
+    int ReadCrop(int32_t &xOffset, int32_t &yOffset, uint32_t &width, uint32_t &height);
     // This function sets crop
     //
     // Parameters:
-    // [in] (uint32_t) xOffset
-    // [in] (uint32_t) yOffset
+    // [in] (int32_t) xOffset
+    // [in] (int32_t) yOffset
     // [in] (uint32_t) width
     // [in] (uint32_t) height
     //
     // Returns
     // (int) - result of the setting
-    int SetCrop(uint32_t xOffset, uint32_t yOffset, uint32_t width, uint32_t height);
+    int SetCrop(int32_t xOffset, int32_t yOffset, uint32_t width, uint32_t height);
+
+    // Prepare for setting / getting the frame rate
+    void PrepareFrameRate();
+
+    // Prepare for setting / getting the frame cropping
+    void PrepareCrop();
+
+    bool UsesSubdevices();
+
+    // Get the device used to control gain
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetGainDeviceChar();
+
+    // Get the device used to control auto gain
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetAutoGainDeviceChar();
+
+    // Get the device used to control exposure
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetExposureDeviceChar();
+
+    // Get the device used to control absolute exposure
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetExposureAbsDeviceChar();
+
+    // Get the device used to control auto exposure
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetExposureAutoDeviceChar();
+
+    // Get the device used to control gamma
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetGammaDeviceChar();
+
+    // Get the device used to control reverse-x
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetReverseXDeviceChar();
+
+    // Get the device used to control reverse-y
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetReverseYDeviceChar();
+
+    // Get the device used to control brightness
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetBrightnessDeviceChar();
+
+    // Get the device used to control auto white balance
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetAutoWhiteBalanceDeviceChar();
+
+    // Get the device used to control frame rate
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetFrameRateDeviceChar();
+
+    // Get the device used to control crop
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetCropDeviceChar();
+
+    // Get the device used to control pixel format
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetPixelFormatDeviceChar();
+
+    // Get the device used to control width
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetWidthDeviceChar();
+
+    // Get the device used to control height
+    //
+    // Returns
+    // (std::string) - "d" if the device is used, "s" if the sub-device is used, otherwise empty
+    std::string GetHeightDeviceChar();
 
     // This function starts streaming from the camera
     //
@@ -713,6 +715,8 @@ public:
     // (int) - result of the operation
     int GetCameraCapabilities(std::string &strText);
 
+	int GetCameraCardName(std::string &strText);
+
     // This function returns driver stream statistics
     //
     // Parameters:
@@ -725,16 +729,16 @@ public:
     // Returns:
     // (bool) - result of the gathering statistics
     bool getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError, uint64_t &FramesUnderrun, uint64_t &FramesIncomplete, double &CurrentFrameRate);
-    // This function returns received frames count
+    // This function returns received framerate
     //
     // Returns:
-    // (unsigned int) - number of received frames
-    unsigned int GetReceivedFramesCount();
-    // This function returns rendered frames count
+    // (double) - received framerate
+    double GetReceivedFPS();
+    // This function returns rendered framerate
     //
     // Returns:
-    // (unsigned int) - number of rendered frames
-    unsigned int GetRenderedFramesCount();
+    // (double) - rendered framerate
+    double GetRenderedFPS();
 
     // This function switches frame transfer to gui
     //
@@ -747,50 +751,22 @@ public:
     // Returns:
     // (std::string) - firmware version
     std::string getAvtDeviceFirmwareVersion();
-    // This function returns AVT Device Temperature
-    //
-    // Returns:
-    // (std::string) - device temperature
-    std::string getAvtDeviceTemperature();
+
     // This function returns AVT Device Serial Number
     //
     // Returns:
     // (std::string) - device serial number
     std::string getAvtDeviceSerialNumber();
 
-    // This function converts errors to string and returns it
-    //
-    // Parameters:
-    // [in] (int) errnumber - error number
-    //
-    // Returns:
-    // std::string - error
-    static std::string ConvertErrno2String(int errnumber);
-    // This function converts pixel format to string and returns it
-    //
-    // Parameters:
-    // [in] (int) pixelFormat - pixel format
-    //
-    // Returns:
-    // std::string - pixelFormat
-    static std::string ConvertPixelFormat2String(int pixelFormat);
-    // This function converts pixel format to enum string and returns it
-    //
-    // Parameters:
-    // [in] (int) pixelFormat - pixel format
-    //
-    // Returns:
-    // std::string - enum pixelFormat
-    static std::string ConvertPixelFormat2EnumString(int pixelFormat);
-    // This function converts control id to string and returns it
-    //
-    // Parameters:
-    // [in] (int) controlID - control id
-    //
-    // Returns:
-    // std::string - control id
-    static std::string ConvertControlID2String(uint32_t controlID);
+	QList<QString> GetFrameSizes(uint32_t fourcc);
 
+	int GetFrameSizeIndex();
+
+	void SetFrameSizeByIndex(int index);
+private:
+    void QueryControls(int fd);
+    std::string GetDeviceChar(uint32_t controlId);
+    std::string GetDeviceCharFromFileDescriptor(int fileDescriptor);
 
 public slots:
     // This slot function passes gain value from a thread
@@ -799,6 +775,8 @@ public slots:
     // This slot function passes exposure value from a thread
     // to a gui when auto is turned on
     void PassExposureValue();
+
+    void OnCtrlUpdate(int cid,v4l2_event_ctrl ctrl);
 
     // This slot function sets enumeration integer list control value
     //
@@ -849,17 +827,27 @@ public slots:
     void SetSliderEnumerationControlValue(int32_t id, int64_t val);
 
 private:
-    std::string         m_DeviceName;
-    int                 m_nFileDescriptor;
-    bool                m_BlockingMode;
-    bool                m_ShowFrames;
-    bool                m_UseV4L2TryFmt;
-    bool                m_Recording;
-    bool                m_IsAvtCamera;
-    QMutex              m_ReadExtControlMutex;
+    std::string                     m_DeviceName;
+    int                             m_DeviceFileDescriptor;
+    std::vector<int>                m_SubDeviceFileDescriptors;
+    std::map<uint32_t, int>         m_ControlIdToFileDescriptorMap;
+    std::map<uint32_t, std::string> m_ControlIdToControlNameMap;
+    bool                            m_BlockingMode;
+    bool                            m_ShowFrames;
+    bool                            m_UseV4L2TryFmt;
+    bool                            m_Recording;
+    bool                            m_IsAvtCamera;
+    QMutex                          m_ReadExtControlMutex;
+    v4l2_buf_type                   m_DeviceBufferType;
+    std::map<int, v4l2_buf_type>    m_SubDeviceBufferTypes;
+    std::map<int, std::string>      m_FileDescriptorToNameMap;
+    int                             m_FrameRateDeviceFileDescriptor;
+    int                             m_CropDeviceFileDescriptor;
+    IPixFormat*                     m_pPixFormat;
 
     AutoReader          *m_pAutoExposureReader;
     AutoReader          *m_pAutoGainReader;
+    V4L2EventHandler     *m_pEventHandler;
 
     CameraObserver                  m_CameraObserver;
     QSharedPointer<FrameObserver>   m_pFrameObserver;
@@ -873,6 +861,8 @@ private:
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
     void OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);
+    // The sub-device list changed signal that passes the new camera and the its state directly
+    void OnSubDeviceListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &);
     // Event will be called when a frame is processed by the internal thread and ready to show
     void OnCameraFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
     // Event will be called when a frame ID is processed by the internal thread and ready to show
@@ -887,7 +877,7 @@ signals:
     void OnCameraFrameSize_Signal(const QString &);
 
     // Event will be called on signal from thread when auto exposure is turend on
-    void PassAutoExposureValue(int32_t value);
+    void PassAutoExposureValue(int64_t value);
     // Event will be called on signal from thread when auto gain is turend on
     void PassAutoGainValue(int32_t value);
     // Event will be called on signal from thread when auto white balance is turend on
@@ -910,9 +900,13 @@ signals:
     // Event will be called on enumeration control change value
     void SendSignalToUpdateWidgets();
 
+	void SendControlStateChange(int32_t id,bool enabled);
+
 private slots:
     // The event handler to set or remove devices
     void OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &);
+    // The event handler to set or remove sub-devices
+    void OnSubDeviceListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &);
     // The event handler to show the processed frame
     void OnFrameReady(const QImage &image, const unsigned long long &frameId);
     // The event handler to show the processed frame ID

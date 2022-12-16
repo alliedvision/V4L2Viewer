@@ -22,7 +22,6 @@
 #include "Logger.h"
 
 #include <QPixmap>
-
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/videodev2.h>
@@ -69,9 +68,8 @@ uint32_t InternalConvertRAW10inRAW16ToRAW10g(const void *sourceBuffer, uint32_t 
 }
 
 FrameObserver::FrameObserver(bool showFrames)
-    : m_nReceivedFramesCounter(0)
-    , m_nRenderedFramesCounter(0)
-    , m_nFileDescriptor(0)
+    : m_nFileDescriptor(0)
+    , m_BufferType(V4L2_BUF_TYPE_VIDEO_CAPTURE)
     , m_PixelFormat(0)
     , m_nWidth(0)
     , m_nHeight(0)
@@ -114,8 +112,8 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_nWidth = width;
     m_nHeight = height;
     m_FrameId = 0;
-    m_nReceivedFramesCounter = 0;
-    m_nRenderedFramesCounter = 0;
+    m_ReceivedFPS.clear();
+    m_RenderedFPS.clear();
     m_PayloadSize = payloadSize;
     m_PixelFormat = pixelFormat;
     m_BytesPerLine = bytesPerLine;
@@ -188,7 +186,7 @@ void FrameObserver::DequeueAndProcessFrame()
     if (0 == result)
     {
         m_FrameId++;
-        m_nReceivedFramesCounter++;
+        m_ReceivedFPS.trigger();
 
         if (m_ShowFrames)
         {
@@ -301,25 +299,19 @@ void FrameObserver::run()
 
 // Get the number of frames
 // This function will clear the counter of received frames
-unsigned int FrameObserver::GetReceivedFramesCount()
+double FrameObserver::GetReceivedFPS()
 {
-    unsigned int res = m_nReceivedFramesCounter;
-
-    m_nReceivedFramesCounter = 0;
-
-    return res;
+    return m_ReceivedFPS.getFPS();
 }
 
-unsigned int FrameObserver::GetRenderedFramesCount()
+double FrameObserver::GetRenderedFPS()
 {
-    unsigned int res = m_nRenderedFramesCounter;
-    m_nRenderedFramesCounter = 0;
-    return res;
+    return m_RenderedFPS.getFPS();
 }
 
 void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex)
 {
-    m_nRenderedFramesCounter++;
+    m_RenderedFPS.trigger();
     emit OnFrameReady_Signal(image, frameId);
 
     QueueSingleUserBuffer(bufIndex);
@@ -367,4 +359,10 @@ void FrameObserver::SwitchFrameTransfer2GUI(bool showFrames)
 void FrameObserver::setFileDescriptor(int fd)
 {
     m_nFileDescriptor = fd;
+}
+
+
+void FrameObserver::setBufferType(v4l2_buf_type bufferType)
+{
+    m_BufferType = bufferType;
 }

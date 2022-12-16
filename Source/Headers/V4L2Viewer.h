@@ -45,9 +45,6 @@ public:
     V4L2Viewer( QWidget *parent = 0, Qt::WindowFlags flags = Qt::WindowFlags() );
     ~V4L2Viewer();
 
-    bool OpenCloseCamera(QString deviceName);
-    void StartStream();
-
 private:
 
     std::list<QSharedPointer<V4L2Viewer> > m_pViewer;
@@ -73,6 +70,8 @@ private:
     Ui::V4L2ViewerClass ui;
     // A list of known camera IDs
     std::vector<uint32_t> m_cameras;
+    // A list of known sub-devices
+    QVector<QString> m_SubDevices;
     // The state of the camera (opened/closed)
     bool m_bIsOpen;
     // The current streaming state
@@ -92,17 +91,14 @@ private:
     // The settings menu on the top bar
     QMenu *m_pSettingsMenu;
     // This variable stores minimum exposure for the logarithmic slider calculations
-    int32_t m_MinimumExposure;
+    int64_t m_MinimumExposure;
     // This variable stores maximum exposure for the logarithmic slider calculations
-    int32_t m_MaximumExposure;
+    int64_t m_MaximumExposure;
 
-    int32_t m_MinimumExposureAbs;
-    int32_t m_MaximumExposureAbs;
-
-    int32_t m_sliderGainValue;
+    int64_t m_sliderGainValue;
     int32_t m_sliderBrightnessValue;
     int32_t m_sliderGammaValue;
-    int32_t m_sliderExposureValue;
+    int64_t m_sliderExposureValue;
 
     // The enumeration control widget which holds all of the enum controls gathered
     // from the Camera class object
@@ -126,11 +122,12 @@ private:
     // Open/Close the camera
     //
     // Parameters:
+    // [in] (const uint32_t) cardNumber
     // [in] (const QString &) deviceName
     //
     // Returns:
     // (int) result of open/close/setup camera
-    int OpenAndSetupCamera(const QString &deviceName);
+    int OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName, const QVector<QString>& subDevices);
     // This function closes the camera
     //
     // Parameters:
@@ -160,7 +157,7 @@ private:
     void RemoteClose();
     // This function reads all data from the camera and updates
     // widgets
-    void GetImageInformation();
+    void GetImageInformation(const bool isCalledFromOnOpen = false);
     // Check if IO Read was checked and remove it when not capable
     void Check4IOReadAbility();
     // This function sets title text in the viewer
@@ -184,7 +181,10 @@ private:
     //
     // Returns:
     // (int32_t) - position on slider
-    int32_t GetSliderValueFromLog(int32_t value);
+    int64_t GetSliderValueFromLog(int64_t value);
+
+    // Set control labels to default values in user interface
+    void SetDefaultLabels();
 
 private slots:
     void OnLogToFile();
@@ -195,6 +195,8 @@ private slots:
     void OnOpenCloseButtonClicked();
     // The event handler for the camera list changed event
     void OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info);
+    // The event handler for the sub-device list changed event
+    void OnSubDeviceListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info);
     // The event handler for starting acquisition
     void OnStartButtonClicked();
     // The event handler for stopping acquisition
@@ -277,7 +279,7 @@ private slots:
     //
     // Parameters:
     // [in] (int32_t) value - value to be passed
-    void OnUpdateAutoExposure(int32_t value);
+    void OnUpdateAutoExposure(int64_t value);
     // This slot function is called in one second interval, by the worker thread
     // which reads value when the gain auto is turned on
     //
@@ -395,6 +397,10 @@ private slots:
 
     void OnFlipHorizontal(int state);
     void OnFlipVertical(int state);
+
+	void OnFrameSizeIndexChanged(int index);
+
+	void PassControlStateChange(int32_t id, bool enabled);
 };
 
 #endif // V4L2VIEWER_H

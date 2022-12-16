@@ -73,6 +73,31 @@ private:
     // (int32_t) - calculated value which is position of the slider
     int32_t GetSliderLogValue(int64_t value);
 
+    // This function is used internally inside this class, it converts a 64bit control value to a 32bit value for the slider.
+    //
+    // Parameters:
+    // [in] (int64_t) value - value to be calculated
+    //
+    // Returns:
+    // (int32_t) - calculated value which is position of the slider
+    int32_t ConvertToSliderValue(int64_t value) const;
+
+    // This function is used internally inside this class, it converts a 32bit slider value to 64bit control value.
+    //
+    // Parameters:
+    // [in] (int32_t) value - value of the slider
+    //
+    // Returns:
+    // (int64_t) - value for the control
+    int64_t ConvertFromSliderValue(int32_t value) const;
+
+    // This function is used internally inside this class, it returns the conversion factor that is used to
+    // convert a 64bit control value to a 32bit slider value and back
+    //
+    // Returns:
+    // (int32_t) - conversion factor between control and slider value
+    int64_t GetConversionFactor() const;
+
     // One of the main elements of this widget, it allows to change value
     QSlider m_Slider;
     // One of the main elements of this widget, it allows to change value

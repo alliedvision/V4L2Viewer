@@ -16,14 +16,31 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#ifndef SELECTSUBDEVICEDIALOG_H
+#define SELECTSUBDEVICEDIALOG_H
 
-int main( int argc, char *argv[] )
+#include <QObject>
+#include <QVector>
+#include <QtWidgets>
+#include <QDialog>
+#include <QString>
+#include <QCheckBox>
+
+class SelectSubDeviceDialog : public QDialog
 {
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+    Q_OBJECT
+
+public:
+    explicit SelectSubDeviceDialog(QVector<QString> const& subDeviceList, QVector<QString>& selectedSubDeviceList, QWidget *parent = nullptr);
+
+private slots:
+    void OnAccepted();
+
+private:
+    QVector<QString> const& m_subDeviceList;
+    QVector<QString>& m_selectedSubDeviceList;
+    QLabel *label;
+    QVector<QCheckBox*> m_subDeviceCheckBoxes;
+};
+
+#endif // SELECTSUBDEVICEDIALOG_H

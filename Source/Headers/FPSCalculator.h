@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2021 Allied Vision Technologies GmbH
+   Copyright (C) 2022 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -15,15 +15,21 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
+#ifndef FPSCALCULATOR_H
+#define FPSCALCULATOR_H
 
-#include "V4L2Viewer.h"
-#include <QDebug>
+#include <chrono>
+#include <queue>
+#include <QMutex>
 
-int main( int argc, char *argv[] )
-{
-    QApplication a( argc, argv );
-    Q_INIT_RESOURCE(V4L2Viewer);
-    V4L2Viewer w;
-    w.show();
-    return a.exec();
-}
+class FPSCalculator {
+    std::queue<uint64_t> timestamps;
+    QMutex mutex;
+    double fps = 0.0;
+public:
+    void trigger();
+    double getFPS();
+    void clear();
+};
+
+#endif

@@ -20,6 +20,9 @@
 #include "Logger.h"
 #include "videodev2_av.h"
 
+#include <regex>
+
+#include <QFile>
 #include <QPixmap>
 
 #include <cstring>
@@ -30,6 +33,9 @@
 
 extern uint8_t *g_ConversionBuffer1;
 extern uint8_t *g_ConversionBuffer2;
+
+int g_shift10Bit = -1;
+int g_shift12Bit = -1;
 
 ImageTransform::ImageTransform() {}
 
@@ -772,6 +778,46 @@ int ImageTransform::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
     if (NULL == pBuffer || 0 == length)
         return -1;
 
+    if (g_shift10Bit == -1 || g_shift12Bit == -1)
+    {
+        const int tegraShift10Bit = 2;
+        const int tegraShift12Bit = 4;
+
+        QFile socId("/sys/devices/soc0/soc_id");
+
+        if (socId.exists() && socId.open(QFile::ReadOnly))
+        {
+            auto socIdString = socId.readAll().trimmed().toStdString();
+
+
+            LOG_EX("soc id: %s",socIdString.c_str());
+
+            const std::regex imx8Regex(R"(i\.MX8.*)");
+
+            if (std::regex_match(socIdString,imx8Regex))
+            {
+                LOG_EX("Is imx8");
+
+                g_shift10Bit = 8;
+                g_shift12Bit = 8;
+            }
+            else
+            {
+                g_shift10Bit = tegraShift10Bit;
+                g_shift12Bit = tegraShift12Bit;
+            }
+
+            socId.close();
+        }
+        else
+        {
+            LOG_EX("Opening soc_id failed");
+
+            g_shift10Bit = tegraShift10Bit;
+            g_shift12Bit = tegraShift12Bit;
+        }
+    }
+
     std::vector<uint8_t> conversionBuffer;
 
     switch (pixelFormat)
@@ -1020,44 +1066,44 @@ int ImageTransform::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
 
     /* Nano/Generic 12 Bit */
     case V4L2_PIX_FMT_Y12:
-        ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 4);
+        ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, g_shift12Bit);
         break;
 
     case V4L2_PIX_FMT_SGRBG12:
-        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SGRBG8);
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift12Bit, V4L2_PIX_FMT_SGRBG8);
         break;
 
     case V4L2_PIX_FMT_SRGGB12:
-        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SRGGB8);
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift12Bit, V4L2_PIX_FMT_SRGGB8);
         break;
 
     case V4L2_PIX_FMT_SGBRG12:
-        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SGBRG8);
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift12Bit, V4L2_PIX_FMT_SGBRG8);
         break;
 
     case V4L2_PIX_FMT_SBGGR12:
-        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 4, V4L2_PIX_FMT_SBGGR8);
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift12Bit, V4L2_PIX_FMT_SBGGR8);
         break;
 
     /* Nano/Generic 10 Bit */
     case V4L2_PIX_FMT_Y10:
-        ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 2);
+        ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, g_shift10Bit);
         break;
 
     case V4L2_PIX_FMT_SGRBG10:
-        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SGRBG8);
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift10Bit, V4L2_PIX_FMT_SGRBG8);
         break;
 
     case V4L2_PIX_FMT_SRGGB10:
-        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SRGGB8);
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift10Bit, V4L2_PIX_FMT_SRGGB8);
         break;
 
     case V4L2_PIX_FMT_SGBRG10:
-        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SGBRG8);
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift10Bit, V4L2_PIX_FMT_SGBRG8);
         break;
 
     case V4L2_PIX_FMT_SBGGR10:
-        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 2, V4L2_PIX_FMT_SBGGR8);
+        ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift10Bit, V4L2_PIX_FMT_SBGGR8);
         break;
 
 

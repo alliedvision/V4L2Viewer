@@ -20,6 +20,7 @@
 #include "LocalMutexLockGuard.h"
 #include "Logger.h"
 #include "MemoryHelper.h"
+#include "V4L2Helper.h"
 
 #include <QPixmap>
 
@@ -49,7 +50,7 @@ int FrameObserverUSER::ReadFrame(v4l2_buffer &buf)
 
     CLEAR(buf);
 
-    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.type = m_BufferType;
     buf.memory = V4L2_MEMORY_USERPTR;
 
     if (m_IsStreamRunning)
@@ -92,7 +93,7 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         CLEAR(req);
 
         req.count  = bufferCount;
-        req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        req.type   = m_BufferType;
         req.memory = V4L2_MEMORY_USERPTR;
 
         // requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
@@ -100,25 +101,25 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
         {
             if (EINVAL == errno)
             {
-                Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
+                LOG_EX("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
             }
             else
             {
-                Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS error");
+                LOG_EX("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
         else
         {
             base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
-            Logger::LogEx("FrameObserverUSER::CreateUserBuffer VIDIOC_REQBUFS OK");
+            LOG_EX("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS OK");
 
             // create local buffer container
             m_UserBufferContainerList.resize(bufferCount);
 
             if (m_UserBufferContainerList.size() != bufferCount)
             {
-                Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer container error");
+                LOG_EX("FrameObserverUSER::CreateAllUserBuffer buffer container error");
                 return -1;
             }
 
@@ -137,7 +138,7 @@ int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
                 if (!pTmpBuffer->pBuffer)
                 {
                     delete pTmpBuffer;
-                    Logger::LogEx("FrameObserverUSER::CreateUserBuffer buffer creation error");
+                    LOG_EX("FrameObserverUSER::CreateAllUserBuffer buffer creation error");
                     m_UserBufferContainerList.resize(0);
                     return -1;
                 }
@@ -161,22 +162,36 @@ int FrameObserverUSER::QueueAllUserBuffer()
     for (uint32_t i=0; i<m_UserBufferContainerList.size(); i++)
     {
         v4l2_buffer buf;
-
+        v4l2_plane plane;
         CLEAR(buf);
-        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        CLEAR(plane);
+        buf.type = m_BufferType;
         buf.index = i;
         buf.memory = V4L2_MEMORY_USERPTR;
-        buf.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
-        buf.length = m_UserBufferContainerList[i]->nBufferlength;
+
+        if (buf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+        {
+            buf.m.planes = &plane;
+            buf.length = 1;
+
+            plane.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
+            plane.length = m_UserBufferContainerList[i]->nBufferlength;
+        }
+        else
+        {
+            buf.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
+            buf.length = m_UserBufferContainerList[i]->nBufferlength;
+        }
+
 
         if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
         {
-            Logger::LogEx("Camera::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", i, m_UserBufferContainerList[i]->pBuffer);
+            LOG_EX("FrameObserverUSER::QueueAllUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed, errno=%d=%s", i, m_UserBufferContainerList[i]->pBuffer, errno, v4l2helper::ConvertErrno2String(errno).c_str());
             return result;
         }
         else
         {
-            Logger::LogEx("FrameObserverUSER::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
+            LOG_EX("FrameObserverUSER::QueueAllUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
             result = 0;
         }
     }
@@ -193,7 +208,7 @@ int FrameObserverUSER::QueueSingleUserBuffer(const int index)
     if (index < static_cast<int>(m_UserBufferContainerList.size()))
     {
         CLEAR(buf);
-        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.type = m_BufferType;
         buf.index = index;
         buf.memory = V4L2_MEMORY_USERPTR;
         buf.m.userptr = (unsigned long)m_UserBufferContainerList[index]->pBuffer;
@@ -203,7 +218,7 @@ int FrameObserverUSER::QueueSingleUserBuffer(const int index)
         {
             if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
             {
-                Logger::LogEx("FrameObserverUSER::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
+                LOG_EX("FrameObserverUSER::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
             }
         }
     }
@@ -220,7 +235,7 @@ int FrameObserverUSER::DeleteAllUserBuffer()
     // creates user defined buffer
     CLEAR(req);
     req.count  = 0;
-    req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    req.type   = m_BufferType;
     req.memory = V4L2_MEMORY_USERPTR;
 
     // requests 0 video capture buffer. Driver is going to configure all parameter and frees them.
