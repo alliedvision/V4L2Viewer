@@ -37,7 +37,11 @@ void CustomGraphicsView::wheelEvent(QWheelEvent *event)
 {
     if (m_bIsZoomAllowed)
     {
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
         QPointF point = mapToScene(event->position().toPoint());
+#else
+        QPointF point = mapToScene(event->pos());
+#endif
         centerOn(point);
         if (event->angleDelta().y() > 0)
             OnZoomIn();

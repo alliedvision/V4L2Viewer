@@ -1141,7 +1141,11 @@ void V4L2Viewer::OnSaveImageClicked()
         m_LastImageSaveFormat = ".raw";
         QPixmap pixmap = m_PixmapItem->pixmap();
         QImage image = pixmap.toImage();
+#if QT_VERSION >= QT_VERSION_CHECK(5,10,0)
         int size = image.sizeInBytes();
+#else
+        int size = image.byteCount();
+#endif
         QByteArray data(reinterpret_cast<const char*>(image.bits()), size);
         QFile file(fullPath);
         file.open(QIODevice::WriteOnly);
