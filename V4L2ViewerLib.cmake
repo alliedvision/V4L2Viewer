@@ -138,7 +138,7 @@ else()
   )
   qt5_add_resources(RESOURCES ${QT_RESOURCES})
 endif()
-add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
+#add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
 
 find_package(Threads REQUIRED)
 
