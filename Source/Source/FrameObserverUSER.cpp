@@ -162,13 +162,27 @@ int FrameObserverUSER::QueueAllUserBuffer()
     for (uint32_t i=0; i<m_UserBufferContainerList.size(); i++)
     {
         v4l2_buffer buf;
-
+        v4l2_plane plane;
         CLEAR(buf);
+        CLEAR(plane);
         buf.type = m_BufferType;
         buf.index = i;
         buf.memory = V4L2_MEMORY_USERPTR;
-        buf.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
-        buf.length = m_UserBufferContainerList[i]->nBufferlength;
+
+        if (buf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+        {
+            buf.m.planes = &plane;
+            buf.length = 1;
+
+            plane.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
+            plane.length = m_UserBufferContainerList[i]->nBufferlength;
+        }
+        else
+        {
+            buf.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
+            buf.length = m_UserBufferContainerList[i]->nBufferlength;
+        }
+
 
         if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
         {

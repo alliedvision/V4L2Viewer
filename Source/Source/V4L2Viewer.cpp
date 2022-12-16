@@ -49,8 +49,8 @@
 
 #define MANUF_NAME_AV       "Allied Vision"
 #define APP_NAME            "Allied Vision V4L2 Viewer"
-#define APP_VERSION_MAJOR   1
-#define APP_VERSION_MINOR   1
+#define APP_VERSION_MAJOR   2
+#define APP_VERSION_MINOR   0
 #define APP_VERSION_PATCH   0
 #ifndef SCM_REVISION
 #define SCM_REVISION        0
@@ -1015,38 +1015,45 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
     if (m_Camera.CreateUserBuffer(m_NUMBER_OF_USED_FRAMES, payloadSize) == 0)
     {
         LOG_EX("V4L2Viewer::StartStreaming streaming will be started");
-        m_Camera.QueueAllUserBuffer();
-        if (m_Camera.StartStreaming() == 0)
+        if (m_Camera.QueueAllUserBuffer() == 0)
         {
-            err = m_Camera.StartStreamChannel(pixelFormat,
-                                              payloadSize,
-                                              width,
-                                              height,
-                                              bytesPerLine,
-                                              NULL,
-                                              ui.m_TitleLogtofile->isChecked());
-
-            if (0 == err)
+            if (m_Camera.StartStreaming() == 0)
             {
-                m_bIsStreaming = true;
+                err = m_Camera.StartStreamChannel(pixelFormat,
+                                                  payloadSize,
+                                                  width,
+                                                  height,
+                                                  bytesPerLine,
+                                                  NULL,
+                                                  ui.m_TitleLogtofile->isChecked());
 
-                UpdateViewerLayout();
+                if (0 == err)
+                {
+                    m_bIsStreaming = true;
 
-                m_FramesReceivedTimer.start(1000);
+                    UpdateViewerLayout();
 
-                return;
+                    m_FramesReceivedTimer.start(1000);
+
+                    return;
+                }
+
+                CustomDialog::Error(this, tr("Video4Linux"), tr("Start stream channel failed!"));
+            } else
+            {
+                CustomDialog::Error(this, tr("Video4Linux"), tr("Start streaming failed!"));
             }
 
-            CustomDialog::Error( this, tr("Video4Linux"), tr("Start stream channel failed!") );
+            m_Camera.StopStreaming();
+
+            m_Camera.DeleteUserBuffer();
         }
         else
         {
-            CustomDialog::Error( this, tr("Video4Linux"), tr("Start streaming failed!") );
+            CustomDialog::Error(this, tr("Video4Linux"), tr("Queue user buffers failed!"));
         }
         
-        m_Camera.StopStreaming();
 
-        m_Camera.DeleteUserBuffer();
     }
     else
     {
