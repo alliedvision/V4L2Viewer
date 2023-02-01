@@ -6,17 +6,13 @@ Allied Vision V4L2 Viewer was designed for easy evaluation of
 NVIDIA Jetson boards. 
 Additionally, you can use the viewer with any other CSI-2 camera or another board.
 
-THE SOFTWARE IS PRELIMINARY AND STILL IN TESTING AND VERIFICATION PHASE AND IS PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS AND IS BELIEVED TO CONTAIN DEFECTS. A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 Compatibility
 -------------
-Allied Vision V4L2 Viewer v2.0.0-beta was tested with:
+Allied Vision V4L2 Viewer v2.1.0 was tested with:
 
--  NVIDIA Jetson Nano, AGX Xavier, Xavier NX, TX2, TX2 NX
--  JetPack 4.6.1 (L4T 32.7.1)
--  Allied Vision driver version 4.0.0, see https://github.com/alliedvision/linux_nvidia_jetson
+-  NVIDIA AGX Xavier, Xavier NX, AGX Orin
+-  JetPack 5.1 (L4T 35.2.1)
+-  Allied Vision driver version 5.1.0, see https://github.com/alliedvision/linux_nvidia_jetson
 -  Alvium CSI-2 cameras with firmware version 6.0 or newer
 
 
