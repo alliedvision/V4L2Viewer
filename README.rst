@@ -2,18 +2,24 @@
 Allied Vision V4L2 Viewer
 =========================
 Allied Vision V4L2 Viewer was designed for easy evaluation of 
-`Alvium CSI-2 cameras <https://www.alliedvision.com/en/products/embedded-vision-solutions/>`_ and
-NVIDIA Jetson boards. 
-Additionally, you can use the viewer with any other CSI-2 camera or another board.
+`Alvium CSI-2 cameras <https://www.alliedvision.com/en/products/embedded-vision-solutions/>`_. 
 
 Compatibility
 -------------
-Allied Vision V4L2 Viewer v2.1.0 was tested with:
+Allied Vision V4L2 Viewer v2.1.0 was tested with JetPack 5.1.0 (L4T 35.1.0), see https://github.com/alliedvision/linux_nvidia_jetson
 
--  NVIDIA AGX Xavier, Xavier NX, AGX Orin
--  JetPack 5.1 (L4T 35.2.1)
--  Allied Vision driver version 5.1.0, see https://github.com/alliedvision/linux_nvidia_jetson
--  Alvium CSI-2 cameras with firmware version 6.0 or newer
+ Tests were performed on the following NVIDIA Jetson SOMs: 
+
+  - AGX Orin Developer Kit
+  - AGX Xavier DevKit
+  - Xavier NX DevKit
+  - Auvidea carrier JNX30-PD with Xavier NX 
+
+Additionally, you can use the viewer with any other CSI-2 camera or another board.
+
+Tested cameras:
+
+-  Alvium MIPI CSI-2 cameras with firmware version 11
 
 
 Installation
@@ -21,6 +27,14 @@ Installation
 Method A:
 ^^^^^^^^^
 Use the binaries for Jetson provided in this release version. 
+
+Additionally, install some Qt packages that are missing in JetPack 5.1.0:
+
+.. code-block:: bash
+
+   sudo apt-get install libqt5widgets5
+
+
 
 Method B:
 ^^^^^^^^^
