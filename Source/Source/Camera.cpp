@@ -1337,9 +1337,6 @@ int Camera::EnumAllControlNewStyle()
                 cidCount++;
 
                 QString name = QString((const char*) qctrl.name);
-                if(UsesSubdevices()) {
-                    name += QString(" (") + (fileDescriptor == m_DeviceFileDescriptor ? "d" : "s") + ")";
-                }
 
                 QString unit = QString::fromStdString(v4l2helper::GetControlUnit(qctrl.id));
 
@@ -1860,116 +1857,6 @@ bool Camera::UsesSubdevices() {
     return !m_SubDeviceFileDescriptors.empty();
 }
 
-
-////////////////// GetDeviceChar ///////////////////
-
-
-std::string Camera::GetDeviceChar(uint32_t controlId)
-{
-    std::string deviceChar = "unknown";
-    if(m_ControlIdToFileDescriptorMap.count(controlId))
-    {
-        deviceChar = GetDeviceCharFromFileDescriptor(m_ControlIdToFileDescriptorMap[controlId]);
-    }
-    return deviceChar;
-}
-
-std::string Camera::GetDeviceCharFromFileDescriptor(int fileDescriptor)
-{
-    std::string deviceChar = "no device";
-    if(m_FileDescriptorToNameMap.count(fileDescriptor))
-    {
-        const std::string deviceFileName = m_FileDescriptorToNameMap[fileDescriptor];
-        if(deviceFileName.find("subdev") != std::string::npos)
-        {
-            deviceChar = "s";
-        }
-        else if(deviceFileName.find("video") != std::string::npos)
-        {
-            deviceChar = "d";
-        }
-        else
-        {
-            deviceChar = deviceFileName;
-        }
-    }
-    return deviceChar;
-}
-
-std::string Camera::GetGainDeviceChar()
-{
-    return GetDeviceChar(V4L2_CID_GAIN);
-}
-
-std::string Camera::GetAutoGainDeviceChar()
-{
-    return GetDeviceChar(V4L2_CID_AUTOGAIN);
-}
-
-std::string Camera::GetExposureDeviceChar()
-{
-    return GetDeviceChar(V4L2_CID_EXPOSURE);
-}
-
-std::string Camera::GetExposureAbsDeviceChar()
-{
-    return GetDeviceChar(V4L2_CID_EXPOSURE_ABSOLUTE);
-}
-
-std::string Camera::GetExposureAutoDeviceChar()
-{
-    return GetDeviceChar(V4L2_CID_EXPOSURE_AUTO);
-}
-
-std::string Camera::GetGammaDeviceChar()
-{
-    return GetDeviceChar(V4L2_CID_GAMMA);
-}
-
-std::string Camera::GetReverseXDeviceChar()
-{
-    return GetDeviceChar(V4L2_CID_HFLIP);
-}
-
-std::string Camera::GetReverseYDeviceChar()
-{
-    return GetDeviceChar(V4L2_CID_VFLIP);
-}
-
-std::string Camera::GetBrightnessDeviceChar()
-{
-    return GetDeviceChar(V4L2_CID_BRIGHTNESS);
-}
-
-std::string Camera::GetAutoWhiteBalanceDeviceChar()
-{
-    return GetDeviceChar(V4L2_CID_AUTO_WHITE_BALANCE);
-}
-
-std::string Camera::GetFrameRateDeviceChar()
-{
-    return GetDeviceCharFromFileDescriptor(m_FrameRateDeviceFileDescriptor);
-}
-
-std::string Camera::GetCropDeviceChar()
-{
-    return GetDeviceCharFromFileDescriptor(m_CropDeviceFileDescriptor);
-}
-
-std::string Camera::GetPixelFormatDeviceChar()
-{
-    return GetDeviceCharFromFileDescriptor(m_DeviceFileDescriptor);
-}
-
-std::string Camera::GetWidthDeviceChar()
-{
-    return GetDeviceCharFromFileDescriptor(m_DeviceFileDescriptor);
-}
-
-std::string Camera::GetHeightDeviceChar()
-{
-    return GetDeviceCharFromFileDescriptor(m_DeviceFileDescriptor);
-}
 
 ////////////////// Parameter ///////////////////
 
