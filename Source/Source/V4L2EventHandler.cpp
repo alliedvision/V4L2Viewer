@@ -60,11 +60,8 @@ void V4L2EventHandler::UnsubscribeControl(int id)
 
 void V4L2EventHandler::run()
 {
-
-
     while (!isInterruptionRequested())
     {
-
         std::vector<pollfd> pfds;
 
         for (const auto fd : m_Fds)
@@ -89,6 +86,15 @@ void V4L2EventHandler::run()
         {
             for (const auto & pfd : pfds)
             {
+                if (pfd.revents & POLLERR)
+                {
+                    auto const idx = &pfd - pfds.data();
+                    if (idx < m_Fds.size())
+                    {
+                        m_Fds.erase(m_Fds.begin() + idx);
+                    }
+                }
+
                 if (pfd.revents & POLLPRI)
                 {
                     v4l2_event event = {0};
