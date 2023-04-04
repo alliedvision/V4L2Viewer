@@ -53,6 +53,13 @@ int FrameObserverUSER::ReadFrame(v4l2_buffer &buf)
     buf.type = m_BufferType;
     buf.memory = V4L2_MEMORY_USERPTR;
 
+    v4l2_plane *plane = new v4l2_plane;
+    if(m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+    {
+        buf.m.planes = plane;
+        buf.length = 1;
+    }
+
     if (m_IsStreamRunning)
         result = iohelper::xioctl(m_nFileDescriptor, VIDIOC_DQBUF, &buf);
 
@@ -65,8 +72,17 @@ int FrameObserverUSER::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t
 
     if (m_IsStreamRunning)
     {
-        length = buf.length;
-        buffer = (uint8_t*)buf.m.userptr;
+        if (buf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+        {
+            length = buf.m.planes[0].length;
+            buffer = (uint8_t *) buf.m.planes[0].m.userptr;
+            delete buf.m.planes;
+        }
+        else
+        {
+            length = buf.length;
+            buffer = (uint8_t *) buf.m.userptr;
+        }
 
         if (0 != buffer && 0 != length)
         {
@@ -207,12 +223,26 @@ int FrameObserverUSER::QueueSingleUserBuffer(const int index)
 
     if (index < static_cast<int>(m_UserBufferContainerList.size()))
     {
+        v4l2_plane plane;
         CLEAR(buf);
         buf.type = m_BufferType;
         buf.index = index;
         buf.memory = V4L2_MEMORY_USERPTR;
-        buf.m.userptr = (unsigned long)m_UserBufferContainerList[index]->pBuffer;
-        buf.length = m_UserBufferContainerList[index]->nBufferlength;
+
+        if (buf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+        {
+            buf.m.planes = &plane;
+            buf.length = 1;
+
+            plane.m.userptr = (unsigned long)m_UserBufferContainerList[index]->pBuffer;
+            plane.length = m_UserBufferContainerList[index]->nBufferlength;
+        }
+        else
+        {
+            buf.m.userptr = (unsigned long)m_UserBufferContainerList[index]->pBuffer;
+            buf.length = m_UserBufferContainerList[index]->nBufferlength;
+        }
+
 
         if (m_IsStreamRunning)
         {

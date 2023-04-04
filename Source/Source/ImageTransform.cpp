@@ -721,21 +721,32 @@ void v4lconvert_rgb565_to_rgb24(const unsigned char *src, unsigned char *dest,
     }
 }
 
-void v4lconvert_xrgb32_to_rgb32(const unsigned char *src, unsigned char *dest,
+void v4lconvert_xrgb32_to_argb32(const unsigned char *src, unsigned char *dest,
                                 int width, int height)
 {
+    auto src32 = reinterpret_cast<const uint32_t *>(src);
+    auto dest32 = reinterpret_cast<uint32_t *>(dest);
     // iterate every pixel
     for (int w = 0; w < width; ++w)
     {
         for (int h = 0; h < height; ++h)
         {
-            // skip first byte
-            src++;
+            *dest32++ = __bswap_32(*src32++) | 0xFF000000;
+        }
+    }
+}
 
-            // copy r, g, b
-            *dest++ = *src++;
-            *dest++ = *src++;
-            *dest++ = *src++;
+void v4lconvert_xbgr32_to_argb32(const unsigned char *src, unsigned char *dest,
+                                int width, int height)
+{
+    auto src32 = reinterpret_cast<const uint32_t *>(src);
+    auto dest32 = reinterpret_cast<uint32_t *>(dest);
+    // iterate every pixel
+    for (int w = 0; w < width; ++w)
+    {
+        for (int h = 0; h < height; ++h)
+        {
+            *dest32++ = *src32++ | 0xFF000000;
         }
     }
 }
@@ -766,6 +777,78 @@ void v4lconvert_remove_padding(const uint8_t **src,
     }
 
     *src = conversionBuffer->data();
+}
+
+bool ImageTransform::CanConvert(uint32_t pixelFormat)
+{
+    switch (pixelFormat)
+    {
+        case V4L2_PIX_FMT_XBGR32:
+        case V4L2_PIX_FMT_ABGR32:
+        case V4L2_PIX_FMT_XRGB32:
+        case V4L2_PIX_FMT_JPEG:
+        case V4L2_PIX_FMT_MJPEG:
+        case V4L2_PIX_FMT_RGB565:
+        case V4L2_PIX_FMT_BGR24:
+        case V4L2_PIX_FMT_VYUY:
+        case V4L2_PIX_FMT_UYVY:
+        case V4L2_PIX_FMT_YUYV:
+        case V4L2_PIX_FMT_YUV420:
+        case V4L2_PIX_FMT_RGB24:
+        case V4L2_PIX_FMT_RGB32:
+        case V4L2_PIX_FMT_BGR32:
+        case V4L2_PIX_FMT_GREY:
+        case V4L2_PIX_FMT_SBGGR8:
+        case V4L2_PIX_FMT_SGBRG8:
+        case V4L2_PIX_FMT_SGRBG8:
+        case V4L2_PIX_FMT_SRGGB8:
+        case V4L2_PIX_FMT_Y10P:
+        case V4L2_PIX_FMT_SBGGR10P:
+        case V4L2_PIX_FMT_SGBRG10P:
+        case V4L2_PIX_FMT_SGRBG10P:
+        case V4L2_PIX_FMT_SRGGB10P:
+        case V4L2_PIX_FMT_GREY12P:
+        case V4L2_PIX_FMT_Y12P:
+        case V4L2_PIX_FMT_SBGGR12P:
+        case V4L2_PIX_FMT_SGBRG12P:
+        case V4L2_PIX_FMT_SGRBG12P:
+        case V4L2_PIX_FMT_SRGGB12P:
+        case V4L2_PIX_FMT_XAVIER_Y10:
+        case V4L2_PIX_FMT_XAVIER_Y12:
+        case V4L2_PIX_FMT_XAVIER_SGRBG10:
+        case V4L2_PIX_FMT_XAVIER_SGRBG12:
+        case V4L2_PIX_FMT_XAVIER_SRGGB10:
+        case V4L2_PIX_FMT_XAVIER_SRGGB12:
+        case V4L2_PIX_FMT_XAVIER_SGBRG10:
+        case V4L2_PIX_FMT_XAVIER_SGBRG12:
+        case V4L2_PIX_FMT_XAVIER_SBGGR10:
+        case V4L2_PIX_FMT_XAVIER_SBGGR12:
+        case V4L2_PIX_FMT_TX2_Y10:
+        case V4L2_PIX_FMT_TX2_Y12:
+        case V4L2_PIX_FMT_TX2_SGRBG10:
+        case V4L2_PIX_FMT_TX2_SGRBG12:
+        case V4L2_PIX_FMT_TX2_SRGGB10:
+        case V4L2_PIX_FMT_TX2_SRGGB12:
+        case V4L2_PIX_FMT_TX2_SGBRG10:
+        case V4L2_PIX_FMT_TX2_SGBRG12:
+        case V4L2_PIX_FMT_TX2_SBGGR10:
+        case V4L2_PIX_FMT_TX2_SBGGR12:
+        case V4L2_PIX_FMT_Y12:
+        case V4L2_PIX_FMT_SGRBG12:
+        case V4L2_PIX_FMT_SRGGB12:
+        case V4L2_PIX_FMT_SGBRG12:
+        case V4L2_PIX_FMT_SBGGR12:
+        case V4L2_PIX_FMT_Y10:
+        case V4L2_PIX_FMT_SGRBG10:
+        case V4L2_PIX_FMT_SRGGB10:
+        case V4L2_PIX_FMT_SGBRG10:
+        case V4L2_PIX_FMT_SBGGR10:
+            return true;
+        default:
+            break;
+    }
+
+    return false;
 }
 
 int ImageTransform::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
@@ -822,7 +905,7 @@ int ImageTransform::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
 
     switch (pixelFormat)
     {
-    case V4L2_PIX_FMT_XBGR32:
+
     case V4L2_PIX_FMT_ABGR32:
         {
             int bytesPerPixel = 4;
@@ -832,13 +915,21 @@ int ImageTransform::ConvertFrame(const uint8_t *pBuffer, uint32_t length,
             memcpy (dst, pBuffer, width * height * bytesPerPixel);
         }
         break;
-
+    case V4L2_PIX_FMT_XBGR32:
+        {
+            v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 4,
+                                      bytesPerLine);
+            convertedImage = QImage(width, height, QImage::Format_ARGB32);
+            v4lconvert_xbgr32_to_argb32(pBuffer, convertedImage.bits(), width,
+                                       height);
+        }
+        break;
     case V4L2_PIX_FMT_XRGB32:
         {
             v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 4,
                                       bytesPerLine);
-            convertedImage = QImage(width, height, QImage::Format_RGB888);
-            v4lconvert_xrgb32_to_rgb32(pBuffer, convertedImage.bits(), width,
+            convertedImage = QImage(width, height, QImage::Format_ARGB32);
+            v4lconvert_xrgb32_to_argb32(pBuffer, convertedImage.bits(), width,
                                        height);
         }
         break;

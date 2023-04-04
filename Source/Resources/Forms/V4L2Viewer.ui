@@ -187,6 +187,10 @@ background-color: rgb(45,45,45);
 width:2px;
 height:2px;
 }
+
+QMessageBox QLabel  {
+color: white;
+}
 </string>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -1047,7 +1051,7 @@ border:none;
            <widget class="QWidget" name="scrollAreaWidgetContents_2">
             <property name="geometry">
              <rect>
-              <x>-349</x>
+              <x>0</x>
               <y>0</y>
               <width>1247</width>
               <height>378</height>
@@ -2274,6 +2278,7 @@ border: 1px solid gray;
      <addaction name="m_TitleLangGerman"/>
     </widget>
     <addaction name="m_MenuAbout"/>
+    <addaction name="m_MenuAboutQt"/>
     <addaction name="m_MenuLang"/>
     <addaction name="separator"/>
     <addaction name="m_MenuClose"/>
@@ -2309,7 +2314,7 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetVerticalTitleBar</set>
+    <set>QDockWidget::NoDockWidgetFeatures</set>
    </property>
    <property name="allowedAreas">
     <set>Qt::RightDockWidgetArea</set>
@@ -2430,6 +2435,11 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
   <action name="m_TitleLangEnglish">
    <property name="text">
     <string>English</string>
+   </property>
+  </action>
+  <action name="m_MenuAboutQt">
+   <property name="text">
+    <string>About Qt</string>
    </property>
   </action>
  </widget>

@@ -270,7 +270,8 @@ private slots:
     //
     // Parameters:
     // [in] (const QString &) - new pixel format which is going to be added
-    void OnCameraPixelFormat(const QString &);
+    // [in] (bool) disabled - set to true if is is not supported by image transform
+    void OnCameraPixelFormat(const QString &,bool disabled);
     // This slot function is called when the language is changed in the top menu bar
     void OnLanguageChange();
 

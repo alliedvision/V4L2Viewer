@@ -48,6 +48,8 @@ public:
     static int ConvertFrame(const uint8_t* pBuffer, uint32_t length,
                             uint32_t width, uint32_t height, uint32_t pixelFormat,
                             uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage);
+
+    static bool CanConvert(uint32_t pixelFormat);
 };
 
 #endif // IMAGETRANSFORM_H
