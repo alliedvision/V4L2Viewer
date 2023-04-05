@@ -50,7 +50,7 @@
 #define MANUF_NAME_AV       "Allied Vision"
 #define APP_NAME            "Allied Vision V4L2 Viewer"
 #define APP_VERSION_MAJOR   2
-#define APP_VERSION_MINOR   1
+#define APP_VERSION_MINOR   2
 #define APP_VERSION_PATCH   0
 #ifndef SCM_REVISION
 #define SCM_REVISION        0
@@ -130,7 +130,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(&m_Camera, SIGNAL(OnSubDeviceListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnSubDeviceListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
     connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)),                                       this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)), Qt::QueuedConnection);
     connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)),                                                          this, SLOT(OnFrameID(const unsigned long long &)));
-    connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &)));
+    connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &,bool)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &,bool)));
 
     qRegisterMetaType<int32_t>("int32_t");
     qRegisterMetaType<int64_t>("int64_t");
@@ -226,7 +226,12 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     m_pAboutWidget->SetVersion(QString("%1.%2.%3").arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
     QWidgetAction *aboutWidgetAction = new QWidgetAction(this);
     aboutWidgetAction->setDefaultWidget(m_pAboutWidget);
+
     ui.m_MenuAbout->addAction(aboutWidgetAction);
+
+    connect(ui.m_MenuAboutQt,&QAction::triggered,[this]() {
+        QMessageBox::aboutQt(this);
+    });
 
     ui.menuBar->setNativeMenuBar(false);
 
@@ -641,10 +646,16 @@ void V4L2Viewer::OnStartButtonClicked()
         StartStreaming(pixelFormat, payloadSize, width, height, bytesPerLine);
 }
 
-void V4L2Viewer::OnCameraPixelFormat(const QString& pixelFormat)
+void V4L2Viewer::OnCameraPixelFormat(const QString& pixelFormat,bool disabled)
 {
     ui.m_pixelFormats->blockSignals(true);
     ui.m_pixelFormats->addItem(pixelFormat);
+    if (disabled)
+    {
+        QStandardItemModel *model = qobject_cast<QStandardItemModel *>(ui.m_pixelFormats->model());
+        QStandardItem *item = model->item(ui.m_pixelFormats->count() - 1);
+        item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+    }
     ui.m_pixelFormats->blockSignals(false);
 }
 
@@ -1044,16 +1055,16 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
                 CustomDialog::Error(this, tr("Video4Linux"), tr("Start streaming failed!"));
             }
 
-            m_Camera.StopStreaming();
 
-            m_Camera.DeleteUserBuffer();
         }
         else
         {
             CustomDialog::Error(this, tr("Video4Linux"), tr("Queue user buffers failed!"));
         }
-        
 
+        m_Camera.StopStreaming();
+
+        m_Camera.DeleteUserBuffer();
     }
     else
     {
@@ -2035,6 +2046,19 @@ void V4L2Viewer::UpdateCurrentPixelFormatOnList(QString pixelFormat)
 			ui.m_frameSizes->clear();
 			ui.m_frameSizes->addItems(framesizes);
 			ui.m_frameSizes->setCurrentIndex(m_Camera.GetFrameSizeIndex());
+
+            if (framesizes.size() <= 1)
+            {
+                ui.m_frameSizes->setEnabled(false);
+                ui.m_labelFrameSizes->setEnabled(false);
+            }
+            else
+            {
+                ui.m_frameSizes->setEnabled(true);
+                ui.m_labelFrameSizes->setEnabled(true);
+            }
+
+
 			ui.m_frameSizes->blockSignals(false);
 
             ui.m_pixelFormats->setCurrentIndex(i);

@@ -23,6 +23,7 @@
 #include "Logger.h"
 #include "MemoryHelper.h"
 #include "V4L2Helper.h"
+#include "ImageTransform.h"
 
 #include <QStringList>
 #include <QSysInfo>
@@ -33,6 +34,7 @@
 #include <fcntl.h>
 #include <IOHelper.h>
 #include <linux/videodev2.h>
+#include <linux/v4l2-subdev.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -1070,7 +1072,9 @@ int Camera::ReadFormats()
         std::string tmp = (char*)fmt.description;
         LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FMT index = %d type = %d pixel format = %d = %s description = %s", fmt.index, fmt.type, fmt.pixelformat, v4l2helper::ConvertPixelFormat2EnumString(fmt.pixelformat).c_str(), fmt.description);
 
-        emit OnCameraPixelFormat_Signal(QString("%1").arg(QString(v4l2helper::ConvertPixelFormat2String(fmt.pixelformat).c_str())));
+
+
+        emit OnCameraPixelFormat_Signal(QString("%1").arg(QString(v4l2helper::ConvertPixelFormat2String(fmt.pixelformat).c_str())),!ImageTransform::CanConvert(fmt.pixelformat));
 
         CLEAR(fmtsize);
         fmtsize.type = m_DeviceBufferType;
@@ -1192,7 +1196,16 @@ QList<QString> Camera::GetFrameSizes(uint32_t fourcc)
 	frmsizeenum.index = index;
 
 	while (!iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_ENUM_FRAMESIZES,&frmsizeenum)) {
-		framesizes.append(QString("%1x%2").arg(frmsizeenum.discrete.width).arg(frmsizeenum.discrete.height));
+        if (frmsizeenum.type == V4L2_FRMSIZE_TYPE_DISCRETE)
+        {
+            framesizes.append(QString("%1x%2").arg(frmsizeenum.discrete.width).arg(frmsizeenum.discrete.height));
+        }
+        else
+        {
+            framesizes.append(QString("%1x%2-%3x%4").arg(frmsizeenum.stepwise.min_width).arg(frmsizeenum.stepwise.min_height)
+                .arg(frmsizeenum.stepwise.max_width).arg(frmsizeenum.stepwise.max_height));
+        }
+
 
 
 		frmsizeenum.index = (++index);
@@ -1213,7 +1226,7 @@ int Camera::GetFrameSizeIndex()
 	{
 		int index = 0;
 
-		frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
+		frmsizeenum.pixel_format = m_pPixFormat->GetPixelFormat(fmt);
 		frmsizeenum.index = index;
 
 		v4l2_selection sel;
@@ -1221,16 +1234,40 @@ int Camera::GetFrameSizeIndex()
 		sel.type = m_DeviceBufferType;
 
 		if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_SELECTION, &sel)) {
+            if (frmsizeenum.type == V4L2_FRMSIZE_TYPE_DISCRETE)
+            {
+                while (!iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum))
+                {
+                    if (frmsizeenum.discrete.width == sel.r.width &&
+                        frmsizeenum.discrete.height == sel.r.height)
+                        return index;
 
-			while (!iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum))
-			{
-				if (frmsizeenum.discrete.width == sel.r.width &&
-					frmsizeenum.discrete.height == sel.r.height)
-					return index;
-
-				frmsizeenum.index = (++index);
-			}
+                    frmsizeenum.index = (++index);
+                }
+            }
+            else
+            {
+                return index;
+            }
 		}
+        else
+        {
+            while (!iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum))
+            {
+                if (frmsizeenum.type == V4L2_FRMSIZE_TYPE_DISCRETE)
+                {
+                    if (frmsizeenum.discrete.width == m_pPixFormat->GetWidth(fmt) &&
+                        frmsizeenum.discrete.height == m_pPixFormat->GetHeight(fmt))
+                        return index;
+
+                    frmsizeenum.index = (++index);
+                }
+                else
+                {
+                    return index;
+                }
+            }
+        }
 	}
 
 	return -1;
@@ -1250,12 +1287,15 @@ void Camera::SetFrameSizeByIndex(int index)
 		frmsizeenum.index = index;
 
 		if (!iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_ENUM_FRAMESIZES,&frmsizeenum)) {
-			m_pPixFormat->SetWidth(fmt, frmsizeenum.discrete.width);
-			m_pPixFormat->SetHeight(fmt, frmsizeenum.discrete.height);
-			m_pPixFormat->SetBytesPerLine(fmt, 0);
-		        m_pPixFormat->SetSizeImage(fmt, 0);
+            if (frmsizeenum.type == V4L2_FRMSIZE_TYPE_DISCRETE)
+            {
+                m_pPixFormat->SetWidth(fmt, frmsizeenum.discrete.width);
+                m_pPixFormat->SetHeight(fmt, frmsizeenum.discrete.height);
+                m_pPixFormat->SetBytesPerLine(fmt, 0);
+                m_pPixFormat->SetSizeImage(fmt, 0);
 
-			iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt);
+                iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt);
+            }
 		}
 	}
 }
@@ -1804,20 +1844,28 @@ int Camera::ReadAutoWhiteBalance(bool &flag)
 
 void Camera::PrepareFrameRate()
 {
-    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
-    allFileDescriptors.push_back(m_DeviceFileDescriptor);
+    v4l2_streamparm parm;
 
-    for (const auto fileDescriptor : allFileDescriptors)
+    CLEAR(parm);
+    parm.type = m_DeviceBufferType;
+
+    if (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_PARM, &parm) >= 0 && parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME)
     {
-        v4l2_streamparm parm;
-
-        CLEAR(parm);
-        parm.type = (fileDescriptor == m_DeviceFileDescriptor ? m_DeviceBufferType : m_SubDeviceBufferTypes[fileDescriptor]);
-
-        if (iohelper::xioctl(fileDescriptor, VIDIOC_G_PARM, &parm) >= 0 && parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME)
+        m_FrameRateDeviceFileDescriptor = m_DeviceFileDescriptor;
+        LOG_EX("Camera::PrepareFrameRate VIDIOC_G_PARM %s", m_FileDescriptorToNameMap[m_FrameRateDeviceFileDescriptor].c_str());
+    }
+    else
+    {
+        for (auto const &subdevFd : m_SubDeviceFileDescriptors)
         {
-            m_FrameRateDeviceFileDescriptor = fileDescriptor;
-            LOG_EX("Camera::PrepareFrameRate VIDIOC_G_CROP %s", m_FileDescriptorToNameMap[m_FrameRateDeviceFileDescriptor].c_str());
+            v4l2_subdev_frame_interval frameInterval{};
+            frameInterval.pad = 0;
+
+            if (iohelper::xioctl(subdevFd, VIDIOC_SUBDEV_G_FRAME_INTERVAL, &frameInterval) >= 0 )
+            {
+                m_FrameRateDeviceFileDescriptor = subdevFd;
+                LOG_EX("Camera::PrepareFrameRate VIDIOC_G_PARM %s", m_FileDescriptorToNameMap[m_FrameRateDeviceFileDescriptor].c_str());
+            }
         }
     }
 
@@ -1829,20 +1877,31 @@ void Camera::PrepareFrameRate()
 
 void Camera::PrepareCrop()
 {
-    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
-    allFileDescriptors.push_back(m_DeviceFileDescriptor);
+    v4l2_crop crop;
 
-    for (const auto fileDescriptor : allFileDescriptors)
+    CLEAR(crop);
+    crop.type = m_DeviceBufferType;
+
+    if (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_CROP, &crop) >= 0)
     {
-        v4l2_crop crop;
-
-        CLEAR(crop);
-        crop.type = m_DeviceBufferType;
-
-        if (iohelper::xioctl(fileDescriptor, VIDIOC_G_CROP, &crop) >= 0)
+        m_CropDeviceFileDescriptor = m_DeviceFileDescriptor;
+        LOG_EX("Camera::PrepareCrop VIDIOC_G_CROP %s", m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str());
+    }
+    else
+    {
+        for (auto const &subdevFd: m_SubDeviceFileDescriptors)
         {
-            m_CropDeviceFileDescriptor = fileDescriptor;
-            LOG_EX("Camera::PrepareCrop VIDIOC_G_CROP %s", m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str());
+            v4l2_subdev_selection selection{};
+            selection.pad = 0;
+            selection.target = V4L2_SEL_TGT_CROP;
+            selection.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+
+            if (iohelper::xioctl(subdevFd, VIDIOC_SUBDEV_G_SELECTION, &selection) >= 0)
+            {
+                m_CropDeviceFileDescriptor = subdevFd;
+                LOG_EX("Camera::PrepareCrop VIDIOC_SUBDEV_G_SELECTION %s",
+                       m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str());
+            }
         }
     }
 
@@ -1917,11 +1976,10 @@ int Camera::SetFrameRate(uint32_t numerator, uint32_t denominator)
     int result = -1;
 
     auto const fileDescriptor = m_DeviceFileDescriptor;
+    v4l2_streamparm parm;
 
-        v4l2_streamparm parm;
-
-        CLEAR(parm);
-        parm.type = (m_FrameRateDeviceFileDescriptor == m_DeviceFileDescriptor ? m_DeviceBufferType : m_SubDeviceBufferTypes[m_FrameRateDeviceFileDescriptor]);
+    CLEAR(parm);
+    parm.type = (m_FrameRateDeviceFileDescriptor == m_DeviceFileDescriptor ? m_DeviceBufferType : m_SubDeviceBufferTypes[m_FrameRateDeviceFileDescriptor]);
         if (denominator != 0)
         {
             if (iohelper::xioctl(fileDescriptor, VIDIOC_G_PARM, &parm) >= 0)
@@ -1947,24 +2005,53 @@ int Camera::ReadCrop(int32_t &xOffset, int32_t &yOffset, uint32_t &width, uint32
 {
     int result = -2;
 
-    v4l2_crop crop;
-
-    CLEAR(crop);
-    crop.type = (m_CropDeviceFileDescriptor == m_DeviceFileDescriptor ? m_DeviceBufferType : m_SubDeviceBufferTypes[m_CropDeviceFileDescriptor]);
-
-    if (iohelper::xioctl(m_CropDeviceFileDescriptor, VIDIOC_G_CROP, &crop) >= 0)
+    if (m_CropDeviceFileDescriptor == m_DeviceFileDescriptor)
     {
-        xOffset = crop.c.left;
-        yOffset = crop.c.top;
-        width = crop.c.width;
-        height = crop.c.height;
-        LOG_EX("Camera::ReadCrop VIDIOC_G_CROP %s x=%d, y=%d, w=%d, h=%d OK", m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), xOffset, yOffset, width, height);
+        v4l2_crop crop;
 
-        result = 0;
+        CLEAR(crop);
+        crop.type = m_DeviceBufferType;
+
+        if (iohelper::xioctl(m_CropDeviceFileDescriptor, VIDIOC_G_CROP, &crop) >= 0)
+        {
+            xOffset = crop.c.left;
+            yOffset = crop.c.top;
+            width = crop.c.width;
+            height = crop.c.height;
+            LOG_EX("Camera::ReadCrop VIDIOC_G_CROP %s x=%d, y=%d, w=%d, h=%d OK",
+                   m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), xOffset, yOffset, width, height);
+
+            result = 0;
+        } else
+        {
+            LOG_EX("Camera::ReadCrop VIDIOC_G_CROP %s failed errno=%d=%s",
+                   m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), errno,
+                   v4l2helper::ConvertErrno2String(errno).c_str());
+        }
     }
     else
     {
-        LOG_EX("Camera::ReadCrop VIDIOC_G_CROP %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        v4l2_subdev_selection selection{};
+        selection.pad = 0;
+        selection.target = V4L2_SEL_TGT_CROP;
+        selection.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+
+        if (iohelper::xioctl(m_CropDeviceFileDescriptor, VIDIOC_SUBDEV_G_SELECTION, &selection) >= 0)
+        {
+            xOffset = selection.r.left;
+            yOffset = selection.r.top;
+            width = selection.r.width;
+            height = selection.r.height;
+            LOG_EX("Camera::ReadCrop VIDIOC_SUBDEV_G_SELECTION %s x=%d, y=%d, w=%d, h=%d OK",
+                   m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), xOffset, yOffset, width, height);
+
+            result = 0;
+        } else
+        {
+            LOG_EX("Camera::ReadCrop VIDIOC_SUBDEV_G_SELECTION %s failed errno=%d=%s",
+                   m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), errno,
+                   v4l2helper::ConvertErrno2String(errno).c_str());
+        }
     }
 
     return result;
@@ -1974,25 +2061,70 @@ int Camera::SetCrop(int32_t xOffset, int32_t yOffset, uint32_t width, uint32_t h
 {
     int result = -1;
 
-    v4l2_crop crop;
-
-    CLEAR(crop);
-    crop.type = (m_CropDeviceFileDescriptor == m_DeviceFileDescriptor ? m_DeviceBufferType : m_SubDeviceBufferTypes[m_CropDeviceFileDescriptor]);
-    crop.c.left = xOffset;
-    crop.c.top = yOffset;
-    crop.c.width = width;
-    crop.c.height = height;
-
-    if (iohelper::xioctl(m_CropDeviceFileDescriptor, VIDIOC_S_CROP, &crop) >= 0)
+    if (m_CropDeviceFileDescriptor == m_DeviceFileDescriptor)
     {
-        LOG_EX("Camera::SetCrop VIDIOC_S_CROP %s left=%d, top=%d, width=%d, height=%d OK", m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), xOffset, yOffset, width, height);
+        v4l2_crop crop;
 
-        result = 0;
+        CLEAR(crop);
+        crop.type = m_DeviceBufferType;
+        crop.c.left = xOffset;
+        crop.c.top = yOffset;
+        crop.c.width = width;
+        crop.c.height = height;
+
+        if (iohelper::xioctl(m_CropDeviceFileDescriptor, VIDIOC_S_CROP, &crop) >= 0)
+        {
+            LOG_EX("Camera::SetCrop VIDIOC_S_CROP %s left=%d, top=%d, width=%d, height=%d OK",
+                   m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), xOffset, yOffset, width, height);
+
+            result = 0;
+        } else
+        {
+            LOG_EX("Camera::SetCrop VIDIOC_S_CROP %s failed errno=%d=%s",
+                   m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), errno,
+                   v4l2helper::ConvertErrno2String(errno).c_str());
+        }
     }
     else
     {
-        LOG_EX("Camera::SetCrop VIDIOC_S_CROP %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
+        v4l2_subdev_selection selection{};
+        selection.pad = 0;
+        selection.target = V4L2_SEL_TGT_CROP;
+        selection.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+        selection.r.left = xOffset;
+        selection.r.top = yOffset;
+        selection.r.width = width;
+        selection.r.height = height;
+
+        if (iohelper::xioctl(m_CropDeviceFileDescriptor, VIDIOC_SUBDEV_S_SELECTION, &selection) >= 0)
+        {
+            LOG_EX("Camera::ReadCrop VIDIOC_SUBDEV_S_SELECTION %s x=%d, y=%d, w=%d, h=%d OK",
+                   m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), xOffset, yOffset, width, height);
+
+            result = 0;
+        } else
+        {
+            LOG_EX("Camera::ReadCrop VIDIOC_SUBDEV_S_SELECTION %s failed errno=%d=%s",
+                   m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), errno,
+                   v4l2helper::ConvertErrno2String(errno).c_str());
+        }
+
+        v4l2_format format{};
+        format.type = m_DeviceBufferType;
+
+        if (iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_G_FMT, &format) < 0)
+            return result;
+
+        m_pPixFormat->SetBytesPerLine(format,0);
+        m_pPixFormat->SetSizeImage(format,0);
+        m_pPixFormat->SetWidth(format,selection.r.width);
+        m_pPixFormat->SetHeight(format,selection.r.height);
+
+        if (iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_S_FMT, &format) < 0)
+            return result;
+
     }
+
 
     return result;
 }

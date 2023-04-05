@@ -33,6 +33,7 @@ V4L2EventHandler::V4L2EventHandler(const std::vector<int>  & fds) : m_Fds(fds)
 
 V4L2EventHandler::~V4L2EventHandler()
 {
+    this->wait();
 }
 
 void V4L2EventHandler::SubscribeControl(int id)

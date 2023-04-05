@@ -6,7 +6,7 @@ Allied Vision V4L2 Viewer was designed for easy evaluation of
 
 Compatibility
 -------------
-Allied Vision V4L2 Viewer v2.1.0 was tested with JetPack 5.1.0 (L4T 35.1.0), see https://github.com/alliedvision/linux_nvidia_jetson
+Allied Vision V4L2 Viewer v2.2.0 was tested with JetPack 5.1.0 (L4T 35.1.0), see https://github.com/alliedvision/linux_nvidia_jetson
 
  Tests were performed on the following NVIDIA Jetson SOMs: 
 

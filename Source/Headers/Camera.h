@@ -780,7 +780,7 @@ signals:
     // Event will be called when the a frame is displayed
     void OnCameraDisplayFrame_Signal(const unsigned long long &);
     // Event will be called when found new pixel format
-    void OnCameraPixelFormat_Signal(const QString &);
+    void OnCameraPixelFormat_Signal(const QString &,bool);
     // Event will be called on new frame size
     void OnCameraFrameSize_Signal(const QString &);
 
