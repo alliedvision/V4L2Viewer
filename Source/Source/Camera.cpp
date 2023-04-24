@@ -2491,6 +2491,7 @@ int Camera::GetCameraDriverVersion(std::string &strText)
             }
             else
             {
+#ifdef VIDIOC_SUBDEV_QUERYCAP
                 v4l2_subdev_capability subdevCap{};
 
                 if (iohelper::xioctl(subDevFd, VIDIOC_SUBDEV_QUERYCAP, &subdevCap) == 0)
@@ -2498,6 +2499,8 @@ int Camera::GetCameraDriverVersion(std::string &strText)
                     version = QString("%1.%2.%3").arg(subdevCap.version >> 16).arg((subdevCap.version >> 8) & 0xff)
                             .arg(subdevCap.version & 0xff).toStdString();
                 }
+
+#endif //#ifdef VIDIOC_SUBDEV_QUERYCAP
             }
         }
 
