@@ -384,6 +384,8 @@ private slots:
     // [in] (bool) bIsReadOnly - state which indicates whether control is readonly
     void PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
 
+    void PassStringDataToEnumerationWidget(int32_t id, QString value, QString name, QString unit, bool bIsReadOnly);
+
     void OnUpdateZoomLabel();
     // This slot function is called when the dock widget is docked or undocked
     //

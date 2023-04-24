@@ -734,6 +734,8 @@ public slots:
     // [in] (int64_t) val - new control value
     void SetSliderEnumerationControlValue(int32_t id, int64_t val);
 
+    void SetEnumerationControlValueString(int32_t id, QString val);
+
 private:
     std::string                     m_DeviceName;
     int                             m_DeviceFileDescriptor;
@@ -805,6 +807,7 @@ signals:
     // Event will be called on enumeration control is found
     void SendListIntDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
 
+    void SendStringDataToEnumerationWidget(int32_t id, QString value, QString name, QString unit, bool bIsReadOnly);
     // Event will be called on enumeration control change value
     void SendSignalToUpdateWidgets();
 

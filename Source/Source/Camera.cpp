@@ -44,6 +44,7 @@
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
+#include <regex>
 
 // Custom ioctl definitions
 struct v4l2_i2c
@@ -1352,11 +1353,15 @@ int Camera::EnumAllControlNewStyle()
             if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
             {
                 bool bIsReadOnly = false;
-                if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.id == V4L2_CID_PREFFERED_STRIDE)
+                if (qctrl.id == V4L2_CID_PREFFERED_STRIDE)
                 {
-                    bIsReadOnly = true;
                     qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
                     continue;
+                }
+
+                if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
+                {
+                    bIsReadOnly = true;
                 }
 
 				if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
@@ -1493,6 +1498,22 @@ int Camera::EnumAllControlNewStyle()
                         emit SendListIntDataToEnumerationWidget(id, value, list, name, unit, bIsReadOnly);
                     }
                 }
+                else if (qctrl.type == V4L2_CTRL_TYPE_STRING)
+                {
+                    int result = -1;
+                    QString value;
+                    int32_t id = qctrl.id;
+
+                    result = ReadExtControl(fileDescriptor, value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_STRING", V4L2_CTRL_ID2CLASS(qctrl.id));
+
+                    if (result == 0)
+                    {
+                        LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s will be used for %s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.name);
+                        m_ControlIdToControlNameMap[qctrl.id] = qctrl.name;
+                        m_ControlIdToFileDescriptorMap[qctrl.id] = fileDescriptor;
+                        emit SendStringDataToEnumerationWidget(id, value, name, "", bIsReadOnly);
+                    }
+                }
             }
             qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
         }
@@ -1515,18 +1536,19 @@ template<>           int32_t  getExtCtrlValue<int32_t> (const v4l2_ext_control& 
 template<>           uint32_t getExtCtrlValue<uint32_t>(const v4l2_ext_control& extCtrl) {return extCtrl.value;}
 template<>           int64_t  getExtCtrlValue<int64_t> (const v4l2_ext_control& extCtrl) {return extCtrl.value64;}
 template<>           uint64_t getExtCtrlValue<uint64_t>(const v4l2_ext_control& extCtrl) {return extCtrl.value64;}
+template<>           QString getExtCtrlValue<QString>(const v4l2_ext_control& extCtrl) {return QString::fromLocal8Bit(extCtrl.string);}
 
 template<typename T>
 int Camera::ReadExtControl(int fileDescriptor, T &value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
 {
     QMutexLocker locker(&m_ReadExtControlMutex);
     int result = -1;
-    v4l2_queryctrl ctrl;
+    v4l2_query_ext_ctrl ctrl;
 
     CLEAR(ctrl);
     ctrl.id = controlID;
 
-    if (iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCTRL, &ctrl) >= 0)
+    if (iohelper::xioctl(fileDescriptor, VIDIOC_QUERY_EXT_CTRL, &ctrl) >= 0)
     {
         v4l2_ext_controls extCtrls;
         v4l2_ext_control extCtrl;
@@ -1541,11 +1563,20 @@ int Camera::ReadExtControl(int fileDescriptor, T &value, uint32_t controlID, con
         extCtrls.count = 1;
         extCtrls.ctrl_class = controlClass;
 
+        if (ctrl.flags & V4L2_CTRL_FLAG_HAS_PAYLOAD)
+        {
+            extCtrl.ptr = malloc(ctrl.elem_size * ctrl.elems);
+            extCtrl.size = ctrl.elem_size;
+        }
+
+
         if (-1 != iohelper::xioctl(fileDescriptor, VIDIOC_G_EXT_CTRLS, &extCtrls))
         {
             LOG_EX("Camera::ReadExtControl VIDIOC_G_EXT_CTRLS %s function name: %s control name: %s OK =%d", m_FileDescriptorToNameMap[fileDescriptor].c_str(), functionName, controlName, extCtrl.value);
 
             value = getExtCtrlValue<T>(extCtrl);
+
+
 
             result = 0;
         }
@@ -1554,6 +1585,11 @@ int Camera::ReadExtControl(int fileDescriptor, T &value, uint32_t controlID, con
             LOG_EX("Camera::ReadExtControl VIDIOC_G_CTRL %s function name: %s control name: %s failed errno=%d=%s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), functionName, controlName, errno, v4l2helper::ConvertErrno2String(errno).c_str());
 
             result = -2;
+        }
+
+        if (ctrl.flags & V4L2_CTRL_FLAG_HAS_PAYLOAD)
+        {
+            free(extCtrl.ptr);
         }
     }
     else
@@ -1580,6 +1616,7 @@ template<>           void setExtCtrlValue<int64_t>                (v4l2_ext_cont
 template<>           void setExtCtrlValue<uint64_t>               (v4l2_ext_control& extCtrl, const uint64_t& value)                {extCtrl.value64 = value;}
 template<>           void setExtCtrlValue<v4l2_exposure_auto_type>(v4l2_ext_control& extCtrl, const v4l2_exposure_auto_type& value) {extCtrl.value = value;}
 template<>           void setExtCtrlValue<bool>                   (v4l2_ext_control& extCtrl, const bool& value)                    {extCtrl.value = value;}
+template<>           void setExtCtrlValue<QString>                   (v4l2_ext_control& extCtrl, const QString& value)              {extCtrl.string = value.toLocal8Bit().data();extCtrl.size = value.size() + 1;}
 
 template<typename T>
 int Camera::SetExtControl(T value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
@@ -2330,107 +2367,153 @@ int Camera::GetCameraDriverVersion(std::string &strText)
 {
     int result = -1;
     std::string info;
-    std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
-    allFileDescriptors.push_back(m_DeviceFileDescriptor);
+    std::string version = "unknown";
+    v4l2_capability cap;
 
-    for (const auto fileDescriptor : allFileDescriptors)
+
+    // query device capabilities
+    if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
-        v4l2_capability cap;
-
-        // query device capabilities
-        if (-1 == iohelper::xioctl(fileDescriptor, VIDIOC_QUERYCAP, &cap))
+        LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s is no V4L2 device\n", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
+    }
+    else
+    {
+        if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
         {
-            LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s is no V4L2 device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+            LOG_EX("Camera::GetCameraDriverVersion %s is no video capture device\n", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
         }
         else
         {
-            if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) && !(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE))
+            if(((char* )cap.card)[0] == '\0')
             {
-                LOG_EX("Camera::GetCameraDriverVersion %s is no video capture device\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
+                LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s no driver version info\n", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str());
             }
             else
             {
-                if(((char* )cap.card)[0] == '\0')
+                std::string cameraDriverInfo = (char*)cap.card;
+
+                LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s driver version info string=%s\n", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), cameraDriverInfo.c_str());
+
+                QString name = QString::fromStdString(cameraDriverInfo);
+                QStringList list = name.split(" ");
+
+
+                if (!list.isEmpty() && list.back().contains('-'))
                 {
-                    LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s no driver version info\n", m_FileDescriptorToNameMap[fileDescriptor].c_str());
-                }
-                else
-                {
-                    std::string cameraDriverInfo = (char*)cap.card;
+                    QString part = list.back();
+                    QString rightPart = part.mid(part.indexOf('-')+1);
+                    QString leftPart = part.mid(0, part.indexOf('-'));
 
-                    LOG_EX("Camera::GetCameraDriverVersion VIDIOC_QUERYCAP %s driver version info string=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), cameraDriverInfo.c_str());
-
-                    QString name = QString::fromStdString(cameraDriverInfo);
-                    QStringList list = name.split(" ");
-                    std::string version = "unknown";
-
-                    if (!list.isEmpty() && list.back().contains('-'))
+                    QString numbers;
+                    QString letters;
+                    for (QString::iterator it = rightPart.begin(); it != rightPart.end(); ++it)
                     {
-                        QString part = list.back();
-                        QString rightPart = part.mid(part.indexOf('-')+1);
-                        QString leftPart = part.mid(0, part.indexOf('-'));
-
-                        QString numbers;
-                        QString letters;
-                        for (QString::iterator it = rightPart.begin(); it != rightPart.end(); ++it)
+                        if(it->isLetter())
                         {
-                            if(it->isLetter())
-                            {
-                                int index = it - rightPart.begin();
-                                numbers = rightPart.mid(0, index);
-                                letters = rightPart.mid(index);
-                                break;
-                            }
+                            int index = it - rightPart.begin();
+                            numbers = rightPart.mid(0, index);
+                            letters = rightPart.mid(index);
+                            break;
                         }
+                    }
 
-                        int num = numbers.toInt();
-                        QString parsedNumbers = QString("%1").arg(num, 3, 10,  QLatin1Char('0'));
-                        rightPart = parsedNumbers + letters;
-                        part = leftPart + '-' + rightPart;
+                    int num = numbers.toInt();
+                    QString parsedNumbers = QString("%1").arg(num, 3, 10,  QLatin1Char('0'));
+                    rightPart = parsedNumbers + letters;
+                    part = leftPart + '-' + rightPart;
 
-                        QFile file(QString("/sys/bus/i2c/drivers/avt_csi2/%1/driver_version").arg(part));
-                        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+                    QFile file(QString("/sys/bus/i2c/drivers/avt_csi2/%1/driver_version").arg(part));
+                    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+                    {
+                        LOG_EX("Camera::GetCameraDriverVersion Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), (char*)cap.card, file.fileName().toStdString().c_str());
+                        QFile file_alt(QString("/sys/bus/i2c/drivers/avt3/%1/driver_version").arg(part));
+                        if (!file_alt.open(QIODevice::ReadOnly | QIODevice::Text))
                         {
-                            LOG_EX("Camera::GetCameraDriverVersion Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char*)cap.card, file.fileName().toStdString().c_str());
-                            QFile file_alt(QString("/sys/bus/i2c/drivers/avt3/%1/driver_version").arg(part));
-                            if (!file_alt.open(QIODevice::ReadOnly | QIODevice::Text))
-                            {
-                                LOG_EX("Camera::GetCameraDriverVersion Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char*)cap.card, file_alt.fileName().toStdString().c_str());
-                                version = "unknown";
-                            }
-                            else
-                            {
-                                QByteArray line = file_alt.readLine();
-                                version = line.toStdString();
-                                LOG_EX("Camera::GetCameraDriverVersion got driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char*)cap.card, file_alt.fileName().toStdString().c_str());
-                            }
+                            LOG_EX("Camera::GetCameraDriverVersion Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), (char*)cap.card, file_alt.fileName().toStdString().c_str());
+                            version = QString("%1.%2.%3").arg(cap.version >> 16).arg((cap.version >> 8) & 0xff)
+                                    .arg(cap.version & 0xff).toStdString();
                         }
                         else
                         {
-                            QByteArray line = file.readLine();
+                            QByteArray line = file_alt.readLine();
                             version = line.toStdString();
-                            LOG_EX("Camera::GetCameraDriverVersion got driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char*)cap.card, file.fileName().toStdString().c_str());
+                            LOG_EX("Camera::GetCameraDriverVersion got driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), (char*)cap.card, file_alt.fileName().toStdString().c_str());
                         }
                     }
                     else
                     {
-                        LOG_EX("Camera::GetCameraDriverVersion Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s\n", m_FileDescriptorToNameMap[fileDescriptor].c_str(), (char*)cap.card);
-                        version = "unknown";
+                        QByteArray line = file.readLine();
+                        version = line.toStdString();
+                        LOG_EX("Camera::GetCameraDriverVersion got driver version for VIDIOC_QUERYCAP %s device name=%s, driver version file=%s\n", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), (char*)cap.card, file.fileName().toStdString().c_str());
                     }
+                }
+                else
+                {
+                    LOG_EX("Camera::GetCameraDriverVersion Couldn't get driver version for VIDIOC_QUERYCAP %s device name=%s\n", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), (char*)cap.card);
+                    version = "unknown";
+                }
 
-                    if (info.empty())
-                    {
-                        info = version + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ")";
-                    }
-                    else
-                    {
-                        info += std::string(",<br>") + version + " (" + m_FileDescriptorToNameMap[fileDescriptor] + ")";
-                    }
-                    result = 0;
+
+            }
+        }
+    }
+
+    if (info.empty())
+    {
+        info = version + " (" + m_FileDescriptorToNameMap[m_DeviceFileDescriptor] + ")";
+    }
+    else
+    {
+        info += std::string(",<br>") + version + " (" + m_FileDescriptorToNameMap[m_DeviceFileDescriptor] + ")";
+    }
+    result = 0;
+
+
+
+    for (const auto subDevFd : m_SubDeviceFileDescriptors)
+    {
+        version = "";
+        std::regex regex("/dev/(.+)");
+        std::smatch match;
+        std::regex_match(m_FileDescriptorToNameMap[subDevFd],match,regex);
+
+        LOG_EX("Camera::GetCameraDriverVersion test node %s",match[1].str().c_str());
+
+        if (!match.empty())
+        {
+            QFile file(QString("/sys/class/video4linux/%1/device/driver_version").arg(QString::fromStdString(match[1].str())));
+            if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+            {
+                QByteArray line = file.readLine();
+                version = line.toStdString();
+                file.close();
+
+            }
+            else
+            {
+                v4l2_subdev_capability subdevCap{};
+
+                if (iohelper::xioctl(subDevFd, VIDIOC_SUBDEV_QUERYCAP, &subdevCap) == 0)
+                {
+                    version = QString("%1.%2.%3").arg(subdevCap.version >> 16).arg((subdevCap.version >> 8) & 0xff)
+                            .arg(subdevCap.version & 0xff).toStdString();
                 }
             }
         }
 
+
+        if (!version.empty())
+        {
+            if (info.empty())
+            {
+                info = version + " (" + m_FileDescriptorToNameMap[subDevFd] + ")";
+            }
+            else
+            {
+                info += std::string(",<br>") + version + " (" + m_FileDescriptorToNameMap[subDevFd] + ")";
+            }
+        }
+        result = 0;
     }
 
     strText = info;
@@ -2791,7 +2874,7 @@ void Camera::OnCtrlUpdate(int cid, v4l2_event_ctrl ctrl)
 
 	switch (ctrl.type) {
 		case V4L2_CTRL_TYPE_INTEGER:
-			emit SendIntDataToEnumerationWidget(cid, 0, 0, ctrl.value, "", "", false);
+			emit SendIntDataToEnumerationWidget(cid, ctrl.minimum, ctrl.maximum, ctrl.value, "", "", false);
 			break;
 		case V4L2_CTRL_TYPE_INTEGER_MENU:
 			emit SendListIntDataToEnumerationWidget(cid, ctrl.value, QList<int64_t>(), "", "", false);
@@ -2799,11 +2882,25 @@ void Camera::OnCtrlUpdate(int cid, v4l2_event_ctrl ctrl)
 		case V4L2_CTRL_TYPE_MENU:
 			emit SendListDataToEnumerationWidget(cid, ctrl.value, QList<QString>(), "", "", false);
 			break;
-		case V4L2_CTRL_TYPE_INTEGER64:
-			emit SentInt64DataToEnumerationWidget(cid, 0, 0, ctrl.value64, "", "", false);
+		case V4L2_CTRL_TYPE_INTEGER64: {
+            int cfd = m_ControlIdToFileDescriptorMap[cid];
+            v4l2_query_ext_ctrl qectrl{};
+            qectrl.id = cid;
+
+            iohelper::xioctl(cfd,VIDIOC_QUERY_EXT_CTRL,&qectrl);
+
+            emit SentInt64DataToEnumerationWidget(cid, qectrl.minimum, qectrl.maximum, ctrl.value64, "", "", false);
+        }
 			break;
 		case V4L2_CTRL_TYPE_BOOLEAN:
 			emit SendBoolDataToEnumerationWidget(cid,ctrl.value,"","",false);
+            break;
+        case V4L2_CTRL_TYPE_STRING: {
+            QString value;
+            ReadExtControl(value, cid, "OnCtrlUpdate", "", V4L2_CTRL_ID2CLASS(cid));
+            emit SendStringDataToEnumerationWidget(cid, value, "", "", false);
+            break;
+        }
 		default:
 			break;
 	}
@@ -2982,4 +3079,9 @@ void Camera::SetSliderEnumerationControlValue(int32_t id, int32_t val)
 void Camera::SetSliderEnumerationControlValue(int32_t id, int64_t val)
 {
     SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_ID2CLASS (id));
+}
+
+void Camera::SetEnumerationControlValueString(int32_t id, QString val)
+{
+    SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_STRING", V4L2_CTRL_ID2CLASS (id));
 }

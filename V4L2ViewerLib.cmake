@@ -58,6 +58,7 @@ list(APPEND HEADER_FILES
   ${HEADERS_PATH}/CustomDialog.h
   ${HEADERS_PATH}/V4L2EventHandler.h
   ${HEADERS_PATH}/FPSCalculator.h
+  ${HEADERS_PATH}/EnumeratorInterface/StringEnumerationControl.h
 )
 
 list(APPEND SOURCE_FILES
@@ -93,6 +94,7 @@ list(APPEND SOURCE_FILES
   ${SOURCES_PATH}/CustomDialog.cpp
   ${SOURCES_PATH}/V4L2EventHandler.cpp
   ${SOURCES_PATH}/FPSCalculator.cpp
+  ${SOURCES_PATH}/EnumeratorInterface/StringEnumerationControl.cpp
   ${GIT_REVISION_FILE}
 )
 

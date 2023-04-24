@@ -1968,6 +1968,10 @@ border:none;
 QComboBox::item{
 color:white;
 }
+
+QComboBox::item::disabled{
+color: rgb(77,78,79);
+}
 </string>
                     </property>
                    </widget>
