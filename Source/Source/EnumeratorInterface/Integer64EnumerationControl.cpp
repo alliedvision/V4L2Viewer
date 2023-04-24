@@ -73,8 +73,11 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
     }
 }
 
-void Integer64EnumerationControl::UpdateValue(int64_t value)
+void Integer64EnumerationControl::UpdateValue(int64_t value,int64_t min,int64_t max)
 {
+    m_Min = min;
+    m_Max = max;
+
     m_LineEdit.blockSignals(true);
     m_LineEdit.setText(QString::number(value));
     m_CurrentValue.setText(QString::number(value));
@@ -83,10 +86,15 @@ void Integer64EnumerationControl::UpdateValue(int64_t value)
     m_Slider.blockSignals(true);
     if (m_NameOfControl.text().contains("exposure",Qt::CaseInsensitive))
     {
+        m_Slider.setMaximum(GetSliderLogValue(max));
+        m_Slider.setMinimum(GetSliderLogValue(min));
         m_Slider.setValue(GetSliderLogValue(value));
+
     }
     else
     {
+        m_Slider.setMaximum(ConvertToSliderValue(max));
+        m_Slider.setMinimum(ConvertToSliderValue(min));
         m_Slider.setValue(ConvertToSliderValue(value));
     }
     m_Slider.blockSignals(false);

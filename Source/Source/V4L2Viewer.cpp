@@ -27,6 +27,7 @@
 #include "ButtonEnumerationControl.h"
 #include "ListEnumerationControl.h"
 #include "ListIntEnumerationControl.h"
+#include "StringEnumerationControl.h"
 #include "CustomGraphicsView.h"
 #include "CustomDialog.h"
 #include "GitRevision.h"
@@ -144,6 +145,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(int32_t, QString, QString, bool)),                              this, SLOT(PassButtonDataToEnumerationWidget(int32_t, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)),       this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)),    this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendStringDataToEnumerationWidget(int32_t, QString, QString, QString, bool)),    this, SLOT(PassStringDataToEnumerationWidget(int32_t, QString, QString, QString, bool)));
 	connect(&m_Camera,SIGNAL(SendControlStateChange(int32_t, bool)),this,SLOT(PassControlStateChange(int32_t, bool)));
 
     connect(&m_Camera, SIGNAL(SendSignalToUpdateWidgets()), this, SLOT(OnReadAllValues()));
@@ -805,7 +807,7 @@ void V4L2Viewer::PassIntDataToEnumerationWidget(int32_t id, int64_t min, int64_t
         IControlEnumerationHolder *obj = m_pEnumerationControlWidget->GetControlWidget(id, bIsSucced);
         if (bIsSucced)
         {
-            dynamic_cast<Integer64EnumerationControl*>(obj)->UpdateValue(value);
+            dynamic_cast<Integer64EnumerationControl*>(obj)->UpdateValue(value,min,max);
         }
     }
 }
@@ -873,6 +875,26 @@ void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QLis
         if (bIsSucced)
         {
             dynamic_cast<ListIntEnumerationControl*>(obj)->UpdateValue(list, value);
+        }
+    }
+}
+
+void V4L2Viewer::PassStringDataToEnumerationWidget(int32_t id, QString value, QString name, QString unit,
+                                                   bool bIsReadOnly)
+{
+    if (!m_pEnumerationControlWidget->IsControlAlreadySet(id))
+    {
+        auto ptr = new StringEnumerationControl(id, value, name, bIsReadOnly, this);
+        connect(ptr,&StringEnumerationControl::PassNewValue,&m_Camera,&Camera::SetEnumerationControlValueString);
+        m_pEnumerationControlWidget->AddElement(ptr);
+    }
+    else
+    {
+        bool bIsSucced;
+        auto obj = dynamic_cast<StringEnumerationControl*>(m_pEnumerationControlWidget->GetControlWidget(id, bIsSucced));
+        if (bIsSucced && obj != nullptr)
+        {
+            obj->UpdateValue(value);
         }
     }
 }
@@ -964,9 +986,12 @@ void V4L2Viewer::OnCheckFrameRateAutoClicked()
     else
     {
         numerator = 1;
+        denominator = 10000;
         ui.m_labelFrameRate->setEnabled(true);
         ui.m_edFrameRate->setEnabled(true);
-        m_Camera.SetFrameRate(numerator, denominator);
+        //m_Camera.SetFrameRate(numerator, denominator);
+        ui.m_edFrameRate->setText("10000");
+        OnFrameRate();
     }
 }
 
@@ -1923,7 +1948,7 @@ void V4L2Viewer::GetImageInformation(const bool isCalledFromOnOpen)
             ui.m_labelFrameRateAuto->setEnabled(true);
             ui.m_chkFrameRateAuto->setEnabled(true);
 
-            if (denominator == 0)
+            if (denominator == 0 || numerator == 0)
             {
                 ui.m_chkFrameRateAuto->setChecked(true);
                 ui.m_edFrameRate->setEnabled(false);

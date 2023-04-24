@@ -30,7 +30,7 @@ public:
     //
     // Parameters:
     // [in] (int64_t) value - new value for the widget
-    void UpdateValue(int64_t value);
+    void UpdateValue(int64_t value,int64_t min,int64_t max);
 
 signals:
     // This signal passes new value from the line edit to the Camera class
