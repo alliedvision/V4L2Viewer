@@ -45,7 +45,7 @@ public:
     V4L2Viewer( QWidget *parent = 0, Qt::WindowFlags flags = Qt::WindowFlags() );
     ~V4L2Viewer();
 
-private:
+protected:
 
     std::list<QSharedPointer<V4L2Viewer> > m_pViewer;
 
@@ -127,7 +127,7 @@ private:
     //
     // Returns:
     // (int) result of open/close/setup camera
-    int OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName, const QVector<QString>& subDevices);
+    virtual int OpenAndSetupCamera(const uint32_t cardNumber, const QString &deviceName, const QVector<QString>& subDevices);
     // This function closes the camera
     //
     // Parameters:
@@ -144,7 +144,7 @@ private:
     // [in] (uint32_t) width
     // [in] (uint32_t) height
     // [in] (uint32_t) bytesPerLine
-    void StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
+    virtual void StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine);
 
     // This function overrides change event, in order to
     // update language when changed
@@ -186,7 +186,7 @@ private:
     // Set control labels to default values in user interface
     void SetDefaultLabels();
 
-private slots:
+protected slots:
     void OnLogToFile();
     void OnShowFrames();
     // The event handler to close the program
@@ -213,7 +213,7 @@ private slots:
     // The event handler to show the frames received
     void OnUpdateFramesReceived();
     // The event handler to show the processed frame
-    void OnFrameReady(const QImage &image, const unsigned long long &frameId);
+    virtual void OnFrameReady(const QImage &image, const unsigned long long &frameId);
     // The event handler to show the processed frame ID
     void OnFrameID(const unsigned long long &frameId);
     // The event handler to open a camera on double click event

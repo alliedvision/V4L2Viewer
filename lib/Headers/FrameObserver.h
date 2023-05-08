@@ -137,6 +137,8 @@ public:
     // [in] (bool) showFrames
     void SwitchFrameTransfer2GUI(bool showFrames);
 
+    int AddRawDataProcessor(const std::function<void(const uint8_t *,uint32_t,const v4l2_buffer&)> callback);
+
 protected:
     // v4l2
     // This function reads frame
@@ -156,7 +158,7 @@ protected:
     //
     // Returns:
     // (int) - result of getting data
-    virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
+    virtual int GetFrameData(const v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length) const;
     // This function process frame from the buffer given in parameter
     //
     // Parameters:
@@ -196,10 +198,13 @@ protected:
     bool m_ShowFrames;
 
     std::vector<UserBuffer*>              m_UserBufferContainerList;
-    base::LocalMutex                      m_UsedBufferMutex;
+    mutable base::LocalMutex              m_UsedBufferMutex;
 
     // Shared pointer to a worker thread for the image processing
     QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
+
+
+    std::list<std::function<void(const uint8_t *,uint32_t,const v4l2_buffer&)>> m_rawDataProcessors;
 
 private slots:
     //Event handler for getting the processed frame to an image

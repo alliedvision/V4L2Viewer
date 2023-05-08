@@ -16,18 +16,18 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#ifndef FRAMEOBSERVERUSER_H
-#define FRAMEOBSERVERUSER_H
+#ifndef FRAMEOBSERVERMMAP_H
+#define FRAMEOBSERVERMMAP_H
 
 #include "FrameObserver.h"
 
-class FrameObserverUSER : public FrameObserver
+class FrameObserverMMAP : public FrameObserver
 {
   public:
     // We pass the camera that will deliver the frames to the constructor
-    FrameObserverUSER(bool showFrames);
+    FrameObserverMMAP(bool showFrames);
 
-    virtual ~FrameObserverUSER();
+    virtual ~FrameObserverMMAP();
 
     // This function creates all user buffer
     //
@@ -76,10 +76,11 @@ protected:
     //
     // Returns:
     // (int) - result of getting data
-    virtual int GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length);
+    virtual int GetFrameData(const v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length) const;
 
 private:
+
 };
 
-#endif // FRAMEOBSERVERUSER_H
+#endif // FRAMEOBSERVERMMAP_H
 

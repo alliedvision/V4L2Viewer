@@ -673,6 +673,8 @@ public:
 	int GetFrameSizeIndex();
 
 	void SetFrameSizeByIndex(int index);
+
+    FrameObserver* GetFrameObserver() const;
 private:
     void QueryControls(int fd);
 

@@ -3088,3 +3088,8 @@ void Camera::SetEnumerationControlValueString(int32_t id, QString val)
 {
     SetExtControl(val, id, "SetEnumerationControl", "V4L2_CTRL_TYPE_STRING", V4L2_CTRL_ID2CLASS (id));
 }
+
+FrameObserver* Camera::GetFrameObserver() const
+{
+    return m_pFrameObserver.data();
+}

@@ -15,9 +15,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-set(HEADERS_PATH Source/Headers)
-set(SOURCES_PATH Source/Source)
-set(RESOURCES_PATH Source/Resources)
+set(HEADERS_PATH Headers)
+set(SOURCES_PATH Source)
+set(RESOURCES_PATH Resources)
 set(ENUM_INT_PATH ${HEADERS_PATH}/EnumeratorInterface)
 set(GIT_REVISION_FILE ${CMAKE_CURRENT_BINARY_DIR}/GitRevision.h)
 
