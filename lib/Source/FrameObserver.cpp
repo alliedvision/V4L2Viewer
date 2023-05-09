@@ -170,17 +170,26 @@ int FrameObserver::ReadFrame(v4l2_buffer &buf)
     return result;
 }
 
-int FrameObserver::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length)
+int FrameObserver::GetFrameData(const v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length) const
 {
     int result = -1;
 
     return result;
 }
 
+int FrameObserver::AddRawDataProcessor(const std::function<void(const uint8_t *,uint32_t,const v4l2_buffer&)> callback)
+{
+    int index = m_rawDataProcessors.size();
+    m_rawDataProcessors.push_back(callback);
+
+    return index;
+}
+
 void FrameObserver::DequeueAndProcessFrame()
 {
     v4l2_buffer buf;
     int result = 0;
+
 
     result = ReadFrame(buf);
     if (0 == result)
@@ -195,6 +204,11 @@ void FrameObserver::DequeueAndProcessFrame()
 
             if (0 == GetFrameData(buf, buffer, length))
             {
+                for (auto const & cb : m_rawDataProcessors)
+                {
+                    cb(buffer,length,buf);
+                }
+
 
                 if (m_PixelFormat == V4L2_PIX_FMT_Y10P ||
                     m_PixelFormat == V4L2_PIX_FMT_SBGGR10P ||

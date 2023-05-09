@@ -16,7 +16,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "FrameObserverMMAP.h"
+#include "FrameObserverUSER.h"
 #include "LocalMutexLockGuard.h"
 #include "Logger.h"
 #include "MemoryHelper.h"
@@ -28,33 +28,35 @@
 #include <fcntl.h>
 #include <IOHelper.h>
 #include <linux/videodev2.h>
-#include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <QDebug>
+#include <unistd.h>
 
+#include <cstdlib>
 #include <sstream>
 
-FrameObserverMMAP::FrameObserverMMAP(bool showFrames)
+FrameObserverUSER::FrameObserverUSER(bool showFrames)
     : FrameObserver(showFrames)
 {
 }
 
-FrameObserverMMAP::~FrameObserverMMAP()
+FrameObserverUSER::~FrameObserverUSER()
 {
 }
 
-int FrameObserverMMAP::ReadFrame(v4l2_buffer &buf)
+int FrameObserverUSER::ReadFrame(v4l2_buffer &buf)
 {
     int result = -1;
 
-    buf.type = m_BufferType;
-    buf.memory = V4L2_MEMORY_MMAP;
+    CLEAR(buf);
 
-    v4l2_plane plane;
+    buf.type = m_BufferType;
+    buf.memory = V4L2_MEMORY_USERPTR;
+
+    v4l2_plane *plane = new v4l2_plane;
     if(m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
     {
-        buf.m.planes = &plane;
+        buf.m.planes = plane;
         buf.length = 1;
     }
 
@@ -64,23 +66,22 @@ int FrameObserverMMAP::ReadFrame(v4l2_buffer &buf)
     return result;
 }
 
-int FrameObserverMMAP::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length)
+int FrameObserverUSER::GetFrameData(const v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length) const
 {
     int result = -1;
 
     if (m_IsStreamRunning)
     {
-        base::LocalMutexLockGuard guard(m_UsedBufferMutex);
-
-        if (buf.index < m_UserBufferContainerList.size())
+        if (buf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
         {
-            length = m_UserBufferContainerList[buf.index]->nBufferlength;
-            buffer = m_UserBufferContainerList[buf.index]->pBuffer;
+            length = buf.m.planes[0].length;
+            buffer = (uint8_t *) buf.m.planes[0].m.userptr;
+            delete buf.m.planes;
         }
         else
         {
-            length = 0;
-            buffer = 0;
+            length = buf.length;
+            buffer = (uint8_t *) buf.m.userptr;
         }
 
         if (0 != buffer && 0 != length)
@@ -96,7 +97,7 @@ int FrameObserverMMAP::GetFrameData(v4l2_buffer &buf, uint8_t *&buffer, uint32_t
 // Frame buffer handling
 /*********************************************************************************************************/
 
-int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
+int FrameObserverUSER::CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
 {
     int result = -1;
 
@@ -109,73 +110,51 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
 
         req.count  = bufferCount;
         req.type   = m_BufferType;
-        req.memory = V4L2_MEMORY_MMAP;
+        req.memory = V4L2_MEMORY_USERPTR;
 
         // requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
         if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req))
         {
             if (EINVAL == errno)
             {
-                LOG_EX("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_REQBUFS does not support memory map i/o");
+                LOG_EX("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS does not support user pointer i/o");
             }
             else
             {
-                LOG_EX("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_REQBUFS errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                LOG_EX("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
         else
         {
             base::LocalMutexLockGuard guard(m_UsedBufferMutex);
 
-            LOG_EX("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_REQBUFS OK");
+            LOG_EX("FrameObserverUSER::CreateAllUserBuffer VIDIOC_REQBUFS OK");
 
             // create local buffer container
             m_UserBufferContainerList.resize(bufferCount);
 
             if (m_UserBufferContainerList.size() != bufferCount)
             {
-                m_UserBufferContainerList.resize(0);
-                LOG_EX("FrameObserverMMAP::CreateAllUserBuffer buffer container error");
+                LOG_EX("FrameObserverUSER::CreateAllUserBuffer buffer container error");
                 return -1;
             }
 
-            for (unsigned int x = 0; x < bufferCount; ++x)
+            // get the length and start address of each of the 4 buffer structs and assign the user buffer addresses
+            for (unsigned int x = 0; x < m_UserBufferContainerList.size(); ++x)
             {
-                v4l2_buffer buf;
-                CLEAR(buf);
-                buf.type = m_BufferType;
-                buf.memory = V4L2_MEMORY_MMAP;
-                buf.index = x;
-
-                v4l2_plane plane;
-                if(m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-                {
-                    buf.m.planes = &plane;
-                    buf.length = 1;
-                    LOG_EX("FrameObserverMMAP::CreateAllUserBuffer plane count=%d", buf.length);
-                }
-
-                if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QUERYBUF, &buf))
-                {
-                    LOG_EX("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_QUERYBUF errno=%d=%s", errno, v4l2helper::ConvertErrno2String(errno).c_str());
-                    return -1;
-                }
-
-                LOG_EX("FrameObserverMMAP::CreateAllUserBuffer VIDIOC_QUERYBUF MMAP OK length=%d", buf.length);
-
                 UserBuffer* pTmpBuffer = new UserBuffer;
-                pTmpBuffer->nBufferlength = (m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE ? buf.m.planes[0].length : buf.length);
+                pTmpBuffer->nBufferlength = bufferSize;
                 m_RealPayloadSize = pTmpBuffer->nBufferlength;
-                pTmpBuffer->pBuffer = (uint8_t*)mmap(NULL,
-                        pTmpBuffer->nBufferlength,
-                                    PROT_READ | PROT_WRITE,
-                                    MAP_SHARED,
-                                    m_nFileDescriptor,
-                                    m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE ? buf.m.planes[0].m.mem_offset : buf.m.offset);
 
-                if (MAP_FAILED == pTmpBuffer->pBuffer)
+                // buffer needs to be aligned to 128 bytes
+                if (bufferSize % 128)
+                    bufferSize = ((bufferSize / 128) + 1) * 128;
+                pTmpBuffer->pBuffer = static_cast<uint8_t*>(aligned_alloc(128, bufferSize));
+
+                if (!pTmpBuffer->pBuffer)
                 {
                     delete pTmpBuffer;
+                    LOG_EX("FrameObserverUSER::CreateAllUserBuffer buffer creation error");
                     m_UserBufferContainerList.resize(0);
                     return -1;
                 }
@@ -190,7 +169,7 @@ int FrameObserverMMAP::CreateAllUserBuffer(uint32_t bufferCount, uint32_t buffer
     return result;
 }
 
-int FrameObserverMMAP::QueueAllUserBuffer()
+int FrameObserverUSER::QueueAllUserBuffer()
 {
     int result = -1;
     base::LocalMutexLockGuard guard(m_UsedBufferMutex);
@@ -199,27 +178,36 @@ int FrameObserverMMAP::QueueAllUserBuffer()
     for (uint32_t i=0; i<m_UserBufferContainerList.size(); i++)
     {
         v4l2_buffer buf;
-
+        v4l2_plane plane;
         CLEAR(buf);
+        CLEAR(plane);
         buf.type = m_BufferType;
         buf.index = i;
-        buf.memory = V4L2_MEMORY_MMAP;
+        buf.memory = V4L2_MEMORY_USERPTR;
 
-        v4l2_plane plane;
-        if(m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+        if (buf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
         {
             buf.m.planes = &plane;
             buf.length = 1;
+
+            plane.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
+            plane.length = m_UserBufferContainerList[i]->nBufferlength;
         }
+        else
+        {
+            buf.m.userptr = (unsigned long)m_UserBufferContainerList[i]->pBuffer;
+            buf.length = m_UserBufferContainerList[i]->nBufferlength;
+        }
+
 
         if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
         {
-            LOG_EX("FrameObserverMMAP::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed, errno=%d=%s", i, m_UserBufferContainerList[i]->pBuffer, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+            LOG_EX("FrameObserverUSER::QueueAllUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed, errno=%d=%s", i, m_UserBufferContainerList[i]->pBuffer, errno, v4l2helper::ConvertErrno2String(errno).c_str());
             return result;
         }
         else
         {
-            LOG_EX("FrameObserverMMAP::QueueUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
+            LOG_EX("FrameObserverUSER::QueueAllUserBuffer VIDIOC_QBUF queue #%d buffer=%p OK", i, m_UserBufferContainerList[i]->pBuffer);
             result = 0;
         }
     }
@@ -227,7 +215,7 @@ int FrameObserverMMAP::QueueAllUserBuffer()
     return result;
 }
 
-int FrameObserverMMAP::QueueSingleUserBuffer(const int index)
+int FrameObserverUSER::QueueSingleUserBuffer(const int index)
 {
     int result = 0;
     v4l2_buffer buf;
@@ -235,23 +223,32 @@ int FrameObserverMMAP::QueueSingleUserBuffer(const int index)
 
     if (index < static_cast<int>(m_UserBufferContainerList.size()))
     {
+        v4l2_plane plane;
         CLEAR(buf);
         buf.type = m_BufferType;
         buf.index = index;
-        buf.memory = V4L2_MEMORY_MMAP;
+        buf.memory = V4L2_MEMORY_USERPTR;
 
-        v4l2_plane plane;
-        if(m_BufferType == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+        if (buf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
         {
             buf.m.planes = &plane;
             buf.length = 1;
+
+            plane.m.userptr = (unsigned long)m_UserBufferContainerList[index]->pBuffer;
+            plane.length = m_UserBufferContainerList[index]->nBufferlength;
         }
+        else
+        {
+            buf.m.userptr = (unsigned long)m_UserBufferContainerList[index]->pBuffer;
+            buf.length = m_UserBufferContainerList[index]->nBufferlength;
+        }
+
 
         if (m_IsStreamRunning)
         {
             if (-1 == iohelper::xioctl(m_nFileDescriptor, VIDIOC_QBUF, &buf))
             {
-                LOG_EX("FrameObserverMMAP::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed, errno=%d=%s", index, m_UserBufferContainerList[index]->pBuffer, errno, v4l2helper::ConvertErrno2String(errno).c_str());
+                LOG_EX("FrameObserverUSER::QueueSingleUserBuffer VIDIOC_QBUF queue #%d buffer=%p failed", index, m_UserBufferContainerList[index]->pBuffer);
             }
         }
     }
@@ -259,24 +256,9 @@ int FrameObserverMMAP::QueueSingleUserBuffer(const int index)
     return result;
 }
 
-int FrameObserverMMAP::DeleteAllUserBuffer()
+int FrameObserverUSER::DeleteAllUserBuffer()
 {
     int result = 0;
-
-    base::LocalMutexLockGuard guard(m_UsedBufferMutex);
-
-    // delete all user buffer
-    for (unsigned int x = 0; x < m_UserBufferContainerList.size(); x++)
-    {
-        munmap(m_UserBufferContainerList[x]->pBuffer, m_UserBufferContainerList[x]->nBufferlength);
-
-        if (0 != m_UserBufferContainerList[x])
-        {
-            delete m_UserBufferContainerList[x];
-        }
-    }
-
-    m_UserBufferContainerList.resize(0);
 
     // free all internal buffers
     v4l2_requestbuffers req;
@@ -284,10 +266,25 @@ int FrameObserverMMAP::DeleteAllUserBuffer()
     CLEAR(req);
     req.count  = 0;
     req.type   = m_BufferType;
-    req.memory = V4L2_MEMORY_MMAP;
+    req.memory = V4L2_MEMORY_USERPTR;
 
-    // requests 4 video capture buffer. Driver is going to configure all parameter and doesn't allocate them.
-    result = iohelper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
+    // requests 0 video capture buffer. Driver is going to configure all parameter and frees them.
+    iohelper::xioctl(m_nFileDescriptor, VIDIOC_REQBUFS, &req);
+
+    {
+        base::LocalMutexLockGuard guard(m_UsedBufferMutex);
+
+        // delete all user buffer
+        for (unsigned int x = 0; x < m_UserBufferContainerList.size(); x++)
+        {
+            if (0 != m_UserBufferContainerList[x]->pBuffer)
+            free(m_UserBufferContainerList[x]->pBuffer);
+            if (0 != m_UserBufferContainerList[x])
+            delete m_UserBufferContainerList[x];
+        }
+
+        m_UserBufferContainerList.resize(0);
+    }
 
     return result;
 }
