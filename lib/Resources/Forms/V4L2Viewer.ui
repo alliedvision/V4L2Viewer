@@ -1065,12 +1065,6 @@ border:none;
               <height>378</height>
              </rect>
             </property>
-            <property name="styleSheet">
-             <string notr="true">.QFrame{
-border-radius:6px;
-border: 1px solid gray;
-}</string>
-            </property>
             <layout class="QGridLayout" name="gridLayout_8">
              <item row="0" column="6">
               <spacer name="horizontalSpacer">
