@@ -41,6 +41,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "videodev2_av.h"
+
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -1537,6 +1539,7 @@ template<>           uint32_t getExtCtrlValue<uint32_t>(const v4l2_ext_control& 
 template<>           int64_t  getExtCtrlValue<int64_t> (const v4l2_ext_control& extCtrl) {return extCtrl.value64;}
 template<>           uint64_t getExtCtrlValue<uint64_t>(const v4l2_ext_control& extCtrl) {return extCtrl.value64;}
 template<>           QString getExtCtrlValue<QString>(const v4l2_ext_control& extCtrl) {return QString::fromLocal8Bit(extCtrl.string);}
+template<>           std::string getExtCtrlValue<std::string>(const v4l2_ext_control& extCtrl) {return std::string{extCtrl.string};}
 
 template<typename T>
 int Camera::ReadExtControl(int fileDescriptor, T &value, uint32_t controlID, const char *functionName, const char *controlName, uint32_t controlClass)
@@ -2732,6 +2735,21 @@ std::string Camera::getAvtDeviceSerialNumber()
     }
 
     return result;
+}
+
+std::string Camera::getAvtCameraName()
+{
+    if (m_ControlIdToFileDescriptorMap.count(AVT_CID_CAMERA_NAME))
+    {
+        auto const fd = m_ControlIdToFileDescriptorMap[AVT_CID_CAMERA_NAME];
+        std::string cameraName{};
+
+        ReadExtControl(fd,cameraName,AVT_CID_CAMERA_NAME,"Camera Name",__FUNCTION__, V4L2_CTRL_ID2CLASS(AVT_CID_CAMERA_NAME));
+
+        return cameraName;
+    }
+
+    return {};
 }
 
 bool Camera::getDriverStreamStat(uint64_t &FramesCount, uint64_t &PacketCRCError, uint64_t &FramesUnderrun, uint64_t &FramesIncomplete, double &CurrentFrameRate)

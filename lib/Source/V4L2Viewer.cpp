@@ -2109,7 +2109,16 @@ QString V4L2Viewer::GetDeviceInfo()
     QString driverVer = QString(tr("Driver version = %1")).arg(tmp.c_str());
     m_Camera.GetCameraCapabilities(tmp);
     QString capabilities = QString(tr("Capabilities = %1")).arg(tmp.c_str());
-    return QString(firmware + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities + "<br>");
+
+    auto const cameraName = m_Camera.getAvtCameraName();
+
+    if (!cameraName.empty())
+    {
+        QString name = QString(tr("Camera Name = %1")).arg(QString::fromStdString(cameraName));
+        return QString(name + "<br>" + firmware + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities + "<br>");
+    }
+    else
+        return QString(firmware + "<br>" + devSerial + "<br>" + driverName + "<br>" + busInfo + "<br>" + driverVer + "<br>" + capabilities + "<br>");
 }
 
 void V4L2Viewer::UpdateSlidersPositions(QSlider *slider, int32_t value)
