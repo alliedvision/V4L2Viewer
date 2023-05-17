@@ -668,6 +668,12 @@ public:
     // (std::string) - device serial number
     std::string getAvtDeviceSerialNumber();
 
+    // This function returns AVT Device Name
+    //
+    // Returns:
+    // (std::string) - camera device name
+    std::string getAvtCameraName();
+
 	QList<QString> GetFrameSizes(uint32_t fourcc);
 
 	int GetFrameSizeIndex();
