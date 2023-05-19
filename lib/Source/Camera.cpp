@@ -257,6 +257,7 @@ Camera::~Camera()
 }
 
 void Camera::RereadVolatileControls() {
+    QMutexLocker locker(&m_VolatileControlListMutex);
     for(auto& [fd, controls]: m_volatileControls) {
         v4l2_ext_controls ctrls;
         ctrls.ctrl_class = 0;
@@ -1411,6 +1412,7 @@ int Camera::EnumAllControlNewStyle()
 
                 if ((qctrl.flags & V4L2_CTRL_FLAG_VOLATILE))
                 {
+                    QMutexLocker locker(&m_VolatileControlListMutex);
                     m_volatileControls[fileDescriptor].push_back({qctrl.id});
                 }
 

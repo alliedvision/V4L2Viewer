@@ -774,8 +774,8 @@ private:
 
     std::vector<uint8_t>            m_CsvData;
 
+    QMutex                          m_VolatileControlListMutex;
     std::unique_ptr<QThread>        m_pVolatileControlThread = nullptr;
-
     std::unordered_map<int, std::vector<v4l2_ext_control>> m_volatileControls;
 
     size_t fsize(const char *filename);
