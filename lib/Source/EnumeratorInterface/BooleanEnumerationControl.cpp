@@ -54,6 +54,10 @@ void BooleanEnumerationControl::UpdateValue(bool val)
     m_ComboBox.blockSignals(false);
 }
 
+void BooleanEnumerationControl::Update(v4l2_ext_control control) {
+    UpdateValue(control.value);
+}
+
 void BooleanEnumerationControl::OnTextChanged(const QString &text)
 {
     if (text == "False")

@@ -42,6 +42,7 @@
 #include <unistd.h>
 
 #include "videodev2_av.h"
+#include "q_v4l2_ext_ctrl.h"
 
 #include <algorithm>
 #include <sstream>
@@ -204,8 +205,6 @@ public:
     void SetPixelFormat(v4l2_format& fmt, const uint32_t pixelFormat) override {fmt.fmt.pix_mp.pixelformat = pixelFormat;}
 };
 
-Q_DECLARE_METATYPE(v4l2_event_ctrl);
-
 Camera::Camera()
     : m_DeviceFileDescriptor(-1)
     , m_SubDeviceFileDescriptors()
@@ -221,6 +220,7 @@ Camera::Camera()
     , m_CropDeviceFileDescriptor(-1)
     , m_pPixFormat(nullptr)
     , m_pEventHandler(nullptr)
+    //, m_pVolatileControlTimer(new QTimer(this))
 {
     connect(&m_CameraObserver, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
 
@@ -247,9 +247,6 @@ Camera::~Camera()
     if (NULL != m_pFrameObserver.data())
         m_pFrameObserver->StopStream();
 
-
-
-
     if(m_pPixFormat)
     {
         delete m_pPixFormat;
@@ -258,6 +255,33 @@ Camera::~Camera()
 
     CloseDevice();
 }
+
+void Camera::RereadVolatileControls() {
+    for(auto& [fd, controls]: m_volatileControls) {
+        v4l2_ext_controls ctrls;
+        ctrls.ctrl_class = 0;
+        ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
+        ctrls.count = controls.size();
+        ctrls.controls = controls.data();
+
+        auto const result = iohelper::xioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls);
+        if(result == 0) {
+            for(auto& c: controls) {
+                switch (c.id)
+                {
+                  case V4L2_CID_GAIN:
+                    emit PassAutoGainValue(c.value64);
+                    break;
+                  case V4L2_CID_EXPOSURE:
+                    emit PassAutoExposureValue(c.value64);
+                    break;
+                }
+                emit SendUpdate(c);
+            }
+        }
+    }
+}
+
 
 double Camera::GetReceivedFPS()
 {
@@ -441,6 +465,13 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
 
     m_pEventHandler->start();
 
+    m_pVolatileControlThread = std::unique_ptr<QThread>(QThread::create([&] {
+        while(!m_pVolatileControlThread->isInterruptionRequested()) {
+            RereadVolatileControls();
+            QThread::sleep(1);
+        }
+    }));
+    m_pVolatileControlThread->start();
 
     return result;
 }
@@ -448,6 +479,8 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
 int Camera::CloseDevice()
 {
     int result = -1;
+    m_pVolatileControlThread->requestInterruption();
+    m_pVolatileControlThread->wait();
 
     if (m_pEventHandler != nullptr)
     {
@@ -1366,19 +1399,24 @@ int Camera::EnumAllControlNewStyle()
                     bIsReadOnly = true;
                 }
 
-				if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
-				{
-					bIsReadOnly = true;
-				}
+                if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
+                {
+                    bIsReadOnly = true;
+                }
 
-				if (qctrl.flags & V4L2_CTRL_FLAG_VOLATILE && (qctrl.flags & V4L2_CTRL_FLAG_EXECUTE_ON_WRITE) == 0)
-				{
-					bIsReadOnly = true;
-				}
+                if (qctrl.flags & V4L2_CTRL_FLAG_VOLATILE && (qctrl.flags & V4L2_CTRL_FLAG_EXECUTE_ON_WRITE) == 0)
+                {
+                    bIsReadOnly = true;
+                }
 
-				if (m_pEventHandler != nullptr) {
-					m_pEventHandler->SubscribeControl(qctrl.id);
-				}
+                if ((qctrl.flags & V4L2_CTRL_FLAG_VOLATILE))
+                {
+                    m_volatileControls[fileDescriptor].push_back({qctrl.id});
+                }
+
+                if (m_pEventHandler != nullptr) {
+                    m_pEventHandler->SubscribeControl(qctrl.id);
+                }
 
                 LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s id=%d=%s min=%ld, max=%ld, default=%ld", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.id, v4l2helper::ConvertControlID2String(qctrl.id).c_str(), qctrl.minimum, qctrl.maximum, qctrl.default_value);
                 cidCount++;

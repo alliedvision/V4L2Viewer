@@ -32,6 +32,8 @@ public:
     // [in] (int32_t) value - new value for the widget
     void UpdateValue(int32_t value);
 
+    void Update(v4l2_ext_control control) override;
+
 signals:
     // This signal passes new value from the line edit to the Camera class
     //

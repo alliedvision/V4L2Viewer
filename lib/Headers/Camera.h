@@ -692,6 +692,8 @@ public slots:
     // to a gui when auto is turned on
     void PassExposureValue();
 
+    void RereadVolatileControls();
+
     void OnCtrlUpdate(int cid,v4l2_event_ctrl ctrl);
 
     // This slot function sets enumeration integer list control value
@@ -763,14 +765,18 @@ private:
     int                             m_CropDeviceFileDescriptor;
     IPixFormat*                     m_pPixFormat;
 
-    AutoReader          *m_pAutoExposureReader;
-    AutoReader          *m_pAutoGainReader;
-    V4L2EventHandler     *m_pEventHandler;
+    AutoReader                     *m_pAutoExposureReader;
+    AutoReader                     *m_pAutoGainReader;
+    V4L2EventHandler               *m_pEventHandler;
 
     CameraObserver                  m_CameraObserver;
     QSharedPointer<FrameObserver>   m_pFrameObserver;
 
-    std::vector<uint8_t>        m_CsvData;
+    std::vector<uint8_t>            m_CsvData;
+
+    std::unique_ptr<QThread>        m_pVolatileControlThread = nullptr;
+
+    std::unordered_map<int, std::vector<v4l2_ext_control>> m_volatileControls;
 
     size_t fsize(const char *filename);
     void reverseBytes(void* start, int size);
@@ -819,7 +825,9 @@ signals:
     // Event will be called on enumeration control change value
     void SendSignalToUpdateWidgets();
 
-	void SendControlStateChange(int32_t id,bool enabled);
+    void SendControlStateChange(int32_t id,bool enabled);
+
+    void SendUpdate(v4l2_ext_control ctrl);
 
 private slots:
     // The event handler to set or remove devices

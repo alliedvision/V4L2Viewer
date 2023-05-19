@@ -31,6 +31,7 @@ public:
     // Parameters:
     // [in] (bool) val - new value for the control
     void UpdateValue(bool val);
+    void Update(v4l2_ext_control control) override;
 
 signals:
     // This signal passes new value to the Camera class

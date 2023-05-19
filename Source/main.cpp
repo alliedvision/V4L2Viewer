@@ -21,6 +21,7 @@
 
 int main( int argc, char *argv[] )
 {
+    qRegisterMetaType<v4l2_ext_control>();
     QApplication a( argc, argv );
     Q_INIT_RESOURCE(V4L2Viewer);
     V4L2Viewer w;

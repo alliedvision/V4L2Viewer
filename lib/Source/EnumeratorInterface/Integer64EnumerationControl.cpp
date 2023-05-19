@@ -100,6 +100,10 @@ void Integer64EnumerationControl::UpdateValue(int64_t value,int64_t min,int64_t 
     m_Slider.blockSignals(false);
 }
 
+void Integer64EnumerationControl::Update(v4l2_ext_control control) {
+    UpdateValue(control.value64, m_Min, m_Max);
+}
+
 void Integer64EnumerationControl::OnLineEditPressed()
 {
     int64_t value = static_cast<int64_t>(m_LineEdit.text().toLongLong());

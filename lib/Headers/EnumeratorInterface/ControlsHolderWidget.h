@@ -60,6 +60,8 @@ public:
 
     Ui::ControlsHolderWidget ui;
 
+    void Update(v4l2_ext_control ctrl);
+
 private slots:
     // This slot function is called when the element on the list changed
     //

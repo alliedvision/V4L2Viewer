@@ -77,6 +77,10 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, in
     }
 }
 
+void IntegerEnumerationControl::Update(v4l2_ext_control control) {
+    UpdateValue(control.value);
+}
+
 void IntegerEnumerationControl::UpdateValue(int32_t value)
 {
     m_LineEdit.blockSignals(true);

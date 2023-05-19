@@ -74,6 +74,14 @@ IControlEnumerationHolder* ControlsHolderWidget::GetControlWidget(int32_t id, bo
     return nullptr;
 }
 
+void ControlsHolderWidget::Update(v4l2_ext_control ctrl)
+{
+    bool tmp;
+    if(auto w = GetControlWidget(ctrl.id, tmp); w != nullptr) {
+      w->Update(ctrl);
+    }
+}
+
 QSize ControlsHolderWidget::sizeHint() const
 {
     QSize size;
