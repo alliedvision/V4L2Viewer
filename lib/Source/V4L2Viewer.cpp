@@ -146,7 +146,9 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)),       this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)),    this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendStringDataToEnumerationWidget(int32_t, QString, QString, QString, bool)),    this, SLOT(PassStringDataToEnumerationWidget(int32_t, QString, QString, QString, bool)));
-	connect(&m_Camera,SIGNAL(SendControlStateChange(int32_t, bool)),this,SLOT(PassControlStateChange(int32_t, bool)));
+    connect(&m_Camera, SIGNAL(SendUpdate(v4l2_ext_control)), this, SLOT(PassExtControl(v4l2_ext_control)));
+
+  	connect(&m_Camera,SIGNAL(SendControlStateChange(int32_t, bool)),this,SLOT(PassControlStateChange(int32_t, bool)));
 
     connect(&m_Camera, SIGNAL(SendSignalToUpdateWidgets()), this, SLOT(OnReadAllValues()));
 
@@ -940,6 +942,11 @@ void V4L2Viewer::PassControlStateChange(int32_t id, bool enabled)
 		default:
 			break;
 	}
+}
+
+void V4L2Viewer::PassExtControl(v4l2_ext_control ctrl)
+{
+    m_pEnumerationControlWidget->Update(ctrl);
 }
 
 void V4L2Viewer::OnUpdateZoomLabel()

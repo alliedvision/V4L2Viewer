@@ -27,6 +27,7 @@
 #include <QCheckBox>
 #include <QPushButton>
 #include <QComboBox>
+#include <linux/videodev2.h>
 
 class IControlEnumerationHolder : public QWidget
 {
@@ -44,6 +45,9 @@ public:
     // Returns:
     // (QString) - control info string
     QString GetControlInfo();
+
+public:
+    virtual void Update(v4l2_ext_control control) {}
 
 protected:
     QLabel              m_NameOfControl;
