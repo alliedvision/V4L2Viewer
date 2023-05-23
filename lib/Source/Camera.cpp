@@ -480,8 +480,11 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
 int Camera::CloseDevice()
 {
     int result = -1;
-    m_pVolatileControlThread->requestInterruption();
-    m_pVolatileControlThread->wait();
+    if(m_pVolatileControlThread) {
+        m_pVolatileControlThread->requestInterruption();
+        m_pVolatileControlThread->wait();
+        m_pVolatileControlThread.reset();
+    }
 
     if (m_pEventHandler != nullptr)
     {
