@@ -6,20 +6,18 @@ Allied Vision V4L2 Viewer was designed for easy evaluation of
 
 Compatibility
 -------------
-Allied Vision V4L2 Viewer v2.2.0 was tested with JetPack 5.1.0 (L4T 35.1.0), see https://github.com/alliedvision/linux_nvidia_jetson
+New as of V2.2.0: support for IMX8MPlus EVK 2.2.0-avt1.0, see https://github.com/alliedvision/alvium-manifest-imx8mpevk
 
  Tests were performed on the following NVIDIA Jetson SOMs: 
 
-  - AGX Orin Developer Kit
-  - AGX Xavier DevKit
-  - Xavier NX DevKit
-  - Auvidea carrier JNX30-PD with Xavier NX 
+  - NVIDIA AGX Orin Developer Kit
+  - JetPack 5.1.0 (L4T 35.1.0), see https://github.com/alliedvision/linux_nvidia_jetson
 
 Additionally, you can use the viewer with any other CSI-2 camera or another board.
 
 Tested cameras:
 
--  Alvium MIPI CSI-2 cameras with firmware version 11
+-  Alvium MIPI CSI-2 cameras with firmware version 12
 
 
 Installation
