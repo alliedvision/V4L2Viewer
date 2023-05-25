@@ -16,9 +16,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.  */
 
 
-#include "DeviationCalculator.h"
 #include "FrameObserver.h"
-#include "ImageTransform.h"
 #include "Logger.h"
 
 #include <QPixmap>
@@ -30,42 +28,6 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
-
-#define V4L2_PIX_FMT_Y10P     v4l2_fourcc('Y', '1', '0', 'P')
-
-uint8_t *g_ConversionBuffer1 = 0;
-uint8_t *g_ConversionBuffer2 = 0;
-
-uint32_t InternalConvertRAW10inRAW16ToRAW10g(const void *sourceBuffer, uint32_t length, const void *destBuffer)
-{
-    uint8_t *destData = (unsigned char *)destBuffer;
-    uint8_t *srcData = (unsigned char *)sourceBuffer;
-    uint32_t srcCount = 0;
-    uint32_t destCount = 0;
-
-    while (srcCount < length)
-    {
-        unsigned char lsbits = 0;
-
-        for (int iii = 0; iii < 4; iii++)
-        {
-            *destData++ = *(srcData + 1); // bits [9:2]
-            destCount++;
-
-            lsbits |= (*srcData >> 6) << (iii * 2); // least significant bits [1:0]
-
-            srcData += 2; // move to next 16 bits
-
-            srcCount += 2;
-        }
-
-        *destData++ = lsbits; // every 5th byte contains the lsbs from the last 4 pixels
-        destCount++;
-    }
-
-    return destCount;
-}
 
 FrameObserver::FrameObserver(bool showFrames)
     : m_nFileDescriptor(0)
@@ -85,20 +47,12 @@ FrameObserver::FrameObserver(bool showFrames)
     , m_EnableLogging(0)
     , m_ShowFrames(showFrames)
 {
-    m_pImageProcessingThread = QSharedPointer<ImageProcessingThread>(new ImageProcessingThread());
-
-    connect(m_pImageProcessingThread.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &, const int &)), this, SLOT(OnFrameReadyFromThread(const QImage &, const unsigned long long &, const int &)));
 }
 
 FrameObserver::~FrameObserver()
 {
     StopStream();
-
-    m_pImageProcessingThread->StopThread();
-
-    // wait until the thread is stopped
-    while (isRunning())
-        QThread::msleep(10);
+    wait();
 }
 
 int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t pixelFormat,
@@ -113,7 +67,6 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_nHeight = height;
     m_FrameId = 0;
     m_ReceivedFPS.clear();
-    m_RenderedFPS.clear();
     m_PayloadSize = payloadSize;
     m_PixelFormat = pixelFormat;
     m_BytesPerLine = bytesPerLine;
@@ -123,14 +76,6 @@ int FrameObserver::StartStream(bool blockingMode, int fileDescriptor, uint32_t p
     m_IsStreamRunning = true;
 
     m_EnableLogging = enableLogging;
-
-    if (0 == g_ConversionBuffer1)
-        g_ConversionBuffer1 = (uint8_t*)malloc(m_nWidth * m_nHeight * 4);
-
-    if (0 == g_ConversionBuffer2)
-        g_ConversionBuffer2 = (uint8_t*)malloc(m_nWidth * m_nHeight * 4);
-
-    m_pImageProcessingThread->StartThread();
 
     start();
 
@@ -142,48 +87,33 @@ int FrameObserver::StopStream()
     int nResult = 0;
     int count = 300;
 
-    m_pImageProcessingThread->StopThread();
-
     m_IsStreamRunning = false;
 
-    while (!m_bStreamStopped && count-- > 0)
+    while (!m_bStreamStopped && count-- > 0) {
         QThread::msleep(10);
+    }
 
-    if (count <= 0)
+    if (count <= 0) {
         nResult = -1;
-
-    if (0 != g_ConversionBuffer1)
-        free(g_ConversionBuffer1);
-    g_ConversionBuffer1 = 0;
-
-    if (0 != g_ConversionBuffer2)
-        free(g_ConversionBuffer2);
-    g_ConversionBuffer2 = 0;
+    }
 
     return nResult;
 }
 
-int FrameObserver::ReadFrame(v4l2_buffer &buf)
-{
-    int result = -1;
-
-    return result;
-}
-
-int FrameObserver::GetFrameData(const v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length) const
-{
-    int result = -1;
-
-    return result;
-}
-
-int FrameObserver::AddRawDataProcessor(const std::function<void(const uint8_t *,uint32_t,const v4l2_buffer&)> callback)
+int FrameObserver::AddRawDataProcessor(DataProcessorFunc processor)
 {
     int index = m_rawDataProcessors.size();
-    m_rawDataProcessors.push_back(callback);
+    m_rawDataProcessors.push_back(processor);
 
     return index;
 }
+
+
+uint64_t constexpr allOnes(int count) {
+    assert(count < sizeof(uint64_t) * 8);
+    return (1ULL << uint64_t(count)) - 1ULL;
+}
+
 
 void FrameObserver::DequeueAndProcessFrame()
 {
@@ -197,57 +127,35 @@ void FrameObserver::DequeueAndProcessFrame()
         m_FrameId++;
         m_ReceivedFPS.trigger();
 
-        if (m_ShowFrames)
-        {
-            uint8_t *buffer = 0;
-            uint32_t length = 0;
+          uint8_t *buffer = 0;
+          uint32_t length = 0;
 
-            if (0 == GetFrameData(buf, buffer, length))
-            {
-                for (auto const & cb : m_rawDataProcessors)
-                {
-                    cb(buffer,length,buf);
-                }
-
-
-                if (m_PixelFormat == V4L2_PIX_FMT_Y10P ||
-                    m_PixelFormat == V4L2_PIX_FMT_SBGGR10P ||
-                    m_PixelFormat == V4L2_PIX_FMT_SGBRG10P ||
-                    m_PixelFormat == V4L2_PIX_FMT_SGRBG10P ||
-                    m_PixelFormat == V4L2_PIX_FMT_SRGGB10P)
-                {
-                    length = InternalConvertRAW10inRAW16ToRAW10g(buffer, m_PayloadSize, g_ConversionBuffer2);
-                    buffer = g_ConversionBuffer2;
-                }
-
-                if (length <= m_RealPayloadSize)
-                {
-                    if (m_pImageProcessingThread->QueueFrame(buf.index, buffer, length,
-                        m_nWidth, m_nHeight, m_PixelFormat,
-                        m_PayloadSize, m_BytesPerLine, m_FrameId))
-                    {
-                        // when frame was not queued to image queue because queue is full
-                        // frame should be queued to v4l2 queue again
-                        QueueSingleUserBuffer(buf.index);
-                    }
-                }
-                else
-                {
-                    emit OnFrameID_Signal(m_FrameId);
-                    QueueSingleUserBuffer(buf.index);
-                }
+          if (0 == GetFrameData(buf, buffer, length))
+          {
+              auto const procCount = m_rawDataProcessors.size();
+              if(procCount > 0) {
+                  m_UserBufferContainerList[buf.index]->processMap = allOnes(procCount);
+                  int i = 0;
+                  for (auto const & cb : m_rawDataProcessors) {
+                      cb(BufferWrapper { buf, buffer, length, m_nWidth, m_nHeight,
+                                         m_PixelFormat, m_PayloadSize, m_BytesPerLine, m_FrameId },
+                          [i, idx = buf.index, this] {
+                              auto& map = m_UserBufferContainerList[idx]->processMap;
+                              map &= ~(1ULL << i);
+                              if(map == 0) {
+                                QueueSingleUserBuffer(idx);
+                              }
+                          });
+                      ++i;
+                  }
+              } else {
+                  QueueSingleUserBuffer(buf.index);
+              }
             }
             else
             {
-                emit OnFrameID_Signal(m_FrameId);
                 QueueSingleUserBuffer(buf.index);
             }
-        }
-        else
-        {
-            emit OnFrameID_Signal(m_FrameId);
-            QueueSingleUserBuffer(buf.index);
-        }
     }
     else
     {
@@ -285,12 +193,12 @@ void FrameObserver::run()
 
             result = select(m_nFileDescriptor + 1, &fds, NULL, NULL, &tv);
 
-            if (-1 == result)
+            if (result == -1)
             {
                 // Error
                 continue;
             }
-            else if (0 == result)
+            else if (result == 0)
             {
                 // Timeout
                 QThread::msleep(0);
@@ -318,50 +226,10 @@ double FrameObserver::GetReceivedFPS()
     return m_ReceivedFPS.getFPS();
 }
 
-double FrameObserver::GetRenderedFPS()
-{
-    return m_RenderedFPS.getFPS();
-}
-
-void FrameObserver::OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex)
-{
-    m_RenderedFPS.trigger();
-    emit OnFrameReady_Signal(image, frameId);
-
-    QueueSingleUserBuffer(bufIndex);
-}
 
 /*********************************************************************************************************/
 // Frame buffer handling
 /*********************************************************************************************************/
-
-int FrameObserver::CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize)
-{
-    int result = -1;
-
-    return result;
-}
-
-int FrameObserver::QueueAllUserBuffer()
-{
-    int result = -1;
-
-    return result;
-}
-
-int FrameObserver::QueueSingleUserBuffer(const int index)
-{
-    int result = 0;
-
-    return result;
-}
-
-int FrameObserver::DeleteAllUserBuffer()
-{
-    int result = 0;
-
-    return result;
-}
 
 
 void FrameObserver::SwitchFrameTransfer2GUI(bool showFrames)

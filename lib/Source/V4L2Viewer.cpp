@@ -28,9 +28,10 @@
 #include "ListEnumerationControl.h"
 #include "ListIntEnumerationControl.h"
 #include "StringEnumerationControl.h"
-#include "CustomGraphicsView.h"
+#include "SoftwareRenderSystem.h"
 #include "CustomDialog.h"
 #include "GitRevision.h"
+#include "ImageTransform.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -62,6 +63,10 @@
 #define CCI_BCRM_16R                                0x0014
 
 #define EXPOSURE_MAX_VALUE 2147483647
+
+static constexpr double MAX_ZOOM_IN = 16.0;
+static constexpr double MAX_ZOOM_OUT = 1.0 / 8.0;
+static constexpr double ZOOM_INCREMENT = 2.0;
 
 static int32_t int64_2_int32(const int64_t value)
 {
@@ -109,6 +114,15 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     ui.setupUi(this);
 
+    m_RenderSystem = std::make_unique<SoftwareRenderSystem>();
+    m_pImageView = m_RenderSystem->GetWidget();
+    m_pImageView->setParent(this);
+    m_pImageView->hide();
+    ui.scrollAreaWidgetContents->layout()->addWidget(m_pImageView);
+    connect(m_RenderSystem.get(), SIGNAL(RequestZoom(QPointF, bool)), this, SLOT(OnZoomRequested(QPointF, bool)));
+    connect(m_RenderSystem.get(), SIGNAL(PixelClicked(QPointF)), this, SLOT(OnImageClicked(QPointF)));
+
+
     // connect the menu actions
     connect(ui.m_MenuClose, SIGNAL(triggered()), this, SLOT(OnMenuCloseTriggered()));
 
@@ -117,8 +131,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_StartButton,                 SIGNAL(clicked()),         this, SLOT(OnStartButtonClicked()));
     connect(ui.m_StopButton,                  SIGNAL(clicked()),         this, SLOT(OnStopButtonClicked()));
     connect(ui.m_ZoomFitButton,               SIGNAL(clicked()),         this, SLOT(OnZoomFitButtonClicked()));
-    connect(ui.m_ZoomInButton,                SIGNAL(clicked()),         this, SLOT(OnZoomInButtonClicked()));
-    connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOutButtonClicked()));
+    connect(ui.m_ZoomInButton,                SIGNAL(clicked()),         this, SLOT(OnZoomIn()));
+    connect(ui.m_ZoomOutButton,               SIGNAL(clicked()),         this, SLOT(OnZoomOut()));
     connect(ui.m_SaveImageButton,             SIGNAL(clicked()),         this, SLOT(OnSaveImageClicked()));
 
     connect(ui.m_FlipHorizontalCheckBox,      SIGNAL(stateChanged(int)), this, SLOT(OnFlipHorizontal(int)));
@@ -129,8 +143,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     // Start Camera
     connect(&m_Camera, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
     connect(&m_Camera, SIGNAL(OnSubDeviceListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnSubDeviceListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraFrameReady_Signal(const QImage &, const unsigned long long &)),                                       this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)), Qt::QueuedConnection);
-    connect(&m_Camera, SIGNAL(OnCameraFrameID_Signal(const unsigned long long &)),                                                          this, SLOT(OnFrameID(const unsigned long long &)));
     connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &,bool)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &,bool)));
 
     qRegisterMetaType<int32_t>("int32_t");
@@ -174,17 +186,12 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_camerasListCheckBox, SIGNAL(clicked()), this, SLOT(OnCameraListButtonClicked()));
     connect(ui.m_Splitter1, SIGNAL(splitterMoved(int, int)), this, SLOT(OnMenuSplitterMoved(int, int)));
 
-    connect(ui.m_ImageView, SIGNAL(UpdateZoomLabel()), this, SLOT(OnUpdateZoomLabel()));
-
     m_Camera.DeviceDiscoveryStart();
     m_Camera.SubDeviceDiscoveryStart();
     connect(ui.m_CamerasListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(OnListBoxCamerasItemDoubleClicked(QListWidgetItem *)));
 
     // Connect the handler to show the frames per second
     connect(&m_FramesReceivedTimer, SIGNAL(timeout()), this, SLOT(OnUpdateFramesReceived()));
-
-    // register meta type for QT signal/slot mechanism
-    qRegisterMetaType<QSharedPointer<MyFrame> >("QSharedPointer<MyFrame>");
 
     // connect the buttons for Image m_ControlRequestTimer
     connect(ui.m_edWidth, SIGNAL(editingFinished()), this, SLOT(OnWidth()));
@@ -215,16 +222,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.m_Splitter2->setStretchFactor(0, 75);
     ui.m_Splitter2->setStretchFactor(1, 25);
 
-    // Set the viewer scene
-    m_pScene = QSharedPointer<QGraphicsScene>(new QGraphicsScene());
-
-    m_PixmapItem = new QGraphicsPixmapItem();
-
-    ui.m_ImageView->setScene(m_pScene.data());
-    ui.m_ImageView->SetPixmapItem(m_PixmapItem);
-
-    m_pScene->addItem(m_PixmapItem);
-
     // add about widget to the menu bar
     m_pAboutWidget = new AboutWidget(this);
     m_pAboutWidget->SetVersion(QString("%1.%2.%3").arg(APP_VERSION_MAJOR).arg(APP_VERSION_MINOR).arg(APP_VERSION_PATCH));
@@ -241,6 +238,13 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     QMainWindow::showMaximized();
 
+    m_LogoPixmapItem = new QGraphicsPixmapItem;
+
+    QPixmap pix(":/V4L2Viewer/icon_camera_256.png");
+    m_LogoPixmapItem->setPixmap(pix);
+    m_LogoScene.addItem(m_LogoPixmapItem);
+    m_LogoScene.setSceneRect(0, 0, pix.width(), pix.height());
+    ui.m_LogoHolder->setScene(&m_LogoScene);
     UpdateViewerLayout();
 
     ui.m_camerasListCheckBox->setChecked(true);
@@ -268,6 +272,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.m_MenuLang->menuAction()->setVisible(false);
 
     SetDefaultLabels();
+
 }
 
 void V4L2Viewer::SetDefaultLabels()
@@ -560,7 +565,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
                 ui.m_CamerasListBox->setItemWidget(ui.m_CamerasListBox->item(nRow), newItem);
                 ui.m_Splitter1->setSizes(QList<int>{0,1});
                 ui.m_camerasListCheckBox->setChecked(false);
-                ui.m_ImageView->SetZoomAllowed(true);
                 ui.m_FlipHorizontalCheckBox->setEnabled(true);
                 ui.m_FlipVerticalCheckBox->setEnabled(true);
                 ui.m_DisplayImagesCheckBox->setEnabled(true);
@@ -576,13 +580,12 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             m_bIsOpen = false;
 
             // Stop
-            if (true == m_bIsStreaming)
+            if (m_bIsStreaming)
             {
                 OnStopButtonClicked();
             }
 
-            ui.m_ImageView->SetScaleFactorToDefault();
-            ui.m_ImageView->SetZoomAllowed(false);
+            m_RenderSystem->SetScaleFactor(1.0);
 
             ui.m_FlipHorizontalCheckBox->setEnabled(false);
             ui.m_FlipVerticalCheckBox->setEnabled(false);
@@ -612,7 +615,7 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             ui.m_FramesPerSecondLabel->setText("- fps");
         }
 
-        if (false == m_bIsOpen)
+        if (!m_bIsOpen)
         {
             ui.m_OpenCloseButton->setText(QString(tr("Open Camera")));
         }
@@ -949,11 +952,6 @@ void V4L2Viewer::PassExtControl(v4l2_ext_control ctrl)
     m_pEnumerationControlWidget->Update(ctrl);
 }
 
-void V4L2Viewer::OnUpdateZoomLabel()
-{
-    UpdateZoomButtons();
-}
-
 void V4L2Viewer::OnDockWidgetPositionChanged(bool topLevel)
 {
     if (topLevel)
@@ -1004,26 +1002,12 @@ void V4L2Viewer::OnCheckFrameRateAutoClicked()
 
 void V4L2Viewer::OnFlipHorizontal(int state)
 {
-    Q_UNUSED(state)
-    if (!m_bIsStreaming)
-    {
-        QImage image = m_PixmapItem->pixmap().toImage();
-        image = image.mirrored(true, false);
-        m_PixmapItem->setPixmap(QPixmap::fromImage(image));
-        m_PixmapItem->update();
-    }
+    m_RenderSystem->SetFlipX(state != Qt::Unchecked);
 }
 
 void V4L2Viewer::OnFlipVertical(int state)
 {
-    Q_UNUSED(state)
-    if (!m_bIsStreaming)
-    {
-        QImage image = m_PixmapItem->pixmap().toImage();
-        image = image.mirrored(false, true);
-        m_PixmapItem->setPixmap(QPixmap::fromImage(image));
-        m_PixmapItem->update();
-    }
+    m_RenderSystem->SetFlipY(state != Qt::Unchecked);
 }
 
 void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint32_t width, uint32_t height, uint32_t bytesPerLine)
@@ -1034,9 +1018,9 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
     ui.m_StartButton->setEnabled(false);
 
     ui.m_labelPixelFormats->setEnabled(false);
-	ui.m_labelFrameSizes->setEnabled(false);
+    ui.m_labelFrameSizes->setEnabled(false);
     ui.m_pixelFormats->setEnabled(false);
-	ui.m_frameSizes->setEnabled(false);
+    ui.m_frameSizes->setEnabled(false);
 
     ui.m_labelFrameRate->setEnabled(false);
     ui.m_edFrameRate->setEnabled(false);
@@ -1054,7 +1038,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
     LOG_EX("V4L2Viewer::StartStreaming pixelFormat=%d,payloadSize=%d,width=%d,height=%d,bytesPerLine=%d", pixelFormat, payloadSize, width, height, bytesPerLine);
 
     // start streaming
-
+    ImageTransform::Init(width, height);
     if (m_Camera.CreateUserBuffer(m_NUMBER_OF_USED_FRAMES, payloadSize) == 0)
     {
         LOG_EX("V4L2Viewer::StartStreaming streaming will be started");
@@ -1164,34 +1148,41 @@ void V4L2Viewer::OnStopButtonClicked()
     m_FramesReceivedTimer.stop();
 
     m_Camera.DeleteUserBuffer();
+    QMutexLocker locker(&lastFrameMutex);
+    lastDoneCallback = nullptr;
 }
 
 void V4L2Viewer::OnSaveImageClicked()
 {
+    QMutexLocker locker(&lastFrameMutex);
+    if(!lastDoneCallback) {
+        return;
+    }
+
     QString filename = "/Frame_"+QString::number(m_SavedFramesCounter)+m_LastImageSaveFormat;
     QString fullPath = QFileDialog::getSaveFileName(this, tr("Save file"), QDir::homePath()+filename, "*.png *.raw");
 
     if (fullPath.contains(".png"))
     {
         m_LastImageSaveFormat = ".png";
-        QPixmap pixmap = m_PixmapItem->pixmap();
-        QImage image = pixmap.toImage();
-        image.save(fullPath,"png");
+        // Do pixel format conversion here.
+        // When doing software rendering, this is redundant work, but it greatly simplifies the
+        // RenderSystem interface and doesn't require render-to-texture in case of hardware
+        // accelerated rendering
+        QImage convertedImage;
+        ImageTransform::ConvertFrame(lastFrame.data, lastFrame.length,
+                                     lastFrame.width, lastFrame.height, lastFrame.pixelFormat,
+                                     lastFrame.payloadSize, lastFrame.bytesPerLine, convertedImage);
+        locker.unlock();
+        convertedImage.save(fullPath,"png");
         m_SavedFramesCounter++;
     }
     else if(fullPath.contains(".raw"))
     {
         m_LastImageSaveFormat = ".raw";
 
-        QPixmap pixmap = m_PixmapItem->pixmap();
-        QImage image = pixmap.toImage();
-#if QT_VERSION >= QT_VERSION_CHECK(5,10,0)
-        int size = image.sizeInBytes();
-#else
-        int size = image.byteCount();
-#endif
-
-        QByteArray data(reinterpret_cast<const char*>(image.bits()), size);
+        QByteArray data(reinterpret_cast<const char*>(lastFrame.data), lastFrame.length);
+        locker.unlock();
         QFile file(fullPath);
         file.open(QIODevice::WriteOnly);
         file.write(data);
@@ -1200,52 +1191,6 @@ void V4L2Viewer::OnSaveImageClicked()
     }
 }
 
-// The event handler to show the processed frame
-void V4L2Viewer::OnFrameReady(const QImage &image, const unsigned long long &frameId)
-{
-    if (m_ShowFrames && m_bIsStreaming)
-    {
-        if (!image.isNull())
-        {
-            if (ui.m_FlipHorizontalCheckBox->isChecked() || ui.m_FlipVerticalCheckBox->isChecked())
-            {
-                QImage tmpImage;
-                if (ui.m_FlipVerticalCheckBox->isChecked())
-                    tmpImage = image.mirrored(false, true);
-                else
-                    tmpImage = image;
-                if (ui.m_FlipHorizontalCheckBox->isChecked())
-                    tmpImage = tmpImage.mirrored(true, false);
-                m_pScene->setSceneRect(0, 0, tmpImage.width(), tmpImage.height());
-                m_PixmapItem->setPixmap(QPixmap::fromImage(tmpImage));
-                ui.m_ImageView->show();
-
-                ui.m_FrameIdLabel->setText(QString("Frame ID: %1, W: %2, H: %3").arg(frameId).arg(tmpImage.width()).arg(tmpImage.height()));
-            }
-            else
-            {
-                m_pScene->setSceneRect(0, 0, image.width(), image.height());
-                m_PixmapItem->setPixmap(QPixmap::fromImage(image));
-                ui.m_ImageView->show();
-                ui.m_FrameIdLabel->setText(QString("Frame ID: %1, W: %2, H: %3").arg(frameId).arg(image.width()).arg(image.height()));
-            }
-            if (!m_bIsImageFitByFirstImage)
-            {
-                ui.m_ZoomFitButton->setChecked(true);
-                OnZoomFitButtonClicked();
-                m_bIsImageFitByFirstImage = true;
-            }
-        }
-    }
-    else
-        ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
-}
-
-// The event handler to show the processed frame
-void V4L2Viewer::OnFrameID(const unsigned long long &frameId)
-{
-    ui.m_FrameIdLabel->setText(QString("FrameID: %1").arg(frameId));
-}
 
 // This event handler is triggered through a Qt signal posted by the camera observer
 void V4L2Viewer::OnCameraListChanged(const int &reason, unsigned int cardNumber, unsigned long long deviceID, const QString &deviceName, const QString &info)
@@ -1344,11 +1289,9 @@ void V4L2Viewer::UpdateViewerLayout()
 {
     if (!m_bIsOpen)
     {
-        QPixmap pix(":/V4L2Viewer/icon_camera_256.png");
-        m_pScene->setSceneRect(0, 0, pix.width(), pix.height());
-        m_PixmapItem->setPixmap(pix);
-        ui.m_ImageView->show();
+        ui.m_LogoHolder->show();
         m_bIsStreaming = false;
+        m_pImageView->hide();
     }
 
     // Hide all cameras when not needed and block signals to avoid
@@ -1377,26 +1320,82 @@ void V4L2Viewer::UpdateViewerLayout()
     ui.m_FrameIdLabel->setEnabled(m_bIsOpen && m_bIsStreaming);
 }
 
+void V4L2Viewer::OnImageClicked(QPointF point) {
+    if(point.x() < 0 || point.y() < 0) {
+        return;
+    }
+
+    QMutexLocker locker(&lastFrameMutex);
+    if(!lastDoneCallback) {
+        return;
+    }
+
+    int const x = int(point.x());
+    int const y = int(point.y());
+    if(x >= lastFrame.width || y >= lastFrame.height) {
+        return;
+    }
+
+    QImage convertedImage;
+    // converting entire image is overkill, but this is not performance-relevant,
+    // so let's go with simple for now.
+    ImageTransform::ConvertFrame(lastFrame.data, lastFrame.length,
+                                 lastFrame.width, lastFrame.height, lastFrame.pixelFormat,
+                                 lastFrame.payloadSize, lastFrame.bytesPerLine, convertedImage);
+    locker.unlock();
+    QColor const myPixel = convertedImage.pixel(x, y);
+
+    QToolTip::showText(QCursor::pos(), QString("x:%1, y:%2, r:%3/g:%4/b:%5")
+                       .arg(x)
+                       .arg(y)
+                       .arg(myPixel.red())
+                       .arg(myPixel.green())
+                       .arg(myPixel.blue()), this);
+}
+
+void V4L2Viewer::OnZoomRequested(QPointF center, bool zoomIn)
+{
+    if(zoomIn) {
+        OnZoomIn();
+    } else {
+        OnZoomOut();
+    }
+}
+
 // The event handler to resize the image to fit to window
 void V4L2Viewer::OnZoomFitButtonClicked()
 {
-    ui.m_ImageView->SetScaleFactorToDefault();
-    ui.m_ImageView->fitInView(m_pScene->sceneRect(), Qt::KeepAspectRatio);
-    double scaleFitToView = ui.m_ImageView->transform().m11();
+    uint32_t frmWidth = 0;
+    uint32_t frmHeight = 0;
+    m_Camera.ReadFrameSize(frmWidth, frmHeight);
+
+    double const scaleX = double(ui.scrollAreaWidgetContents->width()) / double(frmWidth);
+    double const scaleY = double(ui.scrollAreaWidgetContents->height()) / double(frmHeight);
+    double const scaleFitToView = std::min(scaleX, scaleY);
+    m_RenderSystem->SetScaleFactor(scaleFitToView);
     ui.m_ZoomLabel->setText(QString("%1%").arg(scaleFitToView * 100, 1, 'f',1));
+    zoom = 1.0;
 }
 
 // The event handler for resize the image
-void V4L2Viewer::OnZoomInButtonClicked()
+void V4L2Viewer::OnZoomIn()
 {
-    ui.m_ImageView->OnZoomIn();
+    if(zoom < MAX_ZOOM_IN)
+    {
+        zoom *= ZOOM_INCREMENT;
+        m_RenderSystem->SetScaleFactor(zoom);
+    }
     UpdateZoomButtons();
 }
 
 // The event handler for resize the image
-void V4L2Viewer::OnZoomOutButtonClicked()
+void V4L2Viewer::OnZoomOut()
 {
-    ui.m_ImageView->OnZoomOut();
+    if(zoom > MAX_ZOOM_OUT)
+    {
+        zoom /= ZOOM_INCREMENT;
+        m_RenderSystem->SetScaleFactor(zoom);
+    }
     UpdateZoomButtons();
 }
 
@@ -1406,7 +1405,7 @@ void V4L2Viewer::UpdateZoomButtons()
     ui.m_ZoomFitButton->setEnabled(m_bIsOpen);
     ui.m_ZoomLabel->setEnabled(m_bIsOpen);
 
-    if (ui.m_ImageView->GetScaleFactorValue() >= CustomGraphicsView::MAX_ZOOM_IN)
+    if (zoom >= MAX_ZOOM_IN)
     {
         ui.m_ZoomInButton->setEnabled(false);
     }
@@ -1415,7 +1414,7 @@ void V4L2Viewer::UpdateZoomButtons()
         ui.m_ZoomInButton->setEnabled(m_bIsOpen);
     }
 
-    if (ui.m_ImageView->GetScaleFactorValue() <= CustomGraphicsView::MAX_ZOOM_OUT)
+    if (zoom <= MAX_ZOOM_OUT)
     {
         ui.m_ZoomOutButton->setEnabled(false);
     }
@@ -1423,7 +1422,7 @@ void V4L2Viewer::UpdateZoomButtons()
     {
         ui.m_ZoomOutButton->setEnabled(m_bIsOpen);
     }
-    ui.m_ZoomLabel->setText(QString("%1%").arg(ui.m_ImageView->GetScaleFactorValue() * 100));
+    ui.m_ZoomLabel->setText(QString("%1%").arg(zoom * 100));
 }
 
 // Open/Close the camera
@@ -1439,6 +1438,47 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
     if (err != 0)
     {
         CustomDialog::Error( this, tr("Video4Linux"), tr("The camera cannot be opened because it is in use by another application or it has been disconnected!"));
+    } else {
+      // Data processor for updating UI according to received data
+      m_Camera.GetFrameObserver()->AddRawDataProcessor([this] (auto const& buf, auto doneCallback) {
+        m_pImageView->show();
+        ui.m_LogoHolder->hide();
+        if(!m_bIsImageFitByFirstImage) {
+            ui.m_ZoomFitButton->setChecked(true);
+            OnZoomFitButtonClicked();
+            m_bIsImageFitByFirstImage = true;
+        }
+        ui.m_FrameIdLabel->setText(QString("FrameID: %1, W: %2, H: %3")
+          .arg(buf.frameID)
+          .arg(buf.width)
+          .arg(buf.height)
+        );
+        doneCallback();
+      });
+
+      // Separate raw data processor for rendering
+      m_Camera.GetFrameObserver()->AddRawDataProcessor([&] (auto const& buf, auto doneCallback) {
+        if(m_ShowFrames) {
+          m_RenderSystem->PassFrame(buf, doneCallback);
+        } else {
+          doneCallback();
+        }
+      });
+
+      // Extra data processor for retaining the buffer for one frame
+      // so we still have it in case we need to save a file or pick a pixel's color
+      m_Camera.GetFrameObserver()->AddRawDataProcessor([&] (auto const& buf, auto doneCallback) {
+        if(m_ShowFrames) {
+          QMutexLocker locker(&lastFrameMutex);
+          if(lastDoneCallback) {
+            lastDoneCallback();
+          }
+          lastDoneCallback = doneCallback;
+          lastFrame = buf;
+        } else {
+          doneCallback();
+        }
+      });
     }
 
     return err;
@@ -1459,7 +1499,7 @@ int V4L2Viewer::CloseCamera(const uint32_t cardNumber)
 void V4L2Viewer::OnUpdateFramesReceived()
 {
     auto const fpsReceived = m_Camera.GetReceivedFPS();
-    auto const fpsRendered = m_Camera.GetRenderedFPS();
+    auto const fpsRendered = m_RenderSystem->GetRenderedFPS();
     ui.m_FramesPerSecondLabel->setText(QString::asprintf("%.2f received/ %.2f rendered", fpsReceived, fpsRendered));
 }
 

@@ -20,14 +20,13 @@
 #define V4L2VIEWER_H
 
 #include "Camera.h"
-#include "DeviationCalculator.h"
 #include "FrameObserver.h"
-#include "MyFrame.h"
 #include "AboutWidget.h"
 #include "ui_V4L2Viewer.h"
 #include "ControlsHolderWidget.h"
-#include "CustomGraphicsView.h"
+#include "RenderSystem.h"
 
+#include <memory>
 #include <list>
 
 #include <QMainWindow>
@@ -57,6 +56,7 @@ protected:
     bool m_ShowFrames;
     bool m_bIsImageFitByFirstImage;
     const int DEFAULT_FRAME_RATE = 8;
+    double zoom = 1.0;
 
     // The currently streaming camera
     Camera m_Camera;
@@ -79,10 +79,6 @@ protected:
     bool m_bIsStreaming;
     // Timer to show the frames received from the frame observer
     QTimer m_FramesReceivedTimer;
-    // Graphics scene to show the image
-    QSharedPointer<QGraphicsScene> m_pScene;
-    // Pixel map for the graphics scene
-    QGraphicsPixmapItem *m_PixmapItem;
     // store radio buttons for blocking/non-blocking mode in a group
     QButtonGroup* m_BlockingModeRadioButtonGroup;
     // This value holds translations for the internationalization
@@ -107,6 +103,17 @@ protected:
     bool m_bIsCropAvailable;
 
     uint32_t m_DefaultDenominator;
+
+    std::unique_ptr<RenderSystem> m_RenderSystem;
+    QWidget *m_pImageView = nullptr;
+
+    // Stores last displayed frame in case we need it for saving a frame or picking a pixel's color
+    QMutex lastFrameMutex;
+    BufferWrapper lastFrame;
+    std::function<void()> lastDoneCallback = nullptr;
+
+    QGraphicsScene m_LogoScene;
+    QGraphicsPixmapItem *m_LogoPixmapItem;
 
     // Queries and lists all known cameras
     //
@@ -203,20 +210,18 @@ protected slots:
     // The event handler for stopping acquisition
     void OnStopButtonClicked();
 
+    void OnImageClicked(QPointF point);
+    void OnZoomRequested(QPointF center, bool zoomIn);
     // The event handler to resize the image to fit to window
     void OnZoomFitButtonClicked();
     // The slot function is called when the zoom in buton is clicked
-    void OnZoomInButtonClicked();
+    void OnZoomIn();
     // The slot function is called when the zoom out buton is clicked
-    void OnZoomOutButtonClicked();
+    void OnZoomOut();
     // The slot function saves image and is called when the save button is clicked
     void OnSaveImageClicked();
     // The event handler to show the frames received
     void OnUpdateFramesReceived();
-    // The event handler to show the processed frame
-    virtual void OnFrameReady(const QImage &image, const unsigned long long &frameId);
-    // The event handler to show the processed frame ID
-    void OnFrameID(const unsigned long long &frameId);
     // The event handler to open a camera on double click event
     void OnListBoxCamerasItemDoubleClicked(QListWidgetItem * item);
 
@@ -390,7 +395,6 @@ protected slots:
 
     void PassExtControl(v4l2_ext_control ctrl);
 
-    void OnUpdateZoomLabel();
     // This slot function is called when the dock widget is docked or undocked
     //
     //

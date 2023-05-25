@@ -23,14 +23,8 @@
 
 #include <stdint.h>
 
-class ImageTransform
-{
-public:
 
-    ImageTransform();
-
-    virtual ~ImageTransform();
-
+namespace ImageTransform {
     // This function convert frame and return results of conversion
     //
     // Parameters:
@@ -45,12 +39,14 @@ public:
     //
     // Returns:
     // (int) - result of converting
-    static int ConvertFrame(const uint8_t* pBuffer, uint32_t length,
+    int ConvertFrame(const uint8_t* pBuffer, uint32_t length,
                             uint32_t width, uint32_t height, uint32_t pixelFormat,
-                            uint32_t &payloadSize, uint32_t &bytesPerLine, QImage &convertedImage);
+                            uint32_t payloadSize, uint32_t bytesPerLine, QImage &convertedImage);
 
-    static bool CanConvert(uint32_t pixelFormat);
-};
+    bool CanConvert(uint32_t pixelFormat);
+
+    void Init(uint32_t width, uint32_t height);
+}
 
 #endif // IMAGETRANSFORM_H
 
