@@ -471,9 +471,15 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>896</width>
+              <width>889</width>
               <height>297</height>
              </rect>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>255</horstretch>
+              <verstretch>255</verstretch>
+             </sizepolicy>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <property name="spacing">
@@ -492,13 +498,12 @@ border:none;
               <number>0</number>
              </property>
              <item>
-              <widget class="CustomGraphicsView" name="m_ImageView">
+              <widget class="QGraphicsView" name="m_LogoHolder">
                <property name="styleSheet">
                 <string notr="true">QGraphicsView{
 background-color: rgb(19,20,21);
 border:none;
-}
-</string>
+}</string>
                </property>
               </widget>
              </item>
@@ -1061,7 +1066,7 @@ border:none;
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>1247</width>
+              <width>1190</width>
               <height>378</height>
              </rect>
             </property>
@@ -2460,17 +2465,9 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>CustomGraphicsView</class>
-   <extends>QGraphicsView</extends>
-   <header>CustomGraphicsView.h</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
   <tabstop>m_camerasListCheckBox</tabstop>
   <tabstop>scrollArea</tabstop>
-  <tabstop>m_ImageView</tabstop>
   <tabstop>m_CamerasListBox</tabstop>
   <tabstop>scrollArea_2</tabstop>
   <tabstop>m_OpenCloseButton</tabstop>

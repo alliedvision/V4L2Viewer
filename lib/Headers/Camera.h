@@ -644,11 +644,6 @@ public:
     // Returns:
     // (double) - received framerate
     double GetReceivedFPS();
-    // This function returns rendered framerate
-    //
-    // Returns:
-    // (double) - rendered framerate
-    double GetRenderedFPS();
 
     // This function switches frame transfer to gui
     //
@@ -791,10 +786,6 @@ signals:
     void OnCameraFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
     // Event will be called when a frame ID is processed by the internal thread and ready to show
     void OnCameraFrameID_Signal(const unsigned long long &frameId);
-    // Event will be called when the a frame is recorded
-    void OnCameraRecordFrame_Signal(const QSharedPointer<MyFrame>&);
-    // Event will be called when the a frame is displayed
-    void OnCameraDisplayFrame_Signal(const unsigned long long &);
     // Event will be called when found new pixel format
     void OnCameraPixelFormat_Signal(const QString &,bool);
     // Event will be called on new frame size
@@ -838,8 +829,6 @@ private slots:
     void OnFrameReady(const QImage &image, const unsigned long long &frameId);
     // The event handler to show the processed frame ID
     void OnFrameID(const unsigned long long &frameId);
-    // Event will be called when the a frame is displayed
-    void OnDisplayFrame(const unsigned long long &frameID);
 };
 
 #endif // CAMERA_H

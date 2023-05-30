@@ -289,10 +289,6 @@ double Camera::GetReceivedFPS()
     return m_pFrameObserver->GetReceivedFPS();
 }
 
-double Camera::GetRenderedFPS()
-{
-    return m_pFrameObserver->GetRenderedFPS();
-}
 
 int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bool blockingMode, IO_METHOD_TYPE ioMethodType,
                bool v4l2TryFmt)
@@ -450,9 +446,6 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
             m_pFrameObserver = QSharedPointer<FrameObserverUSER>(new FrameObserverUSER(m_ShowFrames));
             break;
     }
-    connect(m_pFrameObserver.data(), SIGNAL(OnFrameReady_Signal(const QImage &, const unsigned long long &)), this, SLOT(OnFrameReady(const QImage &, const unsigned long long &)));
-    connect(m_pFrameObserver.data(), SIGNAL(OnFrameID_Signal(const unsigned long long &)), this, SLOT(OnFrameID(const unsigned long long &)));
-    connect(m_pFrameObserver.data(), SIGNAL(OnDisplayFrame_Signal(const unsigned long long &)), this, SLOT(OnDisplayFrame(const unsigned long long &)));
 
     auto fileDescriptors = m_SubDeviceFileDescriptors;
     fileDescriptors.push_back(m_DeviceFileDescriptor);
@@ -575,12 +568,6 @@ void Camera::OnFrameReady(const QImage &image, const unsigned long long &frameId
 void Camera::OnFrameID(const unsigned long long &frameId)
 {
     emit OnCameraFrameID_Signal(frameId);
-}
-
-// Event will be called when a frame is displayed
-void Camera::OnDisplayFrame(const unsigned long long &frameID)
-{
-    emit OnCameraDisplayFrame_Signal(frameID);
 }
 
 // The event handler to set or remove devices

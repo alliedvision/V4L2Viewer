@@ -28,15 +28,12 @@ list(APPEND HEADER_FILES
   ${HEADERS_PATH}/FrameObserver.h
   ${HEADERS_PATH}/FrameObserverMMAP.h
   ${HEADERS_PATH}/FrameObserverUSER.h
-  ${HEADERS_PATH}/ImageProcessingThread.h
   ${HEADERS_PATH}/ImageTransform.h
   ${HEADERS_PATH}/IOHelper.h
   ${HEADERS_PATH}/LocalMutex.h
   ${HEADERS_PATH}/LocalMutexLockGuard.h
   ${HEADERS_PATH}/Logger.h
   ${HEADERS_PATH}/MemoryHelper.h
-  ${HEADERS_PATH}/MyFrame.h
-  ${HEADERS_PATH}/MyFrameQueue.h
   ${HEADERS_PATH}/SelectSubDeviceDialog.h
   ${HEADERS_PATH}/Thread.h
   ${HEADERS_PATH}/V4L2Helper.h
@@ -54,8 +51,10 @@ list(APPEND HEADER_FILES
   ${HEADERS_PATH}/EnumeratorInterface/ButtonEnumerationControl.h
   ${HEADERS_PATH}/EnumeratorInterface/ListEnumerationControl.h
   ${HEADERS_PATH}/EnumeratorInterface/ListIntEnumerationControl.h
-  ${HEADERS_PATH}/CustomGraphicsView.h
   ${HEADERS_PATH}/CustomDialog.h
+  ${HEADERS_PATH}/RenderSystem.h
+  ${HEADERS_PATH}/SoftwareRenderSystem.h
+  ${HEADERS_PATH}/SoftwareRenderWidget.h
   ${HEADERS_PATH}/V4L2EventHandler.h
   ${HEADERS_PATH}/FPSCalculator.h
   ${HEADERS_PATH}/EnumeratorInterface/StringEnumerationControl.h
@@ -68,12 +67,9 @@ list(APPEND SOURCE_FILES
   ${SOURCES_PATH}/FrameObserver.cpp
   ${SOURCES_PATH}/FrameObserverMMAP.cpp
   ${SOURCES_PATH}/FrameObserverUSER.cpp
-  ${SOURCES_PATH}/ImageProcessingThread.cpp
   ${SOURCES_PATH}/ImageTransform.cpp
   ${SOURCES_PATH}/IOHelper.cpp
   ${SOURCES_PATH}/Logger.cpp
-  ${SOURCES_PATH}/MyFrame.cpp
-  ${SOURCES_PATH}/MyFrameQueue.cpp
   ${SOURCES_PATH}/SelectSubDeviceDialog.cpp
   ${SOURCES_PATH}/Thread.cpp
   ${SOURCES_PATH}/V4L2Helper.cpp
@@ -90,7 +86,9 @@ list(APPEND SOURCE_FILES
   ${SOURCES_PATH}/EnumeratorInterface/ButtonEnumerationControl.cpp
   ${SOURCES_PATH}/EnumeratorInterface/ListEnumerationControl.cpp
   ${SOURCES_PATH}/EnumeratorInterface/ListIntEnumerationControl.cpp
-  ${SOURCES_PATH}/CustomGraphicsView.cpp
+  ${SOURCES_PATH}/RenderSystem.cpp
+  ${SOURCES_PATH}/SoftwareRenderSystem.cpp
+  ${SOURCES_PATH}/SoftwareRenderWidget.cpp
   ${SOURCES_PATH}/CustomDialog.cpp
   ${SOURCES_PATH}/V4L2EventHandler.cpp
   ${SOURCES_PATH}/FPSCalculator.cpp
@@ -121,12 +119,14 @@ list(APPEND QT_RESOURCES
   ${RESOURCES_PATH}/V4L2Viewer.qrc
 )
 
-find_package(Qt6 COMPONENTS Core Widgets Gui QUIET)
+find_package(Qt6 COMPONENTS Core Widgets Gui OpenGL OpenGLWidgets QUIET)
 if(Qt6_FOUND)
   list(APPEND QT_LIBRARIES
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
+    Qt6::OpenGL
+    Qt6::OpenGLWidgets
     Threads::Threads
   )
   qt6_add_resources(RESOURCES ${QT_RESOURCES})
@@ -136,6 +136,8 @@ else()
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
+    Qt5::OpenGL
+    Qt5::OpenGLWidgets
     Threads::Threads
   )
   qt5_add_resources(RESOURCES ${QT_RESOURCES})

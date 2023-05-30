@@ -19,7 +19,6 @@
 #ifndef FRAMEOBSERVER_H
 #define FRAMEOBSERVER_H
 
-#include "ImageProcessingThread.h"
 #include "LocalMutex.h"
 #include <QImage>
 #include <QObject>
@@ -37,14 +36,16 @@
 #include "V4L2Helper.h"
 #include "FPSCalculator.h"
 
+#include "BufferWrapper.h"
+
 #define MAX_VIEWER_USER_BUFFER_COUNT    50
 
 struct UserBuffer
 {
-    uint8_t         *pBuffer;
-    size_t          nBufferlength;
+    uint8_t              *pBuffer;
+    size_t                nBufferlength;
+    std::atomic<uint64_t> processMap;
 };
-
 
 class FrameObserver : public QThread
 {
@@ -85,11 +86,6 @@ public:
     // Returns:
     // (unsigned int) - received frames count
     double GetReceivedFPS();
-    // This function will return counter of the rendered frames
-    //
-    // Returns:
-    // (unsigned int) - rendered frames count
-    double GetRenderedFPS();
 
     // This function sets file descriptor
     //
@@ -111,12 +107,12 @@ public:
     //
     // Returns:
     // (int) - result of the buffer creation
-    virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize);
+    virtual int CreateAllUserBuffer(uint32_t bufferCount, uint32_t bufferSize) = 0;
     // This function queues all user buffer
     //
     // Returns:
     // (int) - result of the buffer queuing
-    virtual int QueueAllUserBuffer();
+    virtual int QueueAllUserBuffer() = 0;
     // This function queues single user buffer
     //
     // Parameters:
@@ -124,12 +120,12 @@ public:
     //
     // Returns:
     // (int) - result of the buffer queuing
-    virtual int QueueSingleUserBuffer(const int index);
+    virtual int QueueSingleUserBuffer(const int index) = 0;
     // This function removes all user buffer
     //
     // Returns:
     // (int) - result of the buffer removal
-    virtual int DeleteAllUserBuffer();
+    virtual int DeleteAllUserBuffer() = 0;
 
     // This function switches on/off frame transfer to gui
     //
@@ -137,7 +133,9 @@ public:
     // [in] (bool) showFrames
     void SwitchFrameTransfer2GUI(bool showFrames);
 
-    int AddRawDataProcessor(const std::function<void(const uint8_t *,uint32_t,const v4l2_buffer&)> callback);
+    using DataProcessorDoneCallback = std::function<void()>;
+    using DataProcessorFunc = std::function<void(BufferWrapper const&, DataProcessorDoneCallback)>;
+    int AddRawDataProcessor(DataProcessorFunc processor);
 
 protected:
     // v4l2
@@ -148,7 +146,7 @@ protected:
     //
     // Returns:
     // (int) - result of frame reading
-    virtual int ReadFrame(v4l2_buffer &buf);
+    virtual int ReadFrame(v4l2_buffer &buf) = 0;
     // This function returns frame data
     //
     // Parameters:
@@ -158,7 +156,7 @@ protected:
     //
     // Returns:
     // (int) - result of getting data
-    virtual int GetFrameData(const v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length) const;
+    virtual int GetFrameData(const v4l2_buffer &buf, uint8_t *&buffer, uint32_t &length) const = 0;
     // This function process frame from the buffer given in parameter
     //
     // Parameters:
@@ -175,7 +173,6 @@ protected:
 
 protected:
     FPSCalculator m_ReceivedFPS;
-    FPSCalculator m_RenderedFPS;
 
     int m_nFileDescriptor;
     v4l2_buf_type m_BufferType;
@@ -200,25 +197,7 @@ protected:
     std::vector<UserBuffer*>              m_UserBufferContainerList;
     mutable base::LocalMutex              m_UsedBufferMutex;
 
-    // Shared pointer to a worker thread for the image processing
-    QSharedPointer<ImageProcessingThread> m_pImageProcessingThread;
-
-
-    std::list<std::function<void(const uint8_t *,uint32_t,const v4l2_buffer&)>> m_rawDataProcessors;
-
-private slots:
-    //Event handler for getting the processed frame to an image
-    void OnFrameReadyFromThread(const QImage &image, const unsigned long long &frameId, const int &bufIndex);
-
-signals:
-    // Event will be called when a frame is processed by the internal thread and ready to show
-    void OnFrameReady_Signal(const QImage &image, const unsigned long long &frameId);
-    // Event will be called when a frame is processed by the internal thread and ready to show
-    void OnFrameID_Signal(const unsigned long long &frameId);
-    // Event will be called when the frame processing is done and the frame can be returned to streaming engine
-    //void OnFrameDone_Signal(const unsigned long long frameHandle);
-    // Event will be called when the a frame is displayed
-    void OnDisplayFrame_Signal(const unsigned long long &);
+    std::list<DataProcessorFunc> m_rawDataProcessors;
 };
 
 #endif /* FRAMEOBSERVER_H */
