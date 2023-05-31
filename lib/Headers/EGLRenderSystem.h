@@ -1,23 +1,25 @@
-#ifndef SOFTWARERENDERSYSTEM_H
-#define SOFTWARERENDERSYSTEM_H
+#ifndef EGLRENDERSYSTEM_H
+#define EGLRENDERSYSTEM_H
 
 #include <QGraphicsView>
 #include <QGraphicsPixmapItem>
 #include "RenderSystem.h"
-#include "SoftwareRenderWidget.h"
+#include "EGLRenderWidget.h"
 #include <QMutex>
 #include <QThread>
 #include <QWaitCondition>
-#include <QBoxLayout>
-#include <QScrollArea>
+#include <atomic>
+#include <QScrollBar>
+#include <QGridLayout>
 
 
-class SoftwareRenderSystem: public RenderSystem
+
+class EGLRenderSystem: public RenderSystem
 {
     Q_OBJECT
 public:
-    SoftwareRenderSystem();
-    ~SoftwareRenderSystem();
+    EGLRenderSystem();
+    ~EGLRenderSystem();
     void SetScaleFactor(double scale) override;
     void SetFlipX(bool flip);
     void SetFlipY(bool flip);
@@ -29,29 +31,29 @@ public:
 signals:
     void RequestZoom(QPointF center, bool zoomIn);
     void PixelClicked(QPointF pos);
+    void EffectiveSizeChanged();
 
 protected slots:
     void ZoomRequestedByWidget(QPointF center, bool zoomIn);
     void ImageClicked(QPointF point);
 
+private slots:
+    void UpdateScrollbars();
+    void ScrollChanged();
+
 
 private:
-    QScrollArea *scrollArea;
-    QBoxLayout *layout;
-    SoftwareRenderWidget *widget;
+    QWidget *container;
+    QGridLayout *layout;
+    QScrollBar *verticalScrollbar;
+    QScrollBar *horizontalScrollbar;
+    EGLRenderWidget *glWidget;
     bool flipX = false;
     bool flipY = false;
-
-    void ApplyScale();
-    void ConversionThreadMain();
-
-    // TODO encapsulate for re-use in hwaccel renderer?
-    std::atomic<bool> bufferAvailable;
-    std::unique_ptr<QThread> conversionThread;
-    QMutex frameAvailableMutex;
-    QWaitCondition newFrameAvailable;
-    BufferWrapper nextBuffer;
-    std::function<void()> nextDoneCallback;
+    int curWidth = 0;
+    int curHeight = 0;
+    int curPixelformat = 0;
+    std::atomic<bool> newFrame = false;
 };
 
 #endif

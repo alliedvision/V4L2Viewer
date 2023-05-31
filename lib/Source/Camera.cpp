@@ -1103,7 +1103,8 @@ int Camera::ReadFormats()
 
 
 
-        emit OnCameraPixelFormat_Signal(QString("%1").arg(QString(v4l2helper::ConvertPixelFormat2String(fmt.pixelformat).c_str())),!ImageTransform::CanConvert(fmt.pixelformat));
+        //emit OnCameraPixelFormat_Signal(QString("%1").arg(QString(v4l2helper::ConvertPixelFormat2String(fmt.pixelformat).c_str())),!ImageTransform::CanConvert(fmt.pixelformat));
+        emit OnCameraPixelFormat_Signal(fmt.pixelformat);
 
         CLEAR(fmtsize);
         fmtsize.type = m_DeviceBufferType;

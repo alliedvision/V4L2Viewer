@@ -55,6 +55,8 @@ list(APPEND HEADER_FILES
   ${HEADERS_PATH}/RenderSystem.h
   ${HEADERS_PATH}/SoftwareRenderSystem.h
   ${HEADERS_PATH}/SoftwareRenderWidget.h
+  ${HEADERS_PATH}/EGLRenderSystem.h
+  ${HEADERS_PATH}/EGLRenderWidget.h
   ${HEADERS_PATH}/V4L2EventHandler.h
   ${HEADERS_PATH}/FPSCalculator.h
   ${HEADERS_PATH}/EnumeratorInterface/StringEnumerationControl.h
@@ -89,6 +91,8 @@ list(APPEND SOURCE_FILES
   ${SOURCES_PATH}/RenderSystem.cpp
   ${SOURCES_PATH}/SoftwareRenderSystem.cpp
   ${SOURCES_PATH}/SoftwareRenderWidget.cpp
+  ${SOURCES_PATH}/EGLRenderSystem.cpp
+  ${SOURCES_PATH}/EGLRenderWidget.cpp
   ${SOURCES_PATH}/CustomDialog.cpp
   ${SOURCES_PATH}/V4L2EventHandler.cpp
   ${SOURCES_PATH}/FPSCalculator.cpp
