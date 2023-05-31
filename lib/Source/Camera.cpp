@@ -205,6 +205,8 @@ public:
     void SetPixelFormat(v4l2_format& fmt, const uint32_t pixelFormat) override {fmt.fmt.pix_mp.pixelformat = pixelFormat;}
 };
 
+Q_DECLARE_METATYPE(v4l2_event_ctrl);
+
 Camera::Camera()
     : m_DeviceFileDescriptor(-1)
     , m_SubDeviceFileDescriptors()

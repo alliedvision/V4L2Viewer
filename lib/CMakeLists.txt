@@ -131,13 +131,12 @@ if(Qt6_FOUND)
   )
   qt6_add_resources(RESOURCES ${QT_RESOURCES})
 else()
-  find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
+  find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL REQUIRED)
   list(APPEND QT_LIBRARIES
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
     Qt5::OpenGL
-    Qt5::OpenGLWidgets
     Threads::Threads
   )
   qt5_add_resources(RESOURCES ${QT_RESOURCES})
