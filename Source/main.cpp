@@ -18,6 +18,7 @@
 
 #include "V4L2Viewer.h"
 #include <QDebug>
+#include "q_v4l2_ext_ctrl.h"
 
 int main( int argc, char *argv[] )
 {
