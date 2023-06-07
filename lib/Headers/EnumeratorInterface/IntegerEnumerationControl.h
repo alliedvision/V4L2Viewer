@@ -75,6 +75,8 @@ private:
     // (int32_t) - calculated value which is position of the slider
     int32_t GetSliderLogValue(int32_t value);
 
+    void UpdateInfo();
+
     // One of the main elements of this widget, it allows to change value
     QSlider m_Slider;
     // One of the main elements of this widget, it allows to change value
@@ -82,6 +84,8 @@ private:
     int32_t m_Min;
     int32_t m_Max;
     int32_t m_Value;
+    bool m_ReadOnly;
+    QString m_Unit;
     int32_t m_SliderValue;
 };
 

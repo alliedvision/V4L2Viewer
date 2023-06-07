@@ -99,6 +99,8 @@ private:
     // (int32_t) - conversion factor between control and slider value
     int64_t GetConversionFactor() const;
 
+    void UpdateInfo();
+
     // One of the main elements of this widget, it allows to change value
     QSlider m_Slider;
     // One of the main elements of this widget, it allows to change value
@@ -107,6 +109,8 @@ private:
     int64_t m_Min;
     int64_t m_Max;
     int64_t m_Value;
+    bool m_ReadOnly;
+    QString m_Unit;
     int64_t m_SliderValue;
 };
 

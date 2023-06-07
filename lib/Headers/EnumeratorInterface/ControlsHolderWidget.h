@@ -70,8 +70,10 @@ private slots:
     void OnListItemChanged(int row);
 
 private:
+    void UpdateInfo();
     // This vector stores all of the controls widgets
     QVector<IControlEnumerationHolder*> m_itemVector;
+    int m_Selection = -1;
 };
 
 
