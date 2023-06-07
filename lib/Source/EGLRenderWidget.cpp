@@ -5,6 +5,7 @@
 #include <iostream>
 #include <QMutexLocker>
 #include <QOpenGLPixelTransferOptions>
+#include <QOffscreenSurface>
 #include <unordered_map>
 
 struct VertexData {
@@ -41,7 +42,6 @@ namespace {
     // All Bayer patterns are the same, just shifted by one pixel in x and/or y direction. We're
     // using RGGB as the baseline and define all others as shifted variants of that.
     static std::string const shaderBaseRGGB = R"eof(
-        vec2 texSize = vec2(textureSize(image, 0));
         vec2 px = floor(texSize * v_uv);
         vec2 cuv = px / texSize;
         vec2 stepX = vec2(1.0 / texSize.x, 0.0);
@@ -113,7 +113,6 @@ namespace {
     )eof" + shaderBaseRGGB;
 
     static std::string const shaderBaseYUV = R"eof(
-        vec2 texSize = vec2(textureSize(image, 0));
         vec2 px = floor(texSize * v_uv);
         vec2 cuv = px / texSize;
         vec2 stepX = vec2(1.0 / texSize.x, 0.0);
@@ -166,52 +165,64 @@ namespace {
         //       as long as just uploading to a GL_RG8 target.
         //       GL_R16 is not supported by GLES3 at all, so instead we're going with an RG format and extract the
         //       necessary parts from the two channels in the fragment shader.
-        { V4L2_PIX_FMT_Y10,     { shaderMono10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
-        { V4L2_PIX_FMT_Y12,     { shaderMono10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
+        { V4L2_PIX_FMT_Y10,     { shaderMono10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
+        { V4L2_PIX_FMT_Y12,     { shaderMono10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
 
-        { V4L2_PIX_FMT_SRGGB10, { shaderRGGB10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
-        { V4L2_PIX_FMT_SGRBG10, { shaderGRBG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
-        { V4L2_PIX_FMT_SGBRG10, { shaderGBRG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
-        { V4L2_PIX_FMT_SBGGR10, { shaderBGGR10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
+        { V4L2_PIX_FMT_SRGGB10, { shaderRGGB10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
+        { V4L2_PIX_FMT_SGRBG10, { shaderGRBG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
+        { V4L2_PIX_FMT_SGBRG10, { shaderGBRG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
+        { V4L2_PIX_FMT_SBGGR10, { shaderBGGR10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
 
-        { V4L2_PIX_FMT_SRGGB12, { shaderRGGB10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
-        { V4L2_PIX_FMT_SGRBG12, { shaderGRBG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
-        { V4L2_PIX_FMT_SGBRG12, { shaderGBRG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
-        { V4L2_PIX_FMT_SBGGR12, { shaderBGGR10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
+        { V4L2_PIX_FMT_SRGGB12, { shaderRGGB10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
+        { V4L2_PIX_FMT_SGRBG12, { shaderGRBG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
+        { V4L2_PIX_FMT_SGBRG12, { shaderGBRG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
+        { V4L2_PIX_FMT_SBGGR12, { shaderBGGR10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
     };
 
     static char const pixelShaderFramework[] = R"eof(
-        #version 300 es
+        #define texture texture2D
         precision highp float;
         precision highp int;
         uniform sampler2D image;
-        in vec2 v_uv;
-        out vec4 o_color;
+        uniform vec2 texSize;
+        varying vec2 v_uv;
         vec4 convert() {
             %1
         }
         void main() {
-            o_color = convert();
+            gl_FragColor = convert();
         }
     )eof";
 }
 
 bool EGLRenderWidget::canRender(uint32_t pixelFormat) {
+    static bool const isGLES3 = [] {
+        QOpenGLContext ctx;
+        ctx.create();
+        QOffscreenSurface surface;
+        surface.create();
+        ctx.makeCurrent(&surface);
+        int v;
+        ctx.functions()->glGetIntegerv(GL_MAJOR_VERSION, &v);
+        bool const err = ctx.functions()->glGetError();
+        ctx.doneCurrent();
+        return (err == GL_NO_ERROR) && v >= 3;
+    }();
     auto const renderSettingsIt = renderSettings.find(pixelFormat);
-    return renderSettingsIt != renderSettings.end();
+    return (renderSettingsIt != renderSettings.end()) && (!renderSettingsIt->second.requireGLES3 || isGLES3);
 }
 
 void EGLRenderWidget::initializeGL() {
     initializeOpenGLFunctions();
 
+
     vertexShader = std::make_unique<QOpenGLShader>(QOpenGLShader::Vertex);
     bool const compiled = vertexShader->compileSourceCode(R"eof(
-        #version 300 es
         precision mediump float;
         uniform mat4 matrix;
-        in vec2 a_uv;
-        in vec2 a_pos;
-        out vec2 v_uv;
+        attribute vec2 a_uv;
+        attribute vec2 a_pos;
+        varying vec2 v_uv;
         void main() {
             gl_Position = matrix * vec4(a_pos, 0.0, 1.0);
             v_uv = a_uv;
@@ -236,7 +247,8 @@ void EGLRenderWidget::initializeGL() {
 }
 
 EGLRenderWidget::EGLRenderWidget(std::function<void()> onDraw)
-  : onDraw(onDraw) {}
+  : onDraw(onDraw) {
+}
 
 EGLRenderWidget::~EGLRenderWidget() {
     vertices.destroy();
@@ -295,6 +307,7 @@ void EGLRenderWidget::paintGL() {
 
         matrixUniformLocation = shader->uniformLocation("matrix");
         textureUniformLocation = shader->uniformLocation("image");
+        texSizeUniformLocation = shader->uniformLocation("texSize");
     }
 
     {
@@ -312,6 +325,7 @@ void EGLRenderWidget::paintGL() {
     vertices.bind();
     shader->setUniformValue(matrixUniformLocation, fullMatrix);
     shader->setUniformValue(textureUniformLocation, 0);
+    shader->setUniformValue(texSizeUniformLocation, QVector2D(frameWidth, frameHeight));
     texture->bind(0);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

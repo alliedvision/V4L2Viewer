@@ -16,6 +16,7 @@ struct RenderSettings {
     GLenum glPixelType;
     GLenum glInternalFormat;
     void (*uploadData)(QOpenGLTexture&, RenderSettings const&, BufferWrapper const&);
+    bool requireGLES3 = false;
 };
 
 class EGLRenderWidget: public QOpenGLWidget, protected QOpenGLFunctions {
@@ -28,6 +29,7 @@ class EGLRenderWidget: public QOpenGLWidget, protected QOpenGLFunctions {
     std::unique_ptr<QOpenGLTexture> texture;
     int matrixUniformLocation;
     int textureUniformLocation;
+    int texSizeUniformLocation;
     QMatrix4x4 windowMatrix;
     QMatrix4x4 fullMatrix;
     QMatrix4x4 frameMatrix;
