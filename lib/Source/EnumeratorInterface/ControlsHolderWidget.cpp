@@ -80,6 +80,8 @@ void ControlsHolderWidget::Update(v4l2_ext_control ctrl)
     if(auto w = GetControlWidget(ctrl.id, tmp); w != nullptr) {
       w->Update(ctrl);
     }
+    UpdateInfo();
+
 }
 
 QSize ControlsHolderWidget::sizeHint() const
@@ -92,6 +94,14 @@ QSize ControlsHolderWidget::sizeHint() const
 
 void ControlsHolderWidget::OnListItemChanged(int row)
 {
-    QString info = dynamic_cast<IControlEnumerationHolder *>(ui.m_ControlsList->itemWidget(ui.m_ControlsList->item(row)))->GetControlInfo();
-    ui.m_DescriptionLabel->setText(info);
+    m_Selection = row;
+    UpdateInfo();
+}
+
+void ControlsHolderWidget::UpdateInfo() {
+    auto item = ui.m_ControlsList->item(m_Selection);
+    if(item) {
+        QString info = dynamic_cast<IControlEnumerationHolder *>(ui.m_ControlsList->itemWidget(item))->GetControlInfo();
+        ui.m_DescriptionLabel->setText(info);
+    }
 }

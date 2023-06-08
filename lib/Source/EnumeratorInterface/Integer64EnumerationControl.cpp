@@ -24,13 +24,11 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
     IControlEnumerationHolder(id, name, parent),
     m_Min(min),
     m_Max(max),
-    m_Value(value)
+    m_Value(value),
+    m_ReadOnly(bIsReadOnly),
+    m_Unit(unit)
+
 {
-    m_ControlInfo = QString(tr("%1 control accepts 64-bit integers. \n Minimum: %2 \n Maximum: %3 \n Unit: %4")
-                          .arg(name)
-                          .arg(m_Min)
-                          .arg(m_Max)
-                          .arg(unit));
     m_LineEdit.setText(QString::number(m_Value));
     m_CurrentValue.setText(QString::number(m_Value));
     m_Slider.setOrientation(Qt::Horizontal);
@@ -49,7 +47,6 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
     if (bIsReadOnly)
     {
         setEnabled(false);
-        m_ControlInfo += tr("\n Control is READONLY");
     }
     else
     {
@@ -70,6 +67,20 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
             m_Slider.setMinimum(ConvertToSliderValue(min));
             m_Slider.setValue(ConvertToSliderValue(value));
         }
+    }
+
+    UpdateInfo();
+}
+
+void Integer64EnumerationControl::UpdateInfo()
+{
+    m_ControlInfo = QString(tr("%1 control accepts 64-bit integers. \n Minimum: %2 \n Maximum: %3 \n Unit: %4")
+                          .arg(m_NameOfControl.text())
+                          .arg(m_Min)
+                          .arg(m_Max)
+                          .arg(m_Unit));
+    if(m_ReadOnly) {
+        m_ControlInfo += tr("\n Control is READONLY");
     }
 }
 
@@ -97,6 +108,7 @@ void Integer64EnumerationControl::UpdateValue(int64_t value,int64_t min,int64_t 
         m_Slider.setMinimum(ConvertToSliderValue(min));
         m_Slider.setValue(ConvertToSliderValue(value));
     }
+    UpdateInfo();
     m_Slider.blockSignals(false);
 }
 
