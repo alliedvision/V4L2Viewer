@@ -1,6 +1,5 @@
 #include "EGLRenderWidget.h"
 #include <QOpenGLContext>
-#include <EGL/egl.h>
 #include <QWheelEvent>
 #include <iostream>
 #include <QMutexLocker>
@@ -14,13 +13,25 @@ struct VertexData {
 };
 
 namespace {
+    template<unsigned bytesPerPixel>
     void uploadRaw(QOpenGLTexture& texture, RenderSettings const& settings, BufferWrapper const& buffer) {
+       /*
        QOpenGLPixelTransferOptions options;
        options.setRowLength(buffer.bytesPerLine);
-       texture.setData(QOpenGLTexture::PixelFormat(settings.glPixelFormat),
+       texture.setData(0, 0, 0, buffer.width, buffer.height, 1,
+                       QOpenGLTexture::PixelFormat(settings.glPixelFormat),
                        QOpenGLTexture::PixelType(settings.glPixelType),
                        buffer.data,
                        &options);
+       */
+
+       // Doing this with Qt functionality somehow fails on the Mali-400 GPU
+       // in the Xilinx UltraScale+.
+       // So we're doing it the classic way instead.
+       texture.bind();
+       auto & gl = *QOpenGLContext::currentContext()->functions();
+       gl.glPixelStorei(GL_UNPACK_ROW_LENGTH, buffer.bytesPerLine/bytesPerPixel);
+       gl.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.width, buffer.height, settings.glPixelFormat, settings.glPixelType, buffer.data);
     }
 
     // Always explicitly return A=1.0 to avoid issues with AR24 and XR24 formats
@@ -145,38 +156,38 @@ namespace {
     )eof" + shaderBaseYUV;
 
     static std::unordered_map<uint32_t, RenderSettings> const renderSettings {
-        { V4L2_PIX_FMT_RGB24,   { shaderRGB, GL_RGB, GL_UNSIGNED_BYTE, GL_RGB8, uploadRaw } },
-        { V4L2_PIX_FMT_BGR24,   { shaderBGR, GL_RGB, GL_UNSIGNED_BYTE, GL_RGB8, uploadRaw } },
-        { V4L2_PIX_FMT_XBGR32,  { shaderBGR, GL_RGBA, GL_UNSIGNED_BYTE, GL_RGBA8, uploadRaw } },
-        { V4L2_PIX_FMT_ABGR32,  { shaderBGR, GL_RGBA, GL_UNSIGNED_BYTE, GL_RGBA8, uploadRaw } },
-        { V4L2_PIX_FMT_RGB565,  { shaderRGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, GL_RGB565, uploadRaw } },
-        { V4L2_PIX_FMT_GREY,    { shaderMono8, GL_RED, GL_UNSIGNED_BYTE, GL_R8, uploadRaw } },
+        { V4L2_PIX_FMT_RGB24,   { shaderRGB, GL_RGB, GL_UNSIGNED_BYTE, GL_RGB8, uploadRaw<3> } },
+        { V4L2_PIX_FMT_BGR24,   { shaderBGR, GL_RGB, GL_UNSIGNED_BYTE, GL_RGB8, uploadRaw<3> } },
+        { V4L2_PIX_FMT_XBGR32,  { shaderBGR, GL_RGBA, GL_UNSIGNED_BYTE, GL_RGBA8, uploadRaw<4> } },
+        { V4L2_PIX_FMT_ABGR32,  { shaderBGR, GL_RGBA, GL_UNSIGNED_BYTE, GL_RGBA8, uploadRaw<4> } },
+        { V4L2_PIX_FMT_RGB565,  { shaderRGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, GL_RGB565, uploadRaw<2> } },
+        { V4L2_PIX_FMT_GREY,    { shaderMono8, GL_RED, GL_UNSIGNED_BYTE, GL_R8, uploadRaw<1> } },
 
-        { V4L2_PIX_FMT_SRGGB8,  { shaderRGGB8, GL_RED, GL_UNSIGNED_BYTE, GL_R8, uploadRaw } },
-        { V4L2_PIX_FMT_SGRBG8,  { shaderGRBG8, GL_RED, GL_UNSIGNED_BYTE, GL_R8, uploadRaw } },
-        { V4L2_PIX_FMT_SGBRG8,  { shaderGBRG8, GL_RED, GL_UNSIGNED_BYTE, GL_R8, uploadRaw } },
-        { V4L2_PIX_FMT_SBGGR8,  { shaderBGGR8, GL_RED, GL_UNSIGNED_BYTE, GL_R8, uploadRaw } },
+        { V4L2_PIX_FMT_SRGGB8,  { shaderRGGB8, GL_RED, GL_UNSIGNED_BYTE, GL_R8, uploadRaw<1> } },
+        { V4L2_PIX_FMT_SGRBG8,  { shaderGRBG8, GL_RED, GL_UNSIGNED_BYTE, GL_R8, uploadRaw<1> } },
+        { V4L2_PIX_FMT_SGBRG8,  { shaderGBRG8, GL_RED, GL_UNSIGNED_BYTE, GL_R8, uploadRaw<1> } },
+        { V4L2_PIX_FMT_SBGGR8,  { shaderBGGR8, GL_RED, GL_UNSIGNED_BYTE, GL_R8, uploadRaw<1> } },
 
-        { V4L2_PIX_FMT_UYVY,    { shaderUYVY, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
-        { V4L2_PIX_FMT_YUYV,    { shaderYUYV, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw } },
+        { V4L2_PIX_FMT_UYVY,    { shaderUYVY, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
+        { V4L2_PIX_FMT_YUYV,    { shaderYUYV, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
 
         // Note: The i.MX8 Vivante GPU really doesn't like integer textures. Uploading 16 bit integer values
         //       and using GL_RED_INTEGER / GL_UNSIGNED_SHORT / GL_R16UI led to glTexSubImage taking more than 100x
         //       as long as just uploading to a GL_RG8 target.
         //       GL_R16 is not supported by GLES3 at all, so instead we're going with an RG format and extract the
         //       necessary parts from the two channels in the fragment shader.
-        { V4L2_PIX_FMT_Y10,     { shaderMono10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
-        { V4L2_PIX_FMT_Y12,     { shaderMono10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
+        { V4L2_PIX_FMT_Y10,     { shaderMono10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
+        { V4L2_PIX_FMT_Y12,     { shaderMono10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
 
-        { V4L2_PIX_FMT_SRGGB10, { shaderRGGB10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
-        { V4L2_PIX_FMT_SGRBG10, { shaderGRBG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
-        { V4L2_PIX_FMT_SGBRG10, { shaderGBRG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
-        { V4L2_PIX_FMT_SBGGR10, { shaderBGGR10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
+        { V4L2_PIX_FMT_SRGGB10, { shaderRGGB10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
+        { V4L2_PIX_FMT_SGRBG10, { shaderGRBG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
+        { V4L2_PIX_FMT_SGBRG10, { shaderGBRG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
+        { V4L2_PIX_FMT_SBGGR10, { shaderBGGR10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
 
-        { V4L2_PIX_FMT_SRGGB12, { shaderRGGB10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
-        { V4L2_PIX_FMT_SGRBG12, { shaderGRBG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
-        { V4L2_PIX_FMT_SGBRG12, { shaderGBRG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
-        { V4L2_PIX_FMT_SBGGR12, { shaderBGGR10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw, true } },
+        { V4L2_PIX_FMT_SRGGB12, { shaderRGGB10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
+        { V4L2_PIX_FMT_SGRBG12, { shaderGRBG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
+        { V4L2_PIX_FMT_SGBRG12, { shaderGBRG10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
+        { V4L2_PIX_FMT_SBGGR12, { shaderBGGR10_12_NXP, GL_RG, GL_UNSIGNED_BYTE, GL_RG8, uploadRaw<2> } },
     };
 
     static char const pixelShaderFramework[] = R"eof(
@@ -196,7 +207,7 @@ namespace {
 }
 
 bool EGLRenderWidget::canRender(uint32_t pixelFormat) {
-    static bool const isGLES3 = [] {
+    static bool const rgTextureSupported = [] {
         QOpenGLContext ctx;
         ctx.create();
         QOffscreenSurface surface;
@@ -205,16 +216,19 @@ bool EGLRenderWidget::canRender(uint32_t pixelFormat) {
         int v;
         ctx.functions()->glGetIntegerv(GL_MAJOR_VERSION, &v);
         bool const err = ctx.functions()->glGetError();
+        bool const rgExt = ctx.hasExtension("GL_EXT_texture_rg");
         ctx.doneCurrent();
-        return (err == GL_NO_ERROR) && v >= 3;
+        return ((err == GL_NO_ERROR) && v >= 3) || rgExt;
     }();
     auto const renderSettingsIt = renderSettings.find(pixelFormat);
-    return (renderSettingsIt != renderSettings.end()) && (!renderSettingsIt->second.requireGLES3 || isGLES3);
+    return (renderSettingsIt != renderSettings.end())
+           && ((renderSettingsIt->second.glPixelFormat != GL_RG) || rgTextureSupported);
 }
 
 void EGLRenderWidget::initializeGL() {
     initializeOpenGLFunctions();
-
+ 
+    npotSupported = context()->hasExtension("GL_ARB_texture_non_power_of_two");
 
     vertexShader = std::make_unique<QOpenGLShader>(QOpenGLShader::Vertex);
     bool const compiled = vertexShader->compileSourceCode(R"eof(
@@ -234,16 +248,9 @@ void EGLRenderWidget::initializeGL() {
       abort();
     }
 
-    VertexData const verts[] = {
-        { QVector2D(-1.0, -1.0), QVector2D(0.0, 1.0) },
-        { QVector2D(-1.0,  1.0), QVector2D(0.0, 0.0) },
-        { QVector2D( 1.0, -1.0), QVector2D(1.0, 1.0) },
-        { QVector2D( 1.0,  1.0), QVector2D(1.0, 0.0) }
-    };
-
     vertices.create();
     vertices.bind();
-    vertices.allocate(verts, sizeof(verts));
+    vertices.allocate(4 * sizeof(VertexData));
 }
 
 EGLRenderWidget::EGLRenderWidget(std::function<void()> onDraw)
@@ -272,10 +279,42 @@ void EGLRenderWidget::paintGL() {
             abort();
         }
 
+        if(npotSupported) {
+          textureWidth = frameWidth;
+          textureHeight = frameHeight;
+        } else {
+          auto const roundToNextPowerOfTwo = [](int v) {
+            v--;
+            v |= v >> 1;
+            v |= v >> 2;
+            v |= v >> 4;
+            v |= v >> 8;
+            v |= v >> 16;
+            v++;
+            return v;
+          };
+
+          textureWidth = roundToNextPowerOfTwo(frameWidth);
+          textureHeight = roundToNextPowerOfTwo(frameHeight);
+        }
+
+        float const uvX = float(frameWidth) / float(textureWidth);
+        float const uvY = float(frameHeight) / float(textureHeight);
+        VertexData const verts[] = {
+            { QVector2D(-1.0, -1.0), QVector2D(0.0, uvY) },
+            { QVector2D(-1.0,  1.0), QVector2D(0.0, 0.0) },
+            { QVector2D( 1.0, -1.0), QVector2D(uvX, uvY) },
+            { QVector2D( 1.0,  1.0), QVector2D(uvX, 0.0) }
+        };
+
+        vertices.bind();
+        vertices.write(0, verts, sizeof(verts));
+
+
         currentRenderSettings = &renderSettingsIt->second;
 
         texture = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
-        texture->setSize(frameWidth, frameHeight);
+        texture->setSize(textureWidth, textureHeight);
         texture->setMinMagFilters(QOpenGLTexture::Nearest, QOpenGLTexture::Nearest);
 
         texture->setFormat(QOpenGLTexture::TextureFormat(currentRenderSettings->glInternalFormat));
@@ -325,7 +364,7 @@ void EGLRenderWidget::paintGL() {
     vertices.bind();
     shader->setUniformValue(matrixUniformLocation, fullMatrix);
     shader->setUniformValue(textureUniformLocation, 0);
-    shader->setUniformValue(texSizeUniformLocation, QVector2D(frameWidth, frameHeight));
+    shader->setUniformValue(texSizeUniformLocation, QVector2D(textureWidth, textureHeight));
     texture->bind(0);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

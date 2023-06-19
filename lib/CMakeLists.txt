@@ -140,7 +140,6 @@ else()
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
-    Qt5::OpenGL
     Threads::Threads
   )
   qt5_add_resources(RESOURCES ${QT_RESOURCES})

@@ -16,7 +16,6 @@ struct RenderSettings {
     GLenum glPixelType;
     GLenum glInternalFormat;
     void (*uploadData)(QOpenGLTexture&, RenderSettings const&, BufferWrapper const&);
-    bool requireGLES3 = false;
 };
 
 class EGLRenderWidget: public QOpenGLWidget, protected QOpenGLFunctions {
@@ -41,8 +40,11 @@ class EGLRenderWidget: public QOpenGLWidget, protected QOpenGLFunctions {
     float scrollY = 0.0f;
     int frameWidth = 0;
     int frameHeight = 0;
+    int textureWidth = 0;
+    int textureHeight = 0;
     int pixelFormat = 0;
     bool recreatePipeline = true;
+    bool npotSupported = false;
 
     void updateMatrix();
     void updateViewMatrix();
