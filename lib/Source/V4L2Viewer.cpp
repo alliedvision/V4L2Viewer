@@ -29,6 +29,7 @@
 #include "ListIntEnumerationControl.h"
 #include "StringEnumerationControl.h"
 #include "SoftwareRenderSystem.h"
+#include "EGLRenderSystem.h"
 #include "CustomDialog.h"
 #include "GitRevision.h"
 #include "ImageTransform.h"
@@ -114,11 +115,29 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     ui.setupUi(this);
 
-    m_RenderSystem = std::make_unique<SoftwareRenderSystem>();
+    bool const forceSoftware = [] {
+        auto const var = getenv("V4L2VIEWER_SOFTWARE_RENDER");
+        if(var == nullptr) {
+            #if defined(SOFTWARE_RENDER_DEFAULT) && SOFTWARE_RENDER_DEFAULT == 1
+              return true;
+            #else
+              return false;
+            #endif
+        }
+
+        return atoi(var) == 1;
+    }();
+
+    if(forceSoftware) {
+        m_RenderSystem = std::make_unique<SoftwareRenderSystem>();
+    } else {
+        m_RenderSystem = std::make_unique<EGLRenderSystem>();
+    }
+
     m_pImageView = m_RenderSystem->GetWidget();
     m_pImageView->setParent(this);
     m_pImageView->hide();
-    ui.scrollAreaWidgetContents->layout()->addWidget(m_pImageView);
+    ui.m_OutputHolder->layout()->addWidget(m_pImageView);
     connect(m_RenderSystem.get(), SIGNAL(RequestZoom(QPointF, bool)), this, SLOT(OnZoomRequested(QPointF, bool)));
     connect(m_RenderSystem.get(), SIGNAL(PixelClicked(QPointF)), this, SLOT(OnImageClicked(QPointF)));
 
@@ -143,7 +162,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     // Start Camera
     connect(&m_Camera, SIGNAL(OnCameraListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnCameraListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
     connect(&m_Camera, SIGNAL(OnSubDeviceListChanged_Signal(const int &, unsigned int, unsigned long long, const QString &, const QString &)), this, SLOT(OnSubDeviceListChanged(const int &, unsigned int, unsigned long long, const QString &, const QString &)));
-    connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(const QString &,bool)),                                                                 this, SLOT(OnCameraPixelFormat(const QString &,bool)));
+    connect(&m_Camera, SIGNAL(OnCameraPixelFormat_Signal(uint32_t)), this, SLOT(OnCameraPixelFormat(uint32_t)));
 
     qRegisterMetaType<int32_t>("int32_t");
     qRegisterMetaType<int64_t>("int64_t");
@@ -201,7 +220,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_edExposure, SIGNAL(editingFinished()), this, SLOT(OnExposure()));
     connect(ui.m_chkAutoExposure, SIGNAL(clicked()), this, SLOT(OnAutoExposure()));
     connect(ui.m_pixelFormats, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnPixelFormatChanged(const QString &)));
-	connect(ui.m_frameSizes, SIGNAL(currentIndexChanged(int)), this, SLOT(OnFrameSizeIndexChanged(int)));
+    connect(ui.m_frameSizes, SIGNAL(currentIndexChanged(int)), this, SLOT(OnFrameSizeIndexChanged(int)));
     connect(ui.m_edGamma, SIGNAL(editingFinished()), this, SLOT(OnGamma()));
     connect(ui.m_edBrightness, SIGNAL(editingFinished()), this, SLOT(OnBrightness()));
 
@@ -649,14 +668,20 @@ void V4L2Viewer::OnStartButtonClicked()
 
     LOG_EX("V4L2Viewer::OnStartButtonClicked width=%d,height=%d", width, height);
 
-    if (result == 0)
+    if (result == 0) {
         StartStreaming(pixelFormat, payloadSize, width, height, bytesPerLine);
+        m_pImageView->show();
+        ui.m_LogoScrollArea->hide();
+    }
 }
 
-void V4L2Viewer::OnCameraPixelFormat(const QString& pixelFormat,bool disabled)
+void V4L2Viewer::OnCameraPixelFormat(uint32_t format)
 {
+    bool const disabled = !m_RenderSystem->CanRender(format);
+    auto const name = QString(v4l2helper::ConvertPixelFormat2String(format).c_str());
+
     ui.m_pixelFormats->blockSignals(true);
-    ui.m_pixelFormats->addItem(pixelFormat);
+    ui.m_pixelFormats->addItem(name);
     if (disabled)
     {
         QStandardItemModel *model = qobject_cast<QStandardItemModel *>(ui.m_pixelFormats->model());
@@ -1369,8 +1394,8 @@ void V4L2Viewer::OnZoomFitButtonClicked()
     uint32_t frmHeight = 0;
     m_Camera.ReadFrameSize(frmWidth, frmHeight);
 
-    double const scaleX = double(ui.scrollAreaWidgetContents->width()) / double(frmWidth);
-    double const scaleY = double(ui.scrollAreaWidgetContents->height()) / double(frmHeight);
+    double const scaleX = double(m_pImageView->width()) / double(frmWidth);
+    double const scaleY = double(m_pImageView->height()) / double(frmHeight);
     double const scaleFitToView = std::min(scaleX, scaleY);
     m_RenderSystem->SetScaleFactor(scaleFitToView);
     ui.m_ZoomLabel->setText(QString("%1%").arg(scaleFitToView * 100, 1, 'f',1));
@@ -1441,8 +1466,6 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
     } else {
       // Data processor for updating UI according to received data
       m_Camera.GetFrameObserver()->AddRawDataProcessor([this] (auto const& buf, auto doneCallback) {
-        m_pImageView->show();
-        ui.m_LogoHolder->hide();
         if(!m_bIsImageFitByFirstImage) {
             ui.m_ZoomFitButton->setChecked(true);
             OnZoomFitButtonClicked();

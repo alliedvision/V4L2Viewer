@@ -16,6 +16,7 @@ public:
     virtual void SetScaleFactor(double scaleFactor) = 0;
     virtual QWidget* GetWidget() const = 0;
     virtual void PassFrame(BufferWrapper const& buffer, std::function<void()> doneCallback) = 0;
+    virtual bool CanRender(uint32_t pixelFormat) const = 0;
     double GetRenderedFPS();
 
 signals:

@@ -10,9 +10,17 @@ static void DoNothing() {}
 
 
 SoftwareRenderSystem::SoftwareRenderSystem()
-  : widget(new SoftwareRenderWidget)
+  : scrollArea(new QScrollArea)
+  , layout(new QBoxLayout(QBoxLayout::LeftToRight))
+  , widget(new SoftwareRenderWidget)
   , nextDoneCallback(&DoNothing)
 {
+    scrollArea->setLayout(layout);
+    scrollArea->setStyleSheet("QScrollArea{border:none;}");
+    layout->addWidget(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
     conversionThread = std::unique_ptr<QThread>(QThread::create([&] {
        ConversionThreadMain();
     }));
@@ -90,7 +98,7 @@ void SoftwareRenderSystem::SetFlipY(bool flip) {
 }
 
 QWidget* SoftwareRenderSystem::GetWidget() const {
-    return widget;
+    return scrollArea;
 }
 
 void SoftwareRenderSystem::PassFrame(BufferWrapper const& buffer, std::function<void()> doneCallback) {
@@ -103,3 +111,6 @@ void SoftwareRenderSystem::PassFrame(BufferWrapper const& buffer, std::function<
     newFrameAvailable.wakeAll();
 }
 
+bool SoftwareRenderSystem::CanRender(uint32_t pixelFormat) const {
+    return ImageTransform::CanConvert(pixelFormat);
+}

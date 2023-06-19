@@ -787,7 +787,7 @@ signals:
     // Event will be called when a frame ID is processed by the internal thread and ready to show
     void OnCameraFrameID_Signal(const unsigned long long &frameId);
     // Event will be called when found new pixel format
-    void OnCameraPixelFormat_Signal(const QString &,bool);
+    void OnCameraPixelFormat_Signal(uint32_t);
     // Event will be called on new frame size
     void OnCameraFrameSize_Signal(const QString &);
 

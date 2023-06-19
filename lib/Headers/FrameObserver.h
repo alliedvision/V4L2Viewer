@@ -33,6 +33,7 @@
 
 #include <queue>
 #include <vector>
+#include "q_v4l2_ext_ctrl.h"
 #include "V4L2Helper.h"
 #include "FPSCalculator.h"
 

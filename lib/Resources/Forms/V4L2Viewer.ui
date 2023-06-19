@@ -452,12 +452,12 @@ margin:0;
         <enum>Qt::Vertical</enum>
        </property>
        <widget class="QWidget" name="layoutWidget">
-        <layout class="QGridLayout" name="gridLayout_7">
+        <layout class="QGridLayout" name="m_OutputHolder">
          <property name="spacing">
           <number>0</number>
          </property>
          <item row="0" column="0">
-          <widget class="QScrollArea" name="scrollArea">
+          <widget class="QScrollArea" name="m_LogoScrollArea">
            <property name="styleSheet">
             <string notr="true">QScrollArea{
 border:none;
@@ -2467,7 +2467,7 @@ titlebar-normal-icon: url(:/V4L2Viewer/resize4.png);
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
   <tabstop>m_camerasListCheckBox</tabstop>
-  <tabstop>scrollArea</tabstop>
+  <tabstop>m_LogoScrollArea</tabstop>
   <tabstop>m_CamerasListBox</tabstop>
   <tabstop>scrollArea_2</tabstop>
   <tabstop>m_OpenCloseButton</tabstop>

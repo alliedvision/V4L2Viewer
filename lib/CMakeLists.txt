@@ -20,6 +20,7 @@ set(SOURCES_PATH Source)
 set(RESOURCES_PATH Resources)
 set(ENUM_INT_PATH ${HEADERS_PATH}/EnumeratorInterface)
 set(GIT_REVISION_FILE ${CMAKE_CURRENT_BINARY_DIR}/GitRevision.h)
+set(SOFTWARE_RENDER_DEFAULT CACHE BOOL NO)
 
 list(APPEND HEADER_FILES
   ${HEADERS_PATH}/BaseLogger.h
@@ -55,6 +56,8 @@ list(APPEND HEADER_FILES
   ${HEADERS_PATH}/RenderSystem.h
   ${HEADERS_PATH}/SoftwareRenderSystem.h
   ${HEADERS_PATH}/SoftwareRenderWidget.h
+  ${HEADERS_PATH}/EGLRenderSystem.h
+  ${HEADERS_PATH}/EGLRenderWidget.h
   ${HEADERS_PATH}/V4L2EventHandler.h
   ${HEADERS_PATH}/FPSCalculator.h
   ${HEADERS_PATH}/EnumeratorInterface/StringEnumerationControl.h
@@ -89,6 +92,8 @@ list(APPEND SOURCE_FILES
   ${SOURCES_PATH}/RenderSystem.cpp
   ${SOURCES_PATH}/SoftwareRenderSystem.cpp
   ${SOURCES_PATH}/SoftwareRenderWidget.cpp
+  ${SOURCES_PATH}/EGLRenderSystem.cpp
+  ${SOURCES_PATH}/EGLRenderWidget.cpp
   ${SOURCES_PATH}/CustomDialog.cpp
   ${SOURCES_PATH}/V4L2EventHandler.cpp
   ${SOURCES_PATH}/FPSCalculator.cpp
@@ -136,7 +141,6 @@ else()
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
-    Qt5::OpenGL
     Threads::Threads
   )
   qt5_add_resources(RESOURCES ${QT_RESOURCES})
@@ -155,6 +159,10 @@ list(APPEND RESOURCES
 )
 
 add_library(V4L2ViewerLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
+
+if(SOFTWARE_RENDER_DEFAULT)
+  target_compile_definitions(V4L2ViewerLib PRIVATE SOFTWARE_RENDER_DEFAULT=1)
+endif()
 
 target_link_libraries(V4L2ViewerLib PUBLIC ${QT_LIBRARIES})
 target_include_directories(V4L2ViewerLib

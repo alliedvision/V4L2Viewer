@@ -10,7 +10,7 @@ SoftwareRenderWidget::SoftwareRenderWidget(QWidget *parent)
     connect(this, SIGNAL(SetPixmapSignal(QPixmap)), this, SLOT(OnSetPixmap(QPixmap)));
     setStyleSheet("QGraphicsView {"
                   "  background-color: rgb(19,20,21);"
-                  "  border:none;"
+                  "  border:20px;"
                   "}");
   }
 
