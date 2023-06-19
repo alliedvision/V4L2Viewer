@@ -20,6 +20,7 @@ set(SOURCES_PATH Source)
 set(RESOURCES_PATH Resources)
 set(ENUM_INT_PATH ${HEADERS_PATH}/EnumeratorInterface)
 set(GIT_REVISION_FILE ${CMAKE_CURRENT_BINARY_DIR}/GitRevision.h)
+set(SOFTWARE_RENDER_DEFAULT CACHE BOOL NO)
 
 list(APPEND HEADER_FILES
   ${HEADERS_PATH}/BaseLogger.h
@@ -158,6 +159,10 @@ list(APPEND RESOURCES
 )
 
 add_library(V4L2ViewerLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
+
+if(SOFTWARE_RENDER_DEFAULT)
+  target_compile_definitions(V4L2ViewerLib PRIVATE SOFTWARE_RENDER_DEFAULT=1)
+endif()
 
 target_link_libraries(V4L2ViewerLib PUBLIC ${QT_LIBRARIES})
 target_include_directories(V4L2ViewerLib

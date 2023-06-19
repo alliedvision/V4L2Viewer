@@ -116,9 +116,13 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     ui.setupUi(this);
 
     bool const forceSoftware = [] {
-        auto const var = getenv("V4L2VIEWER_FORCE_SOFTWARE");
+        auto const var = getenv("V4L2VIEWER_SOFTWARE_RENDER");
         if(var == nullptr) {
-            return false;
+            #if defined(SOFTWARE_RENDER_DEFAULT) && SOFTWARE_RENDER_DEFAULT == 1
+              return true;
+            #else
+              return false;
+            #endif
         }
 
         return atoi(var) == 1;
