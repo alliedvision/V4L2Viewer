@@ -9,6 +9,7 @@
 #include <QMutex>
 #include "BufferWrapper.h"
 #include <string>
+#include <memory>
 
 struct RenderSettings {
     std::string const& fragmentShaderSource;
