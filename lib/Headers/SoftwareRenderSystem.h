@@ -10,7 +10,8 @@
 #include <QWaitCondition>
 #include <QBoxLayout>
 #include <QScrollArea>
-
+#include <memory>
+#include <thread>
 
 class SoftwareRenderSystem: public RenderSystem
 {
@@ -47,7 +48,8 @@ private:
 
     // TODO encapsulate for re-use in hwaccel renderer?
     std::atomic<bool> bufferAvailable;
-    std::unique_ptr<QThread> conversionThread;
+    std::unique_ptr<std::thread> conversionThread;
+    std::atomic_bool  stopConversionThread{false};
     QMutex frameAvailableMutex;
     QWaitCondition newFrameAvailable;
     BufferWrapper nextBuffer;

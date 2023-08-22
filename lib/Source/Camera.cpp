@@ -45,6 +45,7 @@
 #include "q_v4l2_ext_ctrl.h"
 
 #include <algorithm>
+#include <memory>
 #include <sstream>
 #include <iomanip>
 #include <regex>
@@ -460,14 +461,16 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
     connect(m_pEventHandler,SIGNAL(ControlChanged(int,v4l2_event_ctrl)),this,SLOT(OnCtrlUpdate(int, v4l2_event_ctrl)));
 
     m_pEventHandler->start();
+    m_pStopVolatileControlThreadPromise = std::make_unique<std::promise<void>>();
 
-    m_pVolatileControlThread = std::unique_ptr<QThread>(QThread::create([&] {
-        while(!m_pVolatileControlThread->isInterruptionRequested()) {
+    m_pVolatileControlThread = std::make_unique<std::thread>([&] {
+        auto stopFuture = m_pStopVolatileControlThreadPromise->get_future();
+        using namespace std::chrono_literals;
+
+        while (stopFuture.wait_for(1s) == std::future_status::timeout) {
             RereadVolatileControls();
-            QThread::sleep(1);
         }
-    }));
-    m_pVolatileControlThread->start();
+    });
 
     return result;
 }
@@ -476,9 +479,10 @@ int Camera::CloseDevice()
 {
     int result = -1;
     if(m_pVolatileControlThread) {
-        m_pVolatileControlThread->requestInterruption();
-        m_pVolatileControlThread->wait();
+        m_pStopVolatileControlThreadPromise->set_value();
+        m_pVolatileControlThread->join();
         m_pVolatileControlThread.reset();
+        m_pStopVolatileControlThreadPromise.reset();
     }
 
     if (m_pEventHandler != nullptr)
@@ -1106,7 +1110,7 @@ int Camera::ReadFormats()
         //emit OnCameraPixelFormat_Signal(QString("%1").arg(QString(v4l2helper::ConvertPixelFormat2String(fmt.pixelformat).c_str())),!ImageTransform::CanConvert(fmt.pixelformat));
         emit OnCameraPixelFormat_Signal(fmt.pixelformat);
 
-        CLEAR(fmtsize);
+       /* CLEAR(fmtsize);
         fmtsize.type = m_DeviceBufferType;
         fmtsize.pixel_format = fmt.pixelformat;
         fmtsize.index = 0;
@@ -1146,7 +1150,7 @@ int Camera::ReadFormats()
         if (fmtsize.index >= 100)
         {
             LOG_EX("Camera::ReadFormats no VIDIOC_ENUM_FRAMESIZES never terminated with EINVAL within 100 loops.");
-        }
+        }*/
 
         fmt.index++;
     }

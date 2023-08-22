@@ -235,6 +235,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     connect(ui.m_chkFrameRateAuto, SIGNAL(clicked()), this, SLOT(OnCheckFrameRateAutoClicked()));
 
+    connect(this, &V4L2Viewer::UpdateFrameInfo, this, &V4L2Viewer::OnUpdateFrameInfo, Qt::QueuedConnection);
+
     // Set the splitter stretch factors
     ui.m_Splitter1->setStretchFactor(0, 45);
     ui.m_Splitter1->setStretchFactor(1, 55);
@@ -668,10 +670,16 @@ void V4L2Viewer::OnStartButtonClicked()
 
     LOG_EX("V4L2Viewer::OnStartButtonClicked width=%d,height=%d", width, height);
 
+
     if (result == 0) {
-        StartStreaming(pixelFormat, payloadSize, width, height, bytesPerLine);
-        m_pImageView->show();
-        ui.m_LogoScrollArea->hide();
+        if (m_RenderSystem->CanRender(pixelFormat)) {
+            StartStreaming(pixelFormat, payloadSize, width, height, bytesPerLine);
+            m_pImageView->show();
+            ui.m_LogoScrollArea->hide();
+        }
+        else {
+            CustomDialog::Error( this, tr("Video4Linux"), tr("Pixelformat %1 not supported! Please select a different format.").arg(pixelFormatText) );
+        }
     }
 }
 
@@ -1039,6 +1047,12 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 {
     int err = 0;
 
+    auto expected_state = StreamingState::Stopped;
+
+    if (!m_StreamingState.compare_exchange_strong(expected_state,StreamingState::Starting,std::memory_order::memory_order_acq_rel,std::memory_order::memory_order_acquire)) {
+        return;
+    }
+
     // disable the start button to show that the start acquisition is in process
     ui.m_StartButton->setEnabled(false);
 
@@ -1082,6 +1096,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
                 if (0 == err)
                 {
                     m_bIsStreaming = true;
+                    m_StreamingState.store(StreamingState::Streaming,std::memory_order_release);
 
                     UpdateViewerLayout();
 
@@ -1140,41 +1155,53 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
 // The event handler for stopping acquisition
 void V4L2Viewer::OnStopButtonClicked()
 {
-    // disable the stop button to show that the stop acquisition is in process
-    ui.m_StopButton->setEnabled(false);
+    auto expected_state = StreamingState::Streaming;
+    if (m_StreamingState.compare_exchange_strong(expected_state,StreamingState::Stopping,std::memory_order_acq_rel,std::memory_order_acquire)) {
+        // disable the stop button to show that the stop acquisition is in process
+        ui.m_StopButton->setEnabled(false);
 
-    ui.m_pixelFormats->setEnabled(true);
-	ui.m_frameSizes->setEnabled(true);
-    ui.m_labelPixelFormats->setEnabled(true);
-	ui.m_labelFrameSizes->setEnabled(true);
+        ui.m_pixelFormats->setEnabled(true);
+        ui.m_frameSizes->setEnabled(true);
+        ui.m_labelPixelFormats->setEnabled(true);
+        ui.m_labelFrameSizes->setEnabled(true);
 
-    ui.m_labelFrameRateAuto->setEnabled(true);
-    ui.m_chkFrameRateAuto->setEnabled(true);
+        ui.m_labelFrameRateAuto->setEnabled(true);
+        ui.m_chkFrameRateAuto->setEnabled(true);
 
-    if (!ui.m_chkFrameRateAuto->isChecked())
-    {
-        ui.m_labelFrameRate->setEnabled(true);
-        ui.m_edFrameRate->setEnabled(true);
+        if (!ui.m_chkFrameRateAuto->isChecked())
+        {
+            ui.m_labelFrameRate->setEnabled(true);
+            ui.m_edFrameRate->setEnabled(true);
+        }
+
+        if(m_bIsCropAvailable)
+        {
+            ui.m_cropWidget->setEnabled(true);
+        }
+
+
+        if (lastDoneCallback) {
+            lastDoneCallback();
+            lastDoneCallback = nullptr;
+        }
+
+        m_Camera.StopStreamChannel();
+        m_Camera.StopStreaming();
+
+        QApplication::processEvents();
+
+        m_bIsStreaming = false;
+        m_StreamingState.store(StreamingState::Stopped,std::memory_order_release);
+
+        UpdateViewerLayout();
+
+        m_FramesReceivedTimer.stop();
+
+        m_Camera.DeleteUserBuffer();
+        QMutexLocker locker(&lastFrameMutex);
+        lastDoneCallback = nullptr;
     }
 
-    if(m_bIsCropAvailable)
-    {
-        ui.m_cropWidget->setEnabled(true);
-    }
-
-    m_Camera.StopStreamChannel();
-    m_Camera.StopStreaming();
-
-    QApplication::processEvents();
-
-    m_bIsStreaming = false;
-    UpdateViewerLayout();
-
-    m_FramesReceivedTimer.stop();
-
-    m_Camera.DeleteUserBuffer();
-    QMutexLocker locker(&lastFrameMutex);
-    lastDoneCallback = nullptr;
 }
 
 void V4L2Viewer::OnSaveImageClicked()
@@ -1471,17 +1498,15 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
             OnZoomFitButtonClicked();
             m_bIsImageFitByFirstImage = true;
         }
-        ui.m_FrameIdLabel->setText(QString("FrameID: %1, W: %2, H: %3")
-          .arg(buf.frameID)
-          .arg(buf.width)
-          .arg(buf.height)
-        );
+
+        emit UpdateFrameInfo(buf.frameID,buf.width,buf.height);
+
         doneCallback();
       });
 
       // Separate raw data processor for rendering
       m_Camera.GetFrameObserver()->AddRawDataProcessor([&] (auto const& buf, auto doneCallback) {
-        if(m_ShowFrames) {
+        if (m_StreamingState.load(std::memory_order_acquire) == StreamingState::Streaming && m_ShowFrames) {
           m_RenderSystem->PassFrame(buf, doneCallback);
         } else {
           doneCallback();
@@ -1491,15 +1516,16 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
       // Extra data processor for retaining the buffer for one frame
       // so we still have it in case we need to save a file or pick a pixel's color
       m_Camera.GetFrameObserver()->AddRawDataProcessor([&] (auto const& buf, auto doneCallback) {
-        if(m_ShowFrames) {
-          QMutexLocker locker(&lastFrameMutex);
-          if(lastDoneCallback) {
-            lastDoneCallback();
-          }
-          lastDoneCallback = doneCallback;
-          lastFrame = buf;
-        } else {
-          doneCallback();
+        if (m_StreamingState.load(std::memory_order_acquire) == StreamingState::Streaming && m_ShowFrames) {
+            QMutexLocker locker(&lastFrameMutex);
+            if(lastDoneCallback) {
+                lastDoneCallback();
+            }
+            lastDoneCallback = doneCallback;
+            lastFrame = buf;
+        }
+        else {
+            doneCallback();
         }
       });
     }
@@ -2239,4 +2265,16 @@ void V4L2Viewer::OnFrameSizeIndexChanged(int index)
 	m_Camera.SetFrameSizeByIndex(index);
 
 	GetImageInformation();
+}
+
+void V4L2Viewer::closeEvent(QCloseEvent *e)
+{
+    OnStopButtonClicked();
+
+    QMainWindow::closeEvent(e);
+}
+
+void V4L2Viewer::OnUpdateFrameInfo(uint64_t id,uint32_t width,uint32_t height)
+{
+    ui.m_FrameIdLabel->setText(QString("FrameID: %1, W: %2, H: %3").arg(id).arg(width).arg(height));
 }

@@ -19,6 +19,7 @@
 #include "FrameObserver.h"
 #include "Logger.h"
 
+#include <QApplication>
 #include <QPixmap>
 #include <errno.h>
 #include <fcntl.h>
@@ -27,6 +28,8 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <iostream>
+#include <cassert>
 
 
 FrameObserver::FrameObserver(bool showFrames)
@@ -95,6 +98,17 @@ int FrameObserver::StopStream()
 
     if (count <= 0) {
         nResult = -1;
+    }
+
+    for (auto const & buf : m_UserBufferContainerList) {
+        int timeout = 1000;
+        while (buf->processMap != 0 && timeout-- > 0)
+        {
+            QApplication::processEvents();
+            QThread::msleep(10);
+        }
+
+        assert(timeout > 0);
     }
 
     return nResult;

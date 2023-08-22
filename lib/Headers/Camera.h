@@ -30,7 +30,8 @@
 #include <QVector>
 #include <map>
 #include <vector>
-
+#include <memory>
+#include <thread>
 
 enum IO_METHOD_TYPE
 {
@@ -770,7 +771,8 @@ private:
     std::vector<uint8_t>            m_CsvData;
 
     QMutex                          m_VolatileControlListMutex;
-    std::unique_ptr<QThread>        m_pVolatileControlThread = nullptr;
+    std::unique_ptr<std::thread>    m_pVolatileControlThread = nullptr;
+    std::unique_ptr<std::promise<void>> m_pStopVolatileControlThreadPromise{};
     std::unordered_map<int, std::vector<v4l2_ext_control>> m_volatileControls;
 
     size_t fsize(const char *filename);

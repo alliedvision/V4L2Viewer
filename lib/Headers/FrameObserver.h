@@ -31,6 +31,7 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
+#include <functional>
 #include <queue>
 #include <vector>
 #include "q_v4l2_ext_ctrl.h"
@@ -45,7 +46,7 @@ struct UserBuffer
 {
     uint8_t              *pBuffer;
     size_t                nBufferlength;
-    std::atomic<uint64_t> processMap;
+    std::atomic<uint64_t> processMap{0};
 };
 
 class FrameObserver : public QThread
