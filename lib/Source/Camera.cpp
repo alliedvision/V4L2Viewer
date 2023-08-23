@@ -1110,48 +1110,6 @@ int Camera::ReadFormats()
         //emit OnCameraPixelFormat_Signal(QString("%1").arg(QString(v4l2helper::ConvertPixelFormat2String(fmt.pixelformat).c_str())),!ImageTransform::CanConvert(fmt.pixelformat));
         emit OnCameraPixelFormat_Signal(fmt.pixelformat);
 
-       /* CLEAR(fmtsize);
-        fmtsize.type = m_DeviceBufferType;
-        fmtsize.pixel_format = fmt.pixelformat;
-        fmtsize.index = 0;
-        while (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &fmtsize) >= 0 && fmtsize.index <= 100)
-        {
-            if (fmtsize.type == V4L2_FRMSIZE_TYPE_DISCRETE)
-            {
-                v4l2_frmivalenum fmtival;
-
-                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum discrete width = %d height = %d", fmtsize.discrete.width, fmtsize.discrete.height);
-
-                //emit OnCameraFrameSize_Signal(QString("disc:%1x%2").arg(fmtsize.discrete.width).arg(fmtsize.discrete.height));
-
-                CLEAR(fmtival);
-                fmtival.index = 0;
-                fmtival.pixel_format = fmt.pixelformat;
-                fmtival.width = fmtsize.discrete.width;
-                fmtival.height = fmtsize.discrete.height;
-                while (iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_ENUM_FRAMEINTERVALS, &fmtival) >= 0)
-                {
-                    fmtival.index++;
-                }
-            }
-            else if (fmtsize.type == V4L2_FRMSIZE_TYPE_STEPWISE)
-            {
-                LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FRAMESIZES size enum stepwise min_width = %d min_height = %d max_width = %d max_height = %d step_width = %d step_height = %d",
-                        fmtsize.stepwise.min_width, fmtsize.stepwise.min_height, fmtsize.stepwise.max_width, fmtsize.stepwise.max_height, fmtsize.stepwise.step_width, fmtsize.stepwise.step_height);
-
-                //emit OnCameraFrameSize_Signal(QString("min:%1x%2,max:%3x%4,step:%5x%6").arg(fmtsize.stepwise.min_width).arg(fmtsize.stepwise.min_height).arg(fmtsize.stepwise.max_width).arg(fmtsize.stepwise.max_height).arg(fmtsize.stepwise.step_width).arg(fmtsize.stepwise.step_height));
-            }
-
-            result = 0;
-
-            fmtsize.index++;
-        }
-
-        if (fmtsize.index >= 100)
-        {
-            LOG_EX("Camera::ReadFormats no VIDIOC_ENUM_FRAMESIZES never terminated with EINVAL within 100 loops.");
-        }*/
-
         fmt.index++;
     }
 

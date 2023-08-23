@@ -192,6 +192,8 @@ namespace {
 
     static char const pixelShaderFramework[] = R"eof(
         #define texture texture2D
+        precision highp float;
+        precision highp int;
          uniform sampler2D image;
         uniform vec2 texSize;
         varying vec2 v_uv;
@@ -230,7 +232,7 @@ void EGLRenderWidget::initializeGL() {
 
     vertexShader = std::make_unique<QOpenGLShader>(QOpenGLShader::Vertex);
     bool const compiled = vertexShader->compileSourceCode(R"eof(
-
+        precision mediump float;
         uniform mat4 matrix;
         attribute vec2 a_uv;
         attribute vec2 a_pos;
