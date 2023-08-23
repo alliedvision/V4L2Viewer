@@ -21,19 +21,18 @@ SoftwareRenderSystem::SoftwareRenderSystem()
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    conversionThread = std::unique_ptr<QThread>(QThread::create([&] {
+    conversionThread = std::make_unique<std::thread>([&] {
        ConversionThreadMain();
-    }));
-    conversionThread->start();
+    });
 
     connect(widget, SIGNAL(RequestZoom(QPointF,bool)), this, SLOT(ZoomRequestedByWidget(QPointF,bool)));
     connect(widget, SIGNAL(Clicked(QPointF)), this, SLOT(ImageClicked(QPointF)));
 }
 
 SoftwareRenderSystem::~SoftwareRenderSystem() {
-    conversionThread->requestInterruption();
+    stopConversionThread = true;
     newFrameAvailable.wakeAll();
-    conversionThread->wait();
+    conversionThread->join();
 }
 
 void SoftwareRenderSystem::ZoomRequestedByWidget(QPointF center, bool zoomIn) {
@@ -45,11 +44,11 @@ void SoftwareRenderSystem::ImageClicked(QPointF point) {
 }
 
 void SoftwareRenderSystem::ConversionThreadMain() {
-    while(!conversionThread->isInterruptionRequested()) {
+    while(!stopConversionThread) {
         frameAvailableMutex.lock();
         while(!bufferAvailable) { // avoid lost or spurious wakeup
           newFrameAvailable.wait(&frameAvailableMutex);
-          if(!bufferAvailable && conversionThread->isInterruptionRequested()) {
+          if(!bufferAvailable && stopConversionThread) {
             frameAvailableMutex.unlock();
             return;
           }

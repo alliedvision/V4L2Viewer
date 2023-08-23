@@ -47,6 +47,13 @@ public:
 
 protected:
 
+    enum class StreamingState {
+        Starting,
+        Streaming,
+        Stopping,
+        Stopped,
+    };
+
     std::list<QSharedPointer<V4L2Viewer> > m_pViewer;
 
     bool m_BLOCKING_MODE;
@@ -114,6 +121,8 @@ protected:
 
     QGraphicsScene m_LogoScene;
     QGraphicsPixmapItem *m_LogoPixmapItem;
+
+    std::atomic<StreamingState> m_StreamingState{StreamingState::Stopped};
 
     // Queries and lists all known cameras
     //
@@ -193,6 +202,8 @@ protected:
 
     // Set control labels to default values in user interface
     void SetDefaultLabels();
+
+    void closeEvent(QCloseEvent *e) override;
 
 protected slots:
     void OnLogToFile();
@@ -414,6 +425,10 @@ protected slots:
 	void OnFrameSizeIndexChanged(int index);
 
 	void PassControlStateChange(int32_t id, bool enabled);
+
+    void OnUpdateFrameInfo(uint64_t id,uint32_t width,uint32_t height);
+signals:
+    void UpdateFrameInfo(uint64_t id,uint32_t width,uint32_t height);
 };
 
 #endif // V4L2VIEWER_H

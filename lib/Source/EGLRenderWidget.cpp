@@ -194,7 +194,7 @@ namespace {
         #define texture texture2D
         precision highp float;
         precision highp int;
-        uniform sampler2D image;
+         uniform sampler2D image;
         uniform vec2 texSize;
         varying vec2 v_uv;
         vec4 convert() {
@@ -227,7 +227,7 @@ bool EGLRenderWidget::canRender(uint32_t pixelFormat) {
 
 void EGLRenderWidget::initializeGL() {
     initializeOpenGLFunctions();
- 
+
     npotSupported = context()->hasExtension("GL_ARB_texture_non_power_of_two");
 
     vertexShader = std::make_unique<QOpenGLShader>(QOpenGLShader::Vertex);
@@ -259,6 +259,12 @@ EGLRenderWidget::EGLRenderWidget(std::function<void()> onDraw)
 
 EGLRenderWidget::~EGLRenderWidget() {
     vertices.destroy();
+    makeCurrent();
+    shader.reset();
+    texture.reset();
+    fragmentShader.reset();
+    vertexShader.reset();
+    doneCurrent();
 }
 
 

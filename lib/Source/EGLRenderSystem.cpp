@@ -52,7 +52,7 @@ void EGLRenderSystem::SetScaleFactor(double scale)
 {
     scaleFactor = scale;
     glWidget->setScale(scale);
-    emit UpdateScrollbars();
+    emit EffectiveSizeChanged();
 }
 
 void EGLRenderSystem::SetFlipX(bool flip) {
@@ -113,7 +113,7 @@ void EGLRenderSystem::PassFrame(BufferWrapper const& buffer, std::function<void(
         curWidth = buffer.width;
         curHeight = buffer.height;
         curPixelformat = buffer.pixelFormat;
-        emit UpdateScrollbars();
+        emit EffectiveSizeChanged();
     }
 
     glWidget->nextFrame(buffer, doneCallback);
