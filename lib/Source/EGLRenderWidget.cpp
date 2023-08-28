@@ -194,7 +194,7 @@ namespace {
         #define texture texture2D
         precision highp float;
         precision highp int;
-         uniform sampler2D image;
+        uniform sampler2D image;
         uniform vec2 texSize;
         varying vec2 v_uv;
         vec4 convert() {
