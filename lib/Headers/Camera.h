@@ -32,6 +32,7 @@
 #include <vector>
 #include <memory>
 #include <thread>
+#include <future>
 
 enum IO_METHOD_TYPE
 {

@@ -1221,14 +1221,14 @@ int Camera::GetFrameSizeIndex()
 		frmsizeenum.pixel_format = m_pPixFormat->GetPixelFormat(fmt);
 		frmsizeenum.index = index;
 
-		v4l2_selection sel;
+		v4l2_selection sel{};
 		sel.target = V4L2_SEL_TGT_NATIVE_SIZE;
-		sel.type = m_DeviceBufferType;
+		sel.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-		if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_SELECTION, &sel)) {
-            if (frmsizeenum.type == V4L2_FRMSIZE_TYPE_DISCRETE)
+        if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_SELECTION, &sel)) {
+            while (!iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum))
             {
-                while (!iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum))
+                if (frmsizeenum.type == V4L2_FRMSIZE_TYPE_DISCRETE)
                 {
                     if (frmsizeenum.discrete.width == sel.r.width &&
                         frmsizeenum.discrete.height == sel.r.height)
@@ -1236,10 +1236,10 @@ int Camera::GetFrameSizeIndex()
 
                     frmsizeenum.index = (++index);
                 }
-            }
-            else
-            {
-                return index;
+                else
+                {
+                    return index;
+                }
             }
 		}
         else

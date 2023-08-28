@@ -137,7 +137,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     m_pImageView = m_RenderSystem->GetWidget();
     m_pImageView->setParent(this);
     m_pImageView->hide();
-    ui.m_OutputHolder->layout()->addWidget(m_pImageView);
     connect(m_RenderSystem.get(), SIGNAL(RequestZoom(QPointF, bool)), this, SLOT(OnZoomRequested(QPointF, bool)));
     connect(m_RenderSystem.get(), SIGNAL(PixelClicked(QPointF)), this, SLOT(OnImageClicked(QPointF)));
 
@@ -674,8 +673,6 @@ void V4L2Viewer::OnStartButtonClicked()
     if (result == 0) {
         if (m_RenderSystem->CanRender(pixelFormat)) {
             StartStreaming(pixelFormat, payloadSize, width, height, bytesPerLine);
-            m_pImageView->show();
-            ui.m_LogoScrollArea->hide();
         }
         else {
             CustomDialog::Error( this, tr("Video4Linux"), tr("Pixelformat %1 not supported! Please select a different format.").arg(pixelFormatText) );
@@ -1341,9 +1338,11 @@ void V4L2Viewer::UpdateViewerLayout()
 {
     if (!m_bIsOpen)
     {
-        ui.m_LogoHolder->show();
-        m_bIsStreaming = false;
         m_pImageView->hide();
+        ui.m_OutputHolder->layout()->replaceWidget(m_pImageView,ui.m_LogoScrollArea);
+        ui.m_LogoScrollArea->show();
+        m_bIsStreaming = false;
+
     }
 
     // Hide all cameras when not needed and block signals to avoid
@@ -1507,7 +1506,20 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
       // Separate raw data processor for rendering
       m_Camera.GetFrameObserver()->AddRawDataProcessor([&] (auto const& buf, auto doneCallback) {
         if (m_StreamingState.load(std::memory_order_acquire) == StreamingState::Streaming && m_ShowFrames) {
-          m_RenderSystem->PassFrame(buf, doneCallback);
+          m_RenderSystem->PassFrame(buf, [this,doneCallback] {
+              if (ui.m_LogoScrollArea->isVisible()) {
+
+                  ui.m_LogoScrollArea->hide();
+                  ui.m_OutputHolder->layout()->replaceWidget(ui.m_LogoScrollArea,m_pImageView);
+
+                  m_pImageView->show();
+              }
+
+              doneCallback();
+          });
+
+
+
         } else {
           doneCallback();
         }
