@@ -23,6 +23,7 @@
 
 
 #include "V4L2EventHandler.h"
+#include "Logger.h"
 
 V4L2EventHandler::V4L2EventHandler(const std::vector<int>  & fds) : m_Fds(fds)
 {
@@ -43,7 +44,13 @@ void V4L2EventHandler::SubscribeControl(int id)
         subscription.id = id;
         subscription.type = V4L2_EVENT_CTRL;
         subscription.flags = V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK;
-        ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &subscription);
+        auto res = ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &subscription);
+        if (res != 0) {
+            LOG_EX("VIDIOC_SUBSCRIBE_EVENT failed for ctrl: %d and fd: %d",id,fd);
+        }
+        else {
+            LOG_EX("VIDIOC_SUBSCRIBE_EVENT ok for ctrl: %d and fd: %d",id,fd);
+        }
     }
 }
 
