@@ -45,6 +45,8 @@
 #include <sstream>
 
 #include <linux/media.h>
+#include <filesystem>
+#include <regex>
 
 
 #define NUM_COLORS 3
@@ -462,67 +464,77 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
 
     QVector<QSharedPointer<MediaNode>> sensorNodes;
 
-    int mediaFd = open("/dev/media0",O_RDWR);
 
-
-
-    if (mediaFd > 0)
+    for (auto const & devNode : std::filesystem::directory_iterator{"/dev"})
     {
-        struct media_entity_desc mediaEntity = {0};
-        mediaEntity.id |= MEDIA_ENT_ID_FLAG_NEXT;
-
-        while(ioctl(mediaFd,MEDIA_IOC_ENUM_ENTITIES,&mediaEntity) == 0)
+        std::regex mediaRegex{"media[0-9]+"};
+        if (std::regex_match(devNode.path().filename().string(),mediaRegex))
         {
-            LOG_EX("Read next media entity...");
+            int mediaFd = open(devNode.path().c_str(),O_RDWR);
 
-            if (mediaEntity.type == MEDIA_ENT_F_CAM_SENSOR)
+
+
+            if (mediaFd > 0)
             {
-                LOG_EX("Media entity %s is a camera.",mediaEntity.name);
+                struct media_entity_desc mediaEntity = {0};
+                mediaEntity.id |= MEDIA_ENT_ID_FLAG_NEXT;
 
-                QSharedPointer<MediaNode> sensorNode(new MediaNode{
-                    .id = mediaEntity.id,
-                    .name = std::string(mediaEntity.name),
-                    .devNodePath = readDevNode(mediaEntity)
-                });
+                while(ioctl(mediaFd,MEDIA_IOC_ENUM_ENTITIES,&mediaEntity) == 0)
+                {
+                    LOG_EX("Read next media entity...");
 
-                readSinkNodes(mediaFd,mediaEntity,sensorNode);
+                    if (mediaEntity.type == MEDIA_ENT_F_CAM_SENSOR)
+                    {
+                        LOG_EX("Media entity %s is a camera.",mediaEntity.name);
 
-                sensorNodes.push_back(sensorNode);
-            }
+                        QSharedPointer<MediaNode> sensorNode(new MediaNode{
+                                .id = mediaEntity.id,
+                                .name = std::string(mediaEntity.name),
+                                .devNodePath = readDevNode(mediaEntity)
+                        });
 
-            mediaEntity.id |= MEDIA_ENT_ID_FLAG_NEXT;
-        }
+                        readSinkNodes(mediaFd,mediaEntity,sensorNode);
 
-        for (const auto & node : sensorNodes)
-        {
-            std::string text = node->name + "( " + node->devNodePath + " )";
+                        sensorNodes.push_back(sensorNode);
+                    }
 
-            auto readNode = node;
+                    mediaEntity.id |= MEDIA_ENT_ID_FLAG_NEXT;
+                }
+
+                for (const auto & node : sensorNodes)
+                {
+                    std::string text = node->name + "( " + node->devNodePath + " )";
+
+                    auto readNode = node;
 
             while (!readNode->sinks.empty())
             {
                 auto next = readNode->sinks.first();
 
-                text += " -> " + next->name + "( " + next->devNodePath + " )";
+                        text += " -> " + next->name + "( " + next->devNodePath + " )";
 
-                readNode = next;
+                        readNode = next;
+                    }
+
+                    LOG_EX("Topology: %s",text.c_str());
+
+                }
+
+                ::close(mediaFd);
             }
-
-            LOG_EX("Topology: %s",text.c_str());
-
         }
-
-        ::close(mediaFd);
     }
+
+
 
     auto getCameraNode = [&](QString deviceName) {
         for (const auto & node : sensorNodes)
         {
             auto readNode = node;
 
-            while (!readNode->sinks.empty())
-            {
-                auto next = readNode->sinks.first();
+                    while (!readNode->sinks.empty())
+                    {
+                        auto next = readNode->sinks.first();
 
                 if (deviceName.toStdString() == next->devNodePath)
                 {
@@ -1592,6 +1604,8 @@ void V4L2Viewer::OnHeight()
     ui.m_edHeight->setText(QString("%1").arg(height));
 
     LOG_EX("V4L2Viewer::OnHeight: read frame size back from camera as width=%d, height=%d", ui.m_edWidth->text().toInt(), ui.m_edHeight->text().toInt());
+
+    UpdateCameraFormat();
 }
 
 void V4L2Viewer::OnGain()
@@ -1908,6 +1922,7 @@ void V4L2Viewer::GetImageInformation(const bool isCalledFromOnOpen)
     m_Camera.EnumAllControlNewStyle();
     m_Camera.PrepareFrameRate();
     m_Camera.PrepareCrop();
+    m_Camera.PrepareFrameSize();
 
     if(isCalledFromOnOpen)
     {

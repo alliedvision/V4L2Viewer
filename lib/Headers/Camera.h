@@ -537,6 +537,9 @@ public:
     // Prepare for setting / getting the frame cropping
     void PrepareCrop();
 
+    // Prepare for enumerating / setting / getting the framesize
+    void PrepareFrameSize();
+
     bool UsesSubdevices();
 
     // This function starts streaming from the camera
@@ -760,6 +763,7 @@ private:
     std::map<int, std::string>      m_FileDescriptorToNameMap;
     int                             m_FrameRateDeviceFileDescriptor;
     int                             m_CropDeviceFileDescriptor;
+    int                             m_FrameSizeFileDescriptor{-1};
     IPixFormat*                     m_pPixFormat;
 
     AutoReader                     *m_pAutoExposureReader;
