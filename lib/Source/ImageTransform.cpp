@@ -547,18 +547,23 @@ static void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *de
 }
 
 static void v4lconvert_swap_rgb(const unsigned char *src, unsigned char *dst,
-                         int width, int height)
+                         int width, int height, int offset)
 {
-    int i;
+    int i,j;
 
-    for (i = 0; i < (width * height); i++)
+
+    for (j = 0;j < height;j++)
     {
-        unsigned char tmp0, tmp1;
-        tmp0 = *src++;
-        tmp1 = *src++;
-        *dst++ = *src++;
-        *dst++ = tmp1;
-        *dst++ = tmp0;
+        for (i = 0; i < width; i++)
+        {
+            unsigned char tmp0, tmp1;
+            tmp0 = *src++;
+            tmp1 = *src++;
+            *dst++ = *src++;
+            *dst++ = tmp1;
+            *dst++ = tmp0;
+        }
+        src += offset;
     }
 }
 
@@ -954,7 +959,8 @@ namespace ImageTransform {
         case V4L2_PIX_FMT_BGR24:
             {
                 convertedImage = QImage(width, height, QImage::Format_RGB888);
-                v4lconvert_swap_rgb(pBuffer, convertedImage.bits(), width, height);
+                auto const offset = bytesPerLine - (width * 3);
+                v4lconvert_swap_rgb(pBuffer, convertedImage.bits(), width, height, offset);
             }
             break;
         case V4L2_PIX_FMT_VYUY:
@@ -981,8 +987,11 @@ namespace ImageTransform {
             break;
         case V4L2_PIX_FMT_RGB24:
             {
-                convertedImage = QImage(width, height, QImage::Format_RGB888);
-                memcpy(convertedImage.bits(), pBuffer, width * height * 3);
+                auto buffer = new uchar[payloadSize];
+                memcpy(buffer, pBuffer, payloadSize);
+                convertedImage = QImage(buffer, width, height, bytesPerLine, QImage::Format_RGB888, [] (void* buffer) {
+                    delete[] reinterpret_cast<uchar*>(buffer);
+                });
             }
             break;
         case V4L2_PIX_FMT_RGB32:

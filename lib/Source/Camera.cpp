@@ -1196,6 +1196,9 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
         m_pPixFormat->SetField(fmt, V4L2_FIELD_ANY);
         m_pPixFormat->SetBytesPerLine(fmt, 0);
         m_pPixFormat->SetSizeImage(fmt, 0);
+        if (fmt.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+            fmt.fmt.pix_mp.num_planes = 1;
+        }
 
         if (m_UseV4L2TryFmt)
         {
