@@ -28,6 +28,7 @@
 #include <cstring>
 #include <linux/videodev2.h>
 #include <sstream>
+#include <iostream>
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 
@@ -987,11 +988,13 @@ namespace ImageTransform {
             break;
         case V4L2_PIX_FMT_RGB24:
             {
-                auto buffer = new uchar[payloadSize];
-                memcpy(buffer, pBuffer, payloadSize);
-                convertedImage = QImage(buffer, width, height, bytesPerLine, QImage::Format_RGB888, [] (void* buffer) {
-                    delete[] reinterpret_cast<uchar*>(buffer);
-                });
+                static std::unique_ptr<uchar[]> buffer;
+
+                if (!buffer || sizeof(buffer.get()) != payloadSize)
+                    buffer = std::make_unique<uchar[]>(payloadSize);
+
+                memcpy(buffer.get(), pBuffer, payloadSize);
+                convertedImage = QImage(buffer.get(), width, height, bytesPerLine, QImage::Format_RGB888);
             }
             break;
         case V4L2_PIX_FMT_RGB32:

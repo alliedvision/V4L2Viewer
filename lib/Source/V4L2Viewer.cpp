@@ -56,7 +56,7 @@
 #define APP_NAME            "Allied Vision V4L2 Viewer"
 #define APP_VERSION_MAJOR   2
 #define APP_VERSION_MINOR   2
-#define APP_VERSION_PATCH   0
+#define APP_VERSION_PATCH   1
 #ifndef SCM_REVISION
 #define SCM_REVISION        0
 #endif
@@ -1156,6 +1156,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
         ui.m_cropWidget->setEnabled(true);
     }
 
+    m_StreamingState.store(StreamingState::Stopped,std::memory_order_release);
 
     UpdateViewerLayout();
 
@@ -1225,6 +1226,7 @@ void V4L2Viewer::OnSaveImageClicked()
 
     if (fullPath.contains(".png"))
     {
+        ui.m_SaveImageButton->setEnabled(false);
         m_LastImageSaveFormat = ".png";
         // Do pixel format conversion here.
         // When doing software rendering, this is redundant work, but it greatly simplifies the
@@ -1235,7 +1237,12 @@ void V4L2Viewer::OnSaveImageClicked()
                                      lastFrame.width, lastFrame.height, lastFrame.pixelFormat,
                                      lastFrame.payloadSize, lastFrame.bytesPerLine, convertedImage);
         locker.unlock();
-        convertedImage.save(fullPath,"png");
+        std::thread saveThread{[convertedImage,fullPath,this] {
+            convertedImage.save(fullPath,"png");
+            ui.m_SaveImageButton->setEnabled(true);
+        }};
+        saveThread.detach();
+
         m_SavedFramesCounter++;
     }
     else if(fullPath.contains(".raw"))
@@ -1504,12 +1511,6 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
     } else {
       // Data processor for updating UI according to received data
       m_Camera.GetFrameObserver()->AddRawDataProcessor([this] (auto const& buf, auto doneCallback) {
-        if(!m_bIsImageFitByFirstImage) {
-            ui.m_ZoomFitButton->setChecked(true);
-            OnZoomFitButtonClicked();
-            m_bIsImageFitByFirstImage = true;
-        }
-
         emit UpdateFrameInfo(buf.frameID,buf.width,buf.height);
 
         doneCallback();
@@ -1518,16 +1519,22 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
       // Separate raw data processor for rendering
       m_Camera.GetFrameObserver()->AddRawDataProcessor([&] (auto const& buf, auto doneCallback) {
         if (m_StreamingState.load(std::memory_order_acquire) == StreamingState::Streaming && m_ShowFrames) {
-          m_RenderSystem->PassFrame(buf, [this,doneCallback] {
-              if (ui.m_LogoScrollArea->isVisible()) {
+            if (ui.m_LogoScrollArea->isVisible()) {
 
-                  ui.m_LogoScrollArea->hide();
-                  ui.m_OutputHolder->layout()->replaceWidget(ui.m_LogoScrollArea,m_pImageView);
+                ui.m_LogoScrollArea->hide();
+                ui.m_OutputHolder->layout()->replaceWidget(ui.m_LogoScrollArea,m_pImageView);
 
-                  m_pImageView->show();
-              }
+                m_pImageView->show();
+            }
 
-              doneCallback();
+            m_RenderSystem->PassFrame(buf, [this,doneCallback] {
+                if(!m_bIsImageFitByFirstImage) {
+                    ui.m_ZoomFitButton->setChecked(true);
+                    OnZoomFitButtonClicked();
+                    m_bIsImageFitByFirstImage = true;
+                }
+
+                doneCallback();
           });
 
 
