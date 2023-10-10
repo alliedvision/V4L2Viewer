@@ -27,7 +27,6 @@
 
 #include <cstring>
 #include <linux/videodev2.h>
-#include <sstream>
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 
@@ -915,20 +914,12 @@ namespace ImageTransform {
 
         case V4L2_PIX_FMT_ABGR32:
             {
-                int bytesPerPixel = 4;
-                v4lconvert_remove_padding (&pBuffer, &conversionBuffer, width, height, bytesPerPixel, bytesPerLine);
-                convertedImage = QImage (width, height, QImage::Format_ARGB32);
-                unsigned char *dst = convertedImage.bits ();
-                memcpy (dst, pBuffer, width * height * bytesPerPixel);
+                convertedImage = QImage(pBuffer, width, height, bytesPerLine, QImage::Format_ARGB32).copy();
             }
             break;
         case V4L2_PIX_FMT_XBGR32:
             {
-                v4lconvert_remove_padding(&pBuffer, &conversionBuffer, width, height, 4,
-                                          bytesPerLine);
-                convertedImage = QImage(width, height, QImage::Format_ARGB32);
-                v4lconvert_xbgr32_to_argb32(pBuffer, convertedImage.bits(), width,
-                                           height);
+                convertedImage = QImage(pBuffer, width, height, bytesPerLine, QImage::Format_RGB32).copy();
             }
             break;
         case V4L2_PIX_FMT_XRGB32:
@@ -958,9 +949,13 @@ namespace ImageTransform {
             break;
         case V4L2_PIX_FMT_BGR24:
             {
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+                convertedImage = QImage(pBuffer, width, height, bytesPerLine, QImage::Format_BGR888).copy();
+#else
                 convertedImage = QImage(width, height, QImage::Format_RGB888);
                 auto const offset = bytesPerLine - (width * 3);
                 v4lconvert_swap_rgb(pBuffer, convertedImage.bits(), width, height, offset);
+#endif
             }
             break;
         case V4L2_PIX_FMT_VYUY:
@@ -987,11 +982,7 @@ namespace ImageTransform {
             break;
         case V4L2_PIX_FMT_RGB24:
             {
-                auto buffer = new uchar[payloadSize];
-                memcpy(buffer, pBuffer, payloadSize);
-                convertedImage = QImage(buffer, width, height, bytesPerLine, QImage::Format_RGB888, [] (void* buffer) {
-                    delete[] reinterpret_cast<uchar*>(buffer);
-                });
+                convertedImage = QImage(pBuffer, width, height, bytesPerLine, QImage::Format_RGB888).copy();
             }
             break;
         case V4L2_PIX_FMT_RGB32:
