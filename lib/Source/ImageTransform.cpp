@@ -27,8 +27,6 @@
 
 #include <cstring>
 #include <linux/videodev2.h>
-#include <sstream>
-#include <iostream>
 
 #define CLIP(color) (unsigned char)(((color) > 0xFF) ? 0xff : (((color) < 0) ? 0 : (color)))
 
