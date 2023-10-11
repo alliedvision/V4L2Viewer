@@ -54,8 +54,9 @@ ListEnumerationControl::ListEnumerationControl(int32_t id, int32_t value, QList<
     else
     {
         setEnabled(true);
-        connect(&m_ComboBox, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnListItemChanged(const QString &)));
     }
+    
+    connect(&m_ComboBox, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnListItemChanged(const QString &)));
 }
 
 void ListEnumerationControl::UpdateValue(QList<QString> list, int32_t value)

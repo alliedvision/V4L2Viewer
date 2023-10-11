@@ -51,22 +51,23 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
     else
     {
         setEnabled(true);
-        connect(&m_LineEdit, SIGNAL(editingFinished()), this, SLOT(OnLineEditPressed()));
-        connect(&m_Slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
-        if (name.contains("exposure",Qt::CaseInsensitive))
-        {
-            connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderLogValueChanged(int)));
-            m_Slider.setMaximum(1000);
-            m_Slider.setMinimum(0);
-            m_Slider.setValue(GetSliderLogValue(value));
-        }
-        else
-        {
-            connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderValueChanged(int)));
-            m_Slider.setMaximum(ConvertToSliderValue(max));
-            m_Slider.setMinimum(ConvertToSliderValue(min));
-            m_Slider.setValue(ConvertToSliderValue(value));
-        }
+    }
+
+    connect(&m_LineEdit, SIGNAL(editingFinished()), this, SLOT(OnLineEditPressed()));
+    connect(&m_Slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
+    if (name.contains("exposure",Qt::CaseInsensitive))
+    {
+        connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderLogValueChanged(int)));
+        m_Slider.setMaximum(1000);
+        m_Slider.setMinimum(0);
+        m_Slider.setValue(GetSliderLogValue(value));
+    }
+    else
+    {
+        connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderValueChanged(int)));
+        m_Slider.setMaximum(ConvertToSliderValue(max));
+        m_Slider.setMinimum(ConvertToSliderValue(min));
+        m_Slider.setValue(ConvertToSliderValue(value));
     }
 
     UpdateInfo();
