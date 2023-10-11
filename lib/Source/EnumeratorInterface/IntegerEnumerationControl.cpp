@@ -52,24 +52,26 @@ IntegerEnumerationControl::IntegerEnumerationControl(int32_t id, int32_t min, in
     else
     {
         setEnabled(true);
-        connect(&m_LineEdit, SIGNAL(editingFinished()), this, SLOT(OnLineEditPressed()));
-        connect(&m_Slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
-        if (id == V4L2_CID_EXPOSURE)
-        {
-            connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderLogValueChanged(int)));
-            m_Slider.setMaximum(10000);
-            m_Slider.setMinimum(0);
-            m_Slider.setValue(GetSliderLogValue(value));
-        }
-        else
-        {
-            connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderValueChanged(int)));
-            m_Slider.setMaximum(max);
-            m_Slider.setMinimum(min);
-            m_Slider.setValue(value);
-        }
+    }
+
+    connect(&m_LineEdit, SIGNAL(editingFinished()), this, SLOT(OnLineEditPressed()));
+    connect(&m_Slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
+    if (id == V4L2_CID_EXPOSURE)
+    {
+        connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderLogValueChanged(int)));
+        m_Slider.setMaximum(10000);
+        m_Slider.setMinimum(0);
+        m_Slider.setValue(GetSliderLogValue(value));
+    }
+    else
+    {
+        connect(&m_Slider, SIGNAL(valueChanged(int)), this, SLOT(OnSliderValueChanged(int)));
+        m_Slider.setMaximum(max);
+        m_Slider.setMinimum(min);
         m_Slider.setValue(value);
     }
+    m_Slider.setValue(value);
+
     UpdateInfo();
 }
 

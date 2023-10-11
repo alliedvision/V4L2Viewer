@@ -43,8 +43,9 @@ BooleanEnumerationControl::BooleanEnumerationControl(int32_t id, bool value, QSt
     else
     {
         setEnabled(true);
-        connect(&m_ComboBox, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnTextChanged(const QString &)));
     }
+
+    connect(&m_ComboBox, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnTextChanged(const QString &)));
 }
 
 void BooleanEnumerationControl::UpdateValue(bool val)
