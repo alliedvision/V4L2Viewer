@@ -1372,7 +1372,7 @@ int Camera::GetFrameSizeIndex()
         subdevFormat.pad = 0;
         if (ioctl(m_FrameSizeFileDescriptor,VIDIOC_SUBDEV_G_FMT,&subdevFormat) != 0)
         {
-            return {};
+            return -1;
         }
 
         v4l2_subdev_frame_size_enum subdevFrameSize{};
@@ -2456,8 +2456,8 @@ int Camera::SetCrop(int32_t xOffset, int32_t yOffset, uint32_t width, uint32_t h
                 continue;
             }
 
-            subdevFormat.format.width = width;
-            subdevFormat.format.height = height;
+            subdevFormat.format.width = selection.r.width;
+            subdevFormat.format.height = selection.r.height;
 
             if (ioctl(subdevFd, VIDIOC_SUBDEV_S_FMT, &subdevFormat) != 0) {
                 continue;
