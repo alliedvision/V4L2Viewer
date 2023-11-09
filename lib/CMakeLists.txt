@@ -109,7 +109,6 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E echo_append "#define GIT_VERSION " >> ${GIT_REVISION_FILE}
   COMMAND git log -1 "--pretty=format:\"%H\"" >> ${GIT_REVISION_FILE}
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  DEPENDS ${CMAKE_SOURCE_DIR}/.git/logs/HEAD
   VERBATIM
 )
 list(APPEND HEADER_FILES ${GIT_REVISION_FILE})
