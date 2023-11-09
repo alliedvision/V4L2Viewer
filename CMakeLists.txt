@@ -16,14 +16,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 cmake_minimum_required(VERSION 3.8)
+cmake_policy(SET CMP0095 NEW)
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 
-project(V4L2Viewer VERSION 1.0)
+project(V4L2Viewer VERSION 2.2.1)
 
 add_subdirectory(lib)
 
 add_executable(V4L2Viewer Source/main.cpp)
 target_link_libraries(V4L2Viewer V4L2ViewerLib)
-install(TARGETS V4L2Viewer DESTINATION /)
-install(FILES LICENSE.md README.rst DESTINATION /)
+install(TARGETS V4L2Viewer DESTINATION .)
+install(FILES LICENSE.md README.rst DESTINATION .)

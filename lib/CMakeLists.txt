@@ -164,6 +164,10 @@ if(SOFTWARE_RENDER_DEFAULT)
   target_compile_definitions(V4L2ViewerLib PRIVATE SOFTWARE_RENDER_DEFAULT=1)
 endif()
 
+if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+  target_link_libraries(V4L2ViewerLib PRIVATE stdc++fs)
+endif ()
+
 target_link_libraries(V4L2ViewerLib PUBLIC ${QT_LIBRARIES})
 target_include_directories(V4L2ViewerLib
   PUBLIC
