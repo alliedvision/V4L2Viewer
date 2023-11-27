@@ -8,8 +8,9 @@ Allied Vision V4L2 Viewer was designed for easy evaluation of
 Compatibility
 -------------
 New as of V2.2.1: Support for Xilinx Boards, see:
-- AMD Xilinx ZCU106: [alvium-manifest-zcu106](https://github.com/alliedvision/alvium-manifest-zcu106)
-- AMD Xilinx Kria KV260: [alvium-manifest-kv260](https://github.com/alliedvision/alvium-manifest-kv260)
+
+-  AMD Xilinx ZCU106: `alvium-manifest-zcu106 <https://github.com/alliedvision/alvium-manifest-zcu106>`_
+-  AMD Xilinx Kria KV260: `alvium-manifest-kv260 <https://github.com/alliedvision/alvium-manifest-kv260>`_
 
 Additionally, you can use the viewer with any other CSI-2 camera or another board.
 
@@ -72,7 +73,8 @@ Known issues:
 -  Reverse X/Y cannot be set during image acquisition.
 -  Saving images during image acquisition is not always possible. 
 
-# Beta Disclaimer
+Beta Disclaimer
+---------------
 
 Please be aware that all code revisions not explicitly listed in the Github Release section are
 considered a **Beta Version**.
