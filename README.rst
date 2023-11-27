@@ -4,18 +4,12 @@ Allied Vision V4L2 Viewer
 Allied Vision V4L2 Viewer was designed for easy evaluation of 
 `Alvium CSI-2 cameras <https://www.alliedvision.com/en/products/embedded-vision-solutions/>`_. 
 
-THE SOFTWARE IS PRELIMINARY AND STILL IN TESTING AND VERIFICATION PHASE AND IS PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS AND IS BELIEVED TO CONTAIN DEFECTS. A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Compatibility
 -------------
-New as of V2.2.0: support for IMX8MPlus EVK 2.2.0-avt1.0, see https://github.com/alliedvision/alvium-manifest-imx8mpevk
-
- Tests were performed on the following NVIDIA Jetson SOMs: 
-
-  - NVIDIA AGX Orin Developer Kit
-  - JetPack 5.1.0 (L4T 35.1.0), see https://github.com/alliedvision/linux_nvidia_jetson
+New as of V2.2.1: Support for Xilinx Boards, see:
+- AMD Xilinx ZCU106: [alvium-manifest-zcu106](https://github.com/alliedvision/alvium-manifest-zcu106)
+- AMD Xilinx Kria KV260: [alvium-manifest-kv260](https://github.com/alliedvision/alvium-manifest-kv260)
 
 Additionally, you can use the viewer with any other CSI-2 camera or another board.
 
@@ -77,5 +71,18 @@ Known issues:
 -  Reverse X/Y in combination with a Bayer pixel format causes images with incorrect colors or an incorrect pixel format.
 -  Reverse X/Y cannot be set during image acquisition.
 -  Saving images during image acquisition is not always possible. 
+
+# Beta Disclaimer
+
+Please be aware that all code revisions not explicitly listed in the Github Release section are
+considered a **Beta Version**.
+
+For Beta Versions, the following applies in addition to the GPLv2 License:
+
+THE SOFTWARE IS PRELIMINARY AND STILL IN TESTING AND VERIFICATION PHASE AND IS PROVIDED ON AN “AS
+IS” AND “AS AVAILABLE” BASIS AND IS BELIEVED TO CONTAIN DEFECTS. THE PRIMARY PURPOSE OF THIS EARLY
+ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND THE IDENTIFICATION OF DEFECTS IN THE SOFTWARE,
+HARDWARE AND DOCUMENTATION.
+
 
 
