@@ -25,7 +25,20 @@ project(V4L2Viewer VERSION 2.2.1)
 
 add_subdirectory(lib)
 
+
 add_executable(V4L2Viewer Source/main.cpp)
 target_link_libraries(V4L2Viewer V4L2ViewerLib)
+set_target_properties(V4L2Viewer PROPERTIES INSTALL_RPATH "$ORIGIN")
+
+
+
+
 install(TARGETS V4L2Viewer DESTINATION .)
 install(FILES LICENSE.md README.rst DESTINATION .)
+install(DIRECTORY $ENV{QT_5_15_arm64_DEPLOY}/ DESTINATION . FILES_MATCHING PATTERN *)
+install(FILES $ENV{QT_5_15_arm64}/lib/libQt5Widgets.so.5 DESTINATION .)
+install(FILES $ENV{QT_5_15_arm64}/lib/libQt5Widgets.so.5.15.14 DESTINATION .)
+
+set(CPACK_GENERATOR TGZ)
+
+include(CPack)
