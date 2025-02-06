@@ -21,7 +21,7 @@ cmake_policy(SET CMP0095 NEW)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 
-project(V4L2Viewer VERSION 2.2.1)
+project(V4L2Viewer VERSION 2.3.0)
 
 add_subdirectory(lib)
 
