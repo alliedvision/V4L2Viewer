@@ -180,8 +180,6 @@ static void ConvertJetsonBayer16ToRGB24(const void *sourceBuffer, uint32_t width
     uint8_t *destdata = s_ConversionBuffer.get();
     auto const *srcdata = reinterpret_cast<uint8_t const*>(sourceBuffer);
 
-    auto const start = std::chrono::steady_clock::now();
-
     for (unsigned int y = 0; y < height; y++) 
     {
         for (unsigned int x = 0; x < width; x++) 
@@ -192,10 +190,6 @@ static void ConvertJetsonBayer16ToRGB24(const void *sourceBuffer, uint32_t width
             *destdata++ = val;
         }
     }
-
-    auto const end = std::chrono::steady_clock::now();
-    auto const diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    std::cout << "Copy took " << diff << "us" << std::endl;
 
     dst = QImage(width, height, QImage::Format_RGB888);
     v4lconvert_bayer8_to_rgb24(s_ConversionBuffer.get(), dst.bits(), width, height, width, pixfmt);
