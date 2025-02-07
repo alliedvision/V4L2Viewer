@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2021 Allied Vision Technologies GmbH
+   Copyright (C) 2021 - 2025 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -154,30 +154,41 @@ static void v4lconvert_bayer8_to_rgb24(const unsigned char *bayer, unsigned char
                                 int width, int height,
                                 const unsigned int stride, unsigned int pixfmt);
 
-static void  ConvertJetsonMono16ToRGB24(const void *sourceBuffer, uint32_t width, uint32_t height, QImage& dst, int shift)
+static void  ConvertJetsonMono16ToRGB24(const void *sourceBuffer, uint32_t width, uint32_t height, QImage& dst, int shift, size_t bpl)
 {
     dst = QImage(width, height, QImage::Format_RGB888);
     uint8_t *destdata = dst.bits();
-    uint16_t const *srcdata = reinterpret_cast<uint16_t const*>(sourceBuffer);
+    auto const *srcdata = reinterpret_cast<uint8_t const*>(sourceBuffer);
 
-    for(unsigned int px = 0; px < width*height; ++px) {
-        uint8_t const val = (srcdata[px] >> shift) & 0xFF;
-        *destdata++ = val;
-        *destdata++ = val;
-        *destdata++ = val;
+    for (unsigned int y = 0; y < height; y++) 
+    {
+        for (unsigned int x = 0; x < width; x++) {
+            auto const offs = y*bpl + 2*x;
+            auto const val16 = reinterpret_cast<uint16_t const*>(&srcdata[offs]);
+            uint8_t const val = (*val16 >> shift) & 0xFF;
+            *destdata++ = val;
+            *destdata++ = val;
+            *destdata++ = val;
+        }
     }
 }
 
 
 
-static void ConvertJetsonBayer16ToRGB24(const void *sourceBuffer, uint32_t width, uint32_t height, QImage& dst, int shift, unsigned int pixfmt)
+static void ConvertJetsonBayer16ToRGB24(const void *sourceBuffer, uint32_t width, uint32_t height, QImage& dst, int shift, unsigned int pixfmt, size_t bpl)
 {
     uint8_t *destdata = s_ConversionBuffer.get();
-    uint16_t const *srcdata = reinterpret_cast<uint16_t const*>(sourceBuffer);
+    auto const *srcdata = reinterpret_cast<uint8_t const*>(sourceBuffer);
 
-    for(unsigned int px = 0; px < width*height; ++px) {
-        uint8_t const val = (srcdata[px] >> shift) & 0xFF;
-        *destdata++ = val;
+    for (unsigned int y = 0; y < height; y++) 
+    {
+        for (unsigned int x = 0; x < width; x++) 
+        {
+            auto const offs = y*bpl + 2*x;
+            auto const val16 = reinterpret_cast<uint16_t const*>(&srcdata[offs]);
+            uint8_t const val = (*val16 >> shift) & 0xFF;
+            *destdata++ = val;
+        }
     }
 
     dst = QImage(width, height, QImage::Format_RGB888);
@@ -1108,95 +1119,95 @@ namespace ImageTransform {
         /* AGX Xavier and Xavier NX */
         case V4L2_PIX_FMT_XAVIER_Y10:
         case V4L2_PIX_FMT_XAVIER_Y12:
-            ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 7);
+            ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 7, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_XAVIER_SGRBG10:
         case V4L2_PIX_FMT_XAVIER_SGRBG12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SGRBG8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SGRBG8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_XAVIER_SRGGB10:
         case V4L2_PIX_FMT_XAVIER_SRGGB12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SRGGB8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SRGGB8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_XAVIER_SGBRG10:
         case V4L2_PIX_FMT_XAVIER_SGBRG12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SGBRG8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SGBRG8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_XAVIER_SBGGR10:
         case V4L2_PIX_FMT_XAVIER_SBGGR12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SBGGR8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 7, V4L2_PIX_FMT_SBGGR8, bytesPerLine);
             break;
 
         /* TX2 and Nano */
         case V4L2_PIX_FMT_TX2_Y10:
         case V4L2_PIX_FMT_TX2_Y12:
-            ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 6);
+            ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 6, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_TX2_SGRBG10:
         case V4L2_PIX_FMT_TX2_SGRBG12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SGRBG8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SGRBG8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_TX2_SRGGB10:
         case V4L2_PIX_FMT_TX2_SRGGB12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SRGGB8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SRGGB8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_TX2_SGBRG10:
         case V4L2_PIX_FMT_TX2_SGBRG12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SGBRG8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SGBRG8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_TX2_SBGGR10:
         case V4L2_PIX_FMT_TX2_SBGGR12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SBGGR8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 6, V4L2_PIX_FMT_SBGGR8, bytesPerLine);
             break;
 
         /* Nano/Generic 12 Bit */
         case V4L2_PIX_FMT_Y12:
-            ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, g_shift12Bit);
+            ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_SGRBG12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift12Bit, V4L2_PIX_FMT_SGRBG8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 8, V4L2_PIX_FMT_SGRBG8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_SRGGB12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift12Bit, V4L2_PIX_FMT_SRGGB8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 8, V4L2_PIX_FMT_SRGGB8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_SGBRG12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift12Bit, V4L2_PIX_FMT_SGBRG8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 8, V4L2_PIX_FMT_SGBRG8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_SBGGR12:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift12Bit, V4L2_PIX_FMT_SBGGR8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 8, V4L2_PIX_FMT_SBGGR8, bytesPerLine);
             break;
 
         /* Nano/Generic 10 Bit */
         case V4L2_PIX_FMT_Y10:
-            ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, g_shift10Bit);
+            ConvertJetsonMono16ToRGB24(pBuffer, width, height, convertedImage, 8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_SGRBG10:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift10Bit, V4L2_PIX_FMT_SGRBG8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 8, V4L2_PIX_FMT_SGRBG8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_SRGGB10:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift10Bit, V4L2_PIX_FMT_SRGGB8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 8, V4L2_PIX_FMT_SRGGB8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_SGBRG10:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift10Bit, V4L2_PIX_FMT_SGBRG8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 8, V4L2_PIX_FMT_SGBRG8, bytesPerLine);
             break;
 
         case V4L2_PIX_FMT_SBGGR10:
-            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, g_shift10Bit, V4L2_PIX_FMT_SBGGR8);
+            ConvertJetsonBayer16ToRGB24(pBuffer, width, height, convertedImage, 8, V4L2_PIX_FMT_SBGGR8, bytesPerLine);
             break;
 
 
