@@ -22,6 +22,8 @@ set(ENUM_INT_PATH ${HEADERS_PATH}/EnumeratorInterface)
 set(GIT_REVISION_FILE ${CMAKE_CURRENT_BINARY_DIR}/GitRevision.h)
 set(SOFTWARE_RENDER_DEFAULT ON CACHE BOOL "Use software render as default")
 
+configure_file(${HEADERS_PATH}/Version.h.in ${CMAKE_CURRENT_BINARY_DIR}/Version.h @ONLY)
+
 list(APPEND HEADER_FILES
   ${HEADERS_PATH}/BaseLogger.h
   ${HEADERS_PATH}/Camera.h
@@ -61,6 +63,7 @@ list(APPEND HEADER_FILES
   ${HEADERS_PATH}/V4L2EventHandler.h
   ${HEADERS_PATH}/FPSCalculator.h
   ${HEADERS_PATH}/EnumeratorInterface/StringEnumerationControl.h
+  ${CMAKE_CURRENT_BINARY_DIR}/Version.h
 )
 
 list(APPEND SOURCE_FILES

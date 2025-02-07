@@ -33,6 +33,7 @@
 #include "CustomDialog.h"
 #include "GitRevision.h"
 #include "ImageTransform.h"
+#include "Version.h"
 
 #include <QtCore>
 #include <QtGlobal>
@@ -54,9 +55,6 @@
 
 #define MANUF_NAME_AV       "Allied Vision"
 #define APP_NAME            "Allied Vision V4L2 Viewer"
-#define APP_VERSION_MAJOR   2
-#define APP_VERSION_MINOR   2
-#define APP_VERSION_PATCH   1
 #ifndef SCM_REVISION
 #define SCM_REVISION        0
 #endif
