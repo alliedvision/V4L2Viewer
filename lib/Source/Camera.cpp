@@ -2974,7 +2974,13 @@ size_t Camera::fsize(const char *filename)
 std::string Camera::getAvtDeviceFirmwareVersion()
 {
     std::string result = "";
+    
+    if (m_ControlIdToFileDescriptorMap.count(AVT_CID_FIRMWARE_VERSION))
+    {
+        auto const fd = m_ControlIdToFileDescriptorMap[AVT_CID_FIRMWARE_VERSION];
 
+        ReadExtControl(fd,result,AVT_CID_FIRMWARE_VERSION,"Firmware Version",__FUNCTION__, V4L2_CTRL_ID2CLASS(AVT_CID_FIRMWARE_VERSION));
+    }
     if(m_pFrameObserver)
     {
         // dummy call to set m_isAvtCamera
@@ -3019,7 +3025,13 @@ std::string Camera::getAvtDeviceSerialNumber()
 {
     std::string result = "";
 
-    if(m_pFrameObserver)
+    if (m_ControlIdToFileDescriptorMap.count(AVT_CID_SERIAL_NUMBER))
+    {
+        auto const fd = m_ControlIdToFileDescriptorMap[AVT_CID_SERIAL_NUMBER];
+
+        ReadExtControl(fd,result,AVT_CID_SERIAL_NUMBER,"Serial Number",__FUNCTION__, V4L2_CTRL_ID2CLASS(AVT_CID_SERIAL_NUMBER));
+    }
+    else if(m_pFrameObserver)
     {
         // dummy call to set m_isAvtCamera
         std::string dummy;
