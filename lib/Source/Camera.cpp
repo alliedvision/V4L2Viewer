@@ -2981,7 +2981,7 @@ std::string Camera::getAvtDeviceFirmwareVersion()
 
         ReadExtControl(fd,result,AVT_CID_FIRMWARE_VERSION,"Firmware Version",__FUNCTION__, V4L2_CTRL_ID2CLASS(AVT_CID_FIRMWARE_VERSION));
     }
-    if(m_pFrameObserver)
+    else if(m_pFrameObserver)
     {
         // dummy call to set m_isAvtCamera
         std::string dummy;
