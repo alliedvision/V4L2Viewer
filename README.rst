@@ -6,6 +6,9 @@ Allied Vision V4L2 Viewer was designed for easy evaluation of
 
 Compatibility
 -------------
+
+Tests were performed on the following NVIDIA Jetson SOMs: 
+
 - JetPack 6.2.0 (L4T 36.4.3), see https://github.com/alliedvision/alvium-jetson-driver-release
 - All SoMs + carriers supported by the driver
 
