@@ -13,7 +13,7 @@ Additionally, you can use the viewer with any other CSI-2 camera or another boar
 
 Tested cameras:
 
--  Alvium MIPI CSI-2 cameras with firmware version 12
+-  Alvium C, GM2 and FP3 cameras
 
 
 Installation
