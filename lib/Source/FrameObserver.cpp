@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2021 Allied Vision Technologies GmbH
+   Copyright (C) 2021 - 2025 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -134,10 +134,15 @@ void FrameObserver::DequeueAndProcessFrame()
     v4l2_buffer buf;
     int result = 0;
 
-
     result = ReadFrame(buf);
     if (0 == result)
     {
+        if (buf.flags & V4L2_BUF_FLAG_ERROR) 
+        {
+            QueueSingleUserBuffer(buf.index);
+            return;
+        }
+
         m_FrameId++;
         m_ReceivedFPS.trigger();
 

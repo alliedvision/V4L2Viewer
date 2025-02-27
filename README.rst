@@ -7,16 +7,17 @@ Allied Vision V4L2 Viewer was designed for easy evaluation of
 
 Compatibility
 -------------
-New as of V2.2.1: Support for Xilinx Boards, see:
 
--  AMD Xilinx ZCU106: `alvium-manifest-zcu106 <https://github.com/alliedvision/alvium-manifest-zcu106>`_
--  AMD Xilinx Kria KV260: `alvium-manifest-kv260 <https://github.com/alliedvision/alvium-manifest-kv260>`_
+Tests were performed on the following NVIDIA Jetson SOMs: 
+
+- JetPack 6.2.0 (L4T 36.4.3), see https://github.com/alliedvision/alvium-jetson-driver-release
+- All SoMs + carriers supported by the driver
 
 Additionally, you can use the viewer with any other CSI-2 camera or another board.
 
 Tested cameras:
 
--  Alvium MIPI CSI-2 cameras with firmware version 12
+-  Alvium C, GM2 and FP3 cameras
 
 
 Installation
@@ -24,13 +25,6 @@ Installation
 Method A:
 ^^^^^^^^^
 Use the binaries for Jetson provided in this release version. 
-
-Additionally, install some Qt packages that are missing in JetPack 5.1.0:
-
-.. code-block:: bash
-
-   sudo apt-get install libqt5widgets5
-
 
 
 Method B:

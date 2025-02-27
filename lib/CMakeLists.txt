@@ -22,6 +22,8 @@ set(ENUM_INT_PATH ${HEADERS_PATH}/EnumeratorInterface)
 set(GIT_REVISION_FILE ${CMAKE_CURRENT_BINARY_DIR}/GitRevision.h)
 set(SOFTWARE_RENDER_DEFAULT ON CACHE BOOL "Use software render as default")
 
+configure_file(${HEADERS_PATH}/Version.h.in ${CMAKE_CURRENT_BINARY_DIR}/Version.h @ONLY)
+
 list(APPEND HEADER_FILES
   ${HEADERS_PATH}/BaseLogger.h
   ${HEADERS_PATH}/Camera.h
@@ -61,6 +63,7 @@ list(APPEND HEADER_FILES
   ${HEADERS_PATH}/V4L2EventHandler.h
   ${HEADERS_PATH}/FPSCalculator.h
   ${HEADERS_PATH}/EnumeratorInterface/StringEnumerationControl.h
+  ${CMAKE_CURRENT_BINARY_DIR}/Version.h
 )
 
 list(APPEND SOURCE_FILES
@@ -109,7 +112,6 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E echo_append "#define GIT_VERSION " >> ${GIT_REVISION_FILE}
   COMMAND git log -1 "--pretty=format:\"%H\"" >> ${GIT_REVISION_FILE}
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  DEPENDS ${CMAKE_SOURCE_DIR}/.git/logs/HEAD
   VERBATIM
 )
 list(APPEND HEADER_FILES ${GIT_REVISION_FILE})
@@ -163,6 +165,10 @@ add_library(V4L2ViewerLib STATIC ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCES})
 if(SOFTWARE_RENDER_DEFAULT)
   target_compile_definitions(V4L2ViewerLib PRIVATE SOFTWARE_RENDER_DEFAULT=1)
 endif()
+
+if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+  target_link_libraries(V4L2ViewerLib PRIVATE stdc++fs)
+endif ()
 
 target_link_libraries(V4L2ViewerLib PUBLIC ${QT_LIBRARIES})
 target_include_directories(V4L2ViewerLib

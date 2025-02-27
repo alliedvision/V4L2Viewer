@@ -285,7 +285,7 @@ background-color:rgb(164, 168, 172);
 }
 
 QCheckBox::indicator{
-image: url(:/V4L2Viewer/g7848-scaled.ico);
+image: url(:/V4L2Viewer/g7848-scaled.png);
 border:none;
 width:32;
 height:32;
@@ -682,7 +682,7 @@ QPushButton::disabled{
               </property>
               <property name="icon">
                <iconset resource="../V4L2Viewer.qrc">
-                <normaloff>:/V4L2Viewer/saveSingle.ico</normaloff>:/V4L2Viewer/saveSingle.ico</iconset>
+                <normaloff>:/V4L2Viewer/saveSingle.png</normaloff>:/V4L2Viewer/saveSingle.png</iconset>
               </property>
              </widget>
             </item>
