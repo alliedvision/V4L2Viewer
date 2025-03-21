@@ -18,7 +18,7 @@
 
 #include "ListEnumerationControl.h"
 
-ListEnumerationControl::ListEnumerationControl(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly, QWidget *parent):
+ListEnumerationControl::ListEnumerationControl(int32_t id, int32_t value, const std::vector<ListEnumerationOption> & list, QString name, QString unit, bool bIsReadOnly, QWidget *parent):
     IControlEnumerationHolder(id, name, parent)
 {
     m_ControlInfo = QString(tr("%1 control is represented as list of strings. \n Unit: %2")
@@ -31,19 +31,22 @@ ListEnumerationControl::ListEnumerationControl(int32_t id, int32_t value, QList<
     m_MainLayout.setColumnStretch(0, 1);
     m_MainLayout.setColumnStretch(1, 0);
 
-    for (QList<QString>::iterator it = list.begin(); it<list.end(); ++it)
+    for (int i = 0; i < list.size(); i++)
     {
-        m_ComboBox.addItem(*it);
+        auto const & it = list.at(i);
+        m_ComboBox.addItem(QString::fromStdString(it.name));
+        m_IndexMap.emplace(it.index, i);
     }
 
-    if (value >= list.count())
+    auto vit = m_IndexMap.find(value);
+    if (vit == m_IndexMap.end())
     {
         m_ComboBox.addItem("Unknown Value");
         m_ComboBox.setCurrentText("Unknown Value");
     }
     else
     {
-        m_ComboBox.setCurrentText(list.at(value));
+        m_ComboBox.setCurrentText(QString::fromStdString(list.at(vit->second).name));
     }
 
     if (bIsReadOnly)
@@ -59,25 +62,33 @@ ListEnumerationControl::ListEnumerationControl(int32_t id, int32_t value, QList<
     connect(&m_ComboBox, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnListItemChanged(const QString &)));
 }
 
-void ListEnumerationControl::UpdateValue(QList<QString> list, int32_t value)
+void ListEnumerationControl::UpdateValue(const std::vector<ListEnumerationOption>& list, int32_t value)
 {
     m_ComboBox.blockSignals(true);
-	if (list.empty() && m_ComboBox.count() > value)
+    auto vit = m_IndexMap.find(value);
+	if (list.empty() && vit != m_IndexMap.end())
 	{
-		m_ComboBox.setCurrentIndex(value);
+		m_ComboBox.setCurrentIndex(vit->second);
 	}
 	else {
 		m_ComboBox.clear();
-		for (QList<QString>::iterator it = list.begin(); it < list.end(); ++it) {
-			m_ComboBox.addItem(*it);
+        m_IndexMap.clear();
+		for (int i = 0; i < list.size(); i++) {
+            auto const & it = list.at(i);
+			m_ComboBox.addItem(QString::fromStdString(it.name));
+            m_IndexMap.emplace(it.index, i);
 		}
 
-		if (value >= list.count()) {
-			m_ComboBox.addItem("Unknown Value");
-			m_ComboBox.setCurrentText("Unknown Value");
-		} else {
-			m_ComboBox.setCurrentText(list.at(value));
-		}
+		auto vit = m_IndexMap.find(value);
+        if (vit == m_IndexMap.end())
+        {
+            m_ComboBox.addItem("Unknown Value");
+            m_ComboBox.setCurrentText("Unknown Value");
+        }
+        else
+        {
+            m_ComboBox.setCurrentText(QString::fromStdString(list.at(vit->second).name));
+        }
 	}
 
     m_ComboBox.blockSignals(false);

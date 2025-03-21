@@ -391,7 +391,7 @@ protected slots:
     // [in] (QString) name - name of the control
     // [in] (QString) unit - unit of the control
     // [in] (bool) bIsReadOnly - state which indicates whether control is readonly
-    void PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly);
+    void PassListDataToEnumerationWidget(int32_t id, int32_t value, const std::vector<ListEnumerationOption> & list, QString name, QString unit, bool bIsReadOnly);
     // This slot function passes integer list control's data
     //
     // Parameters:

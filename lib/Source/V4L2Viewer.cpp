@@ -173,7 +173,7 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(&m_Camera, SIGNAL(SentInt64DataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)),    this, SLOT(PassIntDataToEnumerationWidget(int32_t, int64_t, int64_t, int64_t, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendBoolDataToEnumerationWidget(int32_t, bool, QString, QString, bool)),                          this, SLOT(PassBoolDataToEnumerationWidget(int32_t, bool, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendButtonDataToEnumerationWidget(int32_t, QString, QString, bool)),                              this, SLOT(PassButtonDataToEnumerationWidget(int32_t, QString, QString, bool)));
-    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)),       this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<QString>, QString, QString, bool)));
+    connect(&m_Camera, SIGNAL(SendListDataToEnumerationWidget(int32_t, int32_t, const std::vector<ListEnumerationOption> &, QString, QString, bool)),       this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, const std::vector<ListEnumerationOption> &, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendListIntDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)),    this, SLOT(PassListDataToEnumerationWidget(int32_t, int32_t, QList<int64_t>, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendStringDataToEnumerationWidget(int32_t, QString, QString, QString, bool)),    this, SLOT(PassStringDataToEnumerationWidget(int32_t, QString, QString, QString, bool)));
     connect(&m_Camera, SIGNAL(SendUpdate(v4l2_ext_control)), this, SLOT(PassExtControl(v4l2_ext_control)));
@@ -233,6 +233,39 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     connect(ui.m_AllControlsButton, SIGNAL(clicked()), this, SLOT(ShowHideEnumerationControlWidget()));
 
     connect(ui.m_chkFrameRateAuto, SIGNAL(clicked()), this, SLOT(OnCheckFrameRateAutoClicked()));
+
+    connect(ui.m_chkColorTransform, &QCheckBox::toggled, [&](bool checked) {
+        m_Camera.SetColorTransformEnable(checked);
+    });
+
+    auto setMatrixEditCallback = [&](QLineEdit *ledit, int idx) {
+        connect(ledit, &QLineEdit::textEdited, [this, ledit, idx](const QString& text) {
+            auto const oldMatrix = m_Camera.GetColorTransformMatrix();
+            bool convertOk = false;
+            auto matrix = oldMatrix;
+
+            auto value = text.toInt(&convertOk);
+            if (convertOk) 
+            {
+                matrix[idx] = value;
+                if (m_Camera.SetColorTransformMatrix(matrix) != 0)
+                    matrix[idx] = oldMatrix[idx];
+            }
+            
+            ledit->setText(QString("%0").arg(matrix[idx]));
+        });
+    };
+
+    setMatrixEditCallback(ui.m_edIndex00, 0);
+    setMatrixEditCallback(ui.m_edIndex01, 1);
+    setMatrixEditCallback(ui.m_edIndex02, 2);
+    setMatrixEditCallback(ui.m_edIndex10, 3);
+    setMatrixEditCallback(ui.m_edIndex11, 4);
+    setMatrixEditCallback(ui.m_edIndex12, 5);
+    setMatrixEditCallback(ui.m_edIndex20, 6);
+    setMatrixEditCallback(ui.m_edIndex21, 7);
+    setMatrixEditCallback(ui.m_edIndex22, 8);
+
 
     connect(this, &V4L2Viewer::UpdateFrameInfo, this, &V4L2Viewer::OnUpdateFrameInfo, Qt::QueuedConnection);
 
@@ -886,7 +919,7 @@ void V4L2Viewer::PassButtonDataToEnumerationWidget(int32_t id, QString name, QSt
     }
 }
 
-void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly)
+void V4L2Viewer::PassListDataToEnumerationWidget(int32_t id, int32_t value, const std::vector<ListEnumerationOption> & list, QString name, QString unit, bool bIsReadOnly)
 {
     if (!m_pEnumerationControlWidget->IsControlAlreadySet(id))
     {
@@ -1557,6 +1590,9 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
             doneCallback();
         }
       });
+
+      
+        
     }
 
     return err;
@@ -2145,6 +2181,36 @@ void V4L2Viewer::GetImageInformation(const bool isCalledFromOnOpen)
 
     ui.m_sliderExposure->setDisabled(autoexposure && ui.m_sliderExposure->isEnabled());
     ui.m_sliderGain->setDisabled(autogain && ui.m_sliderGain->isEnabled());
+   
+    bool hasColorTransform = m_Camera.HasColorTransform();    
+
+    ui.m_chkColorTransform->setEnabled(hasColorTransform);
+    ui.m_edIndex00->setEnabled(hasColorTransform);
+    ui.m_edIndex01->setEnabled(hasColorTransform);
+    ui.m_edIndex02->setEnabled(hasColorTransform);
+    ui.m_edIndex10->setEnabled(hasColorTransform);
+    ui.m_edIndex11->setEnabled(hasColorTransform);
+    ui.m_edIndex12->setEnabled(hasColorTransform);
+    ui.m_edIndex20->setEnabled(hasColorTransform);
+    ui.m_edIndex21->setEnabled(hasColorTransform);
+    ui.m_edIndex22->setEnabled(hasColorTransform);
+
+    if (hasColorTransform ) 
+    {
+        ui.m_chkColorTransform->setChecked(m_Camera.GetColorTransformEnable());
+        auto const matrix = m_Camera.GetColorTransformMatrix();
+
+        ui.m_edIndex00->setText(QString("%0").arg(matrix[0]));
+        ui.m_edIndex01->setText(QString("%0").arg(matrix[1]));
+        ui.m_edIndex02->setText(QString("%0").arg(matrix[2]));
+        ui.m_edIndex10->setText(QString("%0").arg(matrix[3]));
+        ui.m_edIndex11->setText(QString("%0").arg(matrix[4]));
+        ui.m_edIndex12->setText(QString("%0").arg(matrix[5]));
+        ui.m_edIndex20->setText(QString("%0").arg(matrix[6]));
+        ui.m_edIndex21->setText(QString("%0").arg(matrix[7]));
+        ui.m_edIndex22->setText(QString("%0").arg(matrix[8]));
+    }
+    
 }
 
 void V4L2Viewer::UpdateCameraFormat()
