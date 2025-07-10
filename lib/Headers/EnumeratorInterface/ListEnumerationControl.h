@@ -21,17 +21,26 @@
 
 #include "IControlEnumerationHolder.h"
 
+struct ListEnumerationOption 
+{
+    unsigned int index;
+    std::string name;
+
+    ListEnumerationOption(unsigned int index, const std::string& name) : index{index}, name{name} {}
+}; 
+
 class ListEnumerationControl : public IControlEnumerationHolder
 {
     Q_OBJECT
 public:
-    ListEnumerationControl(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly, QWidget *parent);
+    ListEnumerationControl(int32_t id, int32_t value, const std::vector<ListEnumerationOption> & list,
+                           QString name, QString unit, bool bIsReadOnly, QWidget *parent);
     // This function updates value in current widget when it's changed somewhere else
     //
     // Parameters:
     // [in] (QList<QString>) list - new list values for the widget
     // [in] (int32_t) value - new value for the widget
-    void UpdateValue(QList<QString> list, int32_t value);
+    void UpdateValue(const std::vector<ListEnumerationOption> & list, int32_t value);
 
 private slots:
     // This slot function is called when the item on the ListWidget was changed
@@ -51,6 +60,7 @@ signals:
 private:
     // Main element of the class
     QComboBox m_ComboBox;
+    std::map<int, int> m_IndexMap;
 };
 
 #endif // LISTENUMERATIONCONTROL_H

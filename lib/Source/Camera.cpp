@@ -51,6 +51,8 @@
 #include <regex>
 #include <optional>
 
+#include <linux/avt-csi2.h>
+
 // Custom ioctl definitions
 struct v4l2_i2c
 {
@@ -1649,7 +1651,7 @@ int Camera::EnumAllControlNewStyle()
                     int result = -1;
                     int32_t id = qctrl.id;
                     int32_t value;
-                    QList<QString> list;
+                    std::vector<ListEnumerationOption> list;
 
                     result = ReadExtControl(fileDescriptor, value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_ID2CLASS(qctrl.id));
 
@@ -1662,7 +1664,7 @@ int Camera::EnumAllControlNewStyle()
                             if (0 == iohelper::xioctl(fileDescriptor,
                             VIDIOC_QUERYMENU, &queryMenu))
                             {
-                                list.append(QString((const char*) queryMenu.name));
+                                list.push_back(ListEnumerationOption{queryMenu.index, reinterpret_cast<char*>(queryMenu.name)});
                             }
                         }
                         LOG_EX("Camera::EnumAllControlNewStyle VIDIOC_QUERYCTRL %s will be used for %s", m_FileDescriptorToNameMap[fileDescriptor].c_str(), qctrl.name);
@@ -1713,6 +1715,7 @@ int Camera::EnumAllControlNewStyle()
                         emit SendStringDataToEnumerationWidget(id, value, name, "", bIsReadOnly);
                     }
                 }
+                
             }
             qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
         }
@@ -1932,7 +1935,7 @@ int Camera::SetAutoExposure(bool autoexposure)
 {
 	uint32_t value = autoexposure ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL;
 
-	emit SendListDataToEnumerationWidget(V4L2_CID_EXPOSURE_AUTO, value, QList<QString>(), "", "", false);
+	emit SendListDataToEnumerationWidget(V4L2_CID_EXPOSURE_AUTO, value, {}, "", "", false);
 
     return SetExtControl(value, V4L2_CID_EXPOSURE_AUTO, "SetAutoExposure", "V4L2_CID_EXPOSURE_AUTO", V4L2_CTRL_CLASS_CAMERA);
 }
@@ -3228,7 +3231,7 @@ void Camera::OnCtrlUpdate(int cid, v4l2_event_ctrl ctrl)
 			emit SendListIntDataToEnumerationWidget(cid, ctrl.value, QList<int64_t>(), "", "", false);
 			break;
 		case V4L2_CTRL_TYPE_MENU:
-			emit SendListDataToEnumerationWidget(cid, ctrl.value, QList<QString>(), "", "", false);
+			emit SendListDataToEnumerationWidget(cid, ctrl.value, {}, "", "", false);
 			break;
 		case V4L2_CTRL_TYPE_INTEGER64: {
             int cfd = m_ControlIdToFileDescriptorMap[cid];
@@ -3437,4 +3440,90 @@ void Camera::SetEnumerationControlValueString(int32_t id, QString val)
 FrameObserver* Camera::GetFrameObserver() const
 {
     return m_pFrameObserver.data();
+}
+
+bool Camera::HasColorTransform() const
+{
+    auto fdit = m_ControlIdToFileDescriptorMap.find(AVT_CID_COLOR_TRANSFORM_MATRIX_ENABLE);
+    if (fdit == m_ControlIdToFileDescriptorMap.end()) {
+        LOG_EX("Failed to find color transform matrix enable control!");
+        return false;
+    }
+
+    return true;
+}
+
+bool Camera::GetColorTransformEnable() const
+{
+    auto fdit = m_ControlIdToFileDescriptorMap.find(AVT_CID_COLOR_TRANSFORM_MATRIX_ENABLE);
+    if (fdit == m_ControlIdToFileDescriptorMap.end()) 
+        return false;
+
+    v4l2_control ctrl{};
+    ctrl.id = AVT_CID_COLOR_TRANSFORM_MATRIX_ENABLE;
+
+    if (ioctl(fdit->second, VIDIOC_G_CTRL, &ctrl) < 0)
+        return false;
+
+    return ctrl.value ? true : false;
+}
+
+void Camera::SetColorTransformEnable(bool enable)
+{
+    auto fdit = m_ControlIdToFileDescriptorMap.find(AVT_CID_COLOR_TRANSFORM_MATRIX_ENABLE);
+    if (fdit == m_ControlIdToFileDescriptorMap.end()) 
+        return;
+
+    v4l2_control ctrl{};
+    ctrl.id = AVT_CID_COLOR_TRANSFORM_MATRIX_ENABLE;
+    ctrl.value = enable;
+
+    int ret = ioctl(fdit->second, VIDIOC_S_CTRL, &ctrl);
+    LOG_EX("Set color transform ret %d errno %d", ret, errno);
+}
+
+std::array<int, 9> Camera::GetColorTransformMatrix() const
+{
+    auto fdit = m_ControlIdToFileDescriptorMap.find(AVT_CID_COLOR_TRANSFORM_MATRIX_ENABLE);
+    if (fdit == m_ControlIdToFileDescriptorMap.end()) 
+        return {};
+
+    std::array<int, 9> matrix;
+
+    v4l2_ext_control ctrl{};
+    ctrl.id = AVT_CID_COLOR_TRANSFORM_MATRIX;
+    ctrl.size = matrix.size() * sizeof(int);
+    ctrl.ptr = matrix.data();
+    v4l2_ext_controls ctrls{};
+    ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
+    ctrls.count = 1;
+    ctrls.controls = &ctrl;
+
+    int ret = ioctl(fdit->second, VIDIOC_G_EXT_CTRLS, &ctrls);
+
+    LOG_EX("Get color transform matrix ret %d", ret);
+    
+    return matrix;
+}
+
+int Camera::SetColorTransformMatrix(const std::array<int, 9>& matrix) 
+{
+    auto fdit = m_ControlIdToFileDescriptorMap.find(AVT_CID_COLOR_TRANSFORM_MATRIX_ENABLE);
+    if (fdit == m_ControlIdToFileDescriptorMap.end()) 
+        return -1;
+
+    v4l2_ext_control ctrl{};
+    ctrl.id = AVT_CID_COLOR_TRANSFORM_MATRIX;
+    ctrl.size = matrix.size() * sizeof(int);
+    ctrl.ptr = const_cast<int *>(matrix.data());
+    v4l2_ext_controls ctrls{};
+    ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
+    ctrls.count = 1;
+    ctrls.controls = &ctrl;
+
+    int ret = ioctl(fdit->second, VIDIOC_S_EXT_CTRLS, &ctrls);
+    
+    LOG_EX("Set color transform matrix ret %d", ret);
+    
+    return ret;
 }

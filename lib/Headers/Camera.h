@@ -24,6 +24,8 @@
 #include "AutoReader.h"
 #include "V4L2EventHandler.h"
 
+#include "EnumeratorInterface/ListEnumerationControl.h"
+
 #include <QObject>
 #include <QMutex>
 #include <QString>
@@ -681,6 +683,15 @@ public:
 	void SetFrameSizeByIndex(int index);
 
     FrameObserver* GetFrameObserver() const;
+
+    bool HasColorTransform() const;
+
+    bool GetColorTransformEnable() const;
+
+    void SetColorTransformEnable(bool enable);
+
+    std::array<int, 9> GetColorTransformMatrix() const;
+    int SetColorTransformMatrix(const std::array<int, 9>& matrix);
 private:
     void QueryControls(int fd);
 
@@ -815,7 +826,7 @@ signals:
     void SendButtonDataToEnumerationWidget(int32_t id, QString name, QString unit, bool bIsReadOnly);
 
     // Event will be called on enumeration control is found
-    void SendListDataToEnumerationWidget(int32_t id, int32_t value, QList<QString> list, QString name, QString unit, bool bIsReadOnly);
+    void SendListDataToEnumerationWidget(int32_t id, int32_t value, const std::vector<ListEnumerationOption> & list, QString name, QString unit, bool bIsReadOnly);
     // Event will be called on enumeration control is found
     void SendListIntDataToEnumerationWidget(int32_t id, int32_t value, QList<int64_t> list, QString name, QString unit, bool bIsReadOnly);
 

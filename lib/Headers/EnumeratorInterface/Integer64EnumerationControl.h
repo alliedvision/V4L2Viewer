@@ -112,6 +112,7 @@ private:
     bool m_ReadOnly;
     QString m_Unit;
     int64_t m_SliderValue;
+    bool m_Editing;
 };
 
 #endif // INTEGER64ENUMERATIONCONTROL_H
