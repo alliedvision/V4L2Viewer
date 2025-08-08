@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2021 Allied Vision Technologies GmbH
+   Copyright (C) 2021 -2025 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -66,16 +66,21 @@ void ListEnumerationControl::UpdateValue(QList<QString> list, int32_t value)
 	{
 		m_ComboBox.setCurrentIndex(value);
 	}
-	else {
+	else
+    {
 		m_ComboBox.clear();
-		for (QList<QString>::iterator it = list.begin(); it < list.end(); ++it) {
+		for (QList<QString>::iterator it = list.begin(); it < list.end(); ++it) 
+        {
 			m_ComboBox.addItem(*it);
 		}
 
-		if (value >= list.count()) {
+		if (value >= list.count()) 
+        {
 			m_ComboBox.addItem("Unknown Value");
 			m_ComboBox.setCurrentText("Unknown Value");
-		} else {
+		} 
+        else
+        {
 			m_ComboBox.setCurrentText(list.at(value));
 		}
 	}

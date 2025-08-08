@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2021 Allied Vision Technologies GmbH
+   Copyright (C) 2021 -2025 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -82,13 +82,15 @@ void IntegerEnumerationControl::UpdateInfo()
                           .arg(m_Min)
                           .arg(m_Max)
                           .arg(m_Unit));
-    if(m_ReadOnly) {
+    if (m_ReadOnly) 
+    {
         m_ControlInfo += tr("\n Control is READONLY");
     }
 }
 
 
-void IntegerEnumerationControl::Update(v4l2_ext_control control) {
+void IntegerEnumerationControl::Update(v4l2_ext_control control) 
+{
     UpdateValue(control.value);
 }
 

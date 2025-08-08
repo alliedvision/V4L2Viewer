@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2021 Allied Vision Technologies GmbH
+   Copyright (C) 2021 -2025 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -64,7 +64,7 @@ IControlEnumerationHolder* ControlsHolderWidget::GetControlWidget(int32_t id, bo
 {
     for (QVector<IControlEnumerationHolder*>::iterator it = m_itemVector.begin(); it<m_itemVector.end(); ++it)
     {
-        if((*it)->GetWidgetControlId() == id)
+        if ((*it)->GetWidgetControlId() == id)
         {
             bIsSuccess = true;
             return (*it);
@@ -100,7 +100,8 @@ void ControlsHolderWidget::OnListItemChanged(int row)
 
 void ControlsHolderWidget::UpdateInfo() {
     auto item = ui.m_ControlsList->item(m_Selection);
-    if(item) {
+    if(item) 
+    {
         QString info = dynamic_cast<IControlEnumerationHolder *>(ui.m_ControlsList->itemWidget(item))->GetControlInfo();
         ui.m_DescriptionLabel->setText(info);
     }
