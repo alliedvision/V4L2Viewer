@@ -67,6 +67,11 @@ struct v4l2_i2c
 // i2c write
 #define VIDIOC_W_I2C                        _IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct v4l2_i2c)
 
+// Helper for ext controls defined in driver
+#define _V4L2_EXCID_AUTOREGION_LEFT     10094918
+#define _V4L2_EXCID_AUTOREGION_TOP      10094919
+#define _V4L2_EXCID_AUTOREGION_WIDTH    10094920
+#define _V4L2_EXCID_AUTOREGION_HEIGHT   10094921
 
 // Stream statistics
 struct v4l2_stats_t
@@ -1528,6 +1533,7 @@ int Camera::EnumAllControlNewStyle()
 
     std::vector<int> allFileDescriptors = m_SubDeviceFileDescriptors;
     allFileDescriptors.push_back(m_DeviceFileDescriptor);
+    m_ControlIdToControlIdInvalidatorMap.clear();
 
     for (const auto fileDescriptor : allFileDescriptors)
     {
@@ -1714,6 +1720,26 @@ int Camera::EnumAllControlNewStyle()
                     }
                 }
             }
+
+            // Check for extended IDs which which require dependent control invalidation
+            switch (qctrl.id)
+            {
+            case _V4L2_EXCID_AUTOREGION_LEFT: 
+                m_ControlIdToControlIdInvalidatorMap.insert(std::make_pair(qctrl.id, _V4L2_EXCID_AUTOREGION_WIDTH));
+                break;
+            case _V4L2_EXCID_AUTOREGION_TOP: 
+                m_ControlIdToControlIdInvalidatorMap.insert(std::make_pair(qctrl.id, _V4L2_EXCID_AUTOREGION_HEIGHT));
+                break;
+            case _V4L2_EXCID_AUTOREGION_WIDTH: 
+                m_ControlIdToControlIdInvalidatorMap.insert(std::make_pair(qctrl.id, _V4L2_EXCID_AUTOREGION_LEFT));
+                break;
+            case _V4L2_EXCID_AUTOREGION_HEIGHT: 
+                m_ControlIdToControlIdInvalidatorMap.insert(std::make_pair(qctrl.id, _V4L2_EXCID_AUTOREGION_TOP));
+                break;
+            default:
+                break;
+            }
+
             qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
         }
 
@@ -1834,6 +1860,7 @@ int Camera::SetExtControl(T value, uint32_t controlID, const char *functionName,
     extCtrls.count = 1;
     extCtrls.ctrl_class = controlClass;
 
+    CheckInvalidators(controlID);
 
     if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_TRY_EXT_CTRLS, &extCtrls))
     {
@@ -1853,6 +1880,172 @@ int Camera::SetExtControl(T value, uint32_t controlID, const char *functionName,
     }
 
     return result;
+}
+
+void Camera::CheckInvalidators(uint32_t controlID)
+{
+    v4l2_query_ext_ctrl qctrl;
+    v4l2_querymenu queryMenu;
+    
+    for (auto& pair : m_ControlIdToControlIdInvalidatorMap)
+    {
+        if (pair.first == controlID)
+        {
+            CLEAR(qctrl);
+            CLEAR(queryMenu);
+            qctrl.id = pair.second;
+
+            if (0 == iohelper::xioctl(m_ControlIdToFileDescriptorMap[qctrl.id], VIDIOC_QUERY_EXT_CTRL, &qctrl))
+            {
+                if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
+                {
+                    bool bIsReadOnly = false;
+
+                    if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
+                    {
+                        bIsReadOnly = true;
+                    }
+
+                    if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
+                    {
+                        bIsReadOnly = true;
+                    }
+
+                    if (qctrl.flags & V4L2_CTRL_FLAG_VOLATILE && (qctrl.flags & V4L2_CTRL_FLAG_EXECUTE_ON_WRITE) == 0)
+                    {
+                        bIsReadOnly = true;
+                    }
+
+                    QString name = QString((const char*) qctrl.name);
+                    QString unit = QString::fromStdString(v4l2helper::GetControlUnit(qctrl.id));
+
+                    if (qctrl.type == V4L2_CTRL_TYPE_INTEGER)
+                    {
+                        int result = -1;
+                        int32_t value;
+                        int32_t max = qctrl.maximum;
+                        int32_t min = qctrl.minimum;
+                        uint32_t id = qctrl.id;
+
+                        result = ReadExtControl(m_ControlIdToFileDescriptorMap[qctrl.id], value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER", V4L2_CTRL_ID2CLASS(qctrl.id));
+
+                        if (result == 0)
+                        {
+                            emit SendIntDataToEnumerationWidget(id, min, max, value, name, unit, bIsReadOnly);
+                        }
+                        else
+                        {
+                            LOG_EX("Camera::CheckInvalidators Error %d while reading %s", result, qctrl.name);
+                        }
+                    }
+                    else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER64)
+                    {
+                        int result = -1;
+                        int64_t value;
+                        int64_t max = qctrl.maximum;
+                        int64_t min = qctrl.minimum;
+                        uint32_t id = qctrl.id;
+
+                        result = ReadExtControl(m_ControlIdToFileDescriptorMap[qctrl.id], value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER64", V4L2_CTRL_ID2CLASS(qctrl.id));
+
+                        if (result == 0)
+                        {
+                            emit SentInt64DataToEnumerationWidget(id, min, max, value, name, unit, bIsReadOnly);
+                        }
+                        else
+                        {
+                            LOG_EX("Camera::CheckInvalidators Error %d while reading %s", result, qctrl.name);
+                        }
+                    }
+                    else if (qctrl.type == V4L2_CTRL_TYPE_BOOLEAN)
+                    {
+                        int result = -1;
+                        int32_t value;
+                        uint32_t id = qctrl.id;
+
+                        result = ReadExtControl(m_ControlIdToFileDescriptorMap[qctrl.id], value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_BOOLEAN", V4L2_CTRL_ID2CLASS(qctrl.id));
+
+                        if (result == 0)
+                        {
+                            emit SendBoolDataToEnumerationWidget(id, static_cast<bool>(value), name, unit, bIsReadOnly);
+                        }
+                        else
+                        {
+                            LOG_EX("Camera::CheckInvalidators Error %d while reading %s", result, qctrl.name);
+                        }
+                    }
+                    else if (qctrl.type == V4L2_CTRL_TYPE_BUTTON)
+                    {
+                        uint32_t id = qctrl.id;
+                        emit SendButtonDataToEnumerationWidget(id, name, unit, bIsReadOnly);
+                    }
+                    else if (qctrl.type == V4L2_CTRL_TYPE_MENU)
+                    {
+                        int result = -1;
+                        int32_t id = qctrl.id;
+                        int32_t value;
+                        QList<QString> list;
+
+                        result = ReadExtControl(m_ControlIdToFileDescriptorMap[qctrl.id], value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_MENU", V4L2_CTRL_ID2CLASS(qctrl.id));
+
+                        if (result == 0)
+                        {
+                            queryMenu.id = qctrl.id;
+                            for (queryMenu.index = qctrl.minimum; queryMenu.index <= qctrl.maximum; queryMenu.index++)
+                            {
+
+                                if (0 == iohelper::xioctl(m_ControlIdToFileDescriptorMap[qctrl.id], VIDIOC_QUERYMENU, &queryMenu))
+                                {
+                                    list.append(QString((const char*) queryMenu.name));
+                                }
+                            }
+                            emit SendListDataToEnumerationWidget(id, value, list, name, unit, bIsReadOnly);
+                        }
+                    }
+                    else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
+                    {
+                        int result = -1;
+                        int32_t id = qctrl.id;
+                        int32_t value;
+                        QList<int64_t> list;
+
+                        result = ReadExtControl(m_ControlIdToFileDescriptorMap[qctrl.id], value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_INTEGER_MENU", V4L2_CTRL_ID2CLASS(qctrl.id));
+
+                        if (result == 0)
+                        {
+                            queryMenu.id = qctrl.id;
+                            for (queryMenu.index = qctrl.minimum; queryMenu.index <= qctrl.maximum; queryMenu.index++)
+                            {
+                                if (0 == iohelper::xioctl(m_ControlIdToFileDescriptorMap[qctrl.id], VIDIOC_QUERYMENU, &queryMenu))
+                                {
+                                    list.append(queryMenu.value);
+                                }
+                            }
+    
+                            emit SendListIntDataToEnumerationWidget(id, value, list, name, unit, bIsReadOnly);
+                        }
+                    }
+                    else if (qctrl.type == V4L2_CTRL_TYPE_STRING)
+                    {
+                        int result = -1;
+                        QString value;
+                        uint32_t id = qctrl.id;
+
+                        result = ReadExtControl(m_ControlIdToFileDescriptorMap[qctrl.id], value, id, "ReadEnumerationControl", "V4L2_CTRL_TYPE_STRING", V4L2_CTRL_ID2CLASS(qctrl.id));
+
+                        if (result == 0)
+                        {
+                            emit SendStringDataToEnumerationWidget(id, value, name, "", bIsReadOnly);
+                        }
+                        else
+                        {
+                            LOG_EX("Camera::CheckInvalidators Error %d while reading %s", result, qctrl.name);
+                        }                        
+                    }
+                }
+            }
+        }
+    }
 }
 
 template<typename T> struct v4l2_ctrl_type_container;

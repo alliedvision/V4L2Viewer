@@ -101,7 +101,7 @@ void Integer64EnumerationControl::UpdateValue(int64_t value,int64_t min,int64_t 
         m_Slider.setMaximum(GetSliderLogValue(max));
         m_Slider.setMinimum(GetSliderLogValue(min));
         m_Slider.setValue(GetSliderLogValue(value));
-
+        
     }
     else
     {
