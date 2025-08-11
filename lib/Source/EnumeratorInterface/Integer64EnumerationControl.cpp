@@ -18,6 +18,8 @@
 
 #include "Integer64EnumerationControl.h"
 #include "linux/v4l2-controls.h"
+#include "linux/avt-csi2.h"
+#include "Logger.h"
 #include <math.h>
 
 Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min, int64_t max, int64_t value, QString name, QString unit, bool bIsReadOnly, QWidget *parent):
@@ -26,7 +28,8 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
     m_Max(max),
     m_Value(value),
     m_ReadOnly(bIsReadOnly),
-    m_Unit(unit)
+    m_Unit(unit),
+    m_Editing{false}
 
 {
     m_LineEdit.setText(QString::number(m_Value));
@@ -37,7 +40,7 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
     m_MainLayout.addWidget(&m_Slider, 0, 1);
     m_MainLayout.addWidget(&m_LineEdit, 0, 2);
 
-    auto const len = int(std::ceil(std::log10(max+1)));
+    auto const len = int(std::ceil(std::log10(max)+1));
     m_LineEdit.setMaxLength(len);
 
     m_MainLayout.setColumnStretch(0, 2);
@@ -53,7 +56,15 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
         setEnabled(true);
     }
 
+    if (id == AVT_CID_EXPOSURE_GAIN)
+        m_Slider.hide();
+
     connect(&m_LineEdit, SIGNAL(editingFinished()), this, SLOT(OnLineEditPressed()));
+    connect(&m_LineEdit, &QLineEdit::textEdited, [&](auto) {
+        m_Editing = true;
+    });
+
+
     connect(&m_Slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
     if (name.contains("exposure",Qt::CaseInsensitive))
     {
@@ -80,7 +91,7 @@ void Integer64EnumerationControl::UpdateInfo()
                           .arg(m_Min)
                           .arg(m_Max)
                           .arg(m_Unit));
-    if(m_ReadOnly) 
+    if(m_ReadOnly)
     {
         m_ControlInfo += tr("\n Control is READONLY");
     }
@@ -88,6 +99,9 @@ void Integer64EnumerationControl::UpdateInfo()
 
 void Integer64EnumerationControl::UpdateValue(int64_t value,int64_t min,int64_t max)
 {
+    if (m_Editing)
+        return;
+
     m_Min = min;
     m_Max = max;
 
@@ -114,19 +128,21 @@ void Integer64EnumerationControl::UpdateValue(int64_t value,int64_t min,int64_t 
     m_Slider.blockSignals(false);
 }
 
-void Integer64EnumerationControl::Update(v4l2_ext_control control) 
+void Integer64EnumerationControl::Update(v4l2_ext_control control)
 {
     UpdateValue(control.value64, m_Min, m_Max);
 }
 
 void Integer64EnumerationControl::OnLineEditPressed()
 {
+    m_Editing = false;
     int64_t value = static_cast<int64_t>(m_LineEdit.text().toLongLong());
     emit PassNewValue(m_id, value);
 }
 
 void Integer64EnumerationControl::OnSliderValueChanged(int value)
 {
+    LOG_EX("Ctrl id %x Value %lld", m_id, value);
     m_LineEdit.setText(QString::number(ConvertFromSliderValue(value)));
     m_SliderValue = ConvertFromSliderValue(value);
 
@@ -145,6 +161,7 @@ void Integer64EnumerationControl::OnSliderLogValueChanged(int value)
 
     double outValue = exp(minExposure + scale*(value - minSliderValue));
     m_SliderValue = static_cast<int64_t>(outValue);
+    LOG_EX("Ctrl id %x Value %lld", m_id, outValue);
     m_LineEdit.setText(QString::number(m_SliderValue));
 
     emit PassSliderValue(m_id, m_SliderValue);
@@ -171,8 +188,10 @@ int32_t Integer64EnumerationControl::ConvertToSliderValue(int64_t value) const
     int64_t range = m_Max - m_Min;
     int64_t offset = value - m_Min;
 
-    if (range < INT32_MAX) 
-    {
+
+    LOG_EX("Ctrl id %x Range %lld", m_id, range);
+
+    if (range < INT32_MAX) {
         return static_cast<int32_t>(offset);
     }
 
@@ -185,7 +204,7 @@ int64_t Integer64EnumerationControl::ConvertFromSliderValue(int32_t value) const
 {
     int64_t range = m_Max - m_Min;
 
-    if (range < INT32_MAX) 
+    if (range < INT32_MAX)
     {
         return m_Min + value;
     }
