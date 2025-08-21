@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2021 Allied Vision Technologies GmbH
+   Copyright (C) 2021 -2025 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -56,7 +56,7 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
         setEnabled(true);
     }
 
-    if (id == AVT_CID_EXPOSURE_GAIN) 
+    if (id == AVT_CID_EXPOSURE_GAIN)
         m_Slider.hide();
 
     connect(&m_LineEdit, SIGNAL(editingFinished()), this, SLOT(OnLineEditPressed()));
@@ -64,7 +64,7 @@ Integer64EnumerationControl::Integer64EnumerationControl(int32_t id, int64_t min
         m_Editing = true;
     });
 
-    
+
     connect(&m_Slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
     if (name.contains("exposure",Qt::CaseInsensitive))
     {
@@ -91,7 +91,8 @@ void Integer64EnumerationControl::UpdateInfo()
                           .arg(m_Min)
                           .arg(m_Max)
                           .arg(m_Unit));
-    if(m_ReadOnly) {
+    if(m_ReadOnly)
+    {
         m_ControlInfo += tr("\n Control is READONLY");
     }
 }
@@ -99,7 +100,7 @@ void Integer64EnumerationControl::UpdateInfo()
 void Integer64EnumerationControl::UpdateValue(int64_t value,int64_t min,int64_t max)
 {
     if (m_Editing)
-        return; 
+        return;
 
     m_Min = min;
     m_Max = max;
@@ -127,7 +128,8 @@ void Integer64EnumerationControl::UpdateValue(int64_t value,int64_t min,int64_t 
     m_Slider.blockSignals(false);
 }
 
-void Integer64EnumerationControl::Update(v4l2_ext_control control) {
+void Integer64EnumerationControl::Update(v4l2_ext_control control)
+{
     UpdateValue(control.value64, m_Min, m_Max);
 }
 
@@ -202,7 +204,8 @@ int64_t Integer64EnumerationControl::ConvertFromSliderValue(int32_t value) const
 {
     int64_t range = m_Max - m_Min;
 
-    if (range < INT32_MAX) {
+    if (range < INT32_MAX)
+    {
         return m_Min + value;
     }
 

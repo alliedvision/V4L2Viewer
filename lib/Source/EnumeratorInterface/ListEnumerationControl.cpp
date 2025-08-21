@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2021 Allied Vision Technologies GmbH
+   Copyright (C) 2021 -2025 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -58,7 +58,7 @@ ListEnumerationControl::ListEnumerationControl(int32_t id, int32_t value, const 
     {
         setEnabled(true);
     }
-    
+
     connect(&m_ComboBox, SIGNAL(currentTextChanged(const QString &)), this, SLOT(OnListItemChanged(const QString &)));
 }
 
@@ -70,7 +70,8 @@ void ListEnumerationControl::UpdateValue(const std::vector<ListEnumerationOption
 	{
 		m_ComboBox.setCurrentIndex(vit->second);
 	}
-	else {
+	else
+    {
 		m_ComboBox.clear();
         m_IndexMap.clear();
 		for (int i = 0; i < list.size(); i++) {

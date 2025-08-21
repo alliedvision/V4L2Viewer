@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2021 Allied Vision Technologies GmbH
+   Copyright (C) 2021 - 2025 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -250,7 +250,9 @@ Camera::~Camera()
 
     m_CameraObserver.SetTerminateFlag();
     if (NULL != m_pFrameObserver.data())
+    {
         m_pFrameObserver->StopStream();
+    }
 
     if(m_pPixFormat)
     {
@@ -263,7 +265,8 @@ Camera::~Camera()
 
 void Camera::RereadVolatileControls() {
     QMutexLocker locker(&m_VolatileControlListMutex);
-    for(auto& [fd, controls]: m_volatileControls) {
+    for(auto& [fd, controls]: m_volatileControls) 
+    {
         v4l2_ext_controls ctrls;
         ctrls.ctrl_class = 0;
         ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
@@ -271,8 +274,10 @@ void Camera::RereadVolatileControls() {
         ctrls.controls = controls.data();
 
         auto const result = iohelper::xioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls);
-        if(result == 0) {
-            for(auto& c: controls) {
+        if(result == 0)
+        {
+            for(auto& c: controls) 
+            {
                 switch (c.id)
                 {
                   case V4L2_CID_GAIN:
@@ -888,7 +893,8 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
         CLEAR(fmt);
         fmt.type = m_DeviceBufferType;
 
-        if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt)) {
+        if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt)) 
+        {
             LOG_EX("Camera::SetFrameSize VIDIOC_G_FMT OK");
 
             m_pPixFormat->SetWidth(fmt, width);
@@ -897,24 +903,33 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
             m_pPixFormat->SetBytesPerLine(fmt, 0);
             m_pPixFormat->SetSizeImage(fmt, 0);
 
-            if (m_UseV4L2TryFmt) {
+            if (m_UseV4L2TryFmt) 
+            {
                 result = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_TRY_FMT, &fmt);
-                if (result != 0) {
+                if (result != 0)
+                {
                     LOG_EX("Camera::SetFrameSize VIDIOC_TRY_FMT %s failed errno=%d=%s",
                            m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno,
                            v4l2helper::ConvertErrno2String(errno).c_str());
                 }
-            } else
+            } 
+            else
+            {
                 result = 0;
+            }
 
-            if (0 == result) {
+            if (0 == result) 
+            {
                 result = iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt);
-                if (-1 != result) {
+                if (-1 != result) 
+                {
                     LOG_EX("Camera::SetFrameSize VIDIOC_S_FMT %s OK =%dx%d",
                            m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), width, height);
 
                     result = 0;
-                } else {
+                } 
+                else
+                {
                     LOG_EX("Camera::SetFrameSize VIDIOC_S_FMT %s failed errno=%d=%s",
                            m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno,
                            v4l2helper::ConvertErrno2String(errno).c_str());
@@ -934,14 +949,16 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
         baseSubdevFormat.which = V4L2_SUBDEV_FORMAT_ACTIVE;
         baseSubdevFormat.pad = 0;
 
-        if (ioctl(m_FrameSizeFileDescriptor, VIDIOC_SUBDEV_G_FMT, &baseSubdevFormat) != 0) {
+        if (ioctl(m_FrameSizeFileDescriptor, VIDIOC_SUBDEV_G_FMT, &baseSubdevFormat) != 0) 
+        {
             return -1;
         }
 
         baseSubdevFormat.format.width = width;
         baseSubdevFormat.format.height = height;
 
-        if (ioctl(m_FrameSizeFileDescriptor, VIDIOC_SUBDEV_S_FMT, &baseSubdevFormat) != 0) {
+        if (ioctl(m_FrameSizeFileDescriptor, VIDIOC_SUBDEV_S_FMT, &baseSubdevFormat) != 0) 
+        {
             return -1;
         }
 
@@ -953,14 +970,16 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
                 subdevFormat.which = V4L2_SUBDEV_FORMAT_ACTIVE;
                 subdevFormat.pad = 0;
 
-                if (ioctl(subdevFd, VIDIOC_SUBDEV_G_FMT, &subdevFormat) != 0) {
+                if (ioctl(subdevFd, VIDIOC_SUBDEV_G_FMT, &subdevFormat) != 0)
+                {
                     continue;
                 }
 
                 subdevFormat.format.width = baseSubdevFormat.format.width;
                 subdevFormat.format.height = baseSubdevFormat.format.height;
 
-                if (ioctl(subdevFd, VIDIOC_SUBDEV_S_FMT, &subdevFormat) != 0) {
+                if (ioctl(subdevFd, VIDIOC_SUBDEV_S_FMT, &subdevFormat) != 0) 
+                {
                     continue;
                 }
             }
@@ -971,7 +990,9 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
         format.type = m_DeviceBufferType;
 
         if (iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_G_FMT, &format) < 0)
+        {
             return -1;
+        }
 
         m_pPixFormat->SetBytesPerLine(format,0);
         m_pPixFormat->SetSizeImage(format,0);
@@ -979,7 +1000,9 @@ int Camera::SetFrameSize(uint32_t width, uint32_t height)
         m_pPixFormat->SetHeight(format,baseSubdevFormat.format.height);
 
         if (iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_S_FMT, &format) < 0)
+        {
             return -1;
+        }
 
         return 0;
     }
@@ -1165,8 +1188,6 @@ int Camera::ReadFormats()
         std::string tmp = (char*)fmt.description;
         LOG_EX("Camera::ReadFormats VIDIOC_ENUM_FMT index = %d type = %d pixel format = %d = %s description = %s", fmt.index, fmt.type, fmt.pixelformat, v4l2helper::ConvertPixelFormat2EnumString(fmt.pixelformat).c_str(), fmt.description);
 
-
-
         //emit OnCameraPixelFormat_Signal(QString("%1").arg(QString(v4l2helper::ConvertPixelFormat2String(fmt.pixelformat).c_str())),!ImageTransform::CanConvert(fmt.pixelformat));
         emit OnCameraPixelFormat_Signal(fmt.pixelformat);
 
@@ -1197,7 +1218,8 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
         m_pPixFormat->SetField(fmt, V4L2_FIELD_ANY);
         m_pPixFormat->SetBytesPerLine(fmt, 0);
         m_pPixFormat->SetSizeImage(fmt, 0);
-        if (fmt.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+        if (fmt.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) 
+        {
             fmt.fmt.pix_mp.num_planes = 1;
         }
 
@@ -1231,7 +1253,6 @@ int Camera::SetPixelFormat(uint32_t pixelFormat, QString pfText)
                 LOG_EX("Camera::SetPixelFormat VIDIOC_S_FMT %s failed errno=%d=%s", m_FileDescriptorToNameMap[m_DeviceFileDescriptor].c_str(), errno, v4l2helper::ConvertErrno2String(errno).c_str());
             }
         }
-
     }
     else
     {
@@ -1254,7 +1275,8 @@ QList<QString> Camera::GetFrameSizes(uint32_t fourcc)
         frmsizeenum.pixel_format = fourcc;
         frmsizeenum.index = index;
 
-        while (!iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_ENUM_FRAMESIZES,&frmsizeenum)) {
+        while (!iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_ENUM_FRAMESIZES,&frmsizeenum)) 
+        {
             if (frmsizeenum.type == V4L2_FRMSIZE_TYPE_DISCRETE)
             {
                 framesizes.append(QString("%1x%2").arg(frmsizeenum.discrete.width).arg(frmsizeenum.discrete.height));
@@ -1264,8 +1286,6 @@ QList<QString> Camera::GetFrameSizes(uint32_t fourcc)
                 framesizes.append(QString("%1x%2-%3x%4").arg(frmsizeenum.stepwise.min_width).arg(frmsizeenum.stepwise.min_height)
                                           .arg(frmsizeenum.stepwise.max_width).arg(frmsizeenum.stepwise.max_height));
             }
-
-
 
             frmsizeenum.index = (++index);
         }
@@ -1335,7 +1355,9 @@ int Camera::GetFrameSizeIndex()
                     {
                         if (frmsizeenum.discrete.width == sel.r.width &&
                             frmsizeenum.discrete.height == sel.r.height)
+                        {
                             return index;
+                        }
 
                         frmsizeenum.index = (++index);
                     }
@@ -1353,7 +1375,9 @@ int Camera::GetFrameSizeIndex()
                     {
                         if (frmsizeenum.discrete.width == m_pPixFormat->GetWidth(fmt) &&
                             frmsizeenum.discrete.height == m_pPixFormat->GetHeight(fmt))
+                        {
                             return index;
+                        }
 
                         frmsizeenum.index = (++index);
                     }
@@ -1441,7 +1465,9 @@ void Camera::SetFrameSizeByIndex(int index)
         }();
 
         if (!code)
+        {
             return;
+        }
 
         v4l2_subdev_frame_size_enum subdevFrameSize{};
         subdevFrameSize.pad = 0;
@@ -1450,7 +1476,8 @@ void Camera::SetFrameSizeByIndex(int index)
         subdevFrameSize.index = index;
 
 
-        if (ioctl(m_FrameSizeFileDescriptor, VIDIOC_SUBDEV_ENUM_FRAME_SIZE, &subdevFrameSize) != 0) {
+        if (ioctl(m_FrameSizeFileDescriptor, VIDIOC_SUBDEV_ENUM_FRAME_SIZE, &subdevFrameSize) != 0)
+        {
             return;
         }
 
@@ -1467,14 +1494,16 @@ void Camera::SetFrameSizeByIndex(int index)
             subdevFormat.which = V4L2_SUBDEV_FORMAT_ACTIVE;
             subdevFormat.pad = 0;
 
-            if (ioctl(subdevFd, VIDIOC_SUBDEV_G_FMT, &subdevFormat) != 0) {
+            if (ioctl(subdevFd, VIDIOC_SUBDEV_G_FMT, &subdevFormat) != 0) 
+            {
                 continue;
             }
 
             subdevFormat.format.width = subdevFrameSize.max_width;
             subdevFormat.format.height = subdevFrameSize.max_height;
 
-            if (ioctl(subdevFd, VIDIOC_SUBDEV_S_FMT, &subdevFormat) != 0) {
+            if (ioctl(subdevFd, VIDIOC_SUBDEV_S_FMT, &subdevFormat) != 0) 
+            {
                 continue;
             }
         }
@@ -1483,7 +1512,9 @@ void Camera::SetFrameSizeByIndex(int index)
         fmt.type = m_DeviceBufferType;
 
         if (ioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt) != 0)
+        {
             return;
+        }
 
         m_pPixFormat->SetWidth(fmt,subdevFrameSize.max_width);
         m_pPixFormat->SetHeight(fmt,subdevFrameSize.max_height);
@@ -1491,7 +1522,9 @@ void Camera::SetFrameSizeByIndex(int index)
         m_pPixFormat->SetSizeImage(fmt, 0);
 
         if (ioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt) != 0)
+        {
             return;
+        }
     }
 }
 
@@ -2076,8 +2109,6 @@ int Camera::ReadAutoWhiteBalance(bool &flag)
     result = ReadExtControl(value, V4L2_CID_AUTO_WHITE_BALANCE, "ReadAutoWhiteBalance", "V4L2_CID_AUTO_WHITE_BALANCE", V4L2_CTRL_CLASS_USER);
     flag = (value == V4L2_WHITE_BALANCE_AUTO) ? true : false;
 
-
-
     return result;
 }
 
@@ -2156,14 +2187,16 @@ void Camera::PrepareFrameSize()
         v4l2_format format{};
         format.type = m_DeviceBufferType;
 
-        if (ioctl(m_DeviceFileDescriptor,VIDIOC_G_FMT,&format) != 0) {
+        if (ioctl(m_DeviceFileDescriptor,VIDIOC_G_FMT,&format) != 0) 
+        {
             return false;
         }
 
         v4l2_frmsizeenum frmsizeenum{};
         frmsizeenum.pixel_format = m_pPixFormat->GetPixelFormat(format);
 
-        if (ioctl(m_DeviceFileDescriptor,VIDIOC_ENUM_FRAMESIZES,&frmsizeenum) != 0) {
+        if (ioctl(m_DeviceFileDescriptor,VIDIOC_ENUM_FRAMESIZES,&frmsizeenum) != 0) 
+        {
             return false;
         }
 
@@ -2361,7 +2394,8 @@ int Camera::ReadCrop(int32_t &xOffset, int32_t &yOffset, uint32_t &width, uint32
                    m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), xOffset, yOffset, width, height);
 
             result = 0;
-        } else
+        } 
+        else
         {
             LOG_EX("Camera::ReadCrop VIDIOC_G_CROP %s failed errno=%d=%s",
                    m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), errno,
@@ -2385,7 +2419,8 @@ int Camera::ReadCrop(int32_t &xOffset, int32_t &yOffset, uint32_t &width, uint32
                    m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), xOffset, yOffset, width, height);
 
             result = 0;
-        } else
+        } 
+        else
         {
             LOG_EX("Camera::ReadCrop VIDIOC_SUBDEV_G_SELECTION %s failed errno=%d=%s",
                    m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), errno,
@@ -2417,7 +2452,8 @@ int Camera::SetCrop(int32_t xOffset, int32_t yOffset, uint32_t width, uint32_t h
                    m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), xOffset, yOffset, width, height);
 
             result = 0;
-        } else
+        }
+        else
         {
             LOG_EX("Camera::SetCrop VIDIOC_S_CROP %s failed errno=%d=%s",
                    m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), errno,
@@ -2441,7 +2477,8 @@ int Camera::SetCrop(int32_t xOffset, int32_t yOffset, uint32_t width, uint32_t h
                    m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), xOffset, yOffset, width, height);
 
             result = 0;
-        } else
+        } 
+        else
         {
             LOG_EX("Camera::ReadCrop VIDIOC_SUBDEV_S_SELECTION %s failed errno=%d=%s",
                    m_FileDescriptorToNameMap[m_CropDeviceFileDescriptor].c_str(), errno,
@@ -2454,14 +2491,16 @@ int Camera::SetCrop(int32_t xOffset, int32_t yOffset, uint32_t width, uint32_t h
             subdevFormat.which = V4L2_SUBDEV_FORMAT_ACTIVE;
             subdevFormat.pad = 0;
 
-            if (ioctl(subdevFd, VIDIOC_SUBDEV_G_FMT, &subdevFormat) != 0) {
+            if (ioctl(subdevFd, VIDIOC_SUBDEV_G_FMT, &subdevFormat) != 0) 
+            {
                 continue;
             }
 
             subdevFormat.format.width = selection.r.width;
             subdevFormat.format.height = selection.r.height;
 
-            if (ioctl(subdevFd, VIDIOC_SUBDEV_S_FMT, &subdevFormat) != 0) {
+            if (ioctl(subdevFd, VIDIOC_SUBDEV_S_FMT, &subdevFormat) != 0) 
+            {
                 continue;
             }
         }
@@ -2478,10 +2517,10 @@ int Camera::SetCrop(int32_t xOffset, int32_t yOffset, uint32_t width, uint32_t h
         m_pPixFormat->SetHeight(format,selection.r.height);
 
         if (iohelper::xioctl(m_DeviceFileDescriptor,VIDIOC_S_FMT, &format) < 0)
+        {
             return result;
-
+        }
     }
-
 
     return result;
 }
@@ -2690,7 +2729,6 @@ int Camera::GetCameraDriverVersion(std::string &strText)
     std::string version = "unknown";
     v4l2_capability cap;
 
-
     // query device capabilities
     if (-1 == iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_QUERYCAP, &cap))
     {
@@ -2788,8 +2826,6 @@ int Camera::GetCameraDriverVersion(std::string &strText)
     }
     result = 0;
 
-
-
     for (const auto subDevFd : m_SubDeviceFileDescriptors)
     {
         version = "";
@@ -2823,7 +2859,6 @@ int Camera::GetCameraDriverVersion(std::string &strText)
 #endif //#ifdef VIDIOC_SUBDEV_QUERYCAP
             }
         }
-
 
         if (!version.empty())
         {

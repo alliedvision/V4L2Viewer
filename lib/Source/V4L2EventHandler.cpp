@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2022 Allied Vision Technologies GmbH
+   Copyright (C) 2022 -2025 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License

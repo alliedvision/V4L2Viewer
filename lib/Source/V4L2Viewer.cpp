@@ -1,5 +1,5 @@
 /* Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-   Copyright (C) 2021 Allied Vision Technologies GmbH
+   Copyright (C) 2021 -2025 Allied Vision Technologies GmbH
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -117,7 +117,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
 
     bool const forceSoftware = [] {
         auto const var = getenv("V4L2VIEWER_SOFTWARE_RENDER");
-        if(var == nullptr) {
+        if(var == nullptr) 
+        {
             #if defined(SOFTWARE_RENDER_DEFAULT) && SOFTWARE_RENDER_DEFAULT == 1
               return true;
             #else
@@ -128,7 +129,8 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
         return atoi(var) == 1;
     }();
 
-    if(forceSoftware) {
+    if(forceSoftware) 
+    {
         m_RenderSystem = std::make_unique<SoftwareRenderSystem>();
     } else {
         m_RenderSystem = std::make_unique<EGLRenderSystem>();
@@ -139,7 +141,6 @@ V4L2Viewer::V4L2Viewer(QWidget *parent, Qt::WindowFlags flags)
     m_pImageView->hide();
     connect(m_RenderSystem.get(), SIGNAL(RequestZoom(QPointF, bool)), this, SLOT(OnZoomRequested(QPointF, bool)));
     connect(m_RenderSystem.get(), SIGNAL(PixelClicked(QPointF)), this, SLOT(OnImageClicked(QPointF)));
-
 
     // connect the menu actions
     connect(ui.m_MenuClose, SIGNAL(triggered()), this, SLOT(OnMenuCloseTriggered()));
@@ -503,8 +504,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
         {
             int mediaFd = open(devNode.path().c_str(),O_RDWR);
 
-
-
             if (mediaFd > 0)
             {
                 struct media_entity_desc mediaEntity = {0};
@@ -555,8 +554,6 @@ void V4L2Viewer::OnOpenCloseButtonClicked()
             }
         }
     }
-
-
 
     auto getCameraNode = [&](QString deviceName) {
         for (const auto & node : sensorNodes)
@@ -711,7 +708,6 @@ void V4L2Viewer::OnStartButtonClicked()
     result = m_Camera.ReadPixelFormat(pixelFormat, bytesPerLine, pixelFormatText);
 
     LOG_EX("V4L2Viewer::OnStartButtonClicked width=%d,height=%d", width, height);
-
 
     if (result == 0) {
         if (m_RenderSystem->CanRender(pixelFormat)) {
@@ -1146,12 +1142,11 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
                 }
 
                 CustomDialog::Error(this, tr("Video4Linux"), tr("Start stream channel failed!"));
-            } else
+            } 
+            else
             {
                 CustomDialog::Error(this, tr("Video4Linux"), tr("Start streaming failed!"));
             }
-
-
         }
         else
         {
@@ -1182,7 +1177,7 @@ void V4L2Viewer::StartStreaming(uint32_t pixelFormat, uint32_t payloadSize, uint
         ui.m_edFrameRate->setEnabled(true);
     }
 
-    if(m_bIsCropAvailable)
+    if (m_bIsCropAvailable)
     {
         ui.m_cropWidget->setEnabled(true);
     }
@@ -1248,7 +1243,8 @@ void V4L2Viewer::OnStopButtonClicked()
 void V4L2Viewer::OnSaveImageClicked()
 {
     QMutexLocker locker(&lastFrameMutex);
-    if(!lastDoneCallback) {
+    if(!lastDoneCallback) 
+    {
         return;
     }
 
@@ -1456,7 +1452,8 @@ void V4L2Viewer::OnImageClicked(QPointF point) {
 
 void V4L2Viewer::OnZoomRequested(QPointF center, bool zoomIn)
 {
-    if(zoomIn) {
+    if (zoomIn) 
+    {
         OnZoomIn();
     } else {
         OnZoomOut();
@@ -1492,7 +1489,7 @@ void V4L2Viewer::OnZoomIn()
 // The event handler for resize the image
 void V4L2Viewer::OnZoomOut()
 {
-    if(zoom > MAX_ZOOM_OUT)
+    if (zoom > MAX_ZOOM_OUT)
     {
         zoom /= ZOOM_INCREMENT;
         m_RenderSystem->SetScaleFactor(zoom);
@@ -1539,7 +1536,9 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
     if (err != 0)
     {
         CustomDialog::Error( this, tr("Video4Linux"), tr("The camera cannot be opened because it is in use by another application or it has been disconnected!"));
-    } else {
+    } 
+    else
+    {
       // Data processor for updating UI according to received data
       m_Camera.GetFrameObserver()->AddRawDataProcessor([this] (auto const& buf, auto doneCallback) {
         emit UpdateFrameInfo(buf.frameID,buf.width,buf.height);
@@ -1559,7 +1558,8 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
             }
 
             m_RenderSystem->PassFrame(buf, [this,doneCallback] {
-                if(!m_bIsImageFitByFirstImage) {
+                if (!m_bIsImageFitByFirstImage) 
+                {
                     ui.m_ZoomFitButton->setChecked(true);
                     OnZoomFitButtonClicked();
                     m_bIsImageFitByFirstImage = true;
@@ -1567,11 +1567,10 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
 
                 doneCallback();
           });
-
-
-
-        } else {
-          doneCallback();
+        } 
+        else
+        {
+            doneCallback();
         }
       });
 
@@ -1580,13 +1579,14 @@ int V4L2Viewer::OpenAndSetupCamera(const uint32_t cardNumber, const QString &dev
       m_Camera.GetFrameObserver()->AddRawDataProcessor([&] (auto const& buf, auto doneCallback) {
         if (m_StreamingState.load(std::memory_order_acquire) == StreamingState::Streaming && m_ShowFrames) {
             QMutexLocker locker(&lastFrameMutex);
-            if(lastDoneCallback) {
+            if (lastDoneCallback) {
                 lastDoneCallback();
             }
             lastDoneCallback = doneCallback;
             lastFrame = buf;
         }
-        else {
+        else 
+        {
             doneCallback();
         }
       });
@@ -1691,12 +1691,12 @@ void V4L2Viewer::OnExposure()
 
     if (m_Camera.SetExposure(nVal) < 0)
     {
-	CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
-	GetImageInformation();
+        CustomDialog::Error( this, tr("Video4Linux"), tr("FAILED TO SAVE Exposure!") );
+        GetImageInformation();
     }
     else
     {
-	GetImageInformation();
+    	GetImageInformation();
     }
 }
 
@@ -1965,7 +1965,7 @@ void V4L2Viewer::GetImageInformation(const bool isCalledFromOnOpen)
     m_Camera.PrepareCrop();
     m_Camera.PrepareFrameSize();
 
-    if(isCalledFromOnOpen)
+    if (isCalledFromOnOpen)
     {
         SetDefaultLabels();
     }
@@ -2096,7 +2096,7 @@ void V4L2Viewer::GetImageInformation(const bool isCalledFromOnOpen)
     }
     ui.m_sliderBrightness->blockSignals(false);
 
-    if(m_Camera.ReadFrameSize(width, height) == 0)
+    if (m_Camera.ReadFrameSize(width, height) == 0)
     {
         LOG_EX("V4L2Viewer::GetImageInformation: width=%d, height=%d", width, height);
         ui.m_edWidth->setEnabled(true);
@@ -2228,7 +2228,7 @@ void V4L2Viewer::UpdateCameraFormat()
 
     m_Camera.ReadPayloadSize(payloadSize);
 
-    if(m_Camera.ReadFrameSize(width, height) == 0)
+    if (m_Camera.ReadFrameSize(width, height) == 0)
     {
         LOG_EX("V4L2Viewer::UpdateCameraFormat: width=%d, height=%d", width, height);
         ui.m_edWidth->setEnabled(true);
@@ -2278,7 +2278,6 @@ void V4L2Viewer::UpdateCurrentPixelFormatOnList(QString pixelFormat)
                 ui.m_frameSizes->setEnabled(true);
                 ui.m_labelFrameSizes->setEnabled(true);
             }
-
 
 			ui.m_frameSizes->blockSignals(false);
 

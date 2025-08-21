@@ -1,5 +1,5 @@
 # Allied Vision V4L2Viewer - Graphical Video4Linux Viewer Example
-# Copyright (C) 2021 Allied Vision Technologies GmbH
+# Copyright (C) 2021 - 2025 Allied Vision Technologies GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@ cmake_policy(SET CMP0095 NEW)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 
-project(V4L2Viewer VERSION 2.3.0)
+project(V4L2Viewer VERSION 2.4.0)
 
 add_subdirectory(lib)
 
