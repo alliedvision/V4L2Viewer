@@ -683,8 +683,6 @@ public:
     FrameObserver* GetFrameObserver() const;
 private:
     void QueryControls(int fd);
-    // This function checks the for a given control ID if we need to enforce an update of an depending control
-    void CheckInvalidators(uint32_t controlID);
 
 public slots:
     // This slot function passes gain value from a thread
@@ -754,7 +752,6 @@ private:
     std::vector<int>                m_SubDeviceFileDescriptors;
     std::map<uint32_t, int>         m_ControlIdToFileDescriptorMap;
     std::map<uint32_t, std::string> m_ControlIdToControlNameMap;
-    std::multimap<uint32_t, uint32_t> m_ControlIdToControlIdInvalidatorMap;
     bool                            m_BlockingMode;
     bool                            m_ShowFrames;
     bool                            m_UseV4L2TryFmt;
