@@ -706,6 +706,7 @@ public slots:
     void RereadVolatileControls();
 
     void OnCtrlUpdate(int cid,v4l2_event_ctrl ctrl);
+    void OnPixelFormatChange();
 
     // This slot function sets enumeration integer list control value
     //
@@ -794,6 +795,8 @@ private:
     size_t fsize(const char *filename);
     void reverseBytes(void* start, int size);
 
+    const char* get_v4l2_pixel_format_name(uint32_t pixel_format);
+
 
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
@@ -815,6 +818,8 @@ signals:
     void PassAutoGainValue(int32_t value);
     // Event will be called on signal from thread when auto white balance is turend on
     void PassAutoWhiteBalanceValue(int32_t value);
+    // Event will be called on signal from driver when the (bayer) pixelformat has changed due to reverse xy changes
+    void PassPixelFormatChange(const QString &);
 
     // Event will be called on enumeration control is found
     void SendIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t max, int32_t value, QString name, QString unit, bool bIsReadOnly);
