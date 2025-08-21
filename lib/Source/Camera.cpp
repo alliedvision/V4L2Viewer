@@ -69,7 +69,6 @@ struct v4l2_i2c
 // i2c write
 #define VIDIOC_W_I2C                        _IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct v4l2_i2c)
 
-
 // Stream statistics
 struct v4l2_stats_t
 {
@@ -1750,6 +1749,7 @@ int Camera::EnumAllControlNewStyle()
                 }
                 
             }
+
             qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
         }
 
@@ -1869,7 +1869,6 @@ int Camera::SetExtControl(T value, uint32_t controlID, const char *functionName,
     extCtrls.controls = &extCtrl;
     extCtrls.count = 1;
     extCtrls.ctrl_class = controlClass;
-
 
     if (-1 != iohelper::xioctl(m_ControlIdToFileDescriptorMap[controlID], VIDIOC_TRY_EXT_CTRLS, &extCtrls))
     {

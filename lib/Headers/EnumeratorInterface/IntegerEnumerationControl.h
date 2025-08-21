@@ -30,7 +30,9 @@ public:
     //
     // Parameters:
     // [in] (int32_t) value - new value for the widget
-    void UpdateValue(int32_t value);
+    // [in] (int32_t) min - minimum value for the widget
+    // [in] (int32_t) max - maximum value for the widget
+    void UpdateValue(int32_t value, int32_t min, int32_t max);
 
     void Update(v4l2_ext_control control) override;
 
