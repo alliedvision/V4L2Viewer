@@ -795,8 +795,6 @@ private:
     size_t fsize(const char *filename);
     void reverseBytes(void* start, int size);
 
-    const char* get_v4l2_pixel_format_name(uint32_t pixel_format);
-
 
 signals:
     // The camera list changed signal that passes the new camera and the its state directly
