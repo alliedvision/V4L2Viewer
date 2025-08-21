@@ -87,26 +87,33 @@ void IntegerEnumerationControl::UpdateInfo()
     }
 }
 
-
-void IntegerEnumerationControl::Update(v4l2_ext_control control) {
-    UpdateValue(control.value);
+void IntegerEnumerationControl::Update(v4l2_ext_control control) 
+{
+    UpdateValue(control.value, m_Min, m_Max);
 }
 
-void IntegerEnumerationControl::UpdateValue(int32_t value)
+void IntegerEnumerationControl::UpdateValue(int32_t value, int32_t min, int32_t max)
 {
+    m_Min = min;
+    m_Max = max;
+
     m_LineEdit.blockSignals(true);
     m_LineEdit.setText(QString::number(value));
     m_CurrentValue.setText(QString::number(value));
     m_LineEdit.blockSignals(false);
 
     m_Slider.blockSignals(true);
-    if (m_id != V4L2_CID_EXPOSURE)
+    if (m_id == V4L2_CID_EXPOSURE)
     {
-        m_Slider.setValue(value);
+        m_Slider.setMaximum(GetSliderLogValue(max));
+        m_Slider.setMinimum(GetSliderLogValue(min));
+        m_Slider.setValue(GetSliderLogValue(value));
     }
     else
     {
-        m_Slider.setValue(GetSliderLogValue(value));
+        m_Slider.setMaximum(max);
+        m_Slider.setMinimum(min);
+        m_Slider.setValue(value);
     }
     UpdateInfo();
     m_Slider.blockSignals(false);

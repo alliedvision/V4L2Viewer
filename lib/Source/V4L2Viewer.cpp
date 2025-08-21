@@ -865,7 +865,7 @@ void V4L2Viewer::PassIntDataToEnumerationWidget(int32_t id, int32_t min, int32_t
         IControlEnumerationHolder *obj = m_pEnumerationControlWidget->GetControlWidget(id, bIsSucced);
         if (bIsSucced)
         {
-            dynamic_cast<IntegerEnumerationControl*>(obj)->UpdateValue(value);
+            dynamic_cast<IntegerEnumerationControl*>(obj)->UpdateValue(value, min, max);
         }
     }
 }
