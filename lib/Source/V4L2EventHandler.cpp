@@ -27,7 +27,6 @@
 
 V4L2EventHandler::V4L2EventHandler(const std::vector<int>  & fds) : m_Fds(fds)
 {
-
     m_eventFd = eventfd(0,0);
 }
 
@@ -54,6 +53,24 @@ void V4L2EventHandler::SubscribeControl(int id)
     }
 }
 
+void V4L2EventHandler::SubscribePixelFormatChange()
+{
+    for (const auto & fd : m_Fds)
+    {
+        v4l2_event_subscription subscription = {0};
+        subscription.type = AVT_V4L2_EVENT_PIXELFORMAT_CHANGE;
+
+        auto res = ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &subscription);
+
+        if (res != 0) {
+            LOG_EX("VIDIOC_SUBSCRIBE_EVENT failed for AVT_V4L2_EVENT_PIXELFORMAT_CHANGE and fd: %d", fd);
+        }
+        else {
+            LOG_EX("VIDIOC_SUBSCRIBE_EVENT ok for AVT_V4L2_EVENT_PIXELFORMAT_CHANGE and fd: %d", fd);
+        }
+    }
+}
+
 void V4L2EventHandler::UnsubscribeControl(int id)
 {
     for (const auto & fd : m_Fds)
@@ -61,6 +78,16 @@ void V4L2EventHandler::UnsubscribeControl(int id)
         v4l2_event_subscription subscription = {0};
         subscription.id = id;
         subscription.type = V4L2_EVENT_CTRL;
+        ioctl(fd, VIDIOC_UNSUBSCRIBE_EVENT, &subscription);
+    }
+}
+
+void V4L2EventHandler::UnsubscribePixelFormatChange()
+{
+    for (const auto & fd : m_Fds)
+    {
+        v4l2_event_subscription subscription = {0};
+        subscription.type = AVT_V4L2_EVENT_PIXELFORMAT_CHANGE;
         ioctl(fd, VIDIOC_UNSUBSCRIBE_EVENT, &subscription);
     }
 }
@@ -110,9 +137,16 @@ void V4L2EventHandler::run()
 
                     if (!error)
                     {
-                        if (event.type == V4L2_EVENT_CTRL)
+                        switch (event.type)
                         {
-                            emit ControlChanged(event.id,event.u.ctrl);
+                            case V4L2_EVENT_CTRL:
+                                emit ControlChanged(event.id,event.u.ctrl);
+                                break;
+                            case AVT_V4L2_EVENT_PIXELFORMAT_CHANGE:
+                                // We use this event to change the current (bayer) pixelformat to 
+                                // the (bayer) pixelformat that corresponds to the reverse xy setting
+                                emit PixelFormatChanged();
+                                break;
                         }
                     }
                 }

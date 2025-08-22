@@ -462,10 +462,12 @@ int Camera::OpenDevice(std::string &deviceName, QVector<QString>& subDevices, bo
 
 
     m_pEventHandler = new V4L2EventHandler(fileDescriptors);
+    m_pEventHandler->SubscribePixelFormatChange();
 
     qRegisterMetaType<v4l2_event_ctrl>();
 
     connect(m_pEventHandler,SIGNAL(ControlChanged(int,v4l2_event_ctrl)),this,SLOT(OnCtrlUpdate(int, v4l2_event_ctrl)));
+    connect(m_pEventHandler,SIGNAL(PixelFormatChanged()),this,SLOT(OnPixelFormatChange()));
 
     m_pEventHandler->start();
     m_pStopVolatileControlThreadPromise = std::make_unique<std::promise<void>>();
@@ -494,7 +496,8 @@ int Camera::CloseDevice()
 
     if (m_pEventHandler != nullptr)
     {
-		m_pEventHandler->Stop();
+        m_pEventHandler->Stop();
+        m_pEventHandler->UnsubscribePixelFormatChange();
 
         delete m_pEventHandler;
         m_pEventHandler = nullptr;
@@ -3302,6 +3305,33 @@ void Camera::OnCtrlUpdate(int cid, v4l2_event_ctrl ctrl)
 		}
 	}
 
+}
+
+void Camera::OnPixelFormatChange()
+{
+    v4l2_format fmt;
+
+    CLEAR(fmt);
+    fmt.type = m_DeviceBufferType;
+
+    // Retrieve current pixel format from driver
+    if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_G_FMT, &fmt))
+    {
+        LOG_EX("Camera::OnPixelFormatChange: VIDIOC_G_FMT 0x%08x %s\n", 
+            fmt.fmt.pix.pixelformat, v4l2helper::ConvertPixelFormat2String(fmt.fmt.pix.pixelformat).c_str());
+
+        // Set format. In case we are using a bayer format and the user has 
+        // set reverse x or reverse y, the VIDIOC_S_FMT call will return the 
+        // resulting, transformed pixelformat.
+        if (-1 != iohelper::xioctl(m_DeviceFileDescriptor, VIDIOC_S_FMT, &fmt))
+        {
+            QString pixelFormatStr = QString::fromStdString(v4l2helper::ConvertPixelFormat2String(fmt.fmt.pix.pixelformat));
+            emit PassPixelFormatChange(pixelFormatStr);
+
+            LOG_EX("Camera::OnPixelFormatChange: VIDIOC_S_FMT 0x%08x %s\n", 
+                fmt.fmt.pix.pixelformat, v4l2helper::ConvertPixelFormat2String(fmt.fmt.pix.pixelformat).c_str());
+        }
+    }
 }
 
 void Camera::PassExposureValue()
